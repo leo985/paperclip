@@ -13,6 +13,7 @@ export interface NotificationContact {externalId:string;corpId:string;name:strin
 export interface JiraPreview {actorName:string;statuses:string[];verifiedAt:string;matches:{total:number;issues:Array<{key:string;summary:string;status:string}>}|null}
 export interface SeatBot {id:string;name:string;corpId:string;appKey:string;robotCode:string;enabled:boolean;secretConfigured:boolean}
 export const dsp7SeatsApi={
+ rename:(companyId:string,id:string,name:string)=>api.patch<{agentId:string;name:string}>(`${base(companyId,id)}/name`,{name}),
  bots:(companyId:string)=>api.get<SeatBot[]>(`/companies/${companyId}/dsp7-notification-bots`),
  saveBot:(companyId:string,id:string|undefined,value:Record<string,unknown>)=>api.post<SeatBot>(`/companies/${companyId}/dsp7-notification-bots${id?"/"+id:""}`,value),
  deliveries:(companyId:string,id:string)=>api.get<Array<{createdAt:string;status:string;code?:string}>>(`${base(companyId,id)}/notification-deliveries`),

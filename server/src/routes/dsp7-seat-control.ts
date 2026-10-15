@@ -51,6 +51,24 @@ export function dsp7SeatControlRoutes(db: Db) {
     return agent;
   }
   router.use(dsp7JiraDispatchRoutes(db,own,board));
+  router.patch("/companies/:companyId/dsp7-seats/:id/name", async (req, res) => {
+    const agent = await board(req);
+    const parsed = z.object({ name: z.string().trim().min(1).max(100).refine(value => !/[\u0000-\u001f\u007f]/.test(value)) }).strict().safeParse(req.body);
+    if (!parsed.success) throw badRequest("席位名称须为 1–100 个字符，不能包含换行或控制字符");
+    const result = await db.transaction(async tx => {
+      const [current] = await tx.select().from(agents).where(and(eq(agents.id, agent.id), eq(agents.companyId, agent.companyId))).for("update");
+      const seat = current?.adapterConfig.dsp7Seat as Record<string, unknown> | undefined;
+      if (!current || !seat) throw notFound("席位不存在");
+      if (!req.actor.isInstanceAdmin && req.actor.source !== "local_implicit" && !(Array.isArray(seat.intakeUserIds) && seat.intakeUserIds.includes(req.actor.userId))) throw forbidden("未获席位授权");
+      const previousName = String(seat.name ?? current.name);
+      if (previousName !== parsed.data.name) {
+        await tx.update(agents).set({ adapterConfig: { ...current.adapterConfig, dsp7Seat: { ...seat, name: parsed.data.name } }, updatedAt: new Date() }).where(eq(agents.id, current.id));
+        await tx.insert(activityLog).values({ companyId: current.companyId, actorType: "user", actorId: req.actor.userId ?? "local-board", agentId: current.id, action: "dsp7.seat.renamed", entityType: "agent", entityId: current.id, details: { previousName, name: parsed.data.name } });
+      }
+      return { agentId: current.id, name: parsed.data.name };
+    });
+    res.json(result);
+  });
   async function history(agent: typeof agents.$inferSelect, tx: Db = db) {
     const events = await tx.select().from(activityLog).where(and(eq(activityLog.companyId, agent.companyId), eq(activityLog.agentId, agent.id), eq(activityLog.entityType,"dsp7_seat_command"))).orderBy(desc(activityLog.createdAt)).limit(500);
     return events.filter(e => e.action === "dsp7.seat.command.requested").map(e => ({ ...(e.details as { commandId: string; kind: string; taskId: string | null; revision: number; requestedBy: string; expiresAt: string }), ...commandState(e.details!,events), createdAt:e.createdAt.toISOString() }));
