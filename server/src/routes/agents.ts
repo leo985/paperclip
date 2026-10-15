@@ -5211,6 +5211,9 @@ export function agentRoutes(
         return;
       }
       assertNoAgentAdapterConfigMutation(req, adapterConfig);
+      if (Object.prototype.hasOwnProperty.call(adapterConfig, "dsp7Seat") || (replaceAdapterConfig && existing.adapterConfig.dsp7Seat)) {
+        throw forbidden("席位身份和负责人请通过席位管理专用入口修改");
+      }
       const changingInstructionsConfig = adapterConfigTouchesInstructionsConfig(adapterConfig);
       if (changingInstructionsConfig) {
         await assertCanManageInstructionsPath(req, existing);

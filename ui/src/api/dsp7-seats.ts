@@ -6,13 +6,16 @@ export interface SeatAlert { id:string;taskId:string|null;jiraKey:string;level:"
 export interface SeatTask { taskId:string;jiraKey:string;status:string;mode:"replay"|"formal";automatic?:boolean;ready:boolean }
 export interface SeatPolicy { mode:"manual"|"notify"|"auto";jiraKeys:string[];reminderMinutes:number;escalationMinutes:number;dingtalk?:{userId:string;profile?:string;botId?:string}|null }
 export interface SeatPresence { checkedAt:string;lastSeenAt:string;revision:number|null;state:"idle"|"busy"|"waiting_decision"|"awaiting_local"|"config_error"|"error";activeTaskId:string|null;runId:string|null;checks:SeatCheck[];alerts:SeatAlert[];tasks:SeatTask[];autoPermit:{until:string;jiraKeys:string[]}|null }
-export interface RegisteredSeat { isMine?:boolean;agentId:string;name:string;agentName:string;environmentName:string;runtime:SeatRuntime|null;usable:boolean;message:string;online:boolean;presence:SeatPresence|null;policy:SeatPolicy;dispatch?:JiraDispatchRule|null }
+export interface SeatOwner {id:string;name:string;email:string}
+export interface RegisteredSeat {owner:SeatOwner|null;canConfigure:boolean; isMine?:boolean;agentId:string;name:string;agentName:string;environmentName:string;runtime:SeatRuntime|null;usable:boolean;message:string;online:boolean;presence:SeatPresence|null;policy:SeatPolicy;dispatch?:JiraDispatchRule|null }
 export interface SeatCommand { commandId:string;agentId:string;kind:"check"|"refresh"|"start";taskId:string|null;revision:number;requestedBy:string;expiresAt:string;createdAt:string;status:string;message:string;runId:string|null }
 const base=(companyId:string,id:string)=>`/companies/${companyId}/dsp7-seats/${id}`;
 export interface NotificationContact {externalId:string;corpId:string;name:string;organization:string;departments:string[];userId:string|null}
 export interface JiraPreview {actorName:string;statuses:string[];verifiedAt:string;matches:{total:number;issues:Array<{key:string;summary:string;status:string}>}|null}
 export interface SeatBot {id:string;name:string;corpId:string;appKey:string;robotCode:string;enabled:boolean;secretConfigured:boolean}
 export const dsp7SeatsApi={
+ ownerCandidates:(companyId:string)=>api.get<SeatOwner[]>(`/companies/${companyId}/dsp7-seat-owner-candidates`),
+ assignOwner:(companyId:string,id:string,userId:string)=>api.patch<{agentId:string;owner:SeatOwner;dispatchReset:boolean}>(`${base(companyId,id)}/owner`,{userId}),
  rename:(companyId:string,id:string,name:string)=>api.patch<{agentId:string;name:string}>(`${base(companyId,id)}/name`,{name}),
  bots:(companyId:string)=>api.get<SeatBot[]>(`/companies/${companyId}/dsp7-notification-bots`),
  saveBot:(companyId:string,id:string|undefined,value:Record<string,unknown>)=>api.post<SeatBot>(`/companies/${companyId}/dsp7-notification-bots${id?"/"+id:""}`,value),
@@ -22,7 +25,7 @@ export const dsp7SeatsApi={
  previewDispatch:(companyId:string,id:string,value:Partial<JiraDispatchRule>)=>api.post<JiraPreview>(`${base(companyId,id)}/jira-dispatch/preview`,value),
  dispatch:(companyId:string,id:string)=>api.get<JiraDispatchRule|null>(`${base(companyId,id)}/jira-dispatch`),
  saveDispatch:(companyId:string,id:string,value:JiraDispatchRule)=>api.post<JiraDispatchRule>(`${base(companyId,id)}/jira-dispatch`,value),
- quickInvite:(companyId:string,body:{requestId:string;name:string})=>api.post<{invitationId:string;token:string;expiresAt:string}>(`/companies/${companyId}/dsp7-quick-enrollments`,body),
+ quickInvite:(companyId:string,body:{requestId:string;name:string;ownerUserId:string})=>api.post<{invitationId:string;token:string;expiresAt:string}>(`/companies/${companyId}/dsp7-quick-enrollments`,body),
  list:(companyId:string)=>api.get<RegisteredSeat[]>(`/companies/${companyId}/dsp7-seats`),
  verify:(companyId:string,seat:RegisteredSeat)=>api.post<{agentId:string;revision:number}>(`${base(companyId,seat.agentId)}/verify`,{revision:seat.runtime?.revision}),
  commands:(companyId:string,id:string)=>api.get<SeatCommand[]>(`${base(companyId,id)}/commands`),

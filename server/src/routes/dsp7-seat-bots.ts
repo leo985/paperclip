@@ -1,3 +1,4 @@
+import { canConfigureSeat } from "./dsp7-seat-owners.js";
 /** Small company-scoped, versioned notification registry. Secrets stay in the encrypted vault. */
 import { Router } from "express";
 import { createHash, randomUUID } from "node:crypto";
@@ -40,7 +41,7 @@ export function seatBotRoutes(db:Db){
  r.get('/companies/:companyId/dsp7-seats/:id/notification-deliveries',async(req,res)=>{
   assertBoard(req);const companyId=String(req.params.companyId);assertCompanyAccess(req,companyId);
   const [agent]=await db.select().from(agents).where(and(eq(agents.companyId,companyId),eq(agents.id,String(req.params.id))));const seat=agent?.adapterConfig.dsp7Seat as {intakeUserIds?:string[]}|undefined;
-  if(!seat)throw notFound("席位不存在");if(!req.actor.isInstanceAdmin&&req.actor.source!=="local_implicit"&&!seat.intakeUserIds?.includes(req.actor.userId!))throw forbidden("未获席位授权");
+  if(!seat)throw notFound("席位不存在");if(!canConfigureSeat(req,companyId,seat))throw forbidden("未获席位授权");
   const rows=await db.select().from(activityLog).where(and(eq(activityLog.companyId,companyId),eq(activityLog.agentId,agent.id),eq(activityLog.action,"dsp7.notification.delivery"))).orderBy(desc(activityLog.createdAt)).limit(10);
   const latest=new Map<string,typeof rows[number]>();for(const row of rows)if(!latest.has(row.entityId))latest.set(row.entityId,row);
   res.json([...latest.values()].map(row=>({createdAt:row.createdAt.toISOString(),status:row.details?.status,code:row.details?.code})));

@@ -59,7 +59,7 @@
 <h2>人工接入流程</h2>
 <ol>
 <li>在 Jira 创建需求，并拆出编码、Bug 或设计子工单，指定研发经办人。</li>
-<li>管理员配置共享 Project 的仓库 URL、基线分支，配置组织接入权限；研发人员通过“席位 → 接入我的电脑”登记独立执行席位。</li>
+<li>管理员配置共享 Project 的仓库 URL、基线分支，配置组织接入权限；研发人员通过“席位 → 接入研发电脑（管理员）”登记独立执行席位。</li>
 <li>研发人员在自己的电脑绑定本地业务源码仓库；同一项目的映射通常只需配置一次。</li>
 <li>在 Project 详情页点击 <strong>接入工单</strong>，填写 Jira 子工单号、共享工作区、执行席位和允许开工的 Jira 状态。</li>
 <li>等待网页显示“接入已完成”。<strong>登记完成不代表已经开工</strong>。</li>
@@ -215,7 +215,16 @@ harness attach ATSES-XXXXX
 <h2>会话什么时候退出</h2>
 <p>当前已接入的确认等待可在同一会话内恢复，不要求为了接收有效的模拟同意消息而先输入 <code>/exit</code>。任务完成且不再需要交互后再退出。运行超时、手工取消、连接失败等情况仍需看网页与终端的实际状态。</p>
 <p>这里不承诺网站能自动控制任意已经打开的普通 Claude 终端；可见性和续传适用于通过 <code>harness start</code> 接入的会话。</p><a href="#top">返回目录 ↑</a></article>
-<article id="seat-control"><p class="category">研发接入</p><h2>席位管理：运行概览、自动接单与通知</h2><p>默认使用 Jira 指派驱动自动执行；电脑接入和旧手工模式按需使用。</p><aside><strong>什么时候使用</strong><ul><li>组长 Jira 指派后自动执行</li><li>优先处理阻塞与业务决策</li><li>暂停新工单但继续当前任务</li><li>连接研发电脑并检查配置</li></ul></aside><h2>页面如何使用</h2>
+<article id="seat-control"><p class="category">研发接入</p><h2>席位管理：运行概览、自动接单与通知</h2><p>默认使用 Jira 指派驱动自动执行；电脑接入和旧手工模式按需使用。</p><aside><strong>什么时候使用</strong><ul><li>组长 Jira 指派后自动执行</li><li>优先处理阻塞与业务决策</li><li>暂停新工单但继续当前任务</li><li>连接研发电脑并检查配置</li></ul></aside><h2>管理员指定负责人，负责人配置席位</h2>
+<ul>
+<li>管理员进入“席位管理”，选中电脑，在“席位负责人”中点击“指定负责人”或“更换负责人”，按姓名或邮箱检索本组织已激活的研发成员并保存。观察成员不能作为负责人。</li>
+<li>每个席位只有一位负责人。负责人登录本人账号后，在“我的席位”中配置接单规则、Jira PAT、通知、名称，以及发起本机检查和更新登记；不能给自己或其他人分配席位。</li>
+<li>组织管理员和平台管理员可管理本组织内的席位。其他研发成员只看到分配给自己的席位。</li>
+<li>新电脑由管理员先选择负责人并生成接入命令，交给负责人在自己的电脑执行；不会再把生成命令的管理员自动设为该电脑负责人。</li>
+<li>更换负责人不需要重装客户端。正在执行、等待决策或本机正在处理请求时，先结束当前任务；尚未领取的旧请求会取消。更换后原负责人失去权限，旧 Jira 自动接单和 PAT 引用停用，通知与手工自动推进恢复默认，由新负责人重新配置。历史任务及审计记录保留，不自动转交历史工单。</li>
+<li>原有席位兼容显示此前登记的首位授权账号为负责人；管理员可在此统一确认或调整。</li>
+</ul>
+<h2>页面如何使用</h2>
 <ul>
 <li>
 <p><strong>修改席位名称</strong>：在席位详情标题旁点击“重命名”，填写 1–100 个字符后保存。席位授权负责人和平台管理员可修改；在线或离线均可操作，列表立即更新，无需重新注册或重启客户端。这里只修改平台的席位显示名称，不改变智能体名称、电脑系统名称或执行配置。</p>
@@ -282,10 +291,10 @@ harness attach ATSES-XXXXX
 <p>本机在线还需 Claude 已完成登录、模型配置可用及操作系统允许打开终端。这些本机环境问题会回报检查或请求失败记录。</p>
 </li>
 </ul>
-<h2>推荐：接入我的电脑</h2>
+<h2>推荐：接入研发电脑（管理员）</h2>
 <p><strong>场景</strong>：组织研发人员希望连接自己的电脑，沿用本机 Claude 和 Harness 配置，不配置 SSH、不输入智能体或项目 UUID。</p>
 <ol>
-<li>使用本人网站账号登录，进入 <strong>席位 → 接入新电脑 → 接入我的电脑</strong>。</li>
+<li>使用本人网站账号登录，进入 <strong>席位 → 接入新电脑 → 接入研发电脑（管理员）</strong>。</li>
 <li>填写席位名称，点击 <strong>生成接入命令</strong>，复制到这台电脑的终端执行。命令中的一次性接入码有效期 15 分钟，请勿转发。</li>
 <li>安装器检测本机 Claude、Harness 工程和 Jira 配置。检查目录后输入 <code>yes</code>。多个候选目录会让你选择；没有配置时会提示准备，安装器不会代替你安装 Claude 或克隆业务仓库。</li>
 <li>从列表选择组织项目及本机 Git 仓库。安装器核对 origin 和基线分支，不需要输入 UUID。回车可以暂时跳过，之后执行 <code>harness repo connect</code>。</li>
@@ -613,7 +622,7 @@ Harness 工程 .claude/skills/
 <ol>
 <li>准备 Windows 10 1809+ 或 Windows 11、Python 3.10+（含 pip）、Git for Windows（含 Git Bash）。支持原生 <code>claude.exe</code>；官方 npm 安装的 <code>claude.cmd</code> 会解析为 Node 与 CLI JS 入口，避免将任务提示交给 <code>cmd.exe</code> 解释。Node 版本遵循 Claude 自身要求。</li>
 <li>在 PowerShell 验证 <code>claude --version</code> 与 Git 可用，准备 Harness 和业务仓库。本机 <code>.claude/settings.local.json</code> 存在时沿用；否则使用 Claude 默认配置，不需要在网站重新填写模型 Key。</li>
-<li>网站“席位 → 接入我的电脑”选择 <strong>Windows（原生 PowerShell）</strong>，生成并执行接入命令。接入码有效期有限且仅能消费一次，不要转发。</li>
+<li>管理员在网站“席位 → 接入研发电脑（管理员）”选择负责人和 <strong>Windows（原生 PowerShell）</strong>，生成命令，由负责人在自己的电脑执行。接入码有效期有限且仅能消费一次，不要转发。</li>
 <li>PowerShell 入口检测 Python，并在缺少时通过 pip 安装 <code>pywinpty&gt;=2.0.15,&lt;4</code> 的预编译 wheel；虚拟环境安装到当前环境，普通 Python 使用当前用户安装。企业网络需允许所配置 pip 源，或事先安装批准的 wheel。</li>
 <li>根据提示确认 Harness／Claude 路径与项目仓库。成功后在用户级 PATH 加入 <code>%LOCALAPPDATA%\ZhiyanSeat\bin</code>，重新打开 PowerShell 使用 <code>harness</code>。</li>
 <li>回网站确认心跳。可以先使用已授权的模拟工单验证，再启用正式 Jira 自动接单。</li>

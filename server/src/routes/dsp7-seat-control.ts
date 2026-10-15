@@ -1,3 +1,4 @@
+import { dsp7SeatOwnerRoutes, canConfigureSeat, requireSeatOwner, isSeatManager, seatOwnerId } from "./dsp7-seat-owners.js";
 import { logger } from "../middleware/logger.js";
 import { seatBotRoutes, notifySeatBot, validateSeatBotTarget } from "./dsp7-seat-bots.js";
 import { dsp7JiraDispatchRoutes, dispatchRule, dispatchAuthorization, publicRule } from "./dsp7-jira-dispatch.js";
@@ -30,6 +31,7 @@ const path = z.string().regex(/^\//).max(2048).refine(v => !/[\r\n\0]/.test(v));
 const invitationSchema = z.object({ agentId: uuid, environmentId: uuid, name: z.string().trim().min(1).max(100), harnessRoot: path, bridgeRoot: path, claudeCommand: path, settingsFile: path.nullable(), intakeUserIds: z.array(z.string().min(1).max(200)).min(1).max(50) }).strict();
 export function dsp7SeatControlRoutes(db: Db) {
   const router = Router();
+  router.use(dsp7SeatOwnerRoutes(db));
   router.use(dsp7QuickSeatRoutes(db));
   router.use(seatBotRoutes(db));
   async function own(req: Request) {
@@ -47,7 +49,7 @@ export function dsp7SeatControlRoutes(db: Db) {
     const [agent] = await db.select().from(agents).where(and(eq(agents.id, String(req.params.id)), eq(agents.companyId, company)));
     const seat = agent?.adapterConfig.dsp7Seat as Record<string,unknown> | undefined;
     if (!agent || !seat) throw notFound("席位不存在");
-    if (!req.actor.isInstanceAdmin && req.actor.source !== "local_implicit" && !(Array.isArray(seat.intakeUserIds) && seat.intakeUserIds.includes(req.actor.userId))) throw forbidden("未获席位授权");
+    if (!canConfigureSeat(req, agent.companyId, seat)) throw forbidden("未获席位授权");
     return agent;
   }
   router.use(dsp7JiraDispatchRoutes(db,own,board));
@@ -59,7 +61,7 @@ export function dsp7SeatControlRoutes(db: Db) {
       const [current] = await tx.select().from(agents).where(and(eq(agents.id, agent.id), eq(agents.companyId, agent.companyId))).for("update");
       const seat = current?.adapterConfig.dsp7Seat as Record<string, unknown> | undefined;
       if (!current || !seat) throw notFound("席位不存在");
-      if (!req.actor.isInstanceAdmin && req.actor.source !== "local_implicit" && !(Array.isArray(seat.intakeUserIds) && seat.intakeUserIds.includes(req.actor.userId))) throw forbidden("未获席位授权");
+      if (!canConfigureSeat(req, current.companyId, seat)) throw forbidden("未获席位授权");
       const previousName = String(seat.name ?? current.name);
       if (previousName !== parsed.data.name) {
         await tx.update(agents).set({ adapterConfig: { ...current.adapterConfig, dsp7Seat: { ...seat, name: parsed.data.name } }, updatedAt: new Date() }).where(eq(agents.id, current.id));
@@ -88,7 +90,7 @@ export function dsp7SeatControlRoutes(db: Db) {
     }
     return task;
   }
-  async function createCommand(agent: typeof agents.$inferSelect, data:z.infer<typeof commandSchema>, actor:{type:string;id:string}) {
+  async function createCommand(agent: typeof agents.$inferSelect, data:z.infer<typeof commandSchema>, actor:{type:string;id:string;manager?:boolean}) {
     const repeated=(await history(agent)).find(c=>c.commandId===data.requestId);
     if(repeated){if(repeated.kind!==data.kind||repeated.taskId!==(data.taskId??null)||repeated.revision!==data.revision||repeated.requestedBy!==actor.id)throw conflict("请求编号已用于其他操作");return repeated;}
     const runtime=agent.adapterConfig.dsp7SeatRuntime as Record<string,unknown>|undefined;
@@ -106,6 +108,8 @@ export function dsp7SeatControlRoutes(db: Db) {
     return db.transaction(async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${agent.id+":seat-commands"},0))`);
       const [fresh]=await tx.select().from(agents).where(eq(agents.id,agent.id)).for("update");
+      if(actor.type==="user"&&!actor.manager&&seatOwnerId(fresh.adapterConfig.dsp7Seat as Record<string,unknown>)!==actor.id)throw forbidden("席位负责人已变化，请刷新页面");
+      if(actor.type==="agent"&&seatOwnerId(fresh.adapterConfig.dsp7Seat as Record<string,unknown>)!==seatOwnerId(agent.adapterConfig.dsp7Seat as Record<string,unknown>))throw conflict("席位负责人已变化，请重新读取接单规则");
       if(data.kind==="start"&&dispatchRule(fresh)?.intakePaused)throw conflict("已暂停接单，当前运行继续；恢复接单后再启动工单");
       const commands=await history(agent,tx as unknown as Db); const old=commands.find(c=>c.commandId===data.requestId);
       if (old) { if (old.kind !== data.kind || old.taskId !== (data.taskId??null) || old.revision !== data.revision || old.requestedBy !== actor.id) throw conflict("请求编号已用于其他操作"); return old; }
@@ -139,7 +143,7 @@ export function dsp7SeatControlRoutes(db: Db) {
   });
   router.get("/companies/:companyId/dsp7-seats/:id/commands",async(req,res)=>res.json(await history(await board(req))));
   router.post("/companies/:companyId/dsp7-seats/:id/commands",async(req,res)=>{
-    const agent=await board(req);const parsed=commandSchema.safeParse(req.body);if(!parsed.success)throw badRequest("请求字段无效");res.status(201).json(await createCommand(agent,parsed.data,{type:"user",id:req.actor.userId??"local-board"}));
+    const agent=await board(req);const parsed=commandSchema.safeParse(req.body);if(!parsed.success)throw badRequest("请求字段无效");res.status(201).json(await createCommand(agent,parsed.data,{type:"user",id:req.actor.userId??"local-board",manager:isSeatManager(req,agent.companyId)}));
   });
   router.post("/agents/:id/dsp7-seat-command-result",async(req,res)=>{
     const agent=await own(req);const parsed=z.object({commandId:uuid,status:z.enum(["awaiting_local","accepted","running","succeeded","failed","denied","expired"]),message:z.string().max(500),runId:uuid.nullable().optional()}).safeParse(req.body);if(!parsed.success)throw badRequest("回执无效");
@@ -164,7 +168,7 @@ export function dsp7SeatControlRoutes(db: Db) {
   });
   router.post("/companies/:companyId/dsp7-seats/:id/policy",async(req,res)=>{
     const agent=await board(req);const parsed=seatPolicySchema.safeParse(req.body);if(!parsed.success)throw badRequest("策略或提醒时间无效");if(parsed.data.dingtalk?.botId)await validateSeatBotTarget(db,agent.companyId,parsed.data.dingtalk);if(parsed.data.mode!=="manual"&&!parsed.data.jiraKeys.length)throw badRequest("主动推进需限定工单号");
-    await db.transaction(async tx=>{const[current]=await tx.select().from(agents).where(eq(agents.id,agent.id)).for("update");await tx.update(agents).set({adapterConfig:{...current.adapterConfig,dsp7SeatPolicy:parsed.data},updatedAt:new Date()}).where(eq(agents.id,agent.id));await tx.insert(activityLog).values({companyId:agent.companyId,actorType:"user",actorId:req.actor.userId??"local-board",agentId:agent.id,action:"dsp7.seat.policy.updated",entityType:"agent",entityId:agent.id,details:parsed.data});});res.json(parsed.data);
+    await db.transaction(async tx=>{const[current]=await tx.select().from(agents).where(eq(agents.id,agent.id)).for("update");if(!canConfigureSeat(req,current.companyId,current.adapterConfig.dsp7Seat as Record<string,unknown>))throw forbidden("席位负责人已变化，请刷新页面");await tx.update(agents).set({adapterConfig:{...current.adapterConfig,dsp7SeatPolicy:parsed.data},updatedAt:new Date()}).where(eq(agents.id,agent.id));await tx.insert(activityLog).values({companyId:agent.companyId,actorType:"user",actorId:req.actor.userId??"local-board",agentId:agent.id,action:"dsp7.seat.policy.updated",entityType:"agent",entityId:agent.id,details:parsed.data});});res.json(parsed.data);
   });
   router.post("/agents/:id/dsp7-seat-auto-request",async(req,res)=>{
     const agent=await own(req);const parsed=commandSchema.safeParse(req.body.command);if(!parsed.success||parsed.data.kind!=="start"||!parsed.data.taskId)throw badRequest("自动请求无效");
@@ -175,10 +179,12 @@ export function dsp7SeatControlRoutes(db: Db) {
   });
   router.post("/companies/:companyId/dsp7-seat-enrollments",async(req,res)=>{
     assertInstanceAdmin(req);assertCompanyAccess(req,String(req.params.companyId));const parsed=invitationSchema.safeParse({...req.body,intakeUserIds: req.body.intakeUserIds?.length ? req.body.intakeUserIds : [req.actor.userId]});if(!parsed.success)throw badRequest("接入资料无效");const data=parsed.data;
+    if(data.intakeUserIds.length!==1)throw badRequest("每个席位只能指定一位负责人");
+    await requireSeatOwner(db,String(req.params.companyId),data.intakeUserIds[0]!);
     const[agent]=await db.select().from(agents).where(and(eq(agents.id,data.agentId),eq(agents.companyId,String(req.params.companyId))));const[env]=await db.select().from(environments).where(eq(environments.id,data.environmentId));
     if(!agent||!env||env.status!=="active"||!["ssh","local"].includes(env.driver)||["paused","terminated","pending_approval"].includes(agent.status)||agent.adapterConfig.dsp7Seat)throw conflict("请选择尚未绑定席位的可用 Agent 和环境");
     const token=randomBytes(32).toString("hex"),invitationId=randomUUID(),expiresAt=new Date(Date.now()+15*60000).toISOString();
-    await db.insert(activityLog).values({companyId:agent.companyId,actorType:"user",actorId:req.actor.userId??"local-board",agentId:agent.id,action:"dsp7.seat.enrollment.invited",entityType:"dsp7_seat_enrollment",entityId:invitationId,details:{...data,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt,responsibleUserId:req.actor.userId}});
+    await db.insert(activityLog).values({companyId:agent.companyId,actorType:"user",actorId:req.actor.userId??"local-board",agentId:agent.id,action:"dsp7.seat.enrollment.invited",entityType:"dsp7_seat_enrollment",entityId:invitationId,details:{...data,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt,responsibleUserId:data.intakeUserIds[0]}});
     res.setHeader("Cache-Control","no-store");res.status(201).json({invitationId,token,companyId:agent.companyId,...data,expiresAt});
   });
   router.post("/dsp7-seat-enroll",async(req,res)=>{
@@ -191,10 +197,11 @@ export function dsp7SeatControlRoutes(db: Db) {
       const peers=await tx.select().from(agents).where(eq(agents.companyId,invite.companyId));if(peers.some(p=>(p.adapterConfig.dsp7Seat as Record<string,unknown>|undefined)?.machineFingerprint===body.machine_fingerprint))throw conflict("这台电脑已有席位，请复用原 Agent");
       const[agent]=await tx.select().from(agents).where(and(eq(agents.id,body.seat_id),eq(agents.companyId,invite.companyId))).for("update");const[env]=await tx.select().from(environments).where(eq(environments.id,String(data.environmentId)));const[run]=await tx.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.agentId,body.seat_id),inArray(heartbeatRuns.status,["queued","running"])));
       if(!agent||agent.adapterConfig.dsp7Seat||run||!env||env.status!=="active"||["paused","terminated","pending_approval"].includes(agent.status))throw conflict("Agent 或环境已变化");
+      await requireSeatOwner(tx as unknown as Db,agent.companyId,String(data.responsibleUserId));
       const token="pcp_"+randomBytes(32).toString("hex");await tx.insert(agentApiKeys).values({companyId:agent.companyId,agentId:agent.id,name:"DSP7 machine seat",keyHash:createHash("sha256").update(token).digest("hex"),responsibleUserId:String(data.responsibleUserId),scopeConfig:null});
       const { aiConnection: _connection, ...localConfig } = agent.adapterConfig;
       const localEnv = Object.fromEntries(Object.entries((localConfig.env as Record<string,unknown>)??{}).filter(([key])=>!/^ANTHROPIC_|^CLAUDE_CODE_OAUTH/.test(key)));
-      await tx.update(agents).set({adapterType:"claude_local",defaultEnvironmentId:String(data.environmentId),adapterConfig:{...localConfig,env:localEnv,engine:"cli",command:String(data.bridgeRoot)+"/claude-interactive-wrapper",extraArgs:["--add-dir",String(data.harnessRoot),"--add-dir",String(data.bridgeRoot)],dsp7WebJiraIntake:true,dsp7Seat:{machineId:body.machine_id,machineFingerprint:body.machine_fingerprint,name:data.name,intakeUserIds:data.intakeUserIds}},updatedAt:new Date()}).where(eq(agents.id,agent.id));
+      await tx.update(agents).set({adapterType:"claude_local",defaultEnvironmentId:String(data.environmentId),adapterConfig:{...localConfig,env:localEnv,engine:"cli",command:String(data.bridgeRoot)+"/claude-interactive-wrapper",extraArgs:["--add-dir",String(data.harnessRoot),"--add-dir",String(data.bridgeRoot)],dsp7WebJiraIntake:true,dsp7Seat:{machineId:body.machine_id,machineFingerprint:body.machine_fingerprint,name:data.name,ownerUserId:data.responsibleUserId,intakeUserIds:data.intakeUserIds}},updatedAt:new Date()}).where(eq(agents.id,agent.id));
       await tx.insert(activityLog).values({companyId:agent.companyId,actorType:"system",actorId:"seat-enrollment",agentId:agent.id,action:"dsp7.seat.enrollment.completed",entityType:"dsp7_seat_enrollment",entityId:body.invitationId,details:{agentId:agent.id,machineId:body.machine_id,authorizedBy:invite.actorId}});return{agentId:agent.id,companyId:agent.companyId,token};
     });res.setHeader("Cache-Control","no-store");res.status(201).json(result);
   });

@@ -1,3 +1,4 @@
+import { canConfigureSeat } from "./dsp7-seat-owners.js";
 import { Router, type Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
 import { activityLog, agents, issues, projects, projectWorkspaces, type Db } from "@paperclipai/db";
@@ -34,6 +35,7 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
   if(!parsed.success)throw badRequest("接单状态无效");
   const result=await db.transaction(async tx=>{
    const [current]=await tx.select().from(agents).where(eq(agents.id,agent.id)).for("update");
+   if(!canConfigureSeat(req,current.companyId,current.adapterConfig.dsp7Seat as Record<string,unknown>))throw forbidden("席位负责人已变化，请刷新页面");
    const rule=dispatchRule(current);if(!rule?.enabled)throw conflict("请先启用 Jira 自动接单规则");
    const next={...rule,intakePaused:parsed.data.paused,revision:rule.revision+1};
    await tx.update(agents).set({adapterConfig:{...current.adapterConfig,dsp7JiraDispatch:next},updatedAt:new Date()}).where(eq(agents.id,agent.id));
@@ -79,15 +81,16 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
    const peers=await tx.select().from(agents).where(eq(agents.companyId,agent.companyId));
    if(data.enabled&&peers.some(p=>p.id!==agent.id&&dispatchRule(p)?.enabled&&dispatchRule(p)?.jiraAssignee===data.jiraAssignee&&dispatchRule(p)?.jiraProjectKey===data.jiraProjectKey))throw conflict("该 Jira 经办人和项目已有默认执行席位，请先停用原席位调度规则");
    const [current]=await tx.select().from(agents).where(eq(agents.id,agent.id)).for("update");
+   if(!canConfigureSeat(req,current.companyId,current.adapterConfig.dsp7Seat as Record<string,unknown>))throw forbidden("席位负责人已变化，请刷新页面");
    let jiraSecretId=dispatchRule(current)?.jiraSecretId;
    if(!credentials&&jiraSecretId&&dispatchRule(current)?.jiraBaseUrl!==data.jiraBaseUrl)throw badRequest("更换 Jira 地址时请重新填写 PAT");
    if(credentials){
     const secrets=secretService(tx);
     if(jiraSecretId){await secrets.rotate(jiraSecretId,{value:credentials.token},{userId:req.actor.userId});}
     else {
-     const existing=await secrets.getByName(agent.companyId,"DSP7 Jira PAT "+agent.id);
+     const existing=await secrets.getByName(agent.companyId,"DSP7 Jira PAT "+agent.id+" "+owner);
      if(existing){await secrets.rotate(existing.id,{value:credentials.token},{userId:req.actor.userId});jiraSecretId=existing.id;}
-     else jiraSecretId=(await secrets.create(agent.companyId,{name:"DSP7 Jira PAT "+agent.id,provider:"local_encrypted",value:credentials.token},{userId:req.actor.userId})).id;
+     else jiraSecretId=(await secrets.create(agent.companyId,{name:"DSP7 Jira PAT "+agent.id+" "+owner,provider:"local_encrypted",value:credentials.token},{userId:req.actor.userId})).id;
     }
    }
    if(data.enabled&&!jiraSecretId)throw badRequest("首次启用 Jira 自动接单，请填写 PAT；后续留空表示保留已有 PAT");

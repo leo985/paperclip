@@ -1,3 +1,4 @@
+import { seatOwnerId } from "../routes/dsp7-seat-owners.js";
 import type { RequestHandler } from "express";
 import { eq } from "drizzle-orm";
 import { agents, projects, type Db } from "@paperclipai/db";
@@ -50,7 +51,7 @@ export function focusedManagementGate(db: Db): RequestHandler {
         if (resource[1] === "agents" && /^\/agents\/[^/]+\/(?:wakeup|heartbeat\/invoke)$/.test(path)) {
           const [agent] = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
           const seat = (agent?.adapterConfig as { dsp7Seat?: { intakeUserIds?: string[] } } | undefined)?.dsp7Seat;
-          if (seat?.intakeUserIds?.includes(req.actor.userId ?? "")) protectedOperation = false;
+          if (seatOwnerId(seat)===req.actor.userId) protectedOperation = false;
         }
       }
       // Global management objects have no trustworthy company segment. Keep instance-only.
@@ -65,7 +66,7 @@ export function focusedManagementGate(db: Db): RequestHandler {
         const [seat] = await db.select().from(agents).where(eq(agents.id, String(intake.seat_id))).limit(1);
         const config = seat?.adapterConfig as Record<string, unknown> | undefined;
         const identity = config?.dsp7Seat as { intakeUserIds?: string[] } | undefined;
-        if (seat?.companyId !== companyId || config?.dsp7WebJiraIntake !== true || !identity?.intakeUserIds?.includes(req.actor.userId ?? "")) throw forbidden("未获该 Jira 执行席位授权");
+        if (seat?.companyId !== companyId || config?.dsp7WebJiraIntake !== true || seatOwnerId(identity)!==req.actor.userId) throw forbidden("未获该 Jira 执行席位授权");
       }
       const agentDisplay = (!write && ((company && tail === "agents") || /^\/agents\/[^/]+$/.test(path)));
       if (agentDisplay) {

@@ -1,9 +1,10 @@
+import { canConfigureSeat, seatOwnerId } from "./dsp7-seat-owners.js";
 import { dispatchAuthorization, publicRule } from "./dsp7-jira-dispatch.js";
 import { dsp7SeatControlRoutes, defaultSeatPolicy, isSeatOnline } from "./dsp7-seat-control.js";
 import { createHash } from "node:crypto";
 import { Router } from "express";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-import { activityLog, agents, environments, heartbeatRuns, issueComments, issues, type Db } from "@paperclipai/db";
+import { activityLog, agents, environments, heartbeatRuns, issueComments, issues, authUsers, type Db } from "@paperclipai/db";
 import { z } from "zod";
 import { assertBoard, assertCompanyAccess } from "./authz.js";
 import { badRequest, conflict, forbidden, notFound } from "../errors.js";
@@ -77,9 +78,10 @@ export function dsp7SeatRoutes(db: Db) {
     assertBoard(req); assertCompanyAccess(req, companyId);
     const rows = await db.select().from(agents).where(eq(agents.companyId, companyId));
     const envs = await db.select().from(environments);
+    const owners = await db.select({ id: authUsers.id, name: authUsers.name, email: authUsers.email }).from(authUsers).where(inArray(authUsers.id, rows.map(agent => seatOwnerId(agent.adapterConfig.dsp7Seat as Record<string, unknown> | undefined)).filter((id): id is string => Boolean(id))));
     const allowed = rows.filter(agent => {
       const seat = agent.adapterConfig.dsp7Seat as Record<string, unknown> | undefined;
-      return agent.adapterConfig.dsp7WebJiraIntake === true && seat && (req.actor.isInstanceAdmin || req.actor.source === "local_implicit" || (Array.isArray(seat.intakeUserIds) && seat.intakeUserIds.includes(req.actor.userId)));
+      return agent.adapterConfig.dsp7WebJiraIntake === true && seat && canConfigureSeat(req, companyId, seat);
     });
     res.json(allowed.map(agent => {
       const seat = agent.adapterConfig.dsp7Seat as Record<string, unknown>;
@@ -91,7 +93,7 @@ export function dsp7SeatRoutes(db: Db) {
       const digest = environment ? executorDigest(agent.adapterConfig, { driver: environment.driver, config: environment.config, envVars: environment.envVars }) : null;
       const usable = Boolean(runtime && fresh && environment?.status === "active" && stored?.environmentId === agent.defaultEnvironmentId && stored?.executorDigest === digest && !["paused", "terminated", "pending_approval"].includes(agent.status));
       const presence = agent.adapterConfig.dsp7SeatPresence as Record<string, unknown> | undefined;
-      return { presence: presence ?? null, online: isSeatOnline(presence), policy: agent.adapterConfig.dsp7SeatPolicy ?? defaultSeatPolicy, dispatch:publicRule(agent), isMine:Array.isArray(seat.intakeUserIds)&&seat.intakeUserIds.includes(req.actor.userId), agentId: agent.id, name: seat.name ?? agent.name, agentName: agent.name, environmentName: agent.adapterConfig.dsp7Transport === "outbound" ? "本机主动连接（无需 SSH）" : environment?.name ?? "未关联环境", runtime, usable, message: usable ? "登记有效；启动时仍将检查本机配置" : "未登记、检查已超过 24 小时或环境／执行配置已变化，请在本机执行 harness seat register/check" };
+      return { presence: presence ?? null, online: isSeatOnline(presence), policy: agent.adapterConfig.dsp7SeatPolicy ?? defaultSeatPolicy, dispatch:publicRule(agent), isMine:seatOwnerId(seat)===req.actor.userId, owner:owners.find(owner=>owner.id===seatOwnerId(seat))??null, canConfigure:canConfigureSeat(req, companyId, seat), agentId: agent.id, name: seat.name ?? agent.name, agentName: agent.name, environmentName: agent.adapterConfig.dsp7Transport === "outbound" ? "本机主动连接（无需 SSH）" : environment?.name ?? "未关联环境", runtime, usable, message: usable ? "登记有效；启动时仍将检查本机配置" : "未登记、检查已超过 24 小时或环境／执行配置已变化，请在本机执行 harness seat register/check" };
     }));
   });
   router.post("/companies/:companyId/dsp7-seats/:id/verify", async (req, res) => {
@@ -99,7 +101,7 @@ export function dsp7SeatRoutes(db: Db) {
     const [agent] = await db.select().from(agents).where(and(eq(agents.id, String(req.params.id)), eq(agents.companyId, companyId)));
     const seat = agent?.adapterConfig.dsp7Seat as Record<string, unknown> | undefined;
     if (!agent || !seat) throw notFound("席位不存在");
-    if (!req.actor.isInstanceAdmin && req.actor.source !== "local_implicit" && !(Array.isArray(seat.intakeUserIds) && seat.intakeUserIds.includes(req.actor.userId))) throw forbidden("未获该席位授权");
+    if (!canConfigureSeat(req, companyId, seat)) throw forbidden("未获该席位授权");
     const runtime = agent.adapterConfig.dsp7SeatRuntime as Record<string, unknown> | undefined;
     const [environment] = agent.defaultEnvironmentId ? await db.select().from(environments).where(eq(environments.id, agent.defaultEnvironmentId)) : [];
     const digest = environment ? executorDigest(agent.adapterConfig, { driver: environment.driver, config: environment.config, envVars: environment.envVars }) : null;

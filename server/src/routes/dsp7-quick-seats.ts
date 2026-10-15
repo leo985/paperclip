@@ -1,3 +1,4 @@
+import { isSeatManager, requireSeatOwner } from "./dsp7-seat-owners.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Router, type Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
@@ -27,16 +28,18 @@ export function dsp7QuickSeatRoutes(db:Db) {
  router.post("/companies/:companyId/dsp7-quick-enrollments",async(req,res)=>{
   assertBoard(req);const companyId=String(req.params.companyId);assertCompanyAccess(req,companyId);
   if(!req.actor.userId)throw forbidden("请使用本人网站账号登录");
+  if(!isSeatManager(req,companyId))throw forbidden("请管理员指定负责人并生成电脑接入命令");
   const decision=await access.decide({actor:req.actor,action:"agents:create",resource:{type:"company",companyId}});
   if(!decision.allowed)throw forbidden("组织尚未授权此账号创建执行席位，请管理员授予 agents:create 权限");
   const[company]=await db.select().from(companies).where(eq(companies.id,companyId));
   if(!company||company.requireBoardApprovalForNewAgents)throw conflict("组织要求新智能体审批，请管理员先按组织规则完成审批接入");
-  const parsed=z.object({requestId:uuid,name:z.string().trim().min(1).max(100)}).strict().safeParse(req.body);if(!parsed.success)throw badRequest("席位名称无效");
+  const parsed=z.object({requestId:uuid,name:z.string().trim().min(1).max(100),ownerUserId:z.string().trim().min(1).max(200)}).strict().safeParse(req.body);if(!parsed.success)throw badRequest("请填写席位名称并选择负责人");
+  await requireSeatOwner(db,companyId,parsed.data.ownerUserId);
   const token=randomBytes(32).toString("hex"),invitationId=parsed.data.requestId,expiresAt=new Date(Date.now()+15*60000).toISOString();
   await db.transaction(async tx=>{
    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${companyId+":quick-enroll:"+req.actor.userId},0))`);
    const[existing]=await tx.select().from(activityLog).where(and(eq(activityLog.entityId,invitationId),eq(activityLog.action,"dsp7.quick.invited")));if(existing)throw conflict("邀请请求已提交；请重新生成命令，旧邀请不能重复签发");
-   await tx.insert(activityLog).values({companyId,actorType:"user",actorId:req.actor.userId!,action:"dsp7.quick.invited",entityType:"dsp7_quick_enrollment",entityId:invitationId,details:{name:parsed.data.name,userId:req.actor.userId,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt,instanceAdmin:req.actor.isInstanceAdmin===true}});
+   await tx.insert(activityLog).values({companyId,actorType:"user",actorId:req.actor.userId!,action:"dsp7.quick.invited",entityType:"dsp7_quick_enrollment",entityId:invitationId,details:{name:parsed.data.name,userId:parsed.data.ownerUserId,invitedByUserId:req.actor.userId,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt,instanceAdmin:req.actor.isInstanceAdmin===true}});
   });
   res.setHeader("Cache-Control","no-store");res.status(201).json({invitationId,token,expiresAt});
  });
@@ -47,16 +50,17 @@ export function dsp7QuickSeatRoutes(db:Db) {
    if(!invite||!data||data.tokenHash!==createHash("sha256").update(body.token).digest("hex")||Date.parse(String(data.expiresAt))<=Date.now())throw forbidden("邀请无效或过期，请从网页重新生成");
    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${invite.companyId+":quick-enroll"},0))`);
    const[used]=await tx.select().from(activityLog).where(and(eq(activityLog.entityId,body.invitationId),eq(activityLog.action,"dsp7.quick.completed")));if(used)throw conflict("邀请已消费，请复用本机现有配置");
-   const userId=String(data.userId);
+   const userId=String(data.invitedByUserId??data.userId);
+   await requireSeatOwner(tx as unknown as Db,invite.companyId,String(data.userId));
    const [admin]=await tx.select().from(instanceUserRoles).where(and(eq(instanceUserRoles.userId,userId),eq(instanceUserRoles.role,"instance_admin")));
    const memberships=await tx.select().from(companyMemberships).where(and(eq(companyMemberships.companyId,invite.companyId),eq(companyMemberships.principalType,"user"),eq(companyMemberships.principalId,userId),eq(companyMemberships.status,"active")));
-   if(!admin&&!memberships.length)throw forbidden("接入授权用户已失去组织访问权限");
+   if(!admin&&!memberships.some(m=>["owner","admin"].includes(m.membershipRole??"")))throw forbidden("签发邀请的管理员已失去管理权限，请重新生成接入命令");
    const currentPermission=await accessService(tx as unknown as Db).decide({actor:{type:"board",source:"session",userId,isInstanceAdmin:!!admin,companyIds:memberships.map(m=>m.companyId),memberships},action:"agents:create",resource:{type:"company",companyId:invite.companyId}});
    if(!currentPermission.allowed)throw forbidden("创建执行席位的授权已失效，请管理员核对");
    const[company]=await tx.select().from(companies).where(eq(companies.id,invite.companyId));if(!company||company.requireBoardApprovalForNewAgents)throw conflict("组织审批规则已变化，请管理员核对");
    const peers=await tx.select().from(agents).where(eq(agents.companyId,invite.companyId));if(peers.some(p=>(p.adapterConfig.dsp7Seat as Record<string,unknown>|undefined)?.machineFingerprint===body.machine_fingerprint))throw conflict("此电脑已有席位，请使用原席位，不复制或重复创建");
    const[environment]=await tx.select().from(environments).where(and(eq(environments.driver,"local"),eq(environments.status,"active")));if(!environment)throw conflict("服务器缺少可用控制环境，请管理员检查");
-   const[agent]=await tx.insert(agents).values({companyId:invite.companyId,name:String(data.name),role:"engineer",adapterType:"claude_local",defaultEnvironmentId:environment.id,adapterConfig:{engine:"cli",command:"claude",dsp7Transport:"outbound",dsp7WebJiraIntake:true,dsp7Seat:{machineId:body.machine_id,machineFingerprint:body.machine_fingerprint,name:String(data.name),intakeUserIds:[String(data.userId)]}},runtimeConfig:{heartbeat:{intervalEnabled:false,wakeOnDemand:true,maxConcurrentRuns:1}}}).returning();
+   const[agent]=await tx.insert(agents).values({companyId:invite.companyId,name:String(data.name),role:"engineer",adapterType:"claude_local",defaultEnvironmentId:environment.id,adapterConfig:{engine:"cli",command:"claude",dsp7Transport:"outbound",dsp7WebJiraIntake:true,dsp7Seat:{machineId:body.machine_id,machineFingerprint:body.machine_fingerprint,name:String(data.name),ownerUserId:String(data.userId),intakeUserIds:[String(data.userId)]}},runtimeConfig:{heartbeat:{intervalEnabled:false,wakeOnDemand:true,maxConcurrentRuns:1}}}).returning();
    const token="pcp_"+randomBytes(32).toString("hex");await tx.insert(agentApiKeys).values({companyId:agent.companyId,agentId:agent.id,name:"DSP7 outbound personal seat",responsibleUserId:String(data.userId),keyHash:createHash("sha256").update(token).digest("hex"),scopeConfig:null});
    await tx.insert(activityLog).values({companyId:agent.companyId,actorType:"system",actorId:"quick-seat-enrollment",agentId:agent.id,action:"dsp7.quick.completed",entityType:"dsp7_quick_enrollment",entityId:body.invitationId,details:{agentId:agent.id,machineId:body.machine_id,ownerUserId:data.userId,profile:body.profile}});
    return {agentId:agent.id,companyId:agent.companyId,token,environmentId:environment.id,intakeUserIds:[String(data.userId)],name:agent.name};
