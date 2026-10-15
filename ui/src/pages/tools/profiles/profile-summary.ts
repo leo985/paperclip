@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { ToolProfileStatus, ToolProfileSummary, ToolProfileWithDetails } from "@paperclipai/shared";
 
 /**
@@ -33,21 +34,21 @@ export interface AssignedLabel {
 
 /** "Organization default" / "2 agents" / "Not assigned yet". */
 export function assignedLabel(summary: ToolProfileSummary): AssignedLabel {
-  if (summary.isCompanyDefault) return { text: "Organization default", unassigned: false };
+  if (summary.isCompanyDefault) return { text: uiText("Organization default"), unassigned: false };
   if (summary.appliesToAgentCount > 0) {
     return { text: plural(summary.appliesToAgentCount, "agent"), unassigned: false };
   }
   if (summary.assignmentCount > 0) {
     return { text: plural(summary.assignmentCount, "assignment"), unassigned: false };
   }
-  return { text: "Not assigned yet", unassigned: true };
+  return { text: uiText("Not assigned yet"), unassigned: true };
 }
 
 export const STATUS_LABEL: Record<ToolProfileStatus, string> = {
-  draft: "Draft",
-  active: "Active",
-  disabled: "Off",
-  archived: "Archived",
+  draft: uiText("Draft"),
+  active: uiText("Active"),
+  disabled: uiText("Off"),
+  archived: uiText("Archived"),
 };
 
 export function isDraft(profile: Pick<ToolProfileWithDetails, "status">): boolean {

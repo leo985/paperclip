@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { Navigate, Outlet, useLocation } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accessApi } from "@/api/access";
@@ -13,14 +14,9 @@ function NoBoardAccessPage() {
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">No organization access</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This account is signed in, but it does not have an active organization membership or instance-admin access on
-          this Paperclip instance.
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Use an organization invite or sign in with an account that already belongs to this org.
-        </p>
+        <h1 className="text-xl font-semibold">{uiText("No organization access")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("This account is signed in, but it does not have an active organization membership or instance-admin access on this Paperclip instance.")}{" "}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("Use an organization invite or sign in with an account that already belongs to this org.")}{" "}</p>
       </Card>
     </div>
   );
@@ -53,10 +49,16 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
     retry: false,
   });
 
+  const passwordStatusQuery = useQuery({
+    queryKey: queryKeys.auth.passwordStatus,
+    queryFn: () => authApi.passwordStatus(),
+    enabled: isAuthenticatedMode && !isBootstrapPending && !!sessionQuery.data,
+    retry: false,
+  });
   const boardAccessQuery = useQuery({
     queryKey: queryKeys.access.currentBoardAccess,
     queryFn: () => accessApi.getCurrentBoardAccess(),
-    enabled: isAuthenticatedMode && !isBootstrapPending && !!sessionQuery.data,
+    enabled: isAuthenticatedMode && !isBootstrapPending && !!sessionQuery.data && passwordStatusQuery.data?.required === false,
     retry: false,
   });
   const claimMutation = useMutation({
@@ -73,11 +75,24 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
   if (
     healthQuery.isLoading ||
     (isAuthenticatedMode && sessionQuery.isLoading) ||
-    (isAuthenticatedMode && !isBootstrapPending && !!sessionQuery.data && boardAccessQuery.isLoading)
+    (isAuthenticatedMode && !isBootstrapPending && !!sessionQuery.data && (passwordStatusQuery.isLoading || passwordStatusQuery.data?.required === false && boardAccessQuery.isLoading))
   ) {
     return <PaperclipLoading />;
   }
 
+  // A revoked session takes precedence over a stale board-access error.
+  // Sign-out can refetch protected queries before this gate unmounts.
+  if (isAuthenticatedMode && !isBootstrapPending && !sessionQuery.data) {
+    const next = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/auth?next=${next}`} replace />;
+  }
+
+  if (isAuthenticatedMode && sessionQuery.data && passwordStatusQuery.data?.required) {
+    return <Navigate to="/change-password" replace />;
+  }
+  if (passwordStatusQuery.error) {
+    return <p role="alert" className="p-6 text-sm text-destructive">无法检查账号状态，请刷新重试。</p>;
+  }
   if (healthQuery.error || boardAccessQuery.error) {
     return (
       <div className="mx-auto max-w-xl py-10 text-sm text-destructive">
@@ -85,7 +100,7 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
           ? healthQuery.error.message
           : boardAccessQuery.error instanceof Error
             ? boardAccessQuery.error.message
-            : "Failed to load app state"}
+            : uiText("Failed to load app state")}
       </div>
     );
   }
@@ -112,10 +127,6 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
     );
   }
 
-  if (isAuthenticatedMode && !sessionQuery.data) {
-    const next = encodeURIComponent(`${location.pathname}${location.search}`);
-    return <Navigate to={`/auth?next=${next}`} replace />;
-  }
 
   // Private invitation pages may let signed-in nonmembers request access.
   // Their token APIs still enforce membership before granting any authority.

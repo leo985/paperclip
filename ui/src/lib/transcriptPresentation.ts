@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 type TranscriptDensity = "comfortable" | "compact";
 
 type TranscriptActivity = {
@@ -186,7 +187,7 @@ function readToolDetailValue(value: unknown, max = 200): string | null {
 export function describeToolInput(name: string, input: unknown): ToolInputDetail[] {
   if (typeof input === "string") {
     const summary = compactWhitespace(isCommandTool(name, input) ? stripWrappedShell(input) : input);
-    return summary ? [{ label: isCommandTool(name, input) ? "Command" : "Input", value: truncate(summary, 200), tone: "code" }] : [];
+    return summary ? [{ label: isCommandTool(name, input) ? uiText("Command") : uiText("Input"), value: truncate(summary, 200), tone: "code" }] : [];
   }
 
   const record = asRecord(input);

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { isRetiredComposioConnection, RETIRED_COMPOSIO_MESSAGE } from "@paperclipai/shared";
 import { ManagedAiConnectionRow } from "@/components/ai-connections/ManagedAiConnectionDetails";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -165,35 +166,35 @@ function additionalConnectionHref(
 
 function connectionState(connection: ToolConnection): ConnectionState {
   if (isRetiredComposioConnection(connection)) {
-    return { kind: "attention", label: "Retired", message: RETIRED_COMPOSIO_MESSAGE };
+    return { kind: "attention", label: uiText("Retired"), message: RETIRED_COMPOSIO_MESSAGE };
   }
   if (connection.status === "draft") {
     return {
       kind: "draft",
-      label: "Setup incomplete",
-      message: "Finish setup before agents can use this account.",
+      label: uiText("Setup incomplete"),
+      message: uiText("Finish setup before agents can use this account."),
     };
   }
   if (connection.enabled === false || connection.status === "disabled") {
     return {
       kind: "paused",
-      label: "Paused",
-      message: "Agents can’t use this account right now.",
+      label: uiText("Paused"),
+      message: uiText("Agents can’t use this account right now."),
     };
   }
   if ((connection.connectionPurpose === "ai" && (connection.healthStatus !== "ok" || aiSubscriptionNeedsIsolatedLogin(connection.config))) || isToolConnectionAttentionHealth(connection.healthStatus)) {
     return {
       kind: "attention",
-      label: "Needs attention",
+      label: uiText("Needs attention"),
       message:
         connection.healthMessage ??
         connection.lastError ??
         (connection.authKind === "oauth"
-          ? "Sign in again to restore access."
-          : "Replace the credential to restore access."),
+          ? uiText("Sign in again to restore access.")
+          : uiText("Replace the credential to restore access.")),
     };
   }
-  return { kind: "connected", label: "Connected", message: null };
+  return { kind: "connected", label: uiText("Connected"), message: null };
 }
 
 function connectionRank(connection: ToolConnection): number {
@@ -227,32 +228,32 @@ function connectorAction(
       )
     : null;
   if (row.connections.length > 0 || row.chatEndpoints.length > 0) {
-    if (chatHref) return { label: "Add connection", href: chatHref };
+    if (chatHref) return { label: uiText("Add connection"), href: chatHref };
     if (row.entry && applicationId) {
       return {
-        label: "Add account",
+        label: uiText("Add account"),
         href: additionalConnectionHref(row.entry, applicationId),
       };
     }
     return {
-      label: "Add account",
+      label: uiText("Add account"),
       href: applicationId ? `/apps/app/${applicationId}/permissions` : null,
     };
   }
 
   if (row.entry?.availability?.available === false) {
     return {
-      label: "Unavailable",
+      label: uiText("Unavailable"),
       href: null,
       title:
         row.entry.availability.reason ??
-        "This connector is unavailable on this instance.",
+        uiText("This connector is unavailable on this instance."),
     };
   }
-  if (chatHref) return { label: "Connect", href: chatHref };
-  if (row.entry) return { label: "Connect", href: connectHrefFor(row.entry) };
+  if (chatHref) return { label: uiText("Connect"), href: chatHref };
+  if (row.entry) return { label: uiText("Connect"), href: connectHrefFor(row.entry) };
   return {
-    label: "Connect",
+    label: uiText("Connect"),
     href: applicationId ? `/apps/app/${applicationId}/permissions` : null,
   };
 }
@@ -289,7 +290,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
     useState<ConnectionRemovalTarget | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Connectors" }]);
+    setBreadcrumbs([{ label: uiText("Connectors") }]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs]);
 
@@ -342,7 +343,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
         queryKey: queryKeys.apps.attention(selectedCompanyId!),
       });
       pushToast({
-        title: "Connection removed",
+        title: uiText("Connection removed"),
         body:
           target.kind === "chat"
             ? `${target.providerName} is disconnected. Existing Paperclip tasks remain available.`
@@ -355,8 +356,8 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't remove the connection",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: uiText("Couldn't remove the connection"),
+        body: error instanceof Error ? error.message : uiText("Please try again."),
         tone: "error",
       }),
   });
@@ -430,35 +431,35 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
       });
     }
     const nativeChatProviders = [
-      { provider: "imessage-photon", name: "iMessage Photon", description: "Message agents and share photos from Apple Messages with a dedicated Photon number." },
+      { provider: "imessage-photon", name: "iMessage Photon", description: uiText("Message agents and share photos from Apple Messages with a dedicated Photon number.") },
       {
         provider: "slack",
         name: "Slack",
         description:
-          "Chat with agents from Slack channels and direct messages.",
+          uiText("Chat with agents from Slack channels and direct messages."),
       },
       {
         provider: "github",
         name: "GitHub",
         description:
-          "Chat with agents from issues, pull requests, and review threads.",
+          uiText("Chat with agents from issues, pull requests, and review threads."),
       },
       {
         provider: "discord",
         name: "Discord",
         description:
-          "Chat with agents from Discord channels, threads, and direct messages.",
+          uiText("Chat with agents from Discord channels, threads, and direct messages."),
       },
       {
         provider: "microsoft-teams",
         name: "Microsoft Teams",
-        description: "Chat with agents from Teams channels and conversations.",
+        description: uiText("Chat with agents from Teams channels and conversations."),
       },
       {
         provider: "telegram",
         name: "Telegram",
         description:
-          "Chat with agents from Telegram direct messages, groups, and topics.",
+          uiText("Chat with agents from Telegram direct messages, groups, and topics."),
       },
     ] as const;
     for (const item of chatConnectorsEnabled ? nativeChatProviders : []) {
@@ -531,7 +532,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
         name: application.name,
         description:
           application.description ??
-          "A custom connector configured for this organization.",
+          uiText("A custom connector configured for this organization."),
         brandKey: applicationSlug ?? application.name,
         entry: null,
         applications: [application],
@@ -561,7 +562,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
           key: `chat:${endpoint.provider}`,
           slug: endpoint.provider,
           name: names[endpoint.provider],
-          description: `Chat with agents through ${names[endpoint.provider]}.`,
+          description: uiTextFormat("Chat with agents through __PCVAR0__.", [names[endpoint.provider]]),
           brandKey: endpoint.provider,
           entry: null,
           applications: [],
@@ -620,9 +621,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
 
   if (!selectedCompanyId) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Select an organization to manage connectors.
-      </div>
+      <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization to manage connectors.")}{" "}</div>
     );
   }
 
@@ -647,8 +646,8 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search connectors…"
-            aria-label="Search connectors"
+            placeholder={uiText("Search connectors…")}
+            aria-label={uiText("Search connectors")}
             className="pl-9"
           />
         </div>
@@ -660,10 +659,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
           role="alert"
         >
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          <p className="min-w-0 flex-1">
-            Couldn’t load every connector. Existing accounts are shown where
-            available.
-          </p>
+          <p className="min-w-0 flex-1">{uiText("Couldn’t load every connector. Existing accounts are shown where available.")}{" "}</p>
           <Button
             type="button"
             size="sm"
@@ -675,24 +671,23 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
               if (chatConnectorsEnabled) void chatEndpointsQuery.refetch();
             }}
           >
-            Try again
+            {uiText("Try again")}
           </Button>
         </div>
       ) : null}
 
       {loading ? (
-        <div className="space-y-3" aria-label="Loading connectors">
+        <div className="space-y-3" aria-label={uiText("Loading connectors")}>
           {Array.from({ length: 6 }).map((_, index) => (
             <Skeleton key={index} className="h-24 w-full rounded-xl" />
           ))}
         </div>
       ) : nothingMatches ? (
         <p className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted-foreground">
-          <Link2 className="h-4 w-4" />
-          No connectors match “{query.trim()}”.
+          <Link2 className="h-4 w-4" />{uiText("No connectors match “")}{query.trim()}”.
         </p>
       ) : (
-        <div className="space-y-3" role="list" aria-label="Connector list">
+        <div className="space-y-3" role="list" aria-label={uiText("Connector list")}>
           {visibleRows.map((row) => (
             <ConnectorCard
               renderAccountDetails={renderAccountDetails}
@@ -720,20 +715,19 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Remove {connectionToRemove?.accountName ?? "this"} connection?
-            </AlertDialogTitle>
+              {uiText("Remove")} {connectionToRemove?.accountName ?? "this"}{" "}{uiText("connection?")}{" "}</AlertDialogTitle>
             <AlertDialogDescription>
               {connectionToRemove?.kind === "chat"
-                ? `This connection will stop receiving new work from ${connectionToRemove.providerName}. Existing Paperclip tasks and conversation history remain available. This does not delete the app, bot, or account in ${connectionToRemove.providerName}.`
+                ? uiTextFormat("This connection will stop receiving new work from __PCVAR0__. Existing Paperclip tasks and conversation history remain available. This does not delete the app, bot, or account in __PCVAR1__.", [connectionToRemove.providerName, connectionToRemove.providerName])
                 : connectionToRemove &&
                     connectionToRemove.remainingConnectionCount > 0
-                  ? `This connection's saved credentials are deleted and agents lose access through it immediately. They can still use ${connectionToRemove.providerName} through ${connectionToRemove.remainingConnectionCount} other active ${connectionToRemove.remainingConnectionCount === 1 ? "connection" : "connections"}.`
-                  : "The saved credentials are deleted and agents lose access immediately. Connecting it again later requires a new sign-in or key."}
+                  ? uiTextFormat("This connection's saved credentials are deleted and agents lose access through it immediately. They can still use __PCVAR0__ through __PCVAR1__ other active __PCVAR2__.", [connectionToRemove.providerName, connectionToRemove.remainingConnectionCount, connectionToRemove.remainingConnectionCount === 1 ? "connection" : "connections"])
+                  : uiText("The saved credentials are deleted and agents lose access immediately. Connecting it again later requires a new sign-in or key.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={removeConnection.isPending}>
-              Cancel
+              {uiText("Cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -749,7 +743,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
               ) : (
                 <Trash2 />
               )}
-              {removeConnection.isPending ? "Removing…" : "Remove connection"}
+              {removeConnection.isPending ? uiText("Removing…") : uiText("Remove connection")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -867,12 +861,12 @@ export function ConnectorCard({
                     onNavigate(`/apps/chat/${endpoint.id}/settings`)
                   }
                 >
-                  {endpoint.assignedAgentName} · {endpoint.provider === "agentmail" ? "Email" : "Chat"}
+                  {endpoint.assignedAgentName} · {endpoint.provider === "agentmail" ? uiText("Email") : uiText("Chat")}
                 </button>
                 <p className="truncate text-xs text-muted-foreground">
                   {endpoint.providerAccountLabel ??
                     endpoint.botLabel ??
-                    "Provider identity"}
+                    uiText("Provider identity")}
                 </p>
               </div>
               <span className="text-xs text-muted-foreground">
@@ -885,7 +879,7 @@ export function ConnectorCard({
                     variant="outline"
                     onClick={() => onNavigate(`/apps/chat/connect?provider=${endpoint.provider}&purpose=chat&resume=${endpoint.id}`)}
                   >
-                    Finish setup
+                    {uiText("Finish setup")}
                   </Button>
                 ) : null}
                 <DropdownMenu>
@@ -894,14 +888,14 @@ export function ConnectorCard({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Manage ${endpoint.assignedAgentName} ${row.name} connection`}
+                      aria-label={uiTextFormat("Manage __PCVAR0__ __PCVAR1__ connection", [endpoint.assignedAgentName, row.name])}
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => onNavigate(`/apps/chat/${endpoint.id}/settings`)}>
-                      Manage
+                      {uiText("Manage")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -915,7 +909,7 @@ export function ConnectorCard({
                       })}
                     >
                       <Trash2 />
-                      Remove connection
+                      {uiText("Remove connection")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -959,7 +953,7 @@ function ConnectionAccountRow({
           <button
             type="button"
             className="block max-w-full cursor-pointer truncate text-left text-sm font-medium text-foreground hover:underline focus-visible:underline"
-            aria-label={`Open ${accountName} permissions`}
+            aria-label={uiTextFormat("Open __PCVAR0__ permissions", [accountName])}
             onClick={() => onNavigate(`/apps/${connection.id}/permissions`)}
           >
             {accountName}
@@ -981,7 +975,7 @@ function ConnectionAccountRow({
 
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>Connected by</span>
+          <span>{uiText("Connected by")}</span>
           <ConnectionOwnerIdentity owner={owner} />
         </div>
         {state.kind === "attention" || state.kind === "draft" ? (
@@ -993,9 +987,9 @@ function ConnectionAccountRow({
           >
             {state.kind === "attention"
               ? connection.requiresReauthorization === false
-                ? "Retry access"
-                : "Reconnect"
-              : "Finish setup"}
+                ? uiText("Retry access")
+                : uiText("Reconnect")
+              : uiText("Finish setup")}
           </Button>
         ) : null}
         <DropdownMenu>
@@ -1004,7 +998,7 @@ function ConnectionAccountRow({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Manage ${accountName} connection`}
+              aria-label={uiTextFormat("Manage __PCVAR0__ connection", [accountName])}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -1013,12 +1007,12 @@ function ConnectionAccountRow({
             <DropdownMenuItem
               onSelect={() => onNavigate(`/apps/${connection.id}/permissions`)}
             >
-              Permissions
+              {uiText("Permissions")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onSelect={onRemove}>
               <Trash2 />
-              Remove connection
+              {uiText("Remove connection")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -1084,12 +1078,8 @@ function CustomConnectorCard({
           <Link2 className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-foreground">
-            Connect your own tool
-          </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Add a custom MCP server or paste an existing configuration.
-          </p>
+          <h2 className="text-sm font-semibold text-foreground">{uiText("Connect your own tool")}{" "}</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{uiText("Add a custom MCP server or paste an existing configuration.")}{" "}</p>
         </div>
         <Button
           type="button"
@@ -1099,7 +1089,7 @@ function CustomConnectorCard({
           aria-controls="custom-connector-options"
           onClick={() => setExpanded((open) => !open)}
         >
-          {expanded ? "Close" : "Connect"}
+          {expanded ? uiText("Close") : uiText("Connect")}
         </Button>
       </div>
 
@@ -1110,14 +1100,14 @@ function CustomConnectorCard({
         >
           <CustomConnectorOption
             icon={ServerCog}
-            title="Connect your own MCP server"
-            description="Enter the URL for a custom or self-hosted MCP server."
+            title={uiText("Connect your own MCP server")}
+            description={uiText("Enter the URL for a custom or self-hosted MCP server.")}
             onClick={() => onNavigate("/apps/byo")}
           />
           <CustomConnectorOption
             icon={ClipboardPaste}
-            title="Paste a config"
-            description="Paste an existing setup snippet and connect it."
+            title={uiText("Paste a config")}
+            description={uiText("Paste an existing setup snippet and connect it.")}
             onClick={() => onNavigate("/apps/advanced/paste-config")}
           />
         </div>

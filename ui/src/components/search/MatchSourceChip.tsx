@@ -1,10 +1,11 @@
+import { uiText } from "@/i18n/interface";
 import { cn } from "@/lib/utils";
 
 export type MatchSourceChipKind = "title" | "identifier" | "comment" | "document";
 
 const chipStyles: Record<MatchSourceChipKind, string> = {
   title:
-    "bg-(--chip-match-title-bg) text-(--chip-match-title-fg) border-(--chip-match-title-border)",
+    uiText("bg-(--chip-match-title-bg) text-(--chip-match-title-fg) border-(--chip-match-title-border)"),
   identifier:
     "bg-(--chip-match-identifier-bg) text-(--chip-match-identifier-fg) border-(--chip-match-identifier-border)",
   comment:
@@ -14,9 +15,9 @@ const chipStyles: Record<MatchSourceChipKind, string> = {
 };
 
 const chipLabels: Record<MatchSourceChipKind, string> = {
-  title: "Title",
+  title: uiText("Title"),
   identifier: "Identifier",
-  comment: "Comment",
+  comment: uiText("Comment"),
   document: "Doc",
 };
 

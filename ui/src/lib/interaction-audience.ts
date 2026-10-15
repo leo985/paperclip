@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Plain-language presentation of *who may resolve* an issue-thread interaction
  * (PAP-17280, Phase 3 of the open-default resolver contract in
@@ -246,7 +247,7 @@ export function describeResolverAudience({
     // while the sentence next to it names one actor. `human_only` wins for an
     // agent addressee, while a user addressee is the narrower human audience.
     label: (policy !== "human_only" || isUserAddressee) && hasAddressee
-      ? "Addressed"
+      ? uiText("Addressed")
       : RESOLVER_POLICY_LABELS[policy],
     summary,
     shortSummary,

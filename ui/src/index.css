@@ -79,7 +79,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.48 0.20 275);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -91,7 +91,7 @@
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.58 0.18 275);
   --scrollbar-thumb: oklch(0.7 0 0);
   --scrollbar-thumb-hover: oklch(0.6 0 0);
   --scrollbar-size: 8px;
@@ -371,8 +371,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.70 0.15 275);
+  --primary-foreground: oklch(0.16 0.035 275);
   --bubble-agent: oklch(0.185 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -384,7 +384,7 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.70 0.15 275);
   --scrollbar-thumb: oklch(0.4 0 0);
   --scrollbar-thumb-hover: oklch(0.5 0 0);
   --chart-1: oklch(0.87 0 0);
@@ -3109,3 +3109,38 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
 @media (max-width: 767px) {
   .plugin-app-shell-overlays { bottom: var(--plugin-shell-mobile-bottom); }
 }
+
+/* Shared product identity for both application shells. */
+.platform-sidebar { background: var(--card); }
+.platform-sidebar nav a[aria-current="page"] { background: color-mix(in oklch, var(--primary) 12%, var(--card)); color: var(--primary); }
+.platform-brand:hover { background: color-mix(in oklch, var(--primary) 6%, var(--card)); }
+.workbench-heading { border-top: 3px solid var(--primary); }
+
+/* Help reader dimensions belong to the shared token layer. */
+:root {
+  --help-directory-width: calc(var(--spacing) * 52);
+  --help-reading-width: 72ch;
+  --help-directory-offset: calc(var(--spacing) * 4);
+  --help-diagram-width: calc(var(--spacing) * 300);
+}
+.help-reader { container: help-reader / inline-size; }
+.help-reader-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: calc(var(--spacing) * 5); align-items: start; }
+.help-directory, .help-desktop-control { display: none; }
+.help-directory { position: sticky; top: var(--help-directory-offset); max-height: calc(100dvh - var(--help-directory-offset) - var(--spacing) * 24); overflow-y: auto; padding-inline-end: var(--spacing); scrollbar-gutter: stable; }
+.help-mobile-control { display: inline-flex; }
+.help-mobile-results { max-height: 45dvh; overflow-y: auto; }
+.help-article { scroll-margin-top: var(--help-directory-offset); }
+.help-reading-width, .help-prose :where(p, ul, ol, blockquote, h1, h2, h3, h4) { max-width: var(--help-reading-width); }
+.help-prose { max-width: none; }
+.help-topic-button { border-inline-start: calc(var(--spacing) / 2) solid transparent; overflow-wrap: anywhere; }
+.help-topic-current { border-inline-start-color: var(--primary); }
+.help-workflow-image { display: block; width: 100%; height: auto; }
+.help-workflow-image[data-size="actual"] { min-width: var(--help-diagram-width); }
+@container help-reader (min-width: 56rem) {
+  .help-reader-layout:not([data-directory-collapsed="true"]) { grid-template-columns: var(--help-directory-width) minmax(0, 1fr); }
+  .help-reader-layout:not([data-directory-collapsed="true"]) .help-directory { display: block; }
+  .help-desktop-control { display: inline-flex; }
+  .help-mobile-control, .help-mobile-results { display: none; }
+}
+
+.help-article:focus-visible { outline: calc(var(--spacing) / 2) solid var(--ring); outline-offset: var(--spacing); }

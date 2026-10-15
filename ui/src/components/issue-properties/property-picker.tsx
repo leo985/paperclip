@@ -1,3 +1,4 @@
+import { uiTextFormat } from "@/i18n/interface";
 import type { ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
@@ -47,7 +48,7 @@ export function PropertyPicker({
       <button
         type="button"
         className={cn(btnCn, "shrink-0")}
-        aria-label={`Edit ${label.toLowerCase()}`}
+        aria-label={uiTextFormat("Edit __PCVAR0__", [label.toLowerCase()])}
         aria-expanded={open}
         onClick={inline ? () => onOpenChange(!open) : undefined}
       >

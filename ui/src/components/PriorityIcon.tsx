@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { ArrowUp, ArrowDown, Minus, AlertTriangle } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -6,10 +7,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 
 const priorityConfig: Record<string, { icon: typeof ArrowUp; color: string; label: string }> = {
-  critical: { icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault, label: "Critical" },
-  high: { icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault, label: "High" },
-  medium: { icon: Minus, color: priorityColor.medium ?? priorityColorDefault, label: "Medium" },
-  low: { icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault, label: "Low" },
+  critical: { icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault, label: uiText("Critical") },
+  high: { icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault, label: uiText("High") },
+  medium: { icon: Minus, color: priorityColor.medium ?? priorityColorDefault, label: uiText("Medium") },
+  low: { icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault, label: uiText("Low") },
 };
 
 const allPriorities = ["critical", "high", "medium", "low"];
@@ -44,7 +45,7 @@ export function PriorityIcon({ priority, onChange, className, showLabel }: Prior
   const trigger = showLabel ? (
     <button
       type="button"
-      aria-label={`Change priority (current: ${config.label})`}
+      aria-label={uiTextFormat("Change priority (current: __PCVAR0__)", [config.label])}
       className="inline-flex min-h-5 items-center gap-1.5 cursor-pointer hover:bg-accent/50 rounded px-1 -mx-1 py-0.5 transition-colors"
     >
       {icon}
@@ -54,7 +55,7 @@ export function PriorityIcon({ priority, onChange, className, showLabel }: Prior
     <button
       type="button"
       data-slot="icon-button"
-      aria-label={`Change priority (current: ${config.label})`}
+      aria-label={uiTextFormat("Change priority (current: __PCVAR0__)", [config.label])}
       className="inline-flex cursor-pointer items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring"
     >
       {icon}

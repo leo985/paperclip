@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { UserCheck, UserMinus, type LucideIcon } from "lucide-react";
 import { ISSUE_REVIEW_POLICIES, type IssueReviewPolicy } from "@paperclipai/shared";
 
@@ -32,14 +33,14 @@ export interface IssueReviewPolicyBadge {
 const BADGES: Partial<Record<IssueReviewPolicy, IssueReviewPolicyBadge>> = {
   not_creator: {
     value: "not_creator",
-    label: "Anyone else",
-    description: "Anyone except whoever asked for the review can approve it.",
+    label: uiText("Anyone else"),
+    description: uiText("Anyone except whoever asked for the review can approve it."),
     Icon: UserMinus,
   },
   human_only: {
     value: "human_only",
-    label: "Human only",
-    description: "Only a person can approve this review. Agents cannot give the verdict.",
+    label: uiText("Human only"),
+    description: uiText("Only a person can approve this review. Agents cannot give the verdict."),
     Icon: UserCheck,
   },
 };

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   WorkspaceOperation,
   WorkspaceReadiness,
@@ -75,11 +76,11 @@ function timestampMs(value: Date | string | null | undefined): number | null {
 function failedRepairNotice(repair: WorkspaceOperation): WorkspaceAccessNotice {
   const phase = typeof repair.metadata?.repairPhase === "string" ? repair.metadata.repairPhase : null;
   return {
-    title: "Repair failed",
+    title: uiText("Repair failed"),
     description: phase
       ? `The repair stopped during ${phase}. The pre-repair backup was kept.`
-      : "The repair stopped before the workspace became usable. The pre-repair backup was kept.",
-    action: { kind: "view_logs", label: "View repair log" },
+      : uiText("The repair stopped before the workspace became usable. The pre-repair backup was kept."),
+    action: { kind: "view_logs", label: uiText("View repair log") },
   };
 }
 
@@ -88,11 +89,11 @@ function failedProvisionNotice(provision: WorkspaceOperation): WorkspaceAccessNo
     ? provision.metadata.seedFailurePhase
     : null;
   return {
-    title: "Database provisioning failed",
+    title: uiText("Database provisioning failed"),
     description: phase
       ? `The earlier clone attempt failed during ${phase}. The workspace later became usable.`
-      : "An earlier clone attempt failed, but the workspace later became usable.",
-    action: { kind: "view_logs", label: "View provisioning log" },
+      : uiText("An earlier clone attempt failed, but the workspace later became usable."),
+    action: { kind: "view_logs", label: uiText("View provisioning log") },
   };
 }
 
@@ -187,11 +188,11 @@ export function resolveWorkspaceAccessState(input: {
     const phase = typeof repair.metadata?.repairPhase === "string" ? repair.metadata.repairPhase : null;
     return {
       state: "repairing",
-      title: "Repairing workspace database",
+      title: uiText("Repairing workspace database"),
       description: phase
         ? `Only the isolated database is replaced; the git worktree and your files are preserved. Current phase: ${phase}.`
-        : "Only the isolated database is replaced; the git worktree and your files are preserved.",
-      action: { kind: "wait", label: "Repair in progress" },
+        : uiText("Only the isolated database is replaced; the git worktree and your files are preserved."),
+      action: { kind: "wait", label: uiText("Repair in progress") },
       handoffAvailable,
     };
   }
@@ -207,9 +208,9 @@ export function resolveWorkspaceAccessState(input: {
   if (provision?.status === "running") {
     return {
       state: "provisioning",
-      title: "Provisioning database",
-      description: "Restoring the isolated database clone for this workspace. This runs once before the first start.",
-      action: { kind: "wait", label: "Provisioning" },
+      title: uiText("Provisioning database"),
+      description: uiText("Restoring the isolated database clone for this workspace. This runs once before the first start."),
+      action: { kind: "wait", label: uiText("Provisioning") },
       handoffAvailable,
     };
   }
@@ -219,11 +220,11 @@ export function resolveWorkspaceAccessState(input: {
       : null;
     return {
       state: "failed",
-      title: "Database provisioning failed",
+      title: uiText("Database provisioning failed"),
       description: seedPhase
         ? `The clone failed during ${seedPhase}. Repairing replaces only the isolated database.`
-        : "The clone did not finish, so this workspace has no usable database yet.",
-      action: { kind: "repair", label: "Repair workspace" },
+        : uiText("The clone did not finish, so this workspace has no usable database yet."),
+      action: { kind: "repair", label: uiText("Repair workspace") },
       handoffAvailable,
     };
   }
@@ -235,9 +236,9 @@ export function resolveWorkspaceAccessState(input: {
     if (failure.reason === "runtime_not_running" && !servingService && !startingService) {
       return {
         state: "stopped",
-        title: "Workspace is not running",
-        description: "Start the workspace runtime to publish its board.",
-        action: { kind: "start", label: "Start workspace" },
+        title: uiText("Workspace is not running"),
+        description: uiText("Start the workspace runtime to publish its board."),
+        action: { kind: "start", label: uiText("Start workspace") },
         handoffAvailable,
       };
     }
@@ -246,25 +247,25 @@ export function resolveWorkspaceAccessState(input: {
       const validating = readinessState === "validating" || readinessState === "provisioning";
       return {
         state: validating ? "validating" : "degraded",
-        title: validating ? "Validating clone" : "Workspace is degraded",
+        title: validating ? uiText("Validating clone") : uiText("Workspace is degraded"),
         description: [
           cause ?? "The workspace is serving, but its clone did not pass the readiness contract.",
           validating ? "Paperclip is still confirming the clone." : "One bounded repair replaces the isolated database.",
         ].join(" "),
         action: validating
-          ? { kind: "wait", label: "Validating" }
-          : { kind: "repair", label: "Repair workspace" },
+          ? { kind: "wait", label: uiText("Validating") }
+          : { kind: "repair", label: uiText("Repair workspace") },
         handoffAvailable,
       };
     }
     if (!handoffAvailable) {
       return {
         state: servingService ? "ready" : "degraded",
-        title: servingService ? "Ready — snapshot-local sign-in" : "Workspace is degraded",
-        description: cause ?? "Opening the board will ask for the credentials captured in this snapshot.",
+        title: servingService ? uiText("Ready — snapshot-local sign-in") : uiText("Workspace is degraded"),
+        description: cause ?? uiText("Opening the board will ask for the credentials captured in this snapshot."),
         action: servingService
-          ? { kind: "open", label: "Open workspace" }
-          : { kind: "start", label: "Start workspace" },
+          ? { kind: "open", label: uiText("Open workspace") }
+          : { kind: "start", label: uiText("Start workspace") },
         handoffAvailable: false,
         secondaryNotice,
       };
@@ -274,9 +275,9 @@ export function resolveWorkspaceAccessState(input: {
   if (startingService) {
     return {
       state: "provisioning",
-      title: "Workspace is starting",
-      description: "Paperclip is starting the workspace runtime and waiting for its board URL.",
-      action: { kind: "wait", label: "Starting workspace" },
+      title: uiText("Workspace is starting"),
+      description: uiText("Paperclip is starting the workspace runtime and waiting for its board URL."),
+      action: { kind: "wait", label: uiText("Starting workspace") },
       handoffAvailable,
     };
   }
@@ -284,9 +285,9 @@ export function resolveWorkspaceAccessState(input: {
   if (servingService) {
     return {
       state: "ready",
-      title: "Ready",
-      description: "Opening the workspace signs you in to the cloned board without a password.",
-      action: { kind: "open", label: "Open workspace" },
+      title: uiText("Ready"),
+      description: uiText("Opening the workspace signs you in to the cloned board without a password."),
+      action: { kind: "open", label: uiText("Open workspace") },
       handoffAvailable,
       secondaryNotice,
     };
@@ -298,19 +299,19 @@ export function resolveWorkspaceAccessState(input: {
   if (unhealthyService) {
     return {
       state: "degraded",
-      title: "Workspace is degraded",
+      title: uiText("Workspace is degraded"),
       description: cause
-        ?? "The runtime is up but did not report a usable database, so Paperclip will not publish it as ready.",
-      action: { kind: "repair", label: "Repair workspace" },
+        ?? uiText("The runtime is up but did not report a usable database, so Paperclip will not publish it as ready."),
+      action: { kind: "repair", label: uiText("Repair workspace") },
       handoffAvailable,
     };
   }
 
   return {
     state: "stopped",
-    title: "Workspace is not running",
-    description: "Start the workspace runtime to publish its board.",
-    action: { kind: "start", label: "Start workspace" },
+    title: uiText("Workspace is not running"),
+    description: uiText("Start the workspace runtime to publish its board."),
+    action: { kind: "start", label: uiText("Start workspace") },
     handoffAvailable,
   };
 }

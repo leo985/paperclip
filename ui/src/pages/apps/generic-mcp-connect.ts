@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { checkMcpRemoteHeaderName, checkMcpRemoteHeaderValue, mcpRemoteHeaderRejectionMessage } from "@paperclipai/shared";
 import type { GenericMcpAuthMode } from "@paperclipai/shared";
 
@@ -102,63 +103,63 @@ export function genericConnectGuidance(
     case "mcp_remote_url_missing":
     case "mcp_remote_url_invalid":
       return {
-        title: "That doesn't look like a server address",
-        body: "Paste the full address, starting with https:// — for example https://mcp.example.com/mcp.",
+        title: uiText("That doesn't look like a server address"),
+        body: uiText("Paste the full address, starting with https:// — for example https://mcp.example.com/mcp."),
         focus: "url",
       };
     case "remote_http_private_endpoint":
       return {
-        title: "That address is inside a private network",
-        body: "This Paperclip is reachable from the internet, so it won't call addresses on your local network. Use the server's public address instead.",
+        title: uiText("That address is inside a private network"),
+        body: uiText("This Paperclip is reachable from the internet, so it won't call addresses on your local network. Use the server's public address instead."),
         focus: "url",
       };
     case "remote_http_dns_failed":
       return {
-        title: "We couldn't find that host",
-        body: "The address didn't resolve. Check the spelling, or confirm the server is published on the internet.",
+        title: uiText("We couldn't find that host"),
+        body: uiText("The address didn't resolve. Check the spelling, or confirm the server is published on the internet."),
         focus: "url",
       };
     case "mcp_header_rejected":
       return {
-        title: "Paperclip can't send that header",
+        title: uiText("Paperclip can't send that header"),
         body: fallback,
         focus: "credentials",
       };
     case "tool_access_name_conflict":
       return {
-        title: "Paperclip couldn’t name this connection",
-        body: "Try connecting again.",
+        title: uiText("Paperclip couldn’t name this connection"),
+        body: uiText("Try connecting again."),
         focus: "none",
       };
     case "oauth_challenge":
       return {
-        title: "This server wants a credential",
-        body: "It asked us to authenticate but didn't offer a sign-in Paperclip can complete on its own. Add the key or headers its docs list under Advanced authentication.",
+        title: uiText("This server wants a credential"),
+        body: uiText("It asked us to authenticate but didn't offer a sign-in Paperclip can complete on its own. Add the key or headers its docs list under Advanced authentication."),
         focus: "credentials",
       };
     case "oauth_manual_client_required":
     case "oauth_manual_client_rebinding_required":
       return {
-        title: "This server needs sign-in details you create yourself",
-        body: "Register Paperclip in the provider's settings, then add the client ID and secret it gives you under Advanced authentication.",
+        title: uiText("This server needs sign-in details you create yourself"),
+        body: uiText("Register Paperclip in the provider's settings, then add the client ID and secret it gives you under Advanced authentication."),
         focus: "credentials",
       };
     case "oauth_redirect_origin_unsupported":
     case "oauth_redirect_uri_invalid":
       return {
-        title: "This Paperclip needs a public HTTPS address first",
-        body: "Sign-in sends the operator back to Paperclip, so this instance has to be reachable over HTTPS. Ask your Paperclip admin to configure it.",
+        title: uiText("This Paperclip needs a public HTTPS address first"),
+        body: uiText("Sign-in sends the operator back to Paperclip, so this instance has to be reachable over HTTPS. Ask your Paperclip admin to configure it."),
         focus: "deployment",
       };
     case "runtime_error":
       return {
-        title: "We couldn't reach that server",
-        body: "Nothing answered at that address. Confirm the server is running and the address is right, then try again.",
+        title: uiText("We couldn't reach that server"),
+        body: uiText("Nothing answered at that address. Confirm the server is running and the address is right, then try again."),
         focus: "url",
       };
     default:
       return {
-        title: "Paperclip couldn't connect",
+        title: uiText("Paperclip couldn't connect"),
         body: fallback,
         focus: "none",
       };

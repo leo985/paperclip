@@ -1,3 +1,4 @@
+import { dsp7SeatRoutes } from "./dsp7-seats.js";
 import { queuedInteractionId, readQueuedInteractionResponse, hasQueuedInteractionResponse } from "../services/queued-interaction-response.js";
 import { deliverConversationComments, isConversation } from "../services/agent-conversations.js";
 import { issueRecoveryActionReadModel } from "../services/issue-recovery-actions.js";
@@ -3507,6 +3508,7 @@ export function issueRoutes(
   } = {},
 ) {
   const router = Router();
+  router.use(dsp7SeatRoutes(db));
   const svc = issueService(db);
   const runRedactions = createRunSecretRedactionRegistry(db);
   const access = accessService(db);
@@ -17296,6 +17298,28 @@ export function issueRoutes(
         })
       )
         return;
+      // DSP7: confirmation comments are external workflow decisions, not
+      // instructions to interrupt/replace the currently connected Claude run.
+      const dsp7DecisionBody = req.body.body.trim().replace(/^\\#/, "#");
+      if (req.actor.type === "board" && req.actor.userId &&
+          /^#?JCONF-[A-Z0-9-]+(?:\s|$)/.test(dsp7DecisionBody) &&
+          !req.body.attachmentIds?.length && issue.assigneeAgentId) {
+        const dsp7Agent = await agentsSvc.getById(issue.assigneeAgentId);
+        if (dsp7Agent?.adapterConfig?.dsp7ExternalConfirmation === true) {
+          const dsp7Comment = await svc.addComment(id, req.body.body,
+            { userId: req.actor.userId },
+            { authorType: "user", clientRequestId: req.body.clientRequestId,
+              authorizationReason: commentAuthorizationReason });
+          await logActivity(db, { companyId: issue.companyId, actorType: "user",
+            actorId: req.actor.userId, action: "issue.comment_added",
+            entityType: "issue", entityId: issue.id,
+            details: { commentId: dsp7Comment.id, identifier: issue.identifier,
+              source: "dsp7_external_confirmation", preservesActiveRun: true } });
+          await issueReferencesSvc.syncComment(dsp7Comment.id);
+          res.status(201).json(dsp7Comment);
+          return;
+        }
+      }
       const closedExecutionWorkspace =
         await getClosedIssueExecutionWorkspace(issue);
 

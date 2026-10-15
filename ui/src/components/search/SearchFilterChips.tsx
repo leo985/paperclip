@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buildFilterChips, type FilterChipLookups, type SearchFilters } from "@/lib/search-filters";
@@ -25,7 +26,7 @@ export function SearchFilterChips({
             type="button"
             className="rounded-full p-0.5 hover:bg-background/60"
             onClick={() => onChange(chip.remove(filters))}
-            aria-label={`Remove filter ${chip.label}`}
+            aria-label={uiTextFormat("Remove filter __PCVAR0__", [chip.label])}
           >
             <X className="h-3 w-3" />
           </button>
@@ -36,7 +37,7 @@ export function SearchFilterChips({
         className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
         onClick={onClearAll}
       >
-        Clear all
+        {uiText("Clear all")}
       </button>
     </div>
   );

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import {
   useCallback,
   useEffect,
@@ -77,7 +78,7 @@ function normalizeError(error: unknown): FileViewerErrorShape {
   if (error instanceof Error) {
     return { status: 0, code: "", message: error.message };
   }
-  return { status: 0, code: "", message: "Something went wrong." };
+  return { status: 0, code: "", message: uiText("Something went wrong.") };
 }
 
 function formatBytes(size: number | null | undefined): string | null {
@@ -121,49 +122,49 @@ export function describeDenial(code: string, fallback: string): { title: string;
   if (lower.includes("policy") || lower.includes("denied") || lower.includes("sensitive")) {
     return {
       icon: <Lock aria-hidden="true" className="h-6 w-6 text-amber-500" />,
-      title: "Viewer blocked for this file",
-      body: "This file is not available through the viewer because it may contain sensitive data.",
+      title: uiText("Viewer blocked for this file"),
+      body: uiText("This file is not available through the viewer because it may contain sensitive data."),
     };
   }
   if (lower.includes("outside") || lower.includes("traversal")) {
     return {
       icon: <Ban aria-hidden="true" className="h-6 w-6 text-red-500" />,
-      title: "Path is outside the workspace",
-      body: "The viewer can only open files that live under the issue's workspace.",
+      title: uiText("Path is outside the workspace"),
+      body: uiText("The viewer can only open files that live under the issue's workspace."),
     };
   }
   if (lower.includes("archive") || lower.includes("cleaned")) {
     return {
       icon: <FolderOpen aria-hidden="true" className="h-6 w-6 text-muted-foreground" />,
-      title: "Workspace is no longer available",
-      body: "The isolated worktree for this issue has been cleaned up, so files cannot be previewed.",
+      title: uiText("Workspace is no longer available"),
+      body: uiText("The isolated worktree for this issue has been cleaned up, so files cannot be previewed."),
     };
   }
   if (lower.includes("remote")) {
     return {
       icon: <AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />,
-      title: "Remote workspace preview not supported",
-      body: "This workspace is hosted remotely and is not available for inline preview yet.",
+      title: uiText("Remote workspace preview not supported"),
+      body: uiText("This workspace is hosted remotely and is not available for inline preview yet."),
     };
   }
   if (lower.includes("too_large") || lower.includes("size")) {
     return {
       icon: <AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />,
-      title: "File is too large to preview",
-      body: "This file exceeds the supported preview size.",
+      title: uiText("File is too large to preview"),
+      body: uiText("This file exceeds the supported preview size."),
     };
   }
   if (lower.includes("binary") || lower.includes("unsupported")) {
     return {
       icon: <AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />,
-      title: "Preview not supported for this file type",
-      body: "This file does not have a text, image, or video preview available.",
+      title: uiText("Preview not supported for this file type"),
+      body: uiText("This file does not have a text, image, or video preview available."),
     };
   }
   return {
     icon: <Ban aria-hidden="true" className="h-6 w-6 text-red-500" />,
-    title: "Can't preview this file",
-    body: fallback || "The viewer was unable to load this file.",
+    title: uiText("Can't preview this file"),
+    body: fallback || uiText("The viewer was unable to load this file."),
   };
 }
 
@@ -216,15 +217,14 @@ export function FileViewerMetadataRow({
           {state?.line ? (
             <>
               <span aria-hidden="true" className="opacity-50">·</span>
-              <span>
-                Line {state.line}
-                {state.column ? `, Col ${state.column}` : ""}
+              <span>{uiText("Line")}{" "}{state.line}
+                {state.column ? uiTextFormat(", Col __PCVAR0__", [state.column]) : ""}
               </span>
             </>
           ) : null}
         </>
       ) : state ? (
-        <span className="h-3 w-28 rounded bg-muted animate-pulse" aria-label="Loading file details" />
+        <span className="h-3 w-28 rounded bg-muted animate-pulse" aria-label={uiText("Loading file details")} />
       ) : null}
     </div>
   );
@@ -275,7 +275,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       return (
         <FileViewerStateView
           icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-          title="Image preview unavailable"
+          title={uiText("Image preview unavailable")}
         />
       );
     }
@@ -298,7 +298,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       return (
         <FileViewerStateView
           icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-          title="Video preview unavailable"
+          title={uiText("Video preview unavailable")}
         />
       );
     }
@@ -309,7 +309,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
           controls
           preload="metadata"
           playsInline
-          aria-label={`Video preview: ${resource.title}`}
+          aria-label={uiTextFormat("Video preview: __PCVAR0__", [resource.title])}
           className="max-h-full max-w-full rounded border border-white/10 bg-black"
         />
       </div>
@@ -320,8 +320,8 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
     return (
       <FileViewerStateView
         icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-        title="Preview not supported for this file type"
-        body={resource.contentType ? `Content type: ${resource.contentType}` : undefined}
+        title={uiText("Preview not supported for this file type")}
+        body={resource.contentType ? uiTextFormat("Content type: __PCVAR0__", [resource.contentType]) : undefined}
       />
     );
   }
@@ -332,7 +332,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
     <div
       ref={codeScrollRef}
       role="region"
-      aria-label={`${resource.title} source`}
+      aria-label={uiTextFormat("__PCVAR0__ source", [resource.title])}
       tabIndex={0}
       className="paperclip-file-viewer-code flex-1 overflow-auto bg-(--code-bg-resolved) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
@@ -382,15 +382,15 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       <div className="absolute right-3 top-3 z-20">
         <div
           role="group"
-          aria-label="Markdown preview mode"
+          aria-label={uiText("Markdown preview mode")}
           className="inline-flex rounded-md border border-border bg-background/95 p-0.5 shadow-sm backdrop-blur"
         >
           <Button
             type="button"
             variant={markdownMode === "rendered" ? "secondary" : "ghost"}
             size="icon-sm"
-            aria-label="Show rendered Markdown"
-            title="Rendered Markdown"
+            aria-label={uiText("Show rendered Markdown")}
+            title={uiText("Rendered Markdown")}
             aria-pressed={markdownMode === "rendered"}
             onClick={() => setMarkdownMode("rendered")}
             className={cn(
@@ -404,8 +404,8 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
             type="button"
             variant={markdownMode === "raw" ? "secondary" : "ghost"}
             size="icon-sm"
-            aria-label="Show raw Markdown"
-            title="Raw Markdown"
+            aria-label={uiText("Show raw Markdown")}
+            title={uiText("Raw Markdown")}
             aria-pressed={markdownMode === "raw"}
             onClick={() => setMarkdownMode("raw")}
             className={cn(
@@ -422,7 +422,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       ) : (
         <div
           role="region"
-          aria-label={`${resource.title} rendered Markdown`}
+          aria-label={uiTextFormat("__PCVAR0__ rendered Markdown", [resource.title])}
           tabIndex={0}
           className="flex-1 overflow-auto bg-background p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         >
@@ -442,7 +442,7 @@ function LoadingView({ elapsedMs }: { elapsedMs: number }) {
   if (elapsedMs < 400) {
     return (
       <div className="flex-1 space-y-2 p-6" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Loading file preview</span>
+        <span className="sr-only">{uiText("Loading file preview")}</span>
         {Array.from({ length: 10 }).map((_, index) => (
           <div key={index} className="h-3 rounded bg-muted animate-pulse" style={{ width: `${90 - index * 6}%` }} />
         ))}
@@ -456,9 +456,7 @@ function LoadingView({ elapsedMs }: { elapsedMs: number }) {
       aria-live="polite"
     >
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-        Loading file preview...
-      </div>
+        <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />{uiText("Loading file preview...")}{" "}</div>
     </div>
   );
 }
@@ -761,11 +759,9 @@ export function FileViewerSheet({
                   size="sm"
                   onClick={() => viewer.backToFiles()}
                   className="h-7 gap-1 px-2 text-xs"
-                  aria-label="Back to files"
+                  aria-label={uiText("Back to files")}
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to files
-                </Button>
+                  <ArrowLeft className="h-3.5 w-3.5" />{uiText("Back to files")}{" "}</Button>
               ) : null}
               {state ? (
                 downloadUrl ? (
@@ -778,8 +774,8 @@ export function FileViewerSheet({
                     <a
                       href={downloadUrl}
                       download={resolvedResource?.title ?? basename(state.path)}
-                      aria-label="Download file"
-                      title="Download file"
+                      aria-label={uiText("Download file")}
+                      title={uiText("Download file")}
                     >
                       <Download className="h-4 w-4" />
                     </a>
@@ -792,8 +788,8 @@ export function FileViewerSheet({
                   variant="ghost"
                   size="icon-sm"
                   onClick={handleCopyContent}
-                  aria-label={copiedField === "content" ? "Copied file contents" : "Copy file contents"}
-                  title={copiedField === "content" ? "Copied contents" : "Copy file contents"}
+                  aria-label={copiedField === "content" ? uiText("Copied file contents") : uiText("Copy file contents")}
+                  title={copiedField === "content" ? uiText("Copied contents") : uiText("Copy file contents")}
                   className="h-7 w-7"
                 >
                   {copyingField === "content" ? (
@@ -811,8 +807,8 @@ export function FileViewerSheet({
                   variant="ghost"
                   size="icon-sm"
                   onClick={handleCopyLink}
-                  aria-label={copiedField === "link" ? "Copied file view link" : "Copy link to this file view"}
-                  title={copiedField === "link" ? "Copied link" : "Copy link"}
+                  aria-label={copiedField === "link" ? uiText("Copied file view link") : uiText("Copy link to this file view")}
+                  title={copiedField === "link" ? uiText("Copied link") : uiText("Copy link")}
                   className="h-7 w-7"
                 >
                   {copyingField === "link" ? (
@@ -830,8 +826,8 @@ export function FileViewerSheet({
                 size="icon-sm"
                 onClick={() => handleOpenChange(false)}
                 className="h-7 w-7"
-                aria-label="Close file viewer"
-                title="Close"
+                aria-label={uiText("Close file viewer")}
+                title={uiText("Close")}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -871,7 +867,7 @@ export function FileViewerSheet({
               <div
                 role="separator"
                 aria-orientation="vertical"
-                aria-label="Resize file tree"
+                aria-label={uiText("Resize file tree")}
                 aria-valuemin={MIN_FILE_TREE_WIDTH}
                 aria-valuemax={MAX_FILE_TREE_WIDTH}
                 aria-valuenow={fileTreeWidth}
@@ -956,8 +952,8 @@ export function FileViewerBody({
       return (
         <FileViewerStateView
           icon={<FileSearch aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-          title="File not found"
-          body="That file was not found in the active workspace."
+          title={uiText("File not found")}
+          body={uiText("That file was not found in the active workspace.")}
           actions={
             <>
               {onFallbackToProject ? (
@@ -966,7 +962,7 @@ export function FileViewerBody({
                 </Button>
               ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-                <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
+                <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {uiText("Retry")}
               </Button>
             </>
           }
@@ -977,8 +973,8 @@ export function FileViewerBody({
       return (
         <FileViewerStateView
           icon={<FolderOpen aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-          title="No workspace available"
-          body="This issue does not have a workspace that supports preview yet."
+          title={uiText("No workspace available")}
+          body={uiText("This issue does not have a workspace that supports preview yet.")}
         />
       );
     }
@@ -990,7 +986,7 @@ export function FileViewerBody({
         body={denial.body}
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
+            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {uiText("Retry")}
           </Button>
         }
       />
@@ -1004,8 +1000,8 @@ export function FileViewerBody({
     return (
       <FileViewerStateView
         icon={<Cloud aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-        title="Remote workspace preview coming soon"
-        body="This workspace is hosted remotely; inline previews are not supported yet."
+        title={uiText("Remote workspace preview coming soon")}
+        body={uiText("This workspace is hosted remotely; inline previews are not supported yet.")}
       />
     );
   }
@@ -1029,7 +1025,7 @@ export function FileViewerBody({
         body={denial.body}
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
+            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {uiText("Retry")}
           </Button>
         }
       />

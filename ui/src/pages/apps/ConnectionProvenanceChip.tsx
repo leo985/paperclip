@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import { Blocks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,11 +22,9 @@ export function ConnectionProvenanceChip({
     return (
       <span
         className={chipClass}
-        title={connectorUid ? `Credentials managed by Vercel Connect (${connectorUid})` : "Credentials managed by Vercel Connect"}
+        title={connectorUid ? uiTextFormat("Credentials managed by Vercel Connect (__PCVAR0__)", [connectorUid]) : uiText("Credentials managed by Vercel Connect")}
       >
-        <Blocks className="h-3 w-3" />
-        via Vercel Connect
-      </span>
+        <Blocks className="h-3 w-3" />{uiText("via Vercel Connect")}{" "}</span>
     );
   }
 

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useCopyAction } from "@/lib/use-copy-action";
@@ -139,14 +140,14 @@ export function TweakPanel() {
         onPointerUp={onHeaderPointerUp}
       >
         <GripHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-        <span>Motion tweak panel</span>
+        <span>{uiText("Motion tweak panel")}</span>
         <div className="ml-auto flex items-center gap-1">
-          <button type="button" title="Reset all" onClick={resetAll} className="rounded p-0.5 hover:bg-accent">
+          <button type="button" title={uiText("Reset all")} onClick={resetAll} className="rounded p-0.5 hover:bg-accent">
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
-            title={minimized ? "Expand" : "Minimize"}
+            title={minimized ? uiText("Expand") : uiText("Minimize")}
             onClick={() => setMinimized((m) => !m)}
             className="rounded p-0.5 hover:bg-accent"
           >
@@ -209,9 +210,7 @@ export function TweakPanel() {
               onClick={buildExport}
               className="flex flex-1 items-center justify-center gap-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
             >
-              <Copy className="h-3.5 w-3.5" />
-              Copy as @theme
-            </button>
+              <Copy className="h-3.5 w-3.5" />{uiText("Copy as @theme")}{" "}</button>
           </div>
 
           {exportText ? (
@@ -229,10 +228,10 @@ export function TweakPanel() {
               {/* Focusing the box copies it silently; say so, or the click looks inert. */}
               <p className="mt-1 text-(length:--text-nano) text-muted-foreground" aria-live="polite">
                 {exportCopy.copied
-                  ? "Copied to clipboard"
+                  ? uiText("Copied to clipboard")
                   : exportCopy.failed
-                    ? "Copy failed — select the text and copy it manually"
-                    : "Click the box to copy"}
+                    ? uiText("Copy failed — select the text and copy it manually")
+                    : uiText("Click the box to copy")}
               </p>
             </>
           ) : null}

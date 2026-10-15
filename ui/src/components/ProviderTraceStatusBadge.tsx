@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import type { ProviderTraceMetadata } from "@paperclipai/shared";
 import { Bug, CircleOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -70,10 +71,10 @@ export function ProviderTraceStatusBadge({
       )}
       title={
         trace
-          ? `${trace.frameCount} frames · ${trace.byteCount} bytes · expires ${new Date(trace.expiresAt).toLocaleString()}`
+          ? uiTextFormat("__PCVAR0__ frames · __PCVAR1__ bytes · expires __PCVAR2__", [trace.frameCount, trace.byteCount, new Date(trace.expiresAt).toLocaleString()])
           : requested
-            ? "This run requested sensitive provider-frame capture."
-            : "Raw provider-frame capture was disabled for this run."
+            ? uiText("This run requested sensitive provider-frame capture.")
+            : uiText("Raw provider-frame capture was disabled for this run.")
       }
     >
       <Icon className="h-3 w-3" />

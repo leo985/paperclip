@@ -1,5 +1,6 @@
 import type { AdapterRuntimeCommandSpec, ServerAdapterModule } from "./types.js";
 import { parseAdapterModelsEnv } from "../services/adapter-models-env.js";
+import { executeOutbound, outboundSkills } from "../services/dsp7-outbound.js";
 import { stampClaudeAgentIdHeader } from "./claude-agent-id-header.js";
 import {
   buildSandboxNpmInstallCommand,
@@ -254,8 +255,10 @@ const grokLoginCapability: AdapterLoginCapability = {
 const claudeLocalAdapter: ServerAdapterModule = {
   type: "claude_local",
   runtimeToolDelivery: "native_mcp",
-  execute: stampClaudeAgentIdHeader(claudeExecute),
-  testEnvironment: claudeTestEnvironment,
+  execute: (ctx) => ctx.config.dsp7Transport === "outbound" ? executeOutbound(ctx) : stampClaudeAgentIdHeader(claudeExecute)(ctx),
+  testEnvironment: (ctx) => ctx.config.dsp7Transport === "outbound"
+    ? Promise.resolve({adapterType:"claude_local",status:"warn",testedAt:new Date().toISOString(),checks:[{code:"dsp7_outbound_local_check",level:"warn",message:"此席位在个人电脑运行。请在席位页面请求配置检查；服务器不探测本机 Claude 或模型密钥。"}]})
+    : claudeTestEnvironment(ctx),
   acp: {
     agentId: "claude",
     skillsMode: "ephemeral",
@@ -264,8 +267,8 @@ const claudeLocalAdapter: ServerAdapterModule = {
       packages: ["@agentclientprotocol/claude-agent-acp"],
     },
   },
-  listSkills: listClaudeSkills,
-  syncSkills: syncClaudeSkills,
+  listSkills: ctx => ctx.config.dsp7Transport === "outbound" ? outboundSkills(ctx) : listClaudeSkills(ctx),
+  syncSkills: (ctx,desired) => ctx.config.dsp7Transport === "outbound" ? outboundSkills(ctx) : syncClaudeSkills(ctx,desired),
   sessionCodec: claudeSessionCodec,
   sessionManagement: getAdapterSessionManagement("claude_local") ?? undefined,
   models: claudeModels,

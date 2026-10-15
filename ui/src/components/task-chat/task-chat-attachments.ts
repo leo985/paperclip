@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Attachment-chip helpers for the task-chat redesign (PAP-351): map a filename
  * to a kind icon + label for the shadcn base/attachment chips, and extract the
@@ -38,47 +39,47 @@ const IMAGE_EXTENSIONS = new Set([
 
 const KIND_BY_EXTENSION: Record<string, FileKind> = {
   pdf: { icon: FileText, label: "PDF" },
-  doc: { icon: FileText, label: "Doc" },
-  docx: { icon: FileText, label: "Doc" },
-  txt: { icon: FileText, label: "Text" },
+  doc: { icon: FileText, label: uiText("Doc") },
+  docx: { icon: FileText, label: uiText("Doc") },
+  txt: { icon: FileText, label: uiText("Text") },
   md: { icon: FileText, label: "Markdown" },
-  rtf: { icon: FileText, label: "Text" },
+  rtf: { icon: FileText, label: uiText("Text") },
   csv: { icon: FileSpreadsheet, label: "CSV" },
   tsv: { icon: FileSpreadsheet, label: "TSV" },
-  xls: { icon: FileSpreadsheet, label: "Sheet" },
-  xlsx: { icon: FileSpreadsheet, label: "Sheet" },
+  xls: { icon: FileSpreadsheet, label: uiText("Sheet") },
+  xlsx: { icon: FileSpreadsheet, label: uiText("Sheet") },
   zip: { icon: FileArchive, label: "ZIP" },
-  gz: { icon: FileArchive, label: "Archive" },
-  tar: { icon: FileArchive, label: "Archive" },
-  tgz: { icon: FileArchive, label: "Archive" },
-  rar: { icon: FileArchive, label: "Archive" },
-  "7z": { icon: FileArchive, label: "Archive" },
-  mp3: { icon: FileAudio, label: "Audio" },
-  wav: { icon: FileAudio, label: "Audio" },
-  m4a: { icon: FileAudio, label: "Audio" },
-  ogg: { icon: FileAudio, label: "Audio" },
-  mp4: { icon: FileVideo, label: "Video" },
-  mov: { icon: FileVideo, label: "Video" },
-  webm: { icon: FileVideo, label: "Video" },
+  gz: { icon: FileArchive, label: uiText("Archive") },
+  tar: { icon: FileArchive, label: uiText("Archive") },
+  tgz: { icon: FileArchive, label: uiText("Archive") },
+  rar: { icon: FileArchive, label: uiText("Archive") },
+  "7z": { icon: FileArchive, label: uiText("Archive") },
+  mp3: { icon: FileAudio, label: uiText("Audio") },
+  wav: { icon: FileAudio, label: uiText("Audio") },
+  m4a: { icon: FileAudio, label: uiText("Audio") },
+  ogg: { icon: FileAudio, label: uiText("Audio") },
+  mp4: { icon: FileVideo, label: uiText("Video") },
+  mov: { icon: FileVideo, label: uiText("Video") },
+  webm: { icon: FileVideo, label: uiText("Video") },
   json: { icon: FileCode, label: "JSON" },
   yaml: { icon: FileCode, label: "YAML" },
   yml: { icon: FileCode, label: "YAML" },
   xml: { icon: FileCode, label: "XML" },
   html: { icon: FileCode, label: "HTML" },
   css: { icon: FileCode, label: "CSS" },
-  js: { icon: FileCode, label: "Code" },
-  jsx: { icon: FileCode, label: "Code" },
-  ts: { icon: FileCode, label: "Code" },
-  tsx: { icon: FileCode, label: "Code" },
-  py: { icon: FileCode, label: "Code" },
-  rb: { icon: FileCode, label: "Code" },
-  go: { icon: FileCode, label: "Code" },
-  rs: { icon: FileCode, label: "Code" },
-  sh: { icon: FileCode, label: "Code" },
+  js: { icon: FileCode, label: uiText("Code") },
+  jsx: { icon: FileCode, label: uiText("Code") },
+  ts: { icon: FileCode, label: uiText("Code") },
+  tsx: { icon: FileCode, label: uiText("Code") },
+  py: { icon: FileCode, label: uiText("Code") },
+  rb: { icon: FileCode, label: uiText("Code") },
+  go: { icon: FileCode, label: uiText("Code") },
+  rs: { icon: FileCode, label: uiText("Code") },
+  sh: { icon: FileCode, label: uiText("Code") },
   sql: { icon: FileCode, label: "SQL" },
-  log: { icon: FileText, label: "Log" },
-  patch: { icon: FileCode, label: "Patch" },
-  diff: { icon: FileCode, label: "Patch" },
+  log: { icon: FileText, label: uiText("Log") },
+  patch: { icon: FileCode, label: uiText("Patch") },
+  diff: { icon: FileCode, label: uiText("Patch") },
 };
 
 function extensionOf(name: string): string {
@@ -115,7 +116,7 @@ export function isImageAttachment(ref: AttachmentRef): boolean {
 
 /** Kind icon + short label for a filename; unknown extensions get File/"File". */
 export function fileKindForName(name: string): FileKind {
-  return KIND_BY_EXTENSION[extensionOf(name)] ?? { icon: FileIcon, label: "File" };
+  return KIND_BY_EXTENSION[extensionOf(name)] ?? { icon: FileIcon, label: uiText("File") };
 }
 
 export function fileKindForAttachment(ref: AttachmentRef): FileKind {
@@ -130,11 +131,11 @@ export function fileKindForAttachment(ref: AttachmentRef): FileKind {
   if (contentType === "text/csv" || contentType === "application/csv") {
     return { icon: FileSpreadsheet, label: "CSV" };
   }
-  if (contentType.startsWith("text/")) return { icon: FileText, label: "Text" };
-  if (contentType.startsWith("audio/")) return { icon: FileAudio, label: "Audio" };
-  if (contentType.startsWith("video/")) return { icon: FileVideo, label: "Video" };
+  if (contentType.startsWith("text/")) return { icon: FileText, label: uiText("Text") };
+  if (contentType.startsWith("audio/")) return { icon: FileAudio, label: uiText("Audio") };
+  if (contentType.startsWith("video/")) return { icon: FileVideo, label: uiText("Video") };
   if (contentType.includes("zip") || contentType.includes("archive")) {
-    return { icon: FileArchive, label: "Archive" };
+    return { icon: FileArchive, label: uiText("Archive") };
   }
   return byName;
 }

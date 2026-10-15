@@ -252,6 +252,7 @@ export const testAdapterEnvironmentSchema = z.object({
   /** One-shot provider keys for a probe. Never persist these in agent config. */
   testCredentials: z.object({
     ANTHROPIC_API_KEY: z.string().max(16384),
+    ANTHROPIC_AUTH_TOKEN: z.string().max(16384),
     OPENAI_API_KEY: z.string().max(16384),
     OPENROUTER_API_KEY: z.string().max(16384),
     GEMINI_API_KEY: z.string().max(16384),

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import {
   CircleCheck,
   CircleAlert,
@@ -12,28 +13,28 @@ export type TestState = "idle" | "running" | "pass" | "fail";
 
 const copy = {
   idle: {
-    title: "Test your agent",
-    description: "Check that your runtime and model can respond.",
+    title: uiText("Test your agent"),
+    description: uiText("Check that your runtime and model can respond."),
     action: "Run test",
   },
   running: {
-    title: "Testing connection",
-    description: "Checking the runtime and waiting for a model response…",
+    title: uiText("Testing connection"),
+    description: uiText("Checking the runtime and waiting for a model response…"),
     action: "Testing…",
   },
   pass: {
-    title: "Connection successful",
-    description: "Your runtime checks passed. Review the details below.",
+    title: uiText("Connection successful"),
+    description: uiText("Your runtime checks passed. Review the details below."),
     action: "Test again",
   },
   warn: {
-    title: "Connection needs attention",
-    description: "Review the test details before running your agent.",
+    title: uiText("Connection needs attention"),
+    description: uiText("Review the test details before running your agent."),
     action: "Test again",
   },
   fail: {
-    title: "Couldn't connect",
-    description: "Check your model and provider connection, then try again.",
+    title: uiText("Couldn't connect"),
+    description: uiText("Check your model and provider connection, then try again."),
     action: "Retry test",
   },
 } as const;
@@ -62,7 +63,7 @@ export function RuntimeTestCard({
           : Play;
   return (
     <section
-      aria-label="Runtime test"
+      aria-label={uiText("Runtime test")}
       className="rounded-lg border border-border bg-card"
     >
       <div className="flex items-start gap-3 p-4 sm:items-center">
@@ -116,9 +117,7 @@ export function RuntimeTestCard({
             <ChevronRight
               aria-hidden="true"
               className="size-3 transition-transform group-open:rotate-90"
-            />
-            Test details
-          </summary>
+            />{uiText("Test details")}{" "}</summary>
           <ul className="space-y-3 px-4 pb-4">
             {result.checks.map((check) => (
               <li

@@ -1,3 +1,6 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { uiTextFormat,  uiText } from "@/i18n/interface";
+import { Dsp7JiraIntake } from "../components/Dsp7JiraIntake";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams, useNavigate, useLocation, Navigate } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -109,16 +112,16 @@ function ProjectTilePicker({
         <button
           type="button"
           className="shrink-0 rounded-lg cursor-pointer hover:ring-2 hover:ring-foreground/20 transition-(--tp-box-shadow)"
-          aria-label="Change project icon and color"
+          aria-label={uiText("Change project icon and color")}
         >
           <ProjectTile color={color} icon={icon} size="md" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3" align="start">
         {/* Icon search + grid */}
-        <p className="text-xs font-medium text-muted-foreground mb-2">Icon</p>
+        <p className="text-xs font-medium text-muted-foreground mb-2">{uiText("Icon")}</p>
         <Input
-          placeholder="Search icons..."
+          placeholder={uiText("Search icons...")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mb-2 h-8 text-sm"
@@ -140,13 +143,13 @@ function ProjectTilePicker({
             </button>
           ))}
           {filteredIcons.length === 0 && (
-            <p className="col-span-7 text-xs text-muted-foreground text-center py-2">No icons match</p>
+            <p className="col-span-7 text-xs text-muted-foreground text-center py-2">{uiText("No icons match")}</p>
           )}
         </div>
 
         {/* Color swatches */}
         <div className="mt-3 border-t border-border pt-3">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Color</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">{uiText("Color")}</p>
           <div className="grid grid-cols-5 gap-1.5">
             {/* Neutral / reset-to-gray option */}
             <button
@@ -157,8 +160,8 @@ function ProjectTilePicker({
                   ? "ring-2 ring-foreground ring-offset-1 ring-offset-background rounded-md"
                   : ""
               }`}
-              aria-label="Reset to neutral gray"
-              title="Neutral (default)"
+              aria-label={uiText("Reset to neutral gray")}
+              title={uiText("Neutral (default)")}
             >
               <ProjectTile color={null} size="sm" />
             </button>
@@ -173,7 +176,7 @@ function ProjectTilePicker({
                     : "hover:ring-2 hover:ring-foreground/30"
                 }`}
                 style={{ backgroundColor: swatch }}
-                aria-label={`Select color ${swatch}`}
+                aria-label={uiTextFormat("Select color __PCVAR0__", [swatch])}
               />
             ))}
           </div>
@@ -322,6 +325,7 @@ function ProjectPluginOperationsList({
 /* ── Main project page ── */
 
 export function ProjectDetail() {
+  const { canManage } = useManagementAccess();
   const { companyPrefix, projectId, filter } = useParams<{
     companyPrefix?: string;
     projectId: string;
@@ -456,15 +460,15 @@ export function ProjectDetail() {
       invalidateProject();
       const name = updatedProject?.name ?? project?.name ?? "Project";
       if (archived) {
-        pushToast({ title: `"${name}" has been archived`, tone: "success" });
+        pushToast({ title: uiTextFormat("\"__PCVAR0__\" has been archived", [name]), tone: "success" });
         navigate("/dashboard");
       } else {
-        pushToast({ title: `"${name}" has been unarchived`, tone: "success" });
+        pushToast({ title: uiTextFormat("\"__PCVAR0__\" has been unarchived", [name]), tone: "success" });
       }
     },
     onError: (_, archived) => {
       pushToast({
-        title: archived ? "Failed to archive project" : "Failed to unarchive project",
+        title: archived ? uiText("Failed to archive project") : uiText("Failed to unarchive project"),
         tone: "error",
       });
     },
@@ -472,7 +476,7 @@ export function ProjectDetail() {
 
   const uploadImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!resolvedCompanyId) throw new Error("No organization selected");
+      if (!resolvedCompanyId) throw new Error(uiText("No organization selected"));
       return assetsApi.uploadImage(resolvedCompanyId, file, `projects/${projectLookupRef || "draft"}`);
     },
   });
@@ -480,15 +484,15 @@ export function ProjectDetail() {
   const { data: budgetOverview } = useQuery({
     queryKey: queryKeys.budgets.overview(resolvedCompanyId ?? "__none__"),
     queryFn: () => budgetsApi.overview(resolvedCompanyId!),
-    enabled: !!resolvedCompanyId,
+    enabled: !!resolvedCompanyId && canManage,
     refetchInterval: 30_000,
     staleTime: 5_000,
   });
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
-      { label: project?.name ?? routeProjectRef ?? "Project" },
+      { label: uiText("Projects"), href: "/projects" },
+      { label: project?.name ?? routeProjectRef ?? uiText("Project") },
     ]);
   }, [setBreadcrumbs, project, routeProjectRef]);
 
@@ -648,16 +652,16 @@ export function ProjectDetail() {
     if (project?.id) {
       try { cachedTab = localStorage.getItem(`paperclip:project-tab:${project.id}`); } catch {}
     }
-    if (cachedTab === "overview") {
+    if (canManage && cachedTab === "overview") {
       return <Navigate to={`/projects/${canonicalProjectRef}/configuration`} replace />;
     }
-    if (cachedTab === "configuration") {
+    if (canManage && cachedTab === "configuration") {
       return <Navigate to={`/projects/${canonicalProjectRef}/configuration`} replace />;
     }
-    if (cachedTab === "budget") {
+    if (canManage && cachedTab === "budget") {
       return <Navigate to={`/projects/${canonicalProjectRef}/budget`} replace />;
     }
-    if (cachedTab === "plugin-operations" && project?.managedByPlugin) {
+    if (canManage && cachedTab === "plugin-operations" && project?.managedByPlugin) {
       return <Navigate to={`/projects/${canonicalProjectRef}/plugin-operations`} replace />;
     }
     if (cachedTab === "workspaces" && workspaceTabDecisionLoaded && showWorkspacesTab) {
@@ -712,7 +716,7 @@ export function ProjectDetail() {
       {showLeftProjectNotice ? (
         <div className="flex items-center gap-3 border border-yellow-300/35 bg-yellow-300/10 px-3 py-2 text-sm text-yellow-900 dark:text-yellow-100">
           <p className="min-w-0 flex-1">
-            You left this project. It no longer appears in your sidebar.
+            {uiText("You left this project. It no longer appears in your sidebar.")}
           </p>
           <MembershipAction
             compact
@@ -736,7 +740,7 @@ export function ProjectDetail() {
           <button
             type="button"
             className="h-6 w-6 shrink-0 text-yellow-900/70 hover:text-yellow-900 dark:text-yellow-100/70 dark:hover:text-yellow-100"
-            aria-label="Dismiss project membership notice"
+            aria-label={uiText("Dismiss project membership notice")}
             onClick={() => setDismissedLeftProjectIds((current) => new Set(current).add(project.id))}
           >
             ×
@@ -745,30 +749,30 @@ export function ProjectDetail() {
       ) : null}
       <div className="flex items-start gap-3">
         <div className="h-7 flex items-center">
-          <ProjectTilePicker
+          {canManage ? <ProjectTilePicker
             color={project.color ?? null}
             icon={project.icon ?? null}
             onSelectIcon={(icon) => updateProject.mutate({ icon })}
             onSelectColor={(color) => updateProject.mutate({ color })}
-          />
+          /> : <span className="text-primary">●</span>}
         </div>
         <div className="min-w-0 space-y-2">
-          <InlineEditor
+          {canManage ? <InlineEditor
             value={project.name}
             onSave={(name) => updateProject.mutate({ name })}
             as="h2"
             className="text-xl font-bold"
-          />
+          /> : <h2 className="text-xl font-bold">{project.name}</h2>}
           {project.pauseReason === "budget" ? (
             <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-(length:--text-micro) font-medium uppercase tracking-(--tracking-caps) text-red-800 dark:text-red-200">
               <span className="h-2 w-2 rounded-full bg-red-400" />
-              Paused by budget hard stop
+              {uiText("Paused by budget hard stop")}
             </div>
           ) : null}
           {project.managedByPlugin ? (
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-(length:--text-micro) font-medium text-muted-foreground">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: project.color ?? "var(--project-seed)" }} />
-              Managed by {project.managedByPlugin.pluginDisplayName}
+              {uiText("Managed by")} {project.managedByPlugin.pluginDisplayName}
             </div>
           ) : null}
         </div>
@@ -788,12 +792,14 @@ export function ProjectDetail() {
         </div>
       </div>
 
+      <Dsp7JiraIntake project={project} />
+
       <SummarySlotCard
         companyId={resolvedCompanyId}
         scopeKind="project"
         scopeId={project.id}
-        title="Project summary"
-        description="Summarizer keeps the latest project status, next step, and operator-needed items here."
+        title={uiText("Project summary")}
+        description={uiText("Summarizer keeps the latest project status, next step, and operator-needed items here.")}
       />
 
       <PluginSlotOutlet
@@ -830,12 +836,12 @@ export function ProjectDetail() {
       <Tabs value={activeTab ?? "list"} onValueChange={(value) => handleTabChange(value as ProjectTab)}>
         <PageTabBar
           items={[
-            { value: "list", label: "Tasks" },
+            { value: "list", label: uiText("Tasks") },
 
-            ...(project.managedByPlugin ? [{ value: "plugin-operations", label: "Plugin operations" }] : []),
-            ...(showWorkspacesTab ? [{ value: "workspaces", label: "Workspaces" }] : []),
-            { value: "configuration", label: "Configuration" },
-            { value: "budget", label: "Budget" },
+            ...(canManage && project.managedByPlugin ? [{ value: "plugin-operations", label: uiText("Plugin operations") }] : []),
+            ...(canManage && showWorkspacesTab ? [{ value: "workspaces", label: uiText("Workspaces") }] : []),
+            ...(canManage ? [{ value: "configuration", label: uiText("Configuration") }] : []),
+            ...(canManage ? [{ value: "budget", label: uiText("Budget") }] : []),
             ...pluginTabItems.map((item) => ({
               value: item.value,
               label: item.label,
@@ -874,7 +880,7 @@ export function ProjectDetail() {
             />
           )
         ) : (
-          <p className="text-sm text-muted-foreground">Loading workspaces...</p>
+          <p className="text-sm text-muted-foreground">{uiText("Loading workspaces...")}</p>
         )
       ) : null}
 

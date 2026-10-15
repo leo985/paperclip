@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   CompanyPortabilityEmbeddedAssetManifestEntry,
   CompanyPortabilityIssueManifestEntry,
@@ -39,12 +40,12 @@ export const EXPORT_CATEGORY_ORDER: ExportCategoryKey[] = [
 ];
 
 export const EXPORT_CATEGORY_LABELS: Record<ExportCategoryKey, string> = {
-  agents: "Agents",
-  projects: "Projects",
-  skills: "Skills",
-  routines: "Routines",
-  tasks: "Tasks",
-  attachments: "Attachments",
+  agents: uiText("Agents"),
+  projects: uiText("Projects"),
+  skills: uiText("Skills"),
+  routines: uiText("Routines"),
+  tasks: uiText("Tasks"),
+  attachments: uiText("Attachments"),
 };
 
 /** Everything exports by default. */

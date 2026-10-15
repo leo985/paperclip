@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import {
   AlertCircle,
   AlertOctagon,
@@ -76,16 +77,16 @@ export function externalObjectIconForLiveness(liveness: string): LucideIcon | nu
 
 const CATEGORY_LABELS: Record<string, string> = {
   unknown: "Not yet resolved",
-  open: "Open",
-  waiting: "Waiting",
-  running: "Running",
-  succeeded: "Succeeded",
-  failed: "Failed",
-  blocked: "Blocked",
-  closed: "Closed",
-  archived: "Archived",
-  auth_required: "Authorization required",
-  unreachable: "Unreachable",
+  open: uiText("Open"),
+  waiting: uiText("Waiting"),
+  running: uiText("Running"),
+  succeeded: uiText("Succeeded"),
+  failed: uiText("Failed"),
+  blocked: uiText("Blocked"),
+  closed: uiText("Closed"),
+  archived: uiText("Archived"),
+  auth_required: uiText("Authorization required"),
+  unreachable: uiText("Unreachable"),
 };
 
 export function externalObjectCategoryLabel(category: string): string {
@@ -95,9 +96,9 @@ export function externalObjectCategoryLabel(category: string): string {
 const LIVENESS_LABELS: Record<string, string> = {
   unknown: "Not yet refreshed",
   fresh: "Fresh",
-  stale: "Stale",
+  stale: uiText("Stale"),
   auth_required: "Requires auth",
-  unreachable: "Unreachable",
+  unreachable: uiText("Unreachable"),
 };
 
 export function externalObjectLivenessLabel(liveness: string): string {
@@ -172,7 +173,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 export function externalObjectProviderLabel(providerKey: string | null | undefined): string {
-  if (!providerKey) return "External";
+  if (!providerKey) return uiText("External");
   const lookup = PROVIDER_LABELS[providerKey];
   if (lookup) return lookup;
   return providerKey

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -30,7 +31,7 @@ export type ModelSource = {
 };
 
 const CREDENTIAL_TAG_LABEL: Record<CredentialMode, string> = {
-  subscription: "Subscription",
+  subscription: uiText("Subscription"),
   api: "API",
 };
 

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import type { ToastInput } from "@/context/ToastContext";
 
 export interface BuiltInAgentPausedToastOptions {
@@ -20,9 +21,9 @@ export function buildBuiltInAgentPausedToast(options: BuiltInAgentPausedToastOpt
   const noun = options.featureNoun ?? "item";
   return {
     dedupeKey: `built-in-agent-paused:${options.displayName}`,
-    title: `${options.displayName} is paused`,
-    body: `Resume the agent to generate this ${noun}.`,
+    title: uiTextFormat("__PCVAR0__ is paused", [options.displayName]),
+    body: uiTextFormat("Resume the agent to generate this __PCVAR0__.", [noun]),
     tone: "warn",
-    action: { label: "View agent", href: options.agentHref },
+    action: { label: uiText("View agent"), href: options.agentHref },
   };
 }

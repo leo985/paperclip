@@ -1,3 +1,4 @@
+import { localizedStatus,  uiText } from "@/i18n/interface";
 import { agentAvatarUrl } from "@/lib/agent-avatar-url";
 import { resolveAgentAppearance } from "@paperclipai/shared";
 /**
@@ -793,12 +794,11 @@ function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
       <div className="text-(length:--text-compact) font-medium text-foreground">{truncate(title)}</div>
       <div className="mt-0.5 text-muted-foreground">
         {fmtClock(startMs)}–{bar.span.end ? fmtClock(endMs) : "now"} · {formatDuration(startMs, endMs)} ·{" "}
-        <span className="font-medium text-foreground">{bar.span.status}</span>
+        <span className="font-medium text-foreground">{localizedStatus(bar.span.status)}</span>
       </div>
       {bar.kickoff && (
-        <div className="text-muted-foreground">
-          kicked off by: {(bar.kickoff as WorkTimelineActor).name}
-          {bar.span.retryOfRunId ? " · retry" : ""}
+        <div className="text-muted-foreground">{uiText("kicked off by:")}{" "}{(bar.kickoff as WorkTimelineActor).name}
+          {bar.span.retryOfRunId ? uiText(" · retry") : ""}
         </div>
       )}
       {tooltip.connectorHint && (
@@ -946,7 +946,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-left-handle"
-          label="Drag left edge to resize visible range"
+          label={uiText("Drag left edge to resize visible range")}
           onMouseDown={(e) => startRangeDrag("left", e)}
         />
         <MiniMapHandle
@@ -955,7 +955,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-right-handle"
-          label="Drag right edge to resize visible range"
+          label={uiText("Drag right edge to resize visible range")}
           onMouseDown={(e) => startRangeDrag("right", e)}
         />
       </svg>

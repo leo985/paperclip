@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import type { AvatarAgent } from "./AgentAvatar";
 import type { ReactNode } from "react";
@@ -26,15 +27,15 @@ import { Badge } from "@/components/ui/badge";
 export const issueTrailingColumns: InboxIssueColumn[] = ["assignee", "kickedOffBy", "project", "workspace", "parent", "labels", "updated"];
 
 const issueColumnLabels: Record<InboxIssueColumn, string> = {
-  status: "Status",
-  id: "ID",
-  assignee: "Responsible",
+  status: uiText("Status"),
+  id: uiText("ID"),
+  assignee: uiText("Responsible"),
   kickedOffBy: "Kicked off by",
-  project: "Project",
-  workspace: "Workspace",
-  parent: "Parent task",
-  labels: "Tags",
-  updated: "Last updated",
+  project: uiText("Project"),
+  workspace: uiText("Workspace"),
+  parent: uiText("Parent task"),
+  labels: uiText("Tags"),
+  updated: uiText("Last updated"),
 };
 
 const issueColumnDescriptions: Record<InboxIssueColumn, string> = {
@@ -113,18 +114,16 @@ export function IssueColumnPicker({
           variant={iconOnly ? "outline" : "ghost"}
           size={iconOnly ? "icon" : "sm"}
           className={iconOnly ? "h-8 w-8 shrink-0" : "hidden h-8 shrink-0 px-2 text-xs sm:inline-flex"}
-          title="Columns"
+          title={uiText("Columns")}
         >
           <Columns3 className={iconOnly ? "h-3.5 w-3.5" : "mr-1 h-3.5 w-3.5"} />
-          {!iconOnly && "Columns"}
+          {!iconOnly && uiText("Columns")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-(--sz-300px) rounded-xl border-border/70 p-1.5 shadow-xl shadow-black/10">
         <DropdownMenuLabel className="px-2 pb-1 pt-1.5">
           <div className="space-y-1">
-            <div className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Desktop task rows
-            </div>
+            <div className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{uiText("Desktop task rows")}{" "}</div>
             <div className="text-sm font-medium text-foreground">
               {title}
             </div>
@@ -157,12 +156,8 @@ export function IssueColumnPicker({
             className="items-start rounded-lg px-3 py-2.5 pl-8"
           >
             <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-foreground">
-                Date group separators
-              </span>
-              <span className="text-xs leading-relaxed text-muted-foreground">
-                Show Today, Yesterday, and Earlier rules on newest-first task lists.
-              </span>
+              <span className="text-sm font-medium text-foreground">{uiText("Date group separators")}{" "}</span>
+              <span className="text-xs leading-relaxed text-muted-foreground">{uiText("Show Today, Yesterday, and Earlier rules on newest-first task lists.")}{" "}</span>
             </span>
           </DropdownMenuCheckboxItem>
         ) : null}
@@ -170,9 +165,7 @@ export function IssueColumnPicker({
         <DropdownMenuItem
           onSelect={onResetColumns}
           className="rounded-lg px-3 py-2 text-sm"
-        >
-          Reset defaults
-          <span className="ml-auto text-xs text-muted-foreground">status, id, updated</span>
+        >{uiText("Reset defaults")}{" "}<span className="ml-auto text-xs text-muted-foreground">{uiText("status, id, updated")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -237,7 +230,7 @@ export function InboxIssueMetaLeading({
               "text-blue-600 dark:text-blue-400",
             )}
           >
-            Live
+            {uiText("Live")}
           </span>
         </Badge>
       )}
@@ -247,7 +240,7 @@ export function InboxIssueMetaLeading({
             "px-1.5 sm:gap-1.5 sm:px-2",
             "border-border bg-transparent",
           )}
-          title={`${subtreeLiveCount} sub-task${subtreeLiveCount === 1 ? "" : "s"} running below`}
+          title={uiTextFormat("__PCVAR0__ sub-task__PCVAR1__ running below", [subtreeLiveCount, ""])}
         >
           <span
             className={cn(
@@ -257,8 +250,7 @@ export function InboxIssueMetaLeading({
             aria-hidden="true"
           />
           <span className="hidden text-(length:--text-micro) font-medium text-muted-foreground sm:inline">
-            {subtreeLiveCount} live below
-          </span>
+            {subtreeLiveCount}{" "}{uiText("live below")}{" "}</span>
         </Badge>
       )}
     </>
@@ -352,7 +344,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              Unassigned
+              {uiText("Unassigned")}
             </span>
           );
         }
@@ -397,7 +389,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              Unknown
+              {uiText("Unknown")}
             </span>
           );
         }
@@ -423,7 +415,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              No project
+              {uiText("No project")}
             </span>
           );
         }
@@ -479,9 +471,7 @@ export function InboxIssueTrailingColumns({
                       {workspaceName}
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" sideOffset={6}>
-                    Filter by workspace
-                  </TooltipContent>
+                  <TooltipContent side="top" sideOffset={6}>{uiText("Filter by workspace")}{" "}</TooltipContent>
                 </Tooltip>
               ) : (
                 workspaceName
@@ -500,7 +490,7 @@ export function InboxIssueTrailingColumns({
               {parentIdentifier ? (
                 <span className="font-mono">{parentIdentifier}</span>
               ) : (
-                <span className="italic">Sub-task</span>
+                <span className="italic">{uiText("Sub-task")}</span>
               )}
             </span>
           );

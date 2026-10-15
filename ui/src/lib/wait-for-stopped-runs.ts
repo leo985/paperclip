@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { heartbeatsApi } from "../api/heartbeats";
 
 const LIVE_STATUSES = new Set(["queued", "running", "scheduled_retry"]);
@@ -22,14 +23,14 @@ export async function waitForStoppedRuns(
         Promise.all(remaining.map((id) => getRun(id))),
         new Promise<never>((_resolve, reject) => {
           timeout = setTimeout(
-            () => reject(new Error("Stop verification timed out")),
+            () => reject(new Error(uiText("Stop verification timed out"))),
             Math.max(0, deadline - Date.now()),
           );
         }),
       ]);
     } catch {
       throw new Error(
-        "The stop was requested, but stopping could not be verified. Refresh and try Stop again if work is still running.",
+        uiText("The stop was requested, but stopping could not be verified. Refresh and try Stop again if work is still running."),
       );
     } finally {
       clearTimeout(timeout);
@@ -54,7 +55,7 @@ export async function waitForStoppedRuns(
     if (remaining.length === 0) return;
     if (Date.now() >= deadline) {
       throw new Error(
-        "The stop was requested, but work is still stopping. Try Stop again if it continues.",
+        uiText("The stop was requested, but work is still stopping. Try Stop again if it continues."),
       );
     }
     await new Promise((resolve) =>

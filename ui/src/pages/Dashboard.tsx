@@ -1,3 +1,6 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { CollaborationWorkbench } from "../components/CollaborationWorkbench";
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "@/lib/router";
@@ -71,6 +74,7 @@ export function derivePausedAgentBanner(agents: Agent[] | undefined): PausedAgen
 }
 
 export function Dashboard() {
+  const { canManage } = useManagementAccess();
   const { selectedCompanyId, companies } = useCompany();
   const { openOnboarding } = useDialogActions();
   const location = useLocation();
@@ -155,7 +159,7 @@ export function Dashboard() {
   }, [shouldOpenOnboarding, selectedCompanyId, openOnboarding]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Dashboard" }]);
+    setBreadcrumbs([{ label: "协同工作台" }]);
   }, [setBreadcrumbs]);
 
   const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
@@ -177,16 +181,16 @@ export function Dashboard() {
     companyId: selectedCompanyId,
     resourceKey: `activity:limit:${DASHBOARD_ACTIVITY_LIMIT}`,
     queryKey: activityQueryKey,
-    enabled: !!selectedCompanyId,
+    enabled: !!selectedCompanyId && canManage,
   });
   const { data: activity, dataUpdatedAt: activityUpdatedAt } = useQuery({
     queryKey: activityQueryKey,
     queryFn: () => activityApi.list(selectedCompanyId!, { limit: DASHBOARD_ACTIVITY_LIMIT }),
-    enabled: !!selectedCompanyId,
+    enabled: !!selectedCompanyId && canManage,
   });
   usePublishSharedQueryData(sharedActivity, activity, activityUpdatedAt);
 
-  const { data: issues } = useQuery({
+  const { data: issues, isError: issuesError } = useQuery({
     queryKey: queryKeys.issues.list(selectedCompanyId!),
     queryFn: () => issuesApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId,
@@ -297,14 +301,14 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message="Welcome to Paperclip. Set up your first organization and agent to get started."
+          message={uiText("Welcome to Paperclip. Set up your first organization and agent to get started.")}
           action="Get Started"
           onAction={openOnboarding}
         />
       );
     }
     return (
-      <EmptyState icon={LayoutDashboard} message="Create or select an organization to view the dashboard." />
+      <EmptyState icon={LayoutDashboard} message={uiText("Create or select an organization to view the dashboard.")} />
     );
   }
 
@@ -322,13 +326,14 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <CollaborationWorkbench companyId={selectedCompanyId} issues={issues} issuesError={issuesError} pendingApprovals={data ? data.pendingApprovals + data.budgets.pendingApprovals : undefined} />
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {pausedBanner?.kind === "imported" ? (
         <InlineBanner
           tone="warning"
           icon={PauseCircle}
-          title={`${pausedImportedCount} imported agent${pausedImportedCount === 1 ? " is" : "s are"} paused and will not run.`}
+          title={uiTextFormat("__PCVAR0__ imported agent__PCVAR1__ paused and will not run.", [pausedImportedCount, pausedImportedCount === 1 ? " is" : "s are"])}
           actions={
             <Button
               size="sm"
@@ -336,24 +341,24 @@ export function Dashboard() {
               disabled={resumeImportedAgents.isPending}
               data-testid="dashboard-resume-imported-agents"
             >
-              {resumeImportedAgents.isPending ? "Resuming…" : "Resume all"}
+              {resumeImportedAgents.isPending ? uiText("Resuming…") : uiText("Resume all")}
             </Button>
           }
         >
-          Agents from an organization import arrive paused as a safety default. Resume them so assigned tasks can start.
+          {uiText("Agents from an organization import arrive paused as a safety default. Resume them so assigned tasks can start.")}
         </InlineBanner>
       ) : pausedBanner?.kind === "all-paused" ? (
         <InlineBanner
           tone="warning"
           icon={PauseCircle}
-          title="All agents in this organization are paused — nothing will run."
+          title={uiText("All agents in this organization are paused — nothing will run.")}
           actions={
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/agents">Review agents</Link>
+              <Link to="/agents">{uiText("Review agents")}</Link>
             </Button>
           }
         >
-          Resume at least one agent to let assigned tasks start.
+          {uiText("Resume at least one agent to let assigned tasks start.")}
         </InlineBanner>
       ) : null}
 
@@ -362,14 +367,14 @@ export function Dashboard() {
           <div className="flex items-center gap-2.5">
             <Bot className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-sm text-amber-900 dark:text-amber-100">
-              You have no agents.
+              {uiText("You have no agents.")}
             </p>
           </div>
           <button
             onClick={() => openOnboarding({ initialStep: 3, companyId: selectedCompanyId! })}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 underline underline-offset-2 shrink-0"
           >
-            Create one here
+            {uiText("Create one here")}
           </button>
         </div>
       )}
@@ -384,89 +389,89 @@ export function Dashboard() {
                 <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-red-300" />
                 <div>
                   <p className="text-sm font-medium text-red-950 dark:text-red-50">
-                    {data.budgets.activeIncidents} active budget incident{data.budgets.activeIncidents === 1 ? "" : "s"}
+                    {data.budgets.activeIncidents} {uiText("active budget incident")}{data.budgets.activeIncidents === 1 ? "" : "s"}
                   </p>
                   <p className="text-xs text-red-900/70 dark:text-red-100/70">
-                    {data.budgets.pausedAgents} agents paused · {data.budgets.pausedProjects} projects paused · {data.budgets.pendingApprovals} pending budget approvals
+                    {data.budgets.pausedAgents} {uiText("agents paused ·")} {data.budgets.pausedProjects} {uiText("projects paused ·")} {data.budgets.pendingApprovals} {uiText("pending budget approvals")}
                   </p>
                 </div>
               </div>
               <Link to="/costs" className="text-sm underline underline-offset-2 text-red-900 dark:text-red-100">
-                Open budgets
+                {uiText("Open budgets")}
               </Link>
             </div>
           ) : null}
 
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
+          <h2 className="text-base font-semibold">组织运行概况<span className="ml-2 text-xs font-normal text-muted-foreground">当前状态与本月用量</span></h2>
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label="Agents Enabled"
+              label={uiText("Agents Enabled")}
               to="/agents"
               description={
                 <span>
-                  {data.agents.running} running{", "}
-                  {data.agents.paused} paused{", "}
-                  {data.agents.error} errors
+                  {data.agents.running} 运行 · {data.agents.paused} 暂停 · {data.agents.error} 异常
                 </span>
               }
             />
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label="Tasks In Progress"
+              label={uiText("Tasks In Progress")}
               to="/issues"
               description={
                 <span>
-                  {data.tasks.open} open{", "}
-                  {data.tasks.blocked} blocked
+                  {data.tasks.open} 未完成 · {data.tasks.blocked} 阻塞
                 </span>
               }
             />
+            {canManage && (
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label="Month Spend"
+              label={uiText("Month Spend")}
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
-                    ? `${data.costs.monthUtilizationPercent}% of ${formatCents(data.costs.monthBudgetCents)} budget`
-                    : "Unlimited budget"}
+                    ? uiTextFormat("__PCVAR0__% of __PCVAR1__ budget", [data.costs.monthUtilizationPercent, formatCents(data.costs.monthBudgetCents)])
+                    : uiText("Unlimited budget")}
                 </span>
               }
             />
+            )}
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label="Pending Approvals"
+              label={uiText("Pending Approvals")}
               to="/approvals"
               description={
                 <span>
                   {data.budgets.pendingApprovals > 0
-                    ? `${data.budgets.pendingApprovals} budget overrides awaiting board review`
-                    : "Awaiting board review"}
+                    ? uiTextFormat("__PCVAR0__ budget overrides awaiting board review", [data.budgets.pendingApprovals])
+                    : uiText("Awaiting board review")}
                 </span>
               }
             />
           </div>
 
-          <SmokeLabDashboardCard companyId={selectedCompanyId!} />
+
 
           <div className={cn("grid grid-cols-2 gap-4", SHOW_TASK_PRIORITY_UI ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+            <ChartCard title={uiText("Run Activity")} subtitle="最近 14 天">
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
             {/* PAP-411: "Tasks by Priority" chart hidden behind SHOW_TASK_PRIORITY_UI. */}
             {SHOW_TASK_PRIORITY_UI && (
-              <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
+              <ChartCard title={uiText("Tasks by Priority")} subtitle="最近 14 天">
                 <PriorityChart issues={issues ?? []} />
               </ChartCard>
             )}
-            <ChartCard title="Tasks by Status" subtitle="Last 14 days">
+            <ChartCard title={uiText("Tasks by Status")} subtitle="最近 14 天">
               <IssueStatusChart issues={issues ?? []} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title={uiText("Success Rate")} subtitle="最近 14 天">
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
@@ -481,10 +486,10 @@ export function Dashboard() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* Recent Activity */}
-            {recentActivity.length > 0 && (
+            {canManage && recentActivity.length > 0 && (
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Recent Activity
+                  {uiText("Recent Activity")}
                 </h3>
                 <Card className="@container block py-0 divide-y divide-border overflow-hidden">
                   {recentActivity.map((event) => (
@@ -505,11 +510,11 @@ export function Dashboard() {
             {/* Recent Tasks */}
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Recent Tasks
+                {uiText("Recent Tasks")}
               </h3>
               {recentIssues.length === 0 ? (
                 <Card className="block p-4">
-                  <p className="text-sm text-muted-foreground">No tasks yet.</p>
+                  <p className="text-sm text-muted-foreground">{uiText("No tasks yet.")}</p>
                 </Card>
               ) : (
                 <Card className="@container block py-0 divide-y divide-border overflow-hidden">

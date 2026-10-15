@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { useLocation, useNavigationType, useNavigate } from "@/lib/router";
+import { createContext, useCallback, useContext, useMemo, useState, useEffect, useRef, type ReactNode } from "react";
 import type { IssueWorkMode } from "@paperclipai/shared";
 
 interface NewIssueDefaults {
@@ -27,6 +29,7 @@ interface NewGoalDefaults {
 interface OnboardingOptions {
   initialStep?: 1 | 2 | 3 | 4;
   companyId?: string;
+  returnTo?: string;
 }
 
 interface DialogContextValue {
@@ -74,6 +77,11 @@ const DialogStateContext = createContext<DialogStateValue | null>(null);
 const DialogActionsContext = createContext<DialogActionsValue | null>(null);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
+  const { canManage } = useManagementAccess();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const lastLocationKey = useRef(location.key);
   const [newIssueOpen, setNewIssueOpen] = useState(false);
   const [newIssueDefaults, setNewIssueDefaults] = useState<NewIssueDefaults>({});
   const [newProjectOpen, setNewProjectOpen] = useState(false);
@@ -85,9 +93,10 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const [onboardingRouteDismissed, setOnboardingRouteDismissed] = useState(false);
 
   const openNewIssue = useCallback((defaults: NewIssueDefaults = {}) => {
+    if (!canManage) { navigate("/jira-intake"); return; }
     setNewIssueDefaults(defaults);
     setNewIssueOpen(true);
-  }, []);
+  }, [canManage, navigate]);
 
   const closeNewIssue = useCallback(() => {
     setNewIssueOpen(false);
@@ -95,17 +104,19 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openNewProject = useCallback(() => {
+    if (!canManage) { navigate("/management"); return; }
     setNewProjectOpen(true);
-  }, []);
+  }, [canManage, navigate]);
 
   const closeNewProject = useCallback(() => {
     setNewProjectOpen(false);
   }, []);
 
   const openNewGoal = useCallback((defaults: NewGoalDefaults = {}) => {
+    if (!canManage) { navigate("/management"); return; }
     setNewGoalDefaults(defaults);
     setNewGoalOpen(true);
-  }, []);
+  }, [canManage, navigate]);
 
   const closeNewGoal = useCallback(() => {
     setNewGoalOpen(false);
@@ -113,22 +124,33 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openNewAgent = useCallback(() => {
+    if (!canManage) { navigate("/management"); return; }
     setNewAgentOpen(true);
-  }, []);
+  }, [canManage, navigate]);
 
   const closeNewAgent = useCallback(() => {
     setNewAgentOpen(false);
   }, []);
 
   const openOnboarding = useCallback((options: OnboardingOptions = {}) => {
-    setOnboardingOptions(options);
+    if (!canManage) { navigate("/seats"); return; }
+    setOnboardingOptions({...options,returnTo:options.returnTo??location.pathname+location.search+location.hash});
     setOnboardingOpen(true);
-  }, []);
+  }, [canManage, navigate, location.pathname, location.search, location.hash]);
 
   const closeOnboarding = useCallback(() => {
     setOnboardingOpen(false);
     setOnboardingOptions({});
   }, []);
+
+  // A global dialog must not follow users through browser Back / Forward.
+  useEffect(() => {
+    if(lastLocationKey.current===location.key)return;
+    lastLocationKey.current=location.key;
+    setNewIssueOpen(false);setNewProjectOpen(false);setNewGoalOpen(false);setNewAgentOpen(false);
+    if(navigationType!=="POP")return;
+    setOnboardingOpen(false);setOnboardingRouteDismissed(true);
+  },[location.key,navigationType]);
 
   const stateValue = useMemo<DialogStateValue>(
     () => ({

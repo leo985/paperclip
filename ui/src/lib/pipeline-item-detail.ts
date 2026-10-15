@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { Issue } from "@paperclipai/shared";
 import type {
   PipelineCase,
@@ -74,9 +75,9 @@ function humanizeKey(key: string) {
 }
 
 export function humanizePipelineItemStatus(status: string | null | undefined) {
-  if (!status) return "Open";
+  if (!status) return uiText("Open");
   const normalized = status.trim().toLowerCase();
-  if (!normalized) return "Open";
+  if (!normalized) return uiText("Open");
   const labels: Record<string, string> = {
     open: "Open",
     working: "In progress",
@@ -94,7 +95,7 @@ export function formatFieldValue(value: unknown): string {
     const formatted = value.map(formatFieldValue).filter(Boolean);
     return formatted.length ? formatted.join(", ") : "None";
   }
-  if (value == null || value === "") return "None";
+  if (value == null || value === "") return uiText("None");
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "number") return String(value);
   if (typeof value === "string") return value;
@@ -248,8 +249,8 @@ export function itemHasChangedNotice(item: Pick<PipelineCase, "fields"> & {
   if (item.changeAcknowledgedAt || fields.changeAcknowledgedAt) return null;
   if (item.thisChanged || fields.thisChanged || fields.upstreamChanged || fields.upstreamDrift) {
     return {
-      title: "This changed",
-      body: "Upstream work changed after this item was created. Review the latest details before continuing.",
+      title: uiText("This changed"),
+      body: uiText("Upstream work changed after this item was created. Review the latest details before continuing."),
     };
   }
   return null;
@@ -272,8 +273,8 @@ export function eventsHaveUnacknowledgedDrift(events: PipelineCaseEvent[]) {
 export function changedNoticeFromEvents(events: PipelineCaseEvent[]) {
   if (!eventsHaveUnacknowledgedDrift(events)) return null;
   return {
-    title: "This changed",
-    body: "Upstream work changed after this item was created. Review the latest details before continuing.",
+    title: uiText("This changed"),
+    body: uiText("Upstream work changed after this item was created. Review the latest details before continuing."),
   };
 }
 

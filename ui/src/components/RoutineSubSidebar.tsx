@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useRef } from "react";
 import {
   Activity as ActivityIcon,
@@ -40,21 +41,21 @@ type NavGroup = {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Routine",
+    label: uiText("Routine"),
     items: [
-      { key: "overview", label: "Overview", icon: Circle },
-      { key: "triggers", label: "Triggers", icon: Clock3 },
-      { key: "variables", label: "Variables", icon: LayoutGrid },
-      { key: "secrets", label: "Secrets", icon: KeyRound },
-      { key: "delivery", label: "Delivery", icon: Send },
+      { key: "overview", label: uiText("Overview"), icon: Circle },
+      { key: "triggers", label: uiText("Triggers"), icon: Clock3 },
+      { key: "variables", label: uiText("Variables"), icon: LayoutGrid },
+      { key: "secrets", label: uiText("Secrets"), icon: KeyRound },
+      { key: "delivery", label: uiText("Delivery"), icon: Send },
     ],
   },
   {
-    label: "Operate",
+    label: uiText("Operate"),
     items: [
-      { key: "runs", label: "Runs", icon: Play },
-      { key: "activity", label: "Activity", icon: ActivityIcon },
-      { key: "history", label: "History", icon: HistoryIcon },
+      { key: "runs", label: uiText("Runs"), icon: Play },
+      { key: "activity", label: uiText("Activity"), icon: ActivityIcon },
+      { key: "history", label: uiText("History"), icon: HistoryIcon },
     ],
   },
 ];
@@ -109,7 +110,7 @@ export function RoutineSubSidebar({
 
   return (
     <nav
-      aria-label="Routine sections"
+      aria-label={uiText("Routine sections")}
       className="hidden h-full w-52 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-background px-3 py-4 md:flex"
     >
       {NAV_GROUPS.map((group) => (
@@ -152,7 +153,7 @@ export function RoutineSubSidebar({
                   <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500 motion-safe:animate-pulse" />
                 ) : dirty ? (
                   <span
-                    aria-label="Unsaved changes"
+                    aria-label={uiText("Unsaved changes")}
                     className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 ring-2 ring-background"
                   />
                 ) : null}
@@ -185,7 +186,7 @@ export function RoutineSectionPicker({
           }
         }}
       >
-        <SelectTrigger className="h-11 w-full" aria-label="Routine section">
+        <SelectTrigger className="h-11 w-full" aria-label={uiText("Routine section")}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

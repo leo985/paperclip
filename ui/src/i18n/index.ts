@@ -1,12 +1,15 @@
 import i18n, { type InitOptions, type TOptions } from "i18next";
 import { initReactI18next, useTranslation as useReactI18nextTranslation } from "react-i18next";
 
+import interfaceEnglish from "./interface.en.json";
+import interfaceChinese from "./interface.zh-CN.json";
+
 import { DEFAULT_LOCALE, i18nextResources, supportedLocales } from "./locales";
 
 const i18nextOptions: InitOptions = {
-  resources: i18nextResources,
+  resources: { ...i18nextResources, en: { ...i18nextResources.en, interface: interfaceEnglish }, "zh-CN": { ...i18nextResources["zh-CN"], interface: interfaceChinese } },
   lng: DEFAULT_LOCALE,
-  fallbackLng: DEFAULT_LOCALE,
+  fallbackLng: "en",
   supportedLngs: supportedLocales,
   defaultNS: "translation",
   interpolation: { escapeValue: false },

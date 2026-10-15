@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
@@ -39,8 +40,8 @@ export function GatewaysList() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
-      { label: "Gateways" },
+      { label: uiText("Connectors"), href: "/apps" },
+      { label: uiText("Gateways") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs]);
@@ -96,7 +97,7 @@ export function GatewaysList() {
       }),
     onSuccess: async (gateway) => {
       pushToast({
-        title: gateway.status === "active" ? "Gateway on" : "Gateway off",
+        title: gateway.status === "active" ? uiText("Gateway on") : uiText("Gateway off"),
         body:
           gateway.status === "active"
             ? `${gateway.name} is exposing its tools again.`
@@ -107,14 +108,14 @@ export function GatewaysList() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update the gateway",
+        title: uiText("Couldn't update the gateway"),
         body: error instanceof Error ? error.message : String(error),
         tone: "error",
       }),
   });
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to manage gateways.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization to manage gateways.")}</div>;
   }
 
   const gateways = gatewaysQuery.data?.gateways ?? [];
@@ -133,11 +134,8 @@ export function GatewaysList() {
   return (
     <div className="max-w-5xl space-y-5">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Apps</h1>
-        <p className="text-sm text-muted-foreground">
-          A gateway is one safe MCP endpoint that exposes only the apps you assign. Hand it to a client
-          like Cursor or Claude Desktop.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{uiText("Apps")}</h1>
+        <p className="text-sm text-muted-foreground">{uiText("A gateway is one safe MCP endpoint that exposes only the apps you assign. Hand it to a client like Cursor or Claude Desktop.")}{" "}</p>
       </header>
 
       {gatewaysQuery.isLoading ? (
@@ -157,15 +155,13 @@ export function GatewaysList() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by name, app, or owner"
+                placeholder={uiText("Search by name, app, or owner")}
                 className="pl-9"
-                aria-label="Search gateways"
+                aria-label={uiText("Search gateways")}
               />
             </div>
             <Button onClick={() => setCreating(true)}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              New gateway
-            </Button>
+              <Plus className="mr-1.5 h-4 w-4" />{uiText("New gateway")}{" "}</Button>
           </div>
 
           {(() => {
@@ -195,12 +191,11 @@ export function GatewaysList() {
                 disabled={toggleMutation.isPending}
                 onClick={(event) => event.stopPropagation()}
                 onCheckedChange={() => toggleMutation.mutate({ gateway })}
-                aria-label={`Turn ${gateway.name} ${isGatewayOn(gateway) ? "off" : "on"}`}
+                aria-label={uiTextFormat("Turn __PCVAR0__ __PCVAR1__", [gateway.name, isGatewayOn(gateway) ? "off" : "on"])}
               />
             );
             const empty = (
-              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                No gateways match “{search.trim()}”.
+              <div className="px-4 py-8 text-center text-sm text-muted-foreground">{uiText("No gateways match “")}{search.trim()}”.
               </div>
             );
             return (
@@ -210,12 +205,12 @@ export function GatewaysList() {
                   <table className="w-full min-w-(--sz-40rem) text-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/40 text-left text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                        <th className="whitespace-nowrap px-4 py-2.5">Gateway</th>
-                        <th className="whitespace-nowrap px-4 py-2.5">Scope</th>
-                        <th className="whitespace-nowrap px-4 py-2.5">Apps</th>
-                        <th className="whitespace-nowrap px-4 py-2.5">Tokens</th>
-                        <th className="whitespace-nowrap px-4 py-2.5">Last used</th>
-                        <th className="whitespace-nowrap px-4 py-2.5 text-right">On</th>
+                        <th className="whitespace-nowrap px-4 py-2.5">{uiText("Gateway")}</th>
+                        <th className="whitespace-nowrap px-4 py-2.5">{uiText("Scope")}</th>
+                        <th className="whitespace-nowrap px-4 py-2.5">{uiText("Apps")}</th>
+                        <th className="whitespace-nowrap px-4 py-2.5">{uiText("Tokens")}</th>
+                        <th className="whitespace-nowrap px-4 py-2.5">{uiText("Last used")}</th>
+                        <th className="whitespace-nowrap px-4 py-2.5 text-right">{uiText("On")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -232,7 +227,7 @@ export function GatewaysList() {
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{scope}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{appsLabel}</td>
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                            {active} active{expiring > 0 ? ` · ${expiring} expiring` : ""}
+                            {active}{" "}{uiText("active")}{expiring > 0 ? uiTextFormat(" · __PCVAR0__ expiring", [expiring]) : ""}
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                             {lastUsed ? <RelativeTime value={lastUsed} /> : "—"}
@@ -267,14 +262,14 @@ export function GatewaysList() {
                         <div className="shrink-0">{toggle(gateway)}</div>
                       </div>
                       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                        <MobileField label="Scope" value={scope} />
-                        <MobileField label="Apps" value={appsLabel} />
+                        <MobileField label={uiText("Scope")} value={scope} />
+                        <MobileField label={uiText("Apps")} value={appsLabel} />
                         <MobileField
-                          label="Tokens"
+                          label={uiText("Tokens")}
                           value={`${active} active${expiring > 0 ? ` · ${expiring} expiring` : ""}`}
                         />
                         <MobileField
-                          label="Last used"
+                          label={uiText("Last used")}
                           value={lastUsed ? <RelativeTime value={lastUsed} /> : "—"}
                         />
                       </dl>
@@ -289,11 +284,8 @@ export function GatewaysList() {
           })()}
 
           <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-            <div className="text-sm font-semibold text-foreground">Why a gateway?</div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              You pick which apps go through it, who can use it, and how. Revoke the token, the whole
-              gateway goes silent — no app-by-app cleanup.
-            </p>
+            <div className="text-sm font-semibold text-foreground">{uiText("Why a gateway?")}</div>
+            <p className="mt-1 text-sm text-muted-foreground">{uiText("You pick which apps go through it, who can use it, and how. Revoke the token, the whole gateway goes silent — no app-by-app cleanup.")}{" "}</p>
           </div>
         </div>
       )}
@@ -321,15 +313,10 @@ function MobileField({ label, value }: { label: string; value: ReactNode }) {
 function EmptyGateways({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="rounded-2xl border border-dashed border-border p-12 text-center">
-      <h2 className="text-lg font-semibold text-foreground">No gateways yet</h2>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-        Group your connected apps into one safe endpoint you can hand to a client, then revoke it in one
-        move.
-      </p>
+      <h2 className="text-lg font-semibold text-foreground">{uiText("No gateways yet")}</h2>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">{uiText("Group your connected apps into one safe endpoint you can hand to a client, then revoke it in one move.")}{" "}</p>
       <Button className="mt-5" onClick={onCreate}>
-        <Plus className="mr-1.5 h-4 w-4" />
-        New gateway
-      </Button>
+        <Plus className="mr-1.5 h-4 w-4" />{uiText("New gateway")}{" "}</Button>
     </div>
   );
 }

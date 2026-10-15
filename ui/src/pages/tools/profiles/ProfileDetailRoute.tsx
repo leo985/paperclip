@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect } from "react";
 import { useParams } from "@/lib/router";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -13,16 +14,16 @@ export function ProfileDetailRoute() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: "Profile detail" },
+      { label: selectedCompany?.name ?? uiText("Company"), href: "/dashboard" },
+      { label: uiText("Apps"), href: "/apps" },
+      { label: uiText("Access profiles"), href: advancedTabHref("profiles") },
+      { label: uiText("Profile detail") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   if (!selectedCompanyId || !params.profileId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization and profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization and profile.")}</div>;
   }
 
   return (

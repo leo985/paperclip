@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import {
   CHAT_PUBLICATION_STATES,
   type ChatPublicationSummary,
@@ -115,7 +116,7 @@ export function readBoardSendDraft(key: string): RetainedBoardSend | null {
         value.publication.attempts < 0))
   )
     throw new Error(
-      "Saved channel delivery identity could not be read. Check Activity before starting another send.",
+      uiText("Saved channel delivery identity could not be read. Check Activity before starting another send."),
     );
   return value as RetainedBoardSend;
 }

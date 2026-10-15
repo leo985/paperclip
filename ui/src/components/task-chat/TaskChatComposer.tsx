@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentAvatar } from "../AgentAvatar";
 import {
   useEffect,
@@ -645,8 +646,8 @@ export function TaskChatComposer({
     name: "Goal",
     description:
       !runnerGoalCapability || runnerGoalCapability.verified === false
-        ? "Support will be verified when the session starts."
-        : "Pursue work across turns.",
+        ? uiText("Support will be verified when the session starts.")
+        : uiText("Pursue work across turns."),
     aliases: ["goal", "pursue", "continue"],
     disabled: goalUnavailable && runnerGoalCapability !== null,
     disabledReason:
@@ -677,9 +678,9 @@ export function TaskChatComposer({
       const url = onAttachImage
         ? attachment?.contentPath
         : await onImageUpload?.(file);
-      if (!url) throw new Error("Upload did not return a file URL");
+      if (!url) throw new Error(uiText("Upload did not return a file URL"));
       if (!attachmentsRef.current.some((item) => item.id === id))
-        throw new Error("Attachment was removed");
+        throw new Error(uiText("Attachment was removed"));
       setAttachments((prev) =>
         prev.map((item) =>
           item.id === id
@@ -733,7 +734,7 @@ export function TaskChatComposer({
       }
       const attachment = await onAttachImage(file);
       if (!attachment?.contentPath)
-        throw new Error("Upload did not return a file URL");
+        throw new Error(uiText("Upload did not return a file URL"));
       const name = attachment?.originalFilename ?? file.name;
       setAttachments((prev) =>
         prev.map((item) =>
@@ -1066,7 +1067,7 @@ export function TaskChatComposer({
     if (!uncertainSubmission) return;
     setReviewError(false);
     try {
-      if (!onReviewConversation) throw new Error("Review unavailable");
+      if (!onReviewConversation) throw new Error(uiText("Review unavailable"));
       await onReviewConversation();
       if (mountedTaskKey.current !== draftKey) return;
       const reviewed = { ...uncertainSubmission, reviewed: true };
@@ -1115,7 +1116,7 @@ export function TaskChatComposer({
       {takeoverBusy ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       ) : null}
-      Skip
+      {uiText("Skip")}
     </Button>
   ) : null;
 
@@ -1154,35 +1155,25 @@ export function TaskChatComposer({
           role="alert"
           className="mb-3 space-y-2 rounded-md border border-border bg-muted p-3 text-sm"
         >
-          <p>
-            We couldn’t confirm whether this comment was saved. It may already
-            be in the conversation. Review it before starting another draft.
-          </p>
+          <p>{uiText("We couldn’t confirm whether this comment was saved. It may already be in the conversation. Review it before starting another draft.")}{" "}</p>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={reviewUncertainSubmission}
-          >
-            Review conversation
-          </Button>
+          >{uiText("Review conversation")}{" "}</Button>
           {reviewError ? (
-            <p>Couldn’t refresh the conversation. Try reviewing it again.</p>
+            <p>{uiText("Couldn’t refresh the conversation. Try reviewing it again.")}</p>
           ) : null}
           {uncertainSubmission.reviewed ? (
             <>
-              <p>
-                Discarding this draft does not remove any saved comment or
-                uploaded file.
-              </p>
+              <p>{uiText("Discarding this draft does not remove any saved comment or uploaded file.")}{" "}</p>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={discardUncertainDraft}
-              >
-                Discard draft and start new
-              </Button>
+              >{uiText("Discard draft and start new")}{" "}</Button>
             </>
           ) : null}
         </div>
@@ -1223,8 +1214,7 @@ export function TaskChatComposer({
                   className="h-7 px-2"
                   onClick={takeover.onShowNext}
                 >
-                  {takeover.pendingCount} pending
-                </Button>
+                  {takeover.pendingCount}{" "}{uiText("pending")}{" "}</Button>
               ) : null}
               <div
                 ref={setTakeoverControlsSlot}
@@ -1236,7 +1226,7 @@ export function TaskChatComposer({
                 size="icon-xs"
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground"
-                aria-label={`Dismiss ${takeover.label}`}
+                aria-label={uiTextFormat("Dismiss __PCVAR0__", [takeover.label])}
                 disabled={takeoverBusy}
                 onClick={takeover.onDismiss}
               >
@@ -1291,17 +1281,16 @@ export function TaskChatComposer({
             >
               <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
               <span className="min-w-0 flex-1 truncate">
-                {pendingTakeover?.label ?? takeover?.label ?? "Pending input"}
+                {pendingTakeover?.label ?? takeover?.label ?? uiText("Pending input")}
               </span>
               <span className="shrink-0 font-medium">
-                {pendingTakeover?.count ?? takeover?.pendingCount ?? 1} pending
-              </span>
+                {pendingTakeover?.count ?? takeover?.pendingCount ?? 1}{" "}{uiText("pending")}{" "}</span>
             </button>
           ) : null}
           {pause && conversationMode ? (
             <div className="space-y-2">
               <TaskChatPausedTakeover {...pause} hasDraft={Boolean(body.trim() || attachments.length)} />
-              <p className="text-xs text-muted-foreground">Send /new to start a fresh session and resume this conversation.</p>
+              <p className="text-xs text-muted-foreground">{uiText("Send /new to start a fresh session and resume this conversation.")}</p>
             </div>
           ) : null}
           <div data-testid="task-chat-composer-input">
@@ -1311,7 +1300,7 @@ export function TaskChatComposer({
               onChange={changeBody}
               placeholder={
                 disabled
-                  ? (disabledReason ?? "Composer disabled")
+                  ? (disabledReason ?? uiText("Composer disabled"))
                   : effectivePlaceholder
               }
               readOnly={disabled || !!uncertainSubmission}
@@ -1380,9 +1369,9 @@ export function TaskChatComposer({
                       </AttachmentTitle>
                       <AttachmentDescription className="max-w-48">
                         {attachment.status === "uploading"
-                          ? "Uploading…"
+                          ? uiText("Uploading…")
                           : attachment.status === "error"
-                            ? (attachment.error ?? "Upload failed")
+                            ? (attachment.error ?? uiText("Upload failed"))
                             : [kind.label, sizeLabel]
                                 .filter(Boolean)
                                 .join(" · ")}
@@ -1390,7 +1379,7 @@ export function TaskChatComposer({
                     </AttachmentContent>
                     <AttachmentActions>
                       <AttachmentAction
-                        aria-label={`Remove ${attachment.name}`}
+                        aria-label={uiTextFormat("Remove __PCVAR0__", [attachment.name])}
                         disabled={!!uncertainSubmission}
                         onClick={() =>
                           setAttachments((prev) =>
@@ -1423,8 +1412,8 @@ export function TaskChatComposer({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled}
-                  title="Attach file"
-                  aria-label="Attach file"
+                  title={uiText("Attach file")}
+                  aria-label={uiText("Attach file")}
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
                   data-testid="task-chat-composer-attach"
                 >
@@ -1436,8 +1425,8 @@ export function TaskChatComposer({
             {queuedEdit ? (
               <span className="px-1 text-xs font-medium text-muted-foreground">
                 {queuedEdit.stale
-                  ? "Queued message changed"
-                  : "Editing queued message"}
+                  ? uiText("Queued message changed")
+                  : uiText("Editing queued message")}
               </span>
             ) : (
               <DropdownMenu>
@@ -1508,10 +1497,10 @@ export function TaskChatComposer({
               <InlineEntitySelector
                 value={assigneeValue}
                 options={reassignOptions ?? []}
-                placeholder="Assignee"
+                placeholder={uiText("Assignee")}
                 noneLabel="No assignee"
                 searchPlaceholder="Search assignees…"
-                emptyMessage="No matches."
+                emptyMessage={uiText("No matches.")}
                 onChange={updatePendingAssignee}
                 disabled={disabled}
                 triggerTestId="task-chat-composer-assignee"
@@ -1558,7 +1547,7 @@ export function TaskChatComposer({
                 disabled={submitting}
                 className="h-8 shrink-0 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
               >
-                Cancel
+                {uiText("Cancel")}
               </button>
             ) : null}
 
@@ -1579,28 +1568,28 @@ export function TaskChatComposer({
               title={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop response"
+                    ? uiText("Stopping…")
+                    : uiText("Stop response")
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
+                      ? uiText("Queue as new message")
+                      : uiText("Save queued message")
                     : uploadPending
-                      ? "Waiting for upload to finish"
+                      ? uiText("Waiting for upload to finish")
                       : uploadFailed
-                        ? "Remove the failed attachment to send"
-                        : "Send (⌘+Enter)"
+                        ? uiText("Remove the failed attachment to send")
+                        : uiText("Send (⌘+Enter)")
               }
               aria-label={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop"
+                    ? uiText("Stopping…")
+                    : uiText("Stop")
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
-                    : "Send"
+                      ? uiText("Queue as new message")
+                      : uiText("Save queued message")
+                    : uiText("Send")
               }
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 disabled:scale-100",

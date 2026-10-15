@@ -1,3 +1,7 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
+import { FocusedRouteGate } from "./FocusedRouteGate";
+import { PlatformBrand } from "./PlatformBrand";
+import { PlatformHeaderActions } from "./PlatformHeaderActions";
 import { ChatSetupSidebarProvider } from "@/context/ChatSetupSidebarContext";
 import { PluginAppShellOverlays } from "./PluginAppShellOverlays";
 import {
@@ -322,8 +326,8 @@ export function Layout() {
     });
     if (bounce) {
       pushToast?.({
-        title: `${matchedCompany.name} is archived`,
-        body: `Switched to ${bounce.name}.`,
+        title: uiTextFormat("__PCVAR0__ is archived", [matchedCompany.name]),
+        body: uiTextFormat("Switched to __PCVAR0__.", [bounce.name]),
         tone: "info",
         dedupeKey: `archived-company-bounce:${matchedCompany.id}`,
       });
@@ -653,9 +657,7 @@ export function Layout() {
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-(--z-200) focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Skip to Main Content
-        </a>
+        >{uiText("Skip to Main Content")}{" "}</a>
         <WorktreeBanner />
         <DevRestartBanner devServer={health?.devServer} />
         <div
@@ -669,7 +671,7 @@ export function Layout() {
               type="button"
               className="fixed inset-0 z-40 bg-black/50"
               onClick={() => setSidebarOpen(false)}
-              aria-label="Close sidebar"
+              aria-label={uiText("Close sidebar")}
             />
           )}
 
@@ -722,6 +724,7 @@ export function Layout() {
               )}
             >
               <StandaloneBrowserControls mobile={isMobile} />
+              {isMobile && <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-3"><PlatformBrand header /><PlatformHeaderActions /></div>}
               <BreadcrumbBar />
               {isMobile && isCompanySettingsRoute ? (
                 <div className="border-b border-border px-4 pb-3">
@@ -767,7 +770,7 @@ export function Layout() {
                   />
                 ) : (
                   <RouteErrorBoundary>
-                    <Outlet />
+                    <FocusedRouteGate><Outlet /></FocusedRouteGate>
                   </RouteErrorBoundary>
                 )}
               </main>

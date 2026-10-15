@@ -1,3 +1,4 @@
+import { requiresPersonnelPasswordChange } from "../auth/personnel-passwords.js";
 import { createHash } from "node:crypto";
 import type { IncomingMessage, Server as HttpServer } from "node:http";
 import { createRequire } from "node:module";
@@ -171,7 +172,7 @@ async function authorizeUpgrade(
 
     const session = await opts.resolveSessionFromHeaders(headersFromIncomingMessage(req));
     const userId = session?.user?.id;
-    if (!userId) return null;
+    if (!userId || await requiresPersonnelPasswordChange(db, userId)) return null;
 
     const [roleRow, memberships] = await Promise.all([
       db

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -151,16 +152,9 @@ export function EnforcementBanner(props: EnforcementBannerProps) {
       <div className="min-w-0 flex-1">
         {variant === "denied-detected" ? (
           <p>
-            <span className="font-medium">{computedCount}</span> governed tool call
-            {computedCount === 1 ? " was" : "s were"} denied or failed in the last hour. Access is enforced
-            server-side by the tool gateway — open the affected connector to review what was blocked and why.
-          </p>
+            <span className="font-medium">{computedCount}</span>{" "}{uiText("governed tool call")}{" "}{computedCount === 1 ? uiText(" was") : uiText("s were")}{" "}{uiText("denied or failed in the last hour. Access is enforced server-side by the tool gateway — open the affected connector to review what was blocked and why.")}{" "}</p>
         ) : (
-          <p>
-            Tool access is enforced server-side by the tool gateway. These screens configure and observe that
-            enforcement — they do not replace it. Agents see and call only the tools their profiles and policies
-            allow; everything else is denied by default.
-          </p>
+          <p>{uiText("Tool access is enforced server-side by the tool gateway. These screens configure and observe that enforcement — they do not replace it. Agents see and call only the tools their profiles and policies allow; everything else is denied by default.")}{" "}</p>
         )}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 /**
  * Client-side "next N schedule fires" helper for the routine Delivery preview (§3.5).
  *
@@ -46,25 +47,25 @@ function parseField(token: string, spec: FieldSpec): number[] {
   const values = new Set<number>();
   for (const rawPart of token.split(",")) {
     const part = rawPart.trim();
-    if (part === "") throw new Error("Empty cron field element");
+    if (part === "") throw new Error(uiText("Empty cron field element"));
 
     const slashIdx = part.indexOf("/");
     if (slashIdx !== -1) {
       const base = part.slice(0, slashIdx);
       const step = Number.parseInt(part.slice(slashIdx + 1), 10);
-      if (!Number.isInteger(step) || step <= 0) throw new Error("Invalid cron step");
+      if (!Number.isInteger(step) || step <= 0) throw new Error(uiText("Invalid cron step"));
       let start = spec.min;
       let end = spec.max;
       if (base === "*") {
         // every `step` from min
       } else if (base.includes("-")) {
         const [a, b] = base.split("-").map((s) => Number.parseInt(s, 10));
-        if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error("Invalid cron range");
+        if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error(uiText("Invalid cron range"));
         start = a;
         end = b;
       } else {
         const s = Number.parseInt(base, 10);
-        if (!Number.isInteger(s)) throw new Error("Invalid cron start");
+        if (!Number.isInteger(s)) throw new Error(uiText("Invalid cron start"));
         start = s;
       }
       assertBounds(start, spec);
@@ -75,10 +76,10 @@ function parseField(token: string, spec: FieldSpec): number[] {
 
     if (part.includes("-")) {
       const [a, b] = part.split("-").map((s) => Number.parseInt(s, 10));
-      if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error("Invalid cron range");
+      if (!Number.isInteger(a) || !Number.isInteger(b)) throw new Error(uiText("Invalid cron range"));
       assertBounds(a, spec);
       assertBounds(b, spec);
-      if (a > b) throw new Error("Invalid cron range (start > end)");
+      if (a > b) throw new Error(uiText("Invalid cron range (start > end)"));
       for (let i = a; i <= b; i++) values.add(i);
       continue;
     }
@@ -89,17 +90,17 @@ function parseField(token: string, spec: FieldSpec): number[] {
     }
 
     const val = Number.parseInt(part, 10);
-    if (!Number.isInteger(val)) throw new Error("Invalid cron value");
+    if (!Number.isInteger(val)) throw new Error(uiText("Invalid cron value"));
     assertBounds(val, spec);
     values.add(val);
   }
-  if (values.size === 0) throw new Error("Empty cron field");
+  if (values.size === 0) throw new Error(uiText("Empty cron field"));
   return [...values].sort((a, b) => a - b);
 }
 
 function assertBounds(value: number, spec: FieldSpec): void {
   if (value < spec.min || value > spec.max) {
-    throw new Error(`Cron value ${value} out of range`);
+    throw new Error(uiTextFormat("Cron value __PCVAR0__ out of range", [value]));
   }
 }
 
@@ -153,7 +154,7 @@ function getZonedMinuteParts(date: Date, timeZone: string): ZonedParts {
     if (part.type !== "literal") map[part.type] = part.value;
   }
   const weekday = WEEKDAY_INDEX[map.weekday ?? ""];
-  if (weekday === undefined) throw new Error(`Unable to resolve weekday for ${timeZone}`);
+  if (weekday === undefined) throw new Error(uiTextFormat("Unable to resolve weekday for __PCVAR0__", [timeZone]));
   return {
     month: Number(map.month),
     day: Number(map.day),

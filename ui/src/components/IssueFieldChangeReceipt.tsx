@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import type { ActivityEvent } from "@paperclipai/shared";
 import {
@@ -88,8 +89,7 @@ export function IssueFieldChangeReceipt({
               for <span className="text-foreground">{responsibleUserName}</span>
               {" · "}
             </>
-          ) : null}
-          authorized by {reason}
+          ) : null}{uiText("authorized by")}{" "}{reason}
         </p>
       ) : null}
     </div>

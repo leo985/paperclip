@@ -115,6 +115,7 @@ export type CompanyMemberGrant = {
 };
 
 export type CompanyMember = {
+  federation?: { email: string | null; username: string | null } | null;
   id: string;
   companyId: string;
   principalType: "user";

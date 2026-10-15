@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AgentAvatar } from "../AgentAvatar";
 import { AgentIdentity } from "../AgentIdentity";
 import { memo, type ComponentType, type SVGProps } from "react";
@@ -15,10 +16,10 @@ type SnippetStyle = {
 };
 
 const SNIPPET_STYLES: Record<string, SnippetStyle> = {
-  comment: { Icon: MessageSquare, label: "Comment" },
-  document: { Icon: FileText, label: "Doc" },
-  artifact: { Icon: Paperclip, label: "Artifact" },
-  description: { Icon: Quote, label: "Description" },
+  comment: { Icon: MessageSquare, label: uiText("Comment") },
+  document: { Icon: FileText, label: uiText("Doc") },
+  artifact: { Icon: Paperclip, label: uiText("Artifact") },
+  description: { Icon: Quote, label: uiText("Description") },
 };
 
 function snippetStyle(field: string, fallbackLabel: string): SnippetStyle {
@@ -31,7 +32,7 @@ function formatRelativeTime(input: string | null): string {
   if (Number.isNaN(value.getTime())) return "";
   const diffMs = Date.now() - value.getTime();
   const seconds = Math.round(diffMs / 1000);
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return uiText("just now");
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.round(minutes / 60);

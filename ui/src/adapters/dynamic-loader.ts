@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 /**
  * Dynamic UI parser loading for external adapters — sandboxed execution.
  *
@@ -120,7 +121,7 @@ function initSandboxedWorker(source: string): Promise<SandboxedParser> {
     const timeout = setTimeout(() => {
       drainPendingRequests(sandbox);
       worker.terminate();
-      reject(new Error("Parser worker init timed out"));
+      reject(new Error(uiText("Parser worker init timed out")));
     }, 5000);
 
     worker.onmessage = (e: MessageEvent<SandboxResponse>) => {
@@ -162,7 +163,7 @@ function initSandboxedWorker(source: string): Promise<SandboxedParser> {
       clearTimeout(timeout);
       drainPendingRequests(sandbox);
       worker.terminate();
-      reject(new Error(`Worker error: ${ev.message}`));
+      reject(new Error(uiTextFormat("Worker error: __PCVAR0__", [ev.message])));
     };
 
     // Send the parser source to the worker for evaluation.

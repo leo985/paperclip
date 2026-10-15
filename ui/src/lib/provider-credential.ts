@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { secretsApi } from "../api/secrets";
 
 export const PROVIDER_ENV_KEYS: Record<string, string> = {
@@ -20,7 +21,7 @@ export async function storeOrganizationApiKey(
     name: `${envKey} · agent setup`,
     key: `${envKey}.setup.${crypto.randomUUID()}`,
     value: value.trim(),
-    description: "Adapter credential supplied during agent setup.",
+    description: uiText("Adapter credential supplied during agent setup."),
   });
   return {
     binding: {
@@ -43,7 +44,7 @@ export async function storeProviderApiKey(
   const definition = await secretsApi.createUserSecretDefinition(companyId, {
     key,
     name: `${envKey} · agent setup`,
-    description: "Model provider credential for a new agent setup.",
+    description: uiText("Model provider credential for a new agent setup."),
   });
   const remove = () =>
     secretsApi.removeUserSecretDefinition(companyId, definition.id);

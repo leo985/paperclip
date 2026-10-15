@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   CompanySkillLastEditor,
   CompanySkillListItem,
@@ -368,7 +369,7 @@ export function runHarnessUnavailableCopy(
   if (detail.harnessContent.available) return null;
   return {
     title: runHarnessUnavailableTitle(detail.harnessContent.unavailableReason),
-    body: "Stored run snapshots are still shown. Harness documents, attachments, and work products are no longer available.",
+    body: uiText("Stored run snapshots are still shown. Harness documents, attachments, and work products are no longer available."),
   };
 }
 

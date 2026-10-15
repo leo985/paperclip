@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Live adapter: map a run's streaming TranscriptEntry[] (from
  * useLiveRunTranscripts — the same source the current thread consumes) into the
@@ -399,7 +400,7 @@ function providerActivityItem(
                 : "pending";
             return {
               id: stringValue(step.stepId) ?? `${runId}:plan-step:${stepIndex}`,
-              label: stringValue(step.body) ?? "Plan step",
+              label: stringValue(step.body) ?? uiText("Plan step"),
               status,
             };
           })
@@ -432,7 +433,7 @@ function providerActivityItem(
           .map((child, childIndex) => ({
             id:
               stringValue(child.childId) ?? `${runId}:delegation:${childIndex}`,
-            title: stringValue(child.role) ?? "Subagent",
+            title: stringValue(child.role) ?? uiText("Subagent"),
             status: stringValue(child.status) ?? "unknown",
             metadata:
               [stringValue(child.model), stringValue(child.activitySummary)]
@@ -981,7 +982,7 @@ export function transcriptToTaskChatItems(
           kind: "usage",
           ...(entry.subtype === "paperclip_runner_session_usage"
             ? {
-                label: "Provider session total",
+                label: uiText("Provider session total"),
                 detail:
                   entry.text ||
                   "This cumulative usage can include earlier runs in the resumed provider session.",
@@ -1464,7 +1465,7 @@ function phaseSummary(
   const searched = (counts.get("grep") ?? 0) + (counts.get("search") ?? 0);
   if (searched)
     phrases.push({
-      text: searched === 1 ? "Searched once" : `Searched ${searched} times`,
+      text: searched === 1 ? uiText("Searched once") : `Searched ${searched} times`,
       count: searched,
     });
   const known = new Set(["read", "edit", "terminal", "grep", "search"]);
@@ -1475,7 +1476,7 @@ function phaseSummary(
     ) + generic;
   if (other)
     phrases.push({
-      text: other === 1 ? "Used a tool" : `Used ${other} tools`,
+      text: other === 1 ? uiText("Used a tool") : `Used ${other} tools`,
       count: other,
     });
   const providerCount = (family: TaskChatProviderActivityItem["family"]) =>
@@ -1600,7 +1601,7 @@ function phaseSummary(
     phrases.push({
       text:
         workspaceFiles === 1
-          ? "Changed a file"
+          ? uiText("Changed a file")
           : `Changed ${workspaceFiles} files`,
       count: workspaceFiles,
     });
@@ -2102,11 +2103,11 @@ export function deriveRunStatusLabel(entries: readonly TranscriptEntry[]): {
         }
       }
       const selfTalk = flattenSelfTalk(parts.join(""));
-      return { label: "Responding", selfTalk: selfTalk || undefined };
+      return { label: uiText("Responding"), selfTalk: selfTalk || undefined };
     }
-    if (entry.kind === "thinking") return { label: "Thinking" };
+    if (entry.kind === "thinking") return { label: uiText("Thinking") };
     if (entry.kind === "system" && entry.text === "Reasoning started")
-      return { label: "Thinking" };
+      return { label: uiText("Thinking") };
   }
-  return { label: "Running" };
+  return { label: uiText("Running") };
 }

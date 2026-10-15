@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ export function RoutineSaveBar({
         {saveConflict ? (
           <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4" />
-            <span>Routine changed elsewhere. Reload to merge.</span>
+            <span>{uiText("Routine changed elsewhere. Reload to merge.")}</span>
           </div>
         ) : (
           <Popover>
@@ -97,9 +98,7 @@ export function RoutineSaveBar({
               </button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-64">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Pending changes
-              </p>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">{uiText("Pending changes")}{" "}</p>
               <ul className="space-y-1 text-sm">
                 {dirtyFields.map((field) => (
                   <li key={field.key} className="flex items-center gap-2">
@@ -115,9 +114,7 @@ export function RoutineSaveBar({
         <div className="flex items-center gap-2">
           {saveConflict ? (
             <>
-              <Button variant="outline" size="sm" onClick={onReload}>
-                Reload latest
-              </Button>
+              <Button variant="outline" size="sm" onClick={onReload}>{uiText("Reload latest")}{" "}</Button>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -127,13 +124,9 @@ export function RoutineSaveBar({
                       disabled={isSaving || disabled}
                       onClick={onSave}
                     >
-                      {isSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                      Overwrite anyway
-                    </Button>
+                      {isSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}{uiText("Overwrite anyway")}{" "}</Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Replaces the newer revision with your local edits.
-                  </TooltipContent>
+                  <TooltipContent>{uiText("Replaces the newer revision with your local edits.")}{" "}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </>
@@ -145,7 +138,7 @@ export function RoutineSaveBar({
                 disabled={isSaving || disabled}
                 onClick={() => setConfirmDiscardOpen(true)}
               >
-                Discard
+                {uiText("Discard")}
               </Button>
               <Button
                 size="sm"
@@ -153,7 +146,7 @@ export function RoutineSaveBar({
                 onClick={onSave}
               >
                 {isSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Save changes
+                {uiText("Save changes")}
                 <kbd className="ml-2 hidden rounded bg-foreground/10 px-1 text-(length:--text-nano) font-medium sm:inline">
                   ⌘S
                 </kbd>
@@ -166,16 +159,12 @@ export function RoutineSaveBar({
       <Dialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Discard changes?</DialogTitle>
-            <DialogDescription>
-              This will revert {dirtyCount} unsaved{" "}
-              {dirtyCount === 1 ? "change" : "changes"} in this section.
-            </DialogDescription>
+            <DialogTitle>{uiText("Discard changes?")}</DialogTitle>
+            <DialogDescription>{uiText("This will revert")}{" "}{dirtyCount} unsaved{" "}
+              {dirtyCount === 1 ? "change" : "changes"}{" "}{uiText("in this section.")}{" "}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" size="sm" onClick={() => setConfirmDiscardOpen(false)}>
-              Keep editing
-            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDiscardOpen(false)}>{uiText("Keep editing")}{" "}</Button>
             <Button
               variant="destructive"
               size="sm"
@@ -184,7 +173,7 @@ export function RoutineSaveBar({
                 setConfirmDiscardOpen(false);
               }}
             >
-              Discard changes
+              {uiText("Discard changes")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -196,8 +185,6 @@ export function RoutineSaveBar({
 /** Read-only strip for non-owners on editable sections (§1.6). */
 export function RoutineReadOnlyStrip() {
   return (
-    <div className="-mx-8 mt-6 border-t border-border bg-muted/20 px-8 py-3 text-xs text-muted-foreground">
-      Read-only — you don't own this routine.
-    </div>
+    <div className="-mx-8 mt-6 border-t border-border bg-muted/20 px-8 py-3 text-xs text-muted-foreground">{uiText("Read-only — you don't own this routine.")}{" "}</div>
   );
 }

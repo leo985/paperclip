@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -34,10 +35,9 @@ export function ArchivedStatusCardRow({
   return (
     <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{card.title ?? "Untitled card"}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground" title={card.archivedAt ? formatDateTime(card.archivedAt) : undefined}>
-          archived {shortDate(card.archivedAt)} · last summary {shortDate(card.lastGeneratedAt)}
-          {rollup ? ` · lifetime ${formatTokens(rollup.totalTokens)} / ${formatCents(rollup.totalCostCents)}` : ""}
+        <p className="truncate text-sm font-semibold">{card.title ?? uiText("Untitled card")}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground" title={card.archivedAt ? formatDateTime(card.archivedAt) : undefined}>{uiText("archived")}{" "}{shortDate(card.archivedAt)}{" "}{uiText("· last summary")}{" "}{shortDate(card.lastGeneratedAt)}
+          {rollup ? uiTextFormat(" · lifetime __PCVAR0__ / __PCVAR1__", [formatTokens(rollup.totalTokens), formatCents(rollup.totalCostCents)]) : ""}
         </p>
       </div>
       {/* View is the more common intent on an archived row (reading the last
@@ -45,11 +45,11 @@ export function ArchivedStatusCardRow({
           stale and never auto-runs. */}
       <div className="flex shrink-0 gap-2">
         <Button size="sm" onClick={onView}>
-          View
+          {uiText("View")}
         </Button>
         <Button variant="outline" size="sm" onClick={onRestore} disabled={restorePending}>
           {restorePending ? <Loader2 className="animate-spin" /> : null}
-          Restore
+          {uiText("Restore")}
         </Button>
       </div>
     </div>

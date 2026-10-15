@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useState, type MouseEvent } from "react";
 import type { Issue } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -67,7 +68,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Actions for blocker ${issueLabel}`}
+                aria-label={uiTextFormat("Actions for blocker __PCVAR0__", [issueLabel])}
               >
                 {content}
               </button>
@@ -76,15 +77,11 @@ export function RemovableIssueReferencePill({
               {issue.identifier ? (
                 <DropdownMenuItem asChild>
                   <Link to={`/issues/${issue.identifier}`}>
-                    <ArrowUpRight className="h-4 w-4" />
-                    Visit task
-                  </Link>
+                    <ArrowUpRight className="h-4 w-4" />{uiText("Visit task")}{" "}</Link>
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem variant="destructive" onSelect={openRemoveConfirmation}>
-                <X className="h-4 w-4" />
-                Remove blocker
-              </DropdownMenuItem>
+                <X className="h-4 w-4" />{uiText("Remove blocker")}{" "}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
@@ -104,7 +101,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Task ${issueLabel}: ${issue.title}`}
+                aria-label={uiTextFormat("Task __PCVAR0__: __PCVAR1__", [issueLabel, issue.title])}
               >
                 {content}
               </Link>
@@ -113,7 +110,7 @@ export function RemovableIssueReferencePill({
                 data-mention-kind="issue"
                 className={chipClassName}
                 title={issue.title}
-                aria-label={`Task: ${issue.title}`}
+                aria-label={uiTextFormat("Task: __PCVAR0__", [issue.title])}
               >
                 {content}
               </span>
@@ -124,18 +121,15 @@ export function RemovableIssueReferencePill({
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remove blocker?</DialogTitle>
+            <DialogTitle>{uiText("Remove blocker?")}</DialogTitle>
             <DialogDescription>
-              Remove {confirmLabel} as a blocker for this task.
-            </DialogDescription>
+              {uiText("Remove")} {confirmLabel}{" "}{uiText("as a blocker for this task.")}{" "}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancel</Button>
+              <Button type="button" variant="outline">{uiText("Cancel")}</Button>
             </DialogClose>
-            <Button type="button" variant="destructive" onClick={confirmRemove}>
-              Remove blocker
-            </Button>
+            <Button type="button" variant="destructive" onClick={confirmRemove}>{uiText("Remove blocker")}{" "}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -158,9 +152,9 @@ export function ExpandRelationListButton({
       type="button"
       className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
       onClick={onClick}
-      aria-label={expanded ? "Show fewer items" : `Show ${hiddenCount} more items`}
+      aria-label={expanded ? uiText("Show fewer items") : uiTextFormat("Show __PCVAR0__ more items", [hiddenCount])}
     >
-      {expanded ? "Show less" : `Show ${hiddenCount} more`}
+      {expanded ? uiText("Show less") : uiTextFormat("Show __PCVAR0__ more", [hiddenCount])}
     </button>
   );
 }

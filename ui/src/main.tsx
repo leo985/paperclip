@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import * as React from "react";
 import { StrictMode } from "react";
 import * as ReactDOM from "react-dom";
@@ -58,7 +59,7 @@ function CompanyAwareBreadcrumbProvider({ children }: { children: React.ReactNod
 }
 
 const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Paperclip root element is missing");
+if (!rootElement) throw new Error(uiText("Paperclip root element is missing"));
 
 getOrCreatePaperclipReactRoot(window, rootElement).render(
   <StrictMode>

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { parseAgentMentionHref } from "@paperclipai/shared";
 
 /**
@@ -77,7 +78,7 @@ export function resolveRunStatusPresentation(
     };
   }
   return {
-    label: status === "timed_out" ? "timed out" : status.replace(/_/g, " "),
+    label: status === "timed_out" ? uiText("timed out") : status.replace(/_/g, " "),
     className: runStatusClassName(status),
     srHint: null,
   };
@@ -225,13 +226,13 @@ export function computeComposerHandoffPreview(
         ? {
             kind: "interrupt_handoff_agent",
             tone: "neutral",
-            text: "Interrupt current run, hand off to",
+            text: uiText("Interrupt current run, hand off to"),
             chip: { kind: "agent", id: target.id },
           }
         : {
             kind: "wake_agent",
             tone: "neutral",
-            text: "Wake",
+            text: uiText("Wake"),
             chip: { kind: "agent", id: target.id },
           };
     }
@@ -239,7 +240,7 @@ export function computeComposerHandoffPreview(
       return {
         kind: "user_handoff",
         tone: "neutral",
-        text: "Hand off to",
+        text: uiText("Hand off to"),
         chip: { kind: "user", id: target.id },
         suffix: "— no agent will be notified",
       };
@@ -248,7 +249,7 @@ export function computeComposerHandoffPreview(
     return {
       kind: "clear_assignee",
       tone: "neutral",
-      text: "Clear responsible — no agent will be notified",
+      text: uiText("Clear responsible — no agent will be notified"),
     };
   }
 
@@ -256,7 +257,7 @@ export function computeComposerHandoffPreview(
     return {
       kind: "notify_agent",
       tone: "neutral",
-      text: "Notify",
+      text: uiText("Notify"),
       chip: input.mentionedAgentId ? { kind: "agent", id: input.mentionedAgentId } : undefined,
       suffix: input.mentionedAgentId ? undefined : "the mentioned agent",
     };
@@ -266,7 +267,7 @@ export function computeComposerHandoffPreview(
     return {
       kind: "plain_text_only",
       tone: "warn",
-      text: "No agent will be notified. Use @ to mention an agent.",
+      text: uiText("No agent will be notified. Use @ to mention an agent."),
     };
   }
 
@@ -376,7 +377,7 @@ export interface PauseAffectsSummary {
 }
 
 const PAUSE_BUCKET_LABEL: Record<PauseAffectsBucketKey, string> = {
-  live_runs: "Live agent runs",
+  live_runs: uiText("Live agent runs"),
   queued_wakes: "Queued wakes",
   agent_owned: "Agent-owned",
   human_owned: "Human-owned",

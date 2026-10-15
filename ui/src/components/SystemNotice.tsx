@@ -1,3 +1,4 @@
+import { localizedStatus,  uiText } from "@/i18n/interface";
 import { useId, useState, type ReactNode } from "react";
 import {
   ChevronDown,
@@ -66,7 +67,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
     icon: Info,
     iconClass: "text-sky-700 dark:text-sky-300",
-    label: "text-sky-800 dark:text-sky-200",
+    label: uiText("text-sky-800 dark:text-sky-200"),
     divider: "border-sky-300/50 dark:border-sky-500/30",
   },
   success: {
@@ -75,7 +76,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
     icon: CircleCheck,
     iconClass: "text-emerald-700 dark:text-emerald-300",
-    label: "text-emerald-800 dark:text-emerald-200",
+    label: uiText("text-emerald-800 dark:text-emerald-200"),
     divider: "border-emerald-300/50 dark:border-emerald-500/30",
   },
   warning: {
@@ -84,7 +85,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200",
     icon: TriangleAlert,
     iconClass: "text-amber-700 dark:text-amber-300",
-    label: "text-amber-900 dark:text-amber-200",
+    label: uiText("text-amber-900 dark:text-amber-200"),
     divider: "border-amber-300/60 dark:border-amber-500/30",
   },
   danger: {
@@ -93,7 +94,7 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
     iconWrap: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200",
     icon: OctagonAlert,
     iconClass: "text-red-700 dark:text-red-300",
-    label: "text-red-900 dark:text-red-200",
+    label: uiText("text-red-900 dark:text-red-200"),
     divider: "border-red-400/50 dark:border-red-500/30",
   },
 };
@@ -179,7 +180,7 @@ function MetadataRow({ row, tone }: { row: SystemNoticeMetadataRow; tone: ToneTo
                 <>
                   <code className="rounded bg-muted px-1.5 py-0.5 text-foreground/80">{runShort}</code>
                   {row.status ? (
-                    <span className={cn("font-sans", tone.label)}>{row.status}</span>
+                    <span className={cn("font-sans", tone.label)}>{localizedStatus(row.status)}</span>
                   ) : null}
                 </>
               );
@@ -326,7 +327,7 @@ export function SystemNotice({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           >
-            <span>{open ? "Hide details" : "Details"}</span>
+            <span>{open ? uiText("Hide details") : uiText("Details")}</span>
             <ChevronDown
               className={cn(
                 "h-3.5 w-3.5 transition-transform duration-150",

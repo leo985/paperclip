@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export function CopyField({
         <Button
           variant="ghost"
           size="sm"
-          aria-label={`Copy ${label}`}
+          aria-label={uiTextFormat("Copy __PCVAR0__", [label])}
           onClick={async () => {
             try {
               await copyTextToClipboard(value);
@@ -41,18 +42,16 @@ export function CopyField({
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
-          {copied ? "Copied" : "Copy"}
+          {copied ? uiText("Copied") : uiText("Copy")}
         </Button>
       </div>
       {help && <p className="text-xs text-muted-foreground">{help}</p>}
       {error && (
         <div className="space-y-2">
-          <p role="alert" className="text-xs text-destructive">
-            Copy failed. Select and copy the text below.
-          </p>
+          <p role="alert" className="text-xs text-destructive">{uiText("Copy failed. Select and copy the text below.")}{" "}</p>
           <textarea
             readOnly
-            aria-label={`${label} text`}
+            aria-label={uiTextFormat("__PCVAR0__ text", [label])}
             value={value}
             rows={5}
             className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs"
@@ -68,20 +67,17 @@ export function AgentInstructions({ value }: { value: string }) {
   const [error, setError] = useState(false);
   return (
     <section
-      aria-label="Agent instructions"
+      aria-label={uiText("Agent instructions")}
       className="space-y-3 rounded-md bg-muted/40 p-4"
     >
       <div className="space-y-1">
-        <h2 className="text-sm font-medium">Agent instructions</h2>
-        <p className="text-sm text-muted-foreground">
-          Give your agent everything it needs to connect this webhook: the URL,
-          authentication key, and step-by-step instructions.
-        </p>
+        <h2 className="text-sm font-medium">{uiText("Agent instructions")}</h2>
+        <p className="text-sm text-muted-foreground">{uiText("Give your agent everything it needs to connect this webhook: the URL, authentication key, and step-by-step instructions.")}{" "}</p>
       </div>
       <Button
         variant="outline"
         size="sm"
-        aria-label="Copy for your agent"
+        aria-label={uiText("Copy for your agent")}
         onClick={async () => {
           try {
             await copyTextToClipboard(value);
@@ -97,16 +93,14 @@ export function AgentInstructions({ value }: { value: string }) {
         ) : (
           <Copy className="h-3.5 w-3.5" />
         )}
-        {copied ? "Copied instructions" : "Copy for your agent"}
+        {copied ? uiText("Copied instructions") : uiText("Copy for your agent")}
       </Button>
       {error && (
         <div className="space-y-2">
-          <p role="alert" className="text-xs text-destructive">
-            Copy failed. Select and copy the instructions below.
-          </p>
+          <p role="alert" className="text-xs text-destructive">{uiText("Copy failed. Select and copy the instructions below.")}{" "}</p>
           <textarea
             readOnly
-            aria-label="Agent instructions text"
+            aria-label={uiText("Agent instructions text")}
             value={value}
             rows={5}
             className="w-full rounded-md border border-input bg-background p-3 text-sm"

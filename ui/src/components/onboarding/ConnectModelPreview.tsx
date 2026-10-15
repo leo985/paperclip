@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AgentCharacter } from "../AgentCharacter";
 import { useState } from "react";
 import { MotionConfig } from "motion/react";
@@ -106,14 +107,14 @@ export function ConnectModelPreview({
         <div className="pt-6">
           <OnboardingHeading
             center
-            title="Connect a model"
+            title={uiText("Connect a model")}
             lede="Paperclip works with your existing subscription or API keys."
           />
         </div>
 
         <div className="space-y-2 pt-12">
           <ModelSourceTiles
-            label="Model source"
+            label={uiText("Model source")}
             sources={MODEL_SOURCES}
             mode={mode}
             selectedId={selectedId}
@@ -132,9 +133,7 @@ export function ConnectModelPreview({
                 checked={useApiKeys}
                 onCheckedChange={(checked) => setUseApiKeys(checked === true)}
               />
-              <span className="text-sm font-medium text-foreground">
-                Use API keys instead
-              </span>
+              <span className="text-sm font-medium text-foreground">{uiText("Use API keys instead")}{" "}</span>
             </label>
           )}
         </div>

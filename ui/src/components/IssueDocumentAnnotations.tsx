@@ -1,3 +1,4 @@
+import { uiTextFormat } from "@/i18n/interface";
 import { Profiler, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Agent, DocumentAnnotationThreadWithComments, IssueDocument } from "@paperclipai/shared";
@@ -427,8 +428,8 @@ export function DocumentAnnotationsCountChip({
       onClick={onToggle}
       data-testid={`document-annotation-count-${docKey}`}
       aria-label={openCount === 0
-        ? `Open comments on ${docKey}`
-        : `Open ${openCount} unresolved comments on ${docKey}`}
+        ? uiTextFormat("Open comments on __PCVAR0__", [docKey])
+        : uiTextFormat("Open __PCVAR0__ unresolved comments on __PCVAR1__", [openCount, docKey])}
       aria-expanded={panelOpen}
     >
       <MessageSquare className="h-3 w-3" aria-hidden="true" />

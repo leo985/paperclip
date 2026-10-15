@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { defaultSlackAppName } from "./slack-app-name";
 import { ChatCommunicationInstructions } from "./ChatCommunicationInstructions";
 import { SlackAvatarSettings } from "./SlackAvatarStep";
@@ -244,7 +245,7 @@ export function ChatEndpointDetail() {
   useEffect(() => {
     if (!endpoint || !activeTab) return;
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
+      { label: uiText("Connectors"), href: "/apps" },
       {
         label: `${endpoint.assignedAgentName} · ${providerNames[endpoint.provider]}`,
         href: `/apps/chat/${endpoint.id}/settings`,
@@ -252,7 +253,7 @@ export function ChatEndpointDetail() {
       {
         label:
           tabItems.find((item) => item.value === activeTab)?.label ??
-          "Settings",
+          uiText("Settings"),
       },
     ]);
     return () => setBreadcrumbs([]);
@@ -263,18 +264,14 @@ export function ChatEndpointDetail() {
   if (endpointQuery.isLoading)
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading connection…
-      </div>
+        <Loader2 className="h-4 w-4 animate-spin" />{uiText("Loading connection…")}{" "}</div>
     );
   if (endpointQuery.isError || !endpoint)
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">
-          This chat connection could not be loaded.
-        </p>
+        <p className="text-sm text-destructive">{uiText("This chat connection could not be loaded.")}{" "}</p>
         <Button variant="outline" onClick={() => endpointQuery.refetch()}>
-          Try again
+          {uiText("Try again")}
         </Button>
       </div>
     );
@@ -291,15 +288,15 @@ export function ChatEndpointDetail() {
             {endpoint.assignedAgentName} in {providerNames[endpoint.provider]}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {endpoint.providerAccountLabel ?? "Chat connection"}
+            {endpoint.providerAccountLabel ?? uiText("Chat connection")}
           </p>
           {endpoint.provider === "imessage-photon" && endpoint.botExternalId && endpoint.photonAllocation !== "shared" && (
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
               <span>{endpoint.botExternalId}</span>
-              <Button variant="ghost" size="sm" aria-label="Copy dedicated number" onClick={async () => {
+              <Button variant="ghost" size="sm" aria-label={uiText("Copy dedicated number")} onClick={async () => {
                 try { await copyTextToClipboard(endpoint.botExternalId!); setCopyStatus("Number copied"); }
                 catch { setCopyStatus("Could not copy the number. Select and copy it manually."); }
-              }}><Copy className="size-4" />Copy number</Button>
+              }}><Copy className="size-4" />{uiText("Copy number")}</Button>
               <span role="status" className="text-muted-foreground">{copyStatus}</span>
             </div>
           )}
@@ -313,9 +310,7 @@ export function ChatEndpointDetail() {
                   `/apps/chat/connect?provider=${endpoint.provider}&purpose=chat&resume=${endpoint.id}`,
                 )
               }
-            >
-              Continue setup
-            </Button>
+            >{uiText("Continue setup")}{" "}</Button>
           ) : null}
           {endpoint.status !== "active" && <StatusBadge status={endpoint.status} />}
         </div>
@@ -375,8 +370,8 @@ function Settings({
       ),
     onError: (error) =>
       pushToast({
-        title: "Couldn't update destination",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't update destination"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -389,8 +384,8 @@ function Settings({
       ),
     onError: (error) =>
       pushToast({
-        title: "Couldn't update settings",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't update settings"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -403,22 +398,22 @@ function Settings({
     saveResources.mutate({ id: resource.id, enabled });
   return (
     <section className="max-w-3xl space-y-7">
-      {endpoint.provider === "imessage-photon" && <p className="text-sm text-muted-foreground">{endpoint.photonAllocation === "shared" ? "Shared Photon project · direct messages only. Enroll senders in Photon and link their Messages identities in Access. Groups cannot be enabled." : "Enable each group individually. Agent replies are visible to everyone in that group; only authorized senders can start work."}</p>}
+      {endpoint.provider === "imessage-photon" && <p className="text-sm text-muted-foreground">{endpoint.photonAllocation === "shared" ? uiText("Shared Photon project · direct messages only. Enroll senders in Photon and link their Messages identities in Access. Groups cannot be enabled.") : uiText("Enable each group individually. Agent replies are visible to everyone in that group; only authorized senders can start work.")}</p>}
       {endpoint.provider === "slack" && (
         <div className="space-y-2 text-sm">
-          <h2 className="text-lg font-semibold">Chat in Slack</h2>
-          <p>Invite the bot to a channel, then mention it to start a conversation.</p>
+          <h2 className="text-lg font-semibold">{uiText("Chat in Slack")}</h2>
+          <p>{uiText("Invite the bot to a channel, then mention it to start a conversation.")}</p>
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
             <code>{mentionMessage}</code>
-            <Button size="icon" variant="ghost" aria-label={messageCopied ? "Message copied" : "Copy message"} onClick={() => {
+            <Button size="icon" variant="ghost" aria-label={messageCopied ? uiText("Message copied") : uiText("Copy message")} onClick={() => {
               void copyTextToClipboard(mentionMessage).then(() => setMessageCopied(true), () => pushToast({ title: "Couldn’t copy the message", body: "Select and copy it manually.", tone: "error" }));
             }}>{messageCopied ? <Check className="size-4" /> : <Copy className="size-4" />}</Button>
           </div>
         </div>
       )}
       {endpoint.provider === "slack" && (
-        avatarAgent.isPending ? <p role="status" className="text-sm text-muted-foreground">Loading agent avatar…</p>
-          : avatarAgent.isError ? <p role="alert" className="text-sm text-destructive">Couldn’t load the agent’s avatar. <button className="underline" onClick={() => void avatarAgent.refetch()}>Try again</button></p>
+        avatarAgent.isPending ? <p role="status" className="text-sm text-muted-foreground">{uiText("Loading agent avatar…")}</p>
+          : avatarAgent.isError ? <p role="alert" className="text-sm text-destructive">{uiText("Couldn’t load the agent’s avatar.")}{" "}<button className="underline" onClick={() => void avatarAgent.refetch()}>{uiText("Try again")}</button></p>
           : <SlackAvatarSettings
               agentName={avatarAgent.data?.name ?? endpoint.assignedAgentName}
               appName={endpoint.setup?.slackApp?.appName ?? defaultSlackAppName(avatarAgent.data?.name ?? endpoint.assignedAgentName)}
@@ -435,32 +430,26 @@ function Settings({
       />}
       {endpoint.provider === "telegram" && (
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Telegram group command</h2>
+          <h2 className="text-lg font-semibold">{uiText("Telegram group command")}</h2>
           <div className="rounded-lg border border-border p-3 text-sm">
             <code>
               /task@
               {endpoint.botUsername?.replace(/^@/, "") ?? "bot_username"}{" "}
               &lt;request&gt;
             </code>
-            <p className="mt-2 text-muted-foreground">
-              Telegram&apos;s default privacy mode does not deliver ordinary
-              mentions to bots. Use this command to start or continue group
-              work, or reply directly to a message from the bot.
-            </p>
+            <p className="mt-2 text-muted-foreground">{uiText("Telegram's default privacy mode does not deliver ordinary mentions to bots. Use this command to start or continue group work, or reply directly to a message from the bot.")}{" "}</p>
           </div>
         </div>
       )}
       <div>
-        <h2 className="text-lg font-semibold">Where this agent can work</h2>
+        <h2 className="text-lg font-semibold">{uiText("Where this agent can work")}</h2>
       </div>
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold">{endpoint.provider === "slack" ? "Allowed Channels" : "Destinations"}</h3>
+        <h3 className="text-sm font-semibold">{endpoint.provider === "slack" ? uiText("Allowed Channels") : uiText("Destinations")}</h3>
         {resourcesQuery.isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading destinations…</p>
+          <p className="text-sm text-muted-foreground">{uiText("Loading destinations…")}</p>
         ) : destinationResources.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            No provider destinations have been discovered yet.
-          </p>
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{uiText("No provider destinations have been discovered yet.")}{" "}</p>
         ) : (
           <div className="divide-y divide-border border-y border-border">
             {destinationResources.map((resource) => (
@@ -472,12 +461,12 @@ function Settings({
                   <p className="text-xs text-muted-foreground">
                     {resource.availability === "available"
                       ? (resource.detail ?? resource.type)
-                      : "Unavailable at the provider"}
+                      : uiText("Unavailable at the provider")}
                   </p>
-                  {resource.participants?.length ? <p className="mt-1 break-words text-xs text-muted-foreground">Participants: {resource.participants.join(", ")}</p> : null}
+                  {resource.participants?.length ? <p className="mt-1 break-words text-xs text-muted-foreground">{uiText("Participants:")}{" "}{resource.participants.join(", ")}</p> : null}
                 </div>
                 <ToggleSwitch
-                  aria-label={`Enable ${resource.label}`}
+                  aria-label={uiTextFormat("Enable __PCVAR0__", [resource.label])}
                   checked={resource.enabled}
                   disabled={
                     endpoint.photonAllocation === "shared" ||
@@ -495,9 +484,9 @@ function Settings({
       </div>
       {endpoint.provider !== "github" && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold">Private conversations</h3>
+          <h3 className="text-sm font-semibold">{uiText("Private conversations")}</h3>
           <SettingToggle
-            label="Allow direct messages"
+            label={uiText("Allow direct messages")}
             detail={
               endpoint.provider === "discord"
                 ? "People must also enable Direct Messages in their shared Discord server’s Privacy Settings."
@@ -511,7 +500,7 @@ function Settings({
           />
           {endpoint.provider === "microsoft-teams" && (
             <SettingToggle
-              label="Allow group chats"
+              label={uiText("Allow group chats")}
               detail="The bot may participate in group chats where it is installed."
               checked={endpoint.allowGroupChats ?? false}
               pending={updateEndpoint.isPending}
@@ -581,7 +570,7 @@ function Access({
         queryKeys.chatEndpoints.detail(endpointId),
         next,
       ),
-    onError: (error) => pushToast({ title: "Couldn’t update access", body: error instanceof Error ? error.message : "Try again.", tone: "error" }),
+    onError: (error) => pushToast({ title: uiText("Couldn’t update access"), body: error instanceof Error ? error.message : uiText("Try again."), tone: "error" }),
   });
   const createIntent = useMutation({
     mutationFn: (principalId: string) =>
@@ -591,15 +580,15 @@ function Access({
         new URL(confirmationUrl, window.location.origin).toString(),
       );
       pushToast({
-        title: "Private identity-link URL created",
-        body: "Send it only to the person whose provider identity is shown.",
+        title: uiText("Private identity-link URL created"),
+        body: uiText("Send it only to the person whose provider identity is shown."),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't create identity link",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't create identity link"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -615,29 +604,27 @@ function Access({
   return (
     <section className="max-w-3xl space-y-7">
       <div>
-        <h2 className="text-lg font-semibold">External identity access</h2>
+        <h2 className="text-lg font-semibold">{uiText("External identity access")}</h2>
       </div>
       {endpoint.provider === "slack" && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold">Invite others to connect their Slack accounts</h3>
+          <h3 className="text-sm font-semibold">{uiText("Invite others to connect their Slack accounts")}</h3>
           <ol className="list-decimal space-y-3 pl-5 text-sm">
-            <li>
-              Ask them to send this command in your Slack workspace:
-              <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+            <li>{uiText("Ask them to send this command in your Slack workspace:")}{" "}<div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <code>{joinCommand}</code>
                 <Button size="sm" variant="ghost" onClick={() => {
                   void copyTextToClipboard(joinCommand).then(() => setJoinCommandCopied(true), () => pushToast({ title: "Couldn't copy the command", body: "Select and copy it manually.", tone: "error" }));
-                }}><Copy className="size-4" />{joinCommandCopied ? "Copied" : "Copy command"}</Button>
+                }}><Copy className="size-4" />{joinCommandCopied ? uiText("Copied") : uiText("Copy command")}</Button>
               </div>
             </li>
-            <li>Open the private link from the bot, sign into Paperclip, and confirm their Slack account. The link expires in 15 minutes and works once.</li>
-            <li>If they aren’t a member of this organization, choose <strong>Request access</strong>. An admin must approve their request before they can link their account.</li>
+            <li>{uiText("Open the private link from the bot, sign into Paperclip, and confirm their Slack account. The link expires in 15 minutes and works once.")}</li>
+            <li>{uiText("If they aren’t a member of this organization, choose")}{" "}<strong>{uiText("Request access")}</strong>{uiText(". An admin must approve their request before they can link their account.")}</li>
           </ol>
-          <p className="text-sm text-muted-foreground">Each person links their own account and uses their own Paperclip permissions. They don’t need to create another Slack app or share credentials.</p>
+          <p className="text-sm text-muted-foreground">{uiText("Each person links their own account and uses their own Paperclip permissions. They don’t need to create another Slack app or share credentials.")}</p>
         </div>
       )}
       <SettingToggle
-        label="Allow unlinked people"
+        label={uiText("Allow unlinked people")}
         detail="They are restricted guests. Their tasks run only with an isolated workspace and sandbox environment; otherwise Paperclip safely refuses the request. They cannot approve, hire, spend, manage access, or reassign agents."
         checked={allowUnlinked}
         pending={updatePolicy.isPending}
@@ -645,7 +632,7 @@ function Access({
       />
       {confirmationUrl && (
         <div className="space-y-2 border-y border-border py-3">
-          <p className="text-sm font-medium">Private confirmation link</p>
+          <p className="text-sm font-medium">{uiText("Private confirmation link")}</p>
           <p className="break-all text-xs text-muted-foreground">
             {confirmationUrl}
           </p>
@@ -669,16 +656,14 @@ function Access({
             }}
           >
             <Copy />
-            Copy link
+            {uiText("Copy link")}
           </Button>
         </div>
       )}
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Identity links</h3>
+        <h3 className="text-sm font-semibold">{uiText("Identity links")}</h3>
         {links.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            External people appear here after they message the agent.
-          </p>
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{uiText("External people appear here after they message the agent.")}{" "}</p>
         ) : (
           <div className="divide-y divide-border border-y border-border">
             {links.map((link) => (
@@ -690,8 +675,8 @@ function Access({
                   <p className="text-sm font-medium">{link.externalLabel}</p>
                   <p className="text-xs text-muted-foreground">
                     {link.paperclipUserLabel
-                      ? `Linked to ${link.paperclipUserLabel}`
-                      : (link.externalDetail ?? "Not linked")}
+                      ? uiTextFormat("Linked to __PCVAR0__", [link.paperclipUserLabel])
+                      : (link.externalDetail ?? uiText("Not linked"))}
                   </p>
                 </div>
                 {link.status === "linked" ? (
@@ -702,7 +687,7 @@ function Access({
                     onClick={() => revoke.mutate(link.principalId)}
                   >
                     <Unlink />
-                    Revoke
+                    {uiText("Revoke")}
                   </Button>
                 ) : (
                   <Button
@@ -710,9 +695,7 @@ function Access({
                     variant="outline"
                     disabled={createIntent.isPending}
                     onClick={() => createIntent.mutate(link.principalId)}
-                  >
-                    Create private link
-                  </Button>
+                  >{uiText("Create private link")}{" "}</Button>
                 )}
               </div>
             ))}
@@ -739,26 +722,23 @@ function Conversations({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Conversations</h2>
+        <h2 className="text-lg font-semibold">{uiText("Conversations")}</h2>
       </div>
       {rows.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-          No conversations yet. Address the agent in an enabled destination to
-          start one.
-        </p>
+        <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{uiText("No conversations yet. Address the agent in an enabled destination to start one.")}{" "}</p>
       ) : (
-        <ul aria-label="Conversations" className="divide-y divide-border overflow-x-auto border-y border-border">
+        <ul aria-label={uiText("Conversations")} className="divide-y divide-border overflow-x-auto border-y border-border">
           {rows.map((row) => (
             <li key={row.id} className="flex min-w-xl items-center gap-3 px-2 py-3 text-sm transition-colors hover:bg-accent/50">
               <AppLogo name={providerNames[provider]} brandKey={provider} compact className="size-5! rounded-sm bg-transparent" />
               <div className="flex min-w-0 max-w-56 items-center gap-2">
                 <span className="truncate font-medium" title={row.externalLabel}>{row.externalLabel}</span>
-                {row.externalUrl && <a href={row.externalUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline">Open {providerNames[provider]}<ExternalLink className="size-3" /></a>}
+                {row.externalUrl && <a href={row.externalUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline">{uiText("Open")} {providerNames[provider]}<ExternalLink className="size-3" /></a>}
               </div>
               <span aria-hidden="true" className="text-muted-foreground">·</span>
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="truncate" title={row.issueTitle ?? undefined}>{row.issueTitle ?? "Waiting for task"}</span>
-                {row.issueId && <Link to={`/issues/${row.issueId}`} className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline">Open task<ExternalLink className="size-3" /></Link>}
+                <span className="truncate" title={row.issueTitle ?? undefined}>{row.issueTitle ?? uiText("Waiting for task")}</span>
+                {row.issueId && <Link to={`/issues/${row.issueId}`} className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline">{uiText("Open task")}<ExternalLink className="size-3" /></Link>}
               </div>
               <span className="hidden shrink-0 text-xs text-muted-foreground xl:inline">{row.issueIdentifier}</span>
               {row.state !== "active" && <StatusBadge status={row.state} />}
@@ -803,14 +783,14 @@ function Activity({
         queryKey: queryKeys.chatEndpoints.activity(endpointId),
       });
       pushToast({
-        title: `${item.kind === "publication" ? "Publication" : "Delivery"} queued for replay`,
+        title: uiTextFormat("__PCVAR0__ queued for replay", [item.kind === "publication" ? "Publication" : "Delivery"]),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't replay activity",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't replay activity"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -847,29 +827,29 @@ function Activity({
         title:
           input.item.actionType === "slash_task_start" &&
           input.action === "retry_anyway"
-            ? "Task start retried"
+            ? uiText("Task start retried")
             : input.item.actionType === "slash_task_start"
-              ? "Task start cancelled"
+              ? uiText("Task start cancelled")
               : input.item.actionType === "provider_effect" &&
                   input.action === "mark_delivered"
-                ? "Provider reply marked delivered"
+                ? uiText("Provider reply marked delivered")
                 : input.item.actionType === "provider_effect" &&
                     input.action === "retry_anyway"
-                  ? "Provider reply retried"
+                  ? uiText("Provider reply retried")
                   : input.item.actionType === "provider_effect"
-                    ? "Provider reply cancelled"
+                    ? uiText("Provider reply cancelled")
                     : input.action === "mark_delivered"
-                      ? "Publication marked delivered"
+                      ? uiText("Publication marked delivered")
                       : input.action === "retry_anyway"
-                        ? "Publication queued for retry"
-                        : "Publication cancelled",
+                        ? uiText("Publication queued for retry")
+                        : uiText("Publication cancelled"),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't resolve activity",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't resolve activity"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -889,14 +869,14 @@ function Activity({
         next,
       );
       pushToast({
-        title: action === "pause" ? "Connection paused" : "Connection resumed",
+        title: action === "pause" ? uiText("Connection paused") : uiText("Connection resumed"),
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update connection",
-        body: error instanceof Error ? error.message : "Try again.",
+        title: uiText("Couldn't update connection"),
+        body: error instanceof Error ? error.message : uiText("Try again."),
         tone: "error",
       }),
   });
@@ -913,7 +893,7 @@ function Activity({
     : [];
   return (
     <section className="space-y-5">
-      <h2 className="text-lg font-semibold">Connection activity</h2>
+      <h2 className="text-lg font-semibold">{uiText("Connection activity")}</h2>
       {((status !== "active" && health.message) || health.error) && (
         <div
           className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${status === "attention" || status === "revoked" ? "border-destructive/40 bg-destructive/5 text-destructive" : "border-border bg-muted/30 text-foreground"}`}
@@ -925,7 +905,7 @@ function Activity({
             {health.message && <p>{health.message}</p>}
             {health.previousHealth && (
               <p className="mt-1 text-xs opacity-80">
-                <span className="font-medium">Last reported health:</span>{" "}
+                <span className="font-medium">{uiText("Last reported health:")}</span>{" "}
                 {health.previousHealth}
               </p>
             )}
@@ -940,9 +920,9 @@ function Activity({
       )}
       <details className="group rounded-lg border border-border">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 text-sm font-medium chat-connection-health-summary">
-          <span>Connection health and controls</span>
+          <span>{uiText("Connection health and controls")}</span>
           <span className="flex items-center gap-2">
-            {endpoint.setup?.callbacksNeedUpdate && <span className="text-xs text-(--status-task-blocked)">Callback URLs need attention</span>}
+            {endpoint.setup?.callbacksNeedUpdate && <span className="text-xs text-(--status-task-blocked)">{uiText("Callback URLs need attention")}</span>}
             <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
           </span>
         </summary>
@@ -951,11 +931,11 @@ function Activity({
         <div
           className="space-y-3 text-sm"
         >
-          <p className="font-medium">Slack callback health</p>
+          <p className="font-medium">{uiText("Slack callback health")}</p>
           <p className="text-xs text-muted-foreground">
             {endpoint.setup?.callbacksNeedUpdate
-              ? "Slack callback URLs need an update. Save the current App Manifest, then exercise Events, Interactivity, and the registered command again."
-              : "Paperclip records each callback surface independently after Slack successfully calls it."}
+              ? uiText("Slack callback URLs need an update. Save the current App Manifest, then exercise Events, Interactivity, and the registered command again.")
+              : uiText("Paperclip records each callback surface independently after Slack successfully calls it.")}
           </p>
           <div className="divide-y divide-border border-y border-border">
             {callbackSurfaceRows.map(([label, surface]) => (
@@ -963,14 +943,13 @@ function Activity({
                 <p className="text-xs font-medium">{label}</p>
                 <p className="text-xs text-muted-foreground">
                   {surface.status === "current"
-                    ? "Current"
+                    ? uiText("Current")
                     : surface.status === "stale"
-                      ? "Stale URL"
-                      : "Not observed"}
+                      ? uiText("Stale URL")
+                      : uiText("Not observed")}
                 </p>
                 {surface.observedAt && (
-                  <p className="text-xs text-muted-foreground">
-                    Last observed{" "}
+                  <p className="text-xs text-muted-foreground">{uiText("Last observed")}{" "}
                     <time
                       dateTime={surface.observedAt}
                       title={surface.observedAt}
@@ -1001,7 +980,7 @@ function Activity({
                 ) : (
                   <Pause />
                 )}
-                Pause
+                {uiText("Pause")}
               </Button>
             )}
             {status === "paused" && (
@@ -1015,7 +994,7 @@ function Activity({
                 ) : (
                   <Play />
                 )}
-                Resume
+                {uiText("Resume")}
               </Button>
             )}
             {[
@@ -1037,8 +1016,8 @@ function Activity({
               >
                 <RefreshCw />
                 {status === "draft" || status === "verifying"
-                  ? "Finish setup"
-                  : "Reconnect"}
+                  ? uiText("Finish setup")
+                  : uiText("Reconnect")}
               </Button>
             )}
             <Button
@@ -1048,7 +1027,7 @@ function Activity({
               onClick={() => setRemoveOpen(true)}
             >
               <Trash2 />
-              Remove connection
+              {uiText("Remove connection")}
             </Button>
           </div>
           {status !== "draft" && status !== "verifying" && (
@@ -1062,26 +1041,22 @@ function Activity({
       </details>
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">
-          Recent activity
+          {uiText("Recent activity")}
         </h3>
         <div className="divide-y divide-border border-y border-border">
           {query.isLoading && (
             <div className="flex items-center gap-2 py-5 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading activity…
-            </div>
+              <Loader2 className="h-4 w-4 animate-spin" />{uiText("Loading activity…")}{" "}</div>
           )}
           {query.isError && (
             <div className="flex flex-wrap items-center justify-between gap-3 py-4">
-              <p className="text-sm text-destructive" role="alert">
-                Connection activity could not be loaded.
-              </p>
+              <p className="text-sm text-destructive" role="alert">{uiText("Connection activity could not be loaded.")}{" "}</p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => query.refetch()}
               >
-                Try again
+                {uiText("Try again")}
               </Button>
             </div>
           )}
@@ -1123,7 +1098,7 @@ function Activity({
                   <Button
                     size="sm"
                     variant="outline"
-                    aria-label={`Replay failed ${item.kind}`}
+                    aria-label={uiTextFormat("Replay failed __PCVAR0__", [item.kind])}
                     disabled={replay.isPending}
                     onClick={() => replay.mutate(item)}
                   >
@@ -1131,9 +1106,7 @@ function Activity({
                       <Loader2 className="animate-spin" />
                     ) : (
                       <RefreshCw />
-                    )}
-                    Replay
-                  </Button>
+                    )}{uiText("Replay")}{" "}</Button>
                 )}
                 {isResolutionEligible(item) && (
                   <Button
@@ -1141,23 +1114,21 @@ function Activity({
                     variant="outline"
                     onClick={() => setResolutionItem(item)}
                   >
-                    Resolve
+                    {uiText("Resolve")}
                   </Button>
                 )}
               </div>
             ))}
           {!query.isLoading && !query.isError && rows.length === 0 && (
-            <p className="py-5 text-sm text-muted-foreground">
-              No connection activity yet.
-            </p>
+            <p className="py-5 text-sm text-muted-foreground">{uiText("No connection activity yet.")}{" "}</p>
           )}
         </div>
       </div>
-      <nav aria-label="Activity pagination" className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground">Page {cursors.length}</span>
+      <nav aria-label={uiText("Activity pagination")} className="flex items-center justify-between gap-3">
+        <span className="text-xs text-muted-foreground">{uiText("Page")}{" "}{cursors.length}</span>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" disabled={cursors.length === 1 || query.isFetching} onClick={() => setCursors((pages) => pages.slice(0, -1))}>Previous</Button>
-          <Button size="sm" variant="outline" disabled={!query.data?.nextCursor || query.isFetching || query.isError} onClick={() => { if (query.data?.nextCursor) setCursors((pages) => [...pages, query.data.nextCursor!]); }}>Next</Button>
+          <Button size="sm" variant="outline" disabled={cursors.length === 1 || query.isFetching} onClick={() => setCursors((pages) => pages.slice(0, -1))}>{uiText("Previous")}</Button>
+          <Button size="sm" variant="outline" disabled={!query.data?.nextCursor || query.isFetching || query.isError} onClick={() => { if (query.data?.nextCursor) setCursors((pages) => [...pages, query.data.nextCursor!]); }}>{uiText("Next")}</Button>
         </div>
       </nav>
       <AlertDialog
@@ -1168,25 +1139,23 @@ function Activity({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {resolutionItem?.actionType === "slash_task_start"
-                ? "Resolve unconfirmed task start"
+                ? uiText("Resolve unconfirmed task start")
                 : resolutionItem?.actionType === "provider_effect"
-                  ? "Resolve unconfirmed provider reply"
-                  : "Resolve unconfirmed delivery"}
+                  ? uiText("Resolve unconfirmed provider reply")
+                  : uiText("Resolve unconfirmed delivery")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {resolutionItem?.actionType === "slash_task_start"
-                ? "Paperclip lost confirmation after asking Slack to start the task. Check Slack first. Retrying can create a duplicate starter message and task."
+                ? uiText("Paperclip lost confirmation after asking Slack to start the task. Check Slack first. Retrying can create a duplicate starter message and task.")
                 : resolutionItem?.actionType === "provider_effect"
-                  ? "Paperclip lost confirmation after sending this provider reply. Check the provider first. Marking it delivered applies any pending Paperclip state change; retrying can create a duplicate message."
+                  ? uiText("Paperclip lost confirmation after sending this provider reply. Check the provider first. Marking it delivered applies any pending Paperclip state change; retrying can create a duplicate message.")
                   : resolutionItem
                     ? activityResolutionDescription(resolutionItem)
                     : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:flex-wrap">
-            <AlertDialogCancel disabled={resolveActivity.isPending}>
-              Keep unresolved
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={resolveActivity.isPending}>{uiText("Keep unresolved")}{" "}</AlertDialogCancel>
             {resolutionItem &&
               activityResolutionActions(resolutionItem).includes("cancel") && (
                 <Button
@@ -1201,12 +1170,12 @@ function Activity({
                   }
                 >
                   {resolutionItem.actionType === "slash_task_start"
-                    ? "Cancel task start"
+                    ? uiText("Cancel task start")
                     : resolutionItem.actionType === "provider_effect"
-                      ? "Cancel provider reply"
+                      ? uiText("Cancel provider reply")
                       : resolutionItem.fileTransfer
-                        ? "Cancel file transfer"
-                        : "Cancel publication"}
+                        ? uiText("Cancel file transfer")
+                        : uiText("Cancel publication")}
                 </Button>
               )}
             {resolutionItem &&
@@ -1225,8 +1194,8 @@ function Activity({
                   }
                 >
                   {resolutionItem.fileTransfer
-                    ? "Retry file notification"
-                    : "Retry anyway"}
+                    ? uiText("Retry file notification")
+                    : uiText("Retry anyway")}
                 </Button>
               )}
             {resolutionItem &&
@@ -1244,9 +1213,7 @@ function Activity({
                       });
                     }
                   }}
-                >
-                  Mark delivered
-                </AlertDialogAction>
+                >{uiText("Mark delivered")}{" "}</AlertDialogAction>
               )}
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1254,16 +1221,14 @@ function Activity({
       <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this connection?</AlertDialogTitle>
+            <AlertDialogTitle>{uiText("Remove this connection?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {endpoint.assignedAgentName} will stop receiving new work from
-              {` ${providerNames[endpoint.provider]}`}. Existing Paperclip tasks
-              remain available.{" "}
+              {endpoint.assignedAgentName}{" "}{uiText("will stop receiving new work from")}{" "}{` ${providerNames[endpoint.provider]}`}{uiText(". Existing Paperclip tasks remain available.")}{" "}
               {providerLifecycleGuidance[endpoint.provider].remove}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{uiText("Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={lifecycle.isPending}
@@ -1272,7 +1237,7 @@ function Activity({
               {lifecycle.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
-              Remove connection
+              {uiText("Remove connection")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

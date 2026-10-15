@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, FlaskConical, Lock, Play } from "lucide-react";
@@ -62,9 +63,7 @@ const SHOW_CONFERENCE_ROOM_EXPERIMENTAL_SETTING = false;
 function ManagedByCloudBadge() {
   return (
     <Badge variant="outline" className="text-muted-foreground">
-      <Lock aria-hidden="true" />
-      Managed by Paperclip Cloud
-    </Badge>
+      <Lock aria-hidden="true" />{uiText("Managed by Paperclip Cloud")}{" "}</Badge>
   );
 }
 
@@ -125,8 +124,8 @@ export function InstanceExperimentalSettings() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
-      { label: "Experimental" },
+      { label: uiText("Settings"), href: "/company/settings" },
+      { label: uiText("Experimental") },
     ]);
   }, [setBreadcrumbs]);
 
@@ -176,7 +175,7 @@ export function InstanceExperimentalSettings() {
   });
 
   if (experimentalQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading experimental settings...</div>;
+    return <div className="text-sm text-muted-foreground">{uiText("Loading experimental settings...")}</div>;
   }
 
   if (experimentalQuery.error) {
@@ -184,7 +183,7 @@ export function InstanceExperimentalSettings() {
       <div className="text-sm text-destructive">
         {experimentalQuery.error instanceof Error
           ? experimentalQuery.error.message
-          : "Failed to load experimental settings."}
+          : uiText("Failed to load experimental settings.")}
       </div>
     );
   }
@@ -242,11 +241,9 @@ export function InstanceExperimentalSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Experimental</h1>
+          <h1 className="text-lg font-semibold">{uiText("Experimental")}</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Opt into features that are still being evaluated before they become default behavior.
-        </p>
+        <p className="text-sm text-muted-foreground">{uiText("Opt into features that are still being evaluated before they become default behavior.")}{" "}</p>
       </div>
 
       <div
@@ -256,11 +253,8 @@ export function InstanceExperimentalSettings() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
           <div className="space-y-1 text-sm">
-            <p className="font-medium text-foreground">Experimental features may break at any time.</p>
-            <p className="text-muted-foreground">
-              These features are opt-in and come with no compatibility guarantees. They may change, break, or be
-              removed without notice. Avoid relying on them for critical or production workflows.
-            </p>
+            <p className="font-medium text-foreground">{uiText("Experimental features may break at any time.")}</p>
+            <p className="text-muted-foreground">{uiText("These features are opt-in and come with no compatibility guarantees. They may change, break, or be removed without notice. Avoid relying on them for critical or production workflows.")}{" "}</p>
           </div>
         </div>
       </div>
@@ -273,144 +267,140 @@ export function InstanceExperimentalSettings() {
 
       <section className="space-y-3" aria-labelledby="experimental-features-heading">
         <div className="space-y-1">
-          <h2 id="experimental-features-heading" className="text-sm font-semibold">
-            Experimental features
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Optional product features that are still being evaluated.
-          </p>
+          <h2 id="experimental-features-heading" className="text-sm font-semibold">{uiText("Experimental features")}{" "}</h2>
+          <p className="text-sm text-muted-foreground">{uiText("Optional product features that are still being evaluated.")}{" "}</p>
         </div>
 
         <ExperimentalToggleCard
-          title="Beta skills"
-          description="Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."
+          title={uiText("Beta skills")}
+          description={uiText("Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins.")}
           checked={enableBetaSkills}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableBetaSkills: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableBetaSkills"
           managed={managedKeys.enableBetaSkills}
-          ariaLabel="Toggle beta skills experimental setting"
+          ariaLabel={uiText("Toggle beta skills experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Built-in Agents"
-          description="Show Paperclip-managed built-in agent surfaces, including built-in roster badges, the Built-in agents tab, and built-in agent setup controls."
+          title={uiText("Built-in Agents")}
+          description={uiText("Show Paperclip-managed built-in agent surfaces, including built-in roster badges, the Built-in agents tab, and built-in agent setup controls.")}
           checked={enableBuiltInAgents}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableBuiltInAgents: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableBuiltInAgents"
           managed={managedKeys.enableBuiltInAgents}
-          ariaLabel="Toggle built-in agents experimental setting"
+          ariaLabel={uiText("Toggle built-in agents experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Cases"
-          description="Durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the Cases tab and the agent case API."
+          title={uiText("Cases")}
+          description={uiText("Durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the Cases tab and the agent case API.")}
           footnote="Turning Cases off hides the tab and blocks the case API; existing case data is kept."
           checked={enableCases}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableCases: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableCases"
           managed={managedKeys.enableCases}
-          ariaLabel="Toggle cases experimental setting"
+          ariaLabel={uiText("Toggle cases experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Agent Chat"
-          description="Talk to each agent in one ongoing conversation. Clarify goals and create tasks for execution."
+          title={uiText("Agent Chat")}
+          description={uiText("Talk to each agent in one ongoing conversation. Clarify goals and create tasks for execution.")}
           footnote="Turning this off preserves conversations and lets active runs finish, but prevents new messages."
           checked={experimentalQuery.data?.enableAgentChat ?? false}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableAgentChat: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableAgentChat"
           managed={managedKeys.enableAgentChat}
-          ariaLabel="Toggle agent chat experimental setting"
+          ariaLabel={uiText("Toggle agent chat experimental setting")}
         />
         <ExperimentalToggleCard
-          title="Chat connectors"
-          description="Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations."
+          title={uiText("Chat connectors")}
+          description={uiText("Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations.")}
           footnote="Turning this off hides chat setup, channels, and connected-task controls. Existing chat connections keep running. GitHub and other tool connectors stay available."
           checked={enableChatConnectors}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableChatConnectors: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableChatConnectors"
           managed={managedKeys.enableChatConnectors}
-          ariaLabel="Toggle chat connectors experimental setting"
+          ariaLabel={uiText("Toggle chat connectors experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="MCP aggregators"
-          description="Connect Zapier, Arcade, Composio Connect, and Executor through their MCP servers."
+          title={uiText("MCP aggregators")}
+          description={uiText("Connect Zapier, Arcade, Composio Connect, and Executor through their MCP servers.")}
           footnote="Turning this off hides setup for these connectors. Existing MCP connections keep running."
           checked={experimentalQuery.data?.enableMcpAggregators === true}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableMcpAggregators: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableMcpAggregators"
           managed={managedKeys.enableMcpAggregators}
-          ariaLabel="Toggle MCP aggregators experimental setting"
+          ariaLabel={uiText("Toggle MCP aggregators experimental setting")}
         />
 
         {SHOW_CONFERENCE_ROOM_EXPERIMENTAL_SETTING ? (
           <ExperimentalToggleCard
-            title="Conference Room Chat"
-            description="Adds a Conference Room — one chat where you and your whole team work together — plus the live activity feed and the redesigned onboarding. Also restyles task threads as chat bubbles. Turn off anytime to restore the classic UI."
+            title={uiText("Conference Room Chat")}
+            description={uiText("Adds a Conference Room — one chat where you and your whole team work together — plus the live activity feed and the redesigned onboarding. Also restyles task threads as chat bubbles. Turn off anytime to restore the classic UI.")}
             checked={enableConferenceRoomChat}
             onCheckedChange={(checked) => toggleMutation.mutate({ enableConferenceRoomChat: checked })}
             disabled={toggleMutation.isPending}
             settingKey="enableConferenceRoomChat"
             managed={managedKeys.enableConferenceRoomChat}
-            ariaLabel="Toggle conference room chat experimental setting"
+            ariaLabel={uiText("Toggle conference room chat experimental setting")}
           />
         ) : null}
 
         <ExperimentalToggleCard
-          title="Decisions"
-          description="Show the Decisions item in the main sidebar — the attention home that surfaces the tasks awaiting your input — while the surface is still being evaluated."
+          title={uiText("Decisions")}
+          description={uiText("Show the Decisions item in the main sidebar — the attention home that surfaces the tasks awaiting your input — while the surface is still being evaluated.")}
           checked={enableDecisions}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableDecisions: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableDecisions"
           managed={managedKeys.enableDecisions}
-          ariaLabel="Toggle decisions experimental setting"
+          ariaLabel={uiText("Toggle decisions experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Enable Environments"
-          description="Show environment management in company settings and allow project and agent environment assignment controls."
+          title={uiText("Enable Environments")}
+          description={uiText("Show environment management in company settings and allow project and agent environment assignment controls.")}
           checked={enableEnvironments}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableEnvironments: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableEnvironments"
           managed={managedKeys.enableEnvironments}
-          ariaLabel="Toggle environments experimental setting"
+          ariaLabel={uiText("Toggle environments experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Enable External Objects"
-          description="Detect external URLs in issues and show resolved status for pull requests, tickets, and other referenced work objects."
+          title={uiText("Enable External Objects")}
+          description={uiText("Detect external URLs in issues and show resolved status for pull requests, tickets, and other referenced work objects.")}
           checked={enableExternalObjects}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableExternalObjects: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableExternalObjects"
           managed={managedKeys.enableExternalObjects}
-          ariaLabel="Toggle external objects experimental setting"
+          ariaLabel={uiText("Toggle external objects experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Enable Isolated Workspaces"
-          description="Show execution workspace controls in project configuration and allow isolated workspace behavior for new and existing task runs."
+          title={uiText("Enable Isolated Workspaces")}
+          description={uiText("Show execution workspace controls in project configuration and allow isolated workspace behavior for new and existing task runs.")}
           checked={enableIsolatedWorkspaces}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableIsolatedWorkspaces: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableIsolatedWorkspaces"
           managed={managedKeys.enableIsolatedWorkspaces}
-          ariaLabel="Toggle isolated workspaces experimental setting"
+          ariaLabel={uiText("Toggle isolated workspaces experimental setting")}
         />
 
         {enableIsolatedWorkspaces && (
           <ExperimentalToggleCard
-            title="Use Isolated Workspaces By Default"
-            description="Treat a project that has no execution workspace policy of its own as if it selected isolated workspaces, so its tasks get a per-task worktree instead of sharing the project checkout. A project that carries its own policy keeps it."
+            title={uiText("Use Isolated Workspaces By Default")}
+            description={uiText("Treat a project that has no execution workspace policy of its own as if it selected isolated workspaces, so its tasks get a per-task worktree instead of sharing the project checkout. A project that carries its own policy keeps it.")}
             checked={enableIsolatedWorkspacesByDefault}
             onCheckedChange={(checked) =>
               toggleMutation.mutate({ enableIsolatedWorkspacesByDefault: checked })
@@ -418,24 +408,24 @@ export function InstanceExperimentalSettings() {
             disabled={toggleMutation.isPending}
             settingKey="enableIsolatedWorkspacesByDefault"
             managed={managedKeys.enableIsolatedWorkspacesByDefault}
-            ariaLabel="Toggle isolated workspaces by default experimental setting"
+            ariaLabel={uiText("Toggle isolated workspaces by default experimental setting")}
           />
         )}
 
         <ExperimentalToggleCard
-          title="Experimental File Viewer"
-          description="Show task detail controls for browsing and previewing workspace files relative to a task."
+          title={uiText("Experimental File Viewer")}
+          description={uiText("Show task detail controls for browsing and previewing workspace files relative to a task.")}
           checked={enableExperimentalFileViewer}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableExperimentalFileViewer: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableExperimentalFileViewer"
           managed={managedKeys.enableExperimentalFileViewer}
-          ariaLabel="Toggle experimental file viewer setting"
+          ariaLabel={uiText("Toggle experimental file viewer setting")}
         />
 
         <ExperimentalToggleCard
           title="Paperclip Runner"
-          description="Allow new Codex agents to select the experimental Rust Paperclip Runner, including authenticated runner ingress when a sandbox requires it. Onboarding continues to use legacy adapters. Turning this off hides the choice without affecting existing native runs."
+          description={uiText("Allow new Codex agents to select the experimental Rust Paperclip Runner, including authenticated runner ingress when a sandbox requires it. Onboarding continues to use legacy adapters. Turning this off hides the choice without affecting existing native runs.")}
           checked={enableNativeRunner}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableNativeRunner: checked })
@@ -443,12 +433,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableNativeRunner"
           managed={managedKeys.enableNativeRunner}
-          ariaLabel="Toggle Paperclip Runner experimental setting"
+          ariaLabel={uiText("Toggle Paperclip Runner experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Simplified English Interactions"
-          description="Instruct agents to write user interactions (plan confirmations, questions, suggested tasks, checkbox prompts) in ASD-STE100 Simplified Technical English, with brief context on what information the decision needs and what happens for each choice."
+          title={uiText("Simplified English Interactions")}
+          description={uiText("Instruct agents to write user interactions (plan confirmations, questions, suggested tasks, checkbox prompts) in ASD-STE100 Simplified Technical English, with brief context on what information the decision needs and what happens for each choice.")}
           checked={enableSimplifiedEnglishInteractions}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableSimplifiedEnglishInteractions: checked })
@@ -456,12 +446,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableSimplifiedEnglishInteractions"
           managed={managedKeys.enableSimplifiedEnglishInteractions}
-          ariaLabel="Toggle simplified english interactions experimental setting"
+          ariaLabel={uiText("Toggle simplified english interactions experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="First task: propose with a plan document"
-          description="When the user's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after the toggle is flipped."
+          title={uiText("First task: propose with a plan document")}
+          description={uiText("When the user's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after the toggle is flipped.")}
           checked={enableFirstTaskPlanProposal}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableFirstTaskPlanProposal: checked })
@@ -469,12 +459,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableFirstTaskPlanProposal"
           managed={managedKeys.enableFirstTaskPlanProposal}
-          ariaLabel="Toggle first task plan proposal experimental setting"
+          ariaLabel={uiText("Toggle first task plan proposal experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Status Cards"
-          description="Enable the experimental shared status-card board and its gated API. Existing card data is kept when this is disabled."
+          title={uiText("Status Cards")}
+          description={uiText("Enable the experimental shared status-card board and its gated API. Existing card data is kept when this is disabled.")}
           footnote="Enabling Status Cards also enables Summaries."
           checked={enableStatusCards}
           onCheckedChange={(checked) =>
@@ -487,24 +477,24 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending || statusCardsBlockedByManagedSummaries}
           settingKey="enableStatusCards"
           managed={managedKeys.enableStatusCards}
-          ariaLabel="Toggle status cards experimental setting"
+          ariaLabel={uiText("Toggle status cards experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Streamlined UI"
-          description="Use the simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings."
+          title={uiText("Streamlined UI")}
+          description={uiText("Use the simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings.")}
           footnote="Turning this off restores the legacy shell and navigation. Task and page data are unchanged."
           checked={enableStreamlinedUi}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableStreamlinedUi: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableStreamlinedUi"
           managed={managedKeys.enableStreamlinedUi}
-          ariaLabel="Toggle Streamlined UI experimental setting"
+          ariaLabel={uiText("Toggle Streamlined UI experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Summaries"
-          description="Show Summarizer-generated status slots on project and workspace pages, with on-demand refresh and revision history. Existing summary data is kept when this is disabled."
+          title={uiText("Summaries")}
+          description={uiText("Show Summarizer-generated status slots on project and workspace pages, with on-demand refresh and revision history. Existing summary data is kept when this is disabled.")}
           footnote="Status Cards requires Summaries. Disabling Summaries also disables Status Cards."
           checked={enableSummaries}
           onCheckedChange={(checked) =>
@@ -517,24 +507,20 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending || summariesRequiredByManagedStatusCards}
           settingKey="enableSummaries"
           managed={managedKeys.enableSummaries}
-          ariaLabel="Toggle summaries experimental setting"
+          ariaLabel={uiText("Toggle summaries experimental setting")}
         />
 
       </section>
 
       <section className="space-y-3" aria-labelledby="developer-mode-heading">
         <div className="space-y-1">
-          <h2 id="developer-mode-heading" className="text-sm font-semibold">
-            Paperclip Developer Mode
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Internal tools for developing, testing, and debugging Paperclip.
-          </p>
+          <h2 id="developer-mode-heading" className="text-sm font-semibold">{uiText("Paperclip Developer Mode")}{" "}</h2>
+          <p className="text-sm text-muted-foreground">{uiText("Internal tools for developing, testing, and debugging Paperclip.")}{" "}</p>
         </div>
 
         <ExperimentalToggleCard
-          title="Paperclip Developer Mode"
-          description="Show internal Paperclip maintainer tools and observability links, including Honeycomb trace queries on run pages."
+          title={uiText("Paperclip Developer Mode")}
+          description={uiText("Show internal Paperclip maintainer tools and observability links, including Honeycomb trace queries on run pages.")}
           checked={enablePaperclipDeveloperMode}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enablePaperclipDeveloperMode: checked })
@@ -542,12 +528,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enablePaperclipDeveloperMode"
           managed={managedKeys.enablePaperclipDeveloperMode}
-          ariaLabel="Toggle Paperclip developer mode experimental setting"
+          ariaLabel={uiText("Toggle Paperclip developer mode experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Managed Environment Only"
-          description="Hide the local environment and run all agents in the platform-managed environment."
+          title={uiText("Managed Environment Only")}
+          description={uiText("Hide the local environment and run all agents in the platform-managed environment.")}
           checked={enableManagedSandboxOnly}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableManagedSandboxOnly: checked })
@@ -555,7 +541,7 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableManagedSandboxOnly"
           managed={managedKeys.enableManagedSandboxOnly}
-          ariaLabel="Toggle managed environment only experimental setting"
+          ariaLabel={uiText("Toggle managed environment only experimental setting")}
         />
 
         {inWorktree ? (
@@ -564,14 +550,10 @@ export function InstanceExperimentalSettings() {
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold">Run tasks in this worktree</h3>
+                    <h3 className="text-sm font-semibold">{uiText("Run tasks in this worktree")}</h3>
                     {worktreeRunExecutionManaged ? <ManagedByCloudBadge /> : null}
                   </div>
-                  <p className="max-w-2xl text-sm text-muted-foreground">
-                    This is an isolated git-worktree preview instance. Turn this on to let the scheduler execute runs
-                    here. Only tasks created after enabling will run automatically — copied/pre-existing tasks stay
-                    parked. Toggling off and on resets the cutoff.
-                  </p>
+                  <p className="max-w-2xl text-sm text-muted-foreground">{uiText("This is an isolated git-worktree preview instance. Turn this on to let the scheduler execute runs here. Only tasks created after enabling will run automatically — copied/pre-existing tasks stay parked. Toggling off and on resets the cutoff.")}{" "}</p>
                 </div>
                 <ToggleSwitch
                   checked={enableWorktreeRunExecution}
@@ -580,15 +562,14 @@ export function InstanceExperimentalSettings() {
                     toggleMutation.mutate({ enableWorktreeRunExecution: checked });
                   }}
                   disabled={toggleMutation.isPending || worktreeRunExecutionManaged}
-                  aria-label="Toggle worktree run execution setting"
+                  aria-label={uiText("Toggle worktree run execution setting")}
                 />
               </div>
 
               {worktreeRunExecutionState.kind === "armed" ? (
                 <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-foreground">
                   <Play className="h-4 w-4 shrink-0 text-emerald-600" />
-                  <span>
-                    Running tasks created after{" "}
+                  <span>{uiText("Running tasks created after")}{" "}
                     <span className="font-medium">
                       {formatActivationTimestamp(worktreeRunExecutionState.activatedAt)}
                     </span>
@@ -601,13 +582,11 @@ export function InstanceExperimentalSettings() {
                 <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                   <div className="space-y-0.5">
-                    <p className="font-medium text-foreground">Execution is suppressed — effectively off.</p>
+                    <p className="font-medium text-foreground">{uiText("Execution is suppressed — effectively off.")}</p>
                     <p className="text-muted-foreground">
                       {worktreeRunExecutionState.reason === "instance_mismatch"
-                        ? "This setting was armed in a different instance and copied here, so no tasks run automatically."
-                        : "This setting is missing its activation cutoff, so no tasks run automatically."}{" "}
-                      Toggle it off and back on to arm execution for tasks created here.
-                    </p>
+                        ? uiText("This setting was armed in a different instance and copied here, so no tasks run automatically.")
+                        : uiText("This setting is missing its activation cutoff, so no tasks run automatically.")}{" "}{uiText("Toggle it off and back on to arm execution for tasks created here.")}{" "}</p>
                   </div>
                 </div>
               ) : null}
@@ -616,8 +595,8 @@ export function InstanceExperimentalSettings() {
         ) : null}
 
         <ExperimentalToggleCard
-          title="Auto-Restart Dev Server When Idle"
-          description="In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server automatically when backend changes or migrations make the current boot stale."
+          title={uiText("Auto-Restart Dev Server When Idle")}
+          description={uiText("In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server automatically when backend changes or migrations make the current boot stale.")}
           checked={autoRestartDevServerWhenIdle}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ autoRestartDevServerWhenIdle: checked })
@@ -625,12 +604,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="autoRestartDevServerWhenIdle"
           managed={managedKeys.autoRestartDevServerWhenIdle}
-          ariaLabel="Toggle guarded dev-server auto-restart"
+          ariaLabel={uiText("Toggle guarded dev-server auto-restart")}
         />
 
         <ExperimentalToggleCard
-          title="Server Info Debug View"
-          description='Show a "Server" section in the account drawer with the current server restart time and running commit.'
+          title={uiText("Server Info Debug View")}
+          description={uiText("Show a \"Server\" section in the account drawer with the current server restart time and running commit.")}
           checked={enableServerInfoDebugView}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableServerInfoDebugView: checked })
@@ -638,23 +617,23 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableServerInfoDebugView"
           managed={managedKeys.enableServerInfoDebugView}
-          ariaLabel="Toggle server info debug view experimental setting"
+          ariaLabel={uiText("Toggle server info debug view experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Smoke Lab"
-          description='Add a "Smoke Lab" tab under Apps → Developer and an "Integration smoke" card on the dashboard for exercising every integration path against deterministic local fixtures (fake OAuth provider + loopback MCP servers). Private (non-public) deployments only.'
+          title={uiText("Smoke Lab")}
+          description={uiText("Add a \"Smoke Lab\" tab under Apps → Developer and an \"Integration smoke\" card on the dashboard for exercising every integration path against deterministic local fixtures (fake OAuth provider + loopback MCP servers). Private (non-public) deployments only.")}
           checked={enableSmokeLab}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableSmokeLab: checked })}
           disabled={toggleMutation.isPending}
           settingKey="enableSmokeLab"
           managed={managedKeys.enableSmokeLab}
-          ariaLabel="Toggle smoke lab experimental setting"
+          ariaLabel={uiText("Toggle smoke lab experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Task Plan Decomposition"
-          description="Show accepted-plan decomposition history on task detail pages. Intended for debugging and validating subtask creation behavior while the presentation is still being refined."
+          title={uiText("Task Plan Decomposition")}
+          description={uiText("Show accepted-plan decomposition history on task detail pages. Intended for debugging and validating subtask creation behavior while the presentation is still being refined.")}
           checked={enableIssuePlanDecompositions}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableIssuePlanDecompositions: checked })
@@ -662,21 +641,19 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableIssuePlanDecompositions"
           managed={managedKeys.enableIssuePlanDecompositions}
-          ariaLabel="Toggle task plan decomposition panel experimental setting"
+          ariaLabel={uiText("Toggle task plan decomposition panel experimental setting")}
         />
       </section>
 
       <section className="space-y-3" aria-labelledby="legacy-heading">
         <div className="space-y-1">
-          <h2 id="legacy-heading" className="text-sm font-semibold">
-            Legacy
-          </h2>
-          <p className="text-sm text-muted-foreground">These features are going to be removed.</p>
+          <h2 id="legacy-heading" className="text-sm font-semibold">{uiText("Legacy")}{" "}</h2>
+          <p className="text-sm text-muted-foreground">{uiText("These features are going to be removed.")}</p>
         </div>
 
         <ExperimentalToggleCard
-          title="Classic Task Interface"
-          description="Restores the previous task detail page: the page-level header with inline description editing, the plain comment thread, and the fixed Properties sidebar. Chat-only features — streaming activity folding, inline plan and question cards, the three-mode composer — are unavailable in the classic view."
+          title={uiText("Classic Task Interface")}
+          description={uiText("Restores the previous task detail page: the page-level header with inline description editing, the plain comment thread, and the fixed Properties sidebar. Chat-only features — streaming activity folding, inline plan and question cards, the three-mode composer — are unavailable in the classic view.")}
           footnote="Switching takes effect immediately. No task data is affected."
           checked={enableClassicTaskInterface}
           onCheckedChange={(checked) =>
@@ -685,12 +662,12 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableClassicTaskInterface"
           managed={managedKeys.enableClassicTaskInterface}
-          ariaLabel="Toggle classic task interface experimental setting"
+          ariaLabel={uiText("Toggle classic task interface experimental setting")}
         />
 
         <ExperimentalToggleCard
-          title="Goals Sidebar Link"
-          description="Restore the Goals item in the main sidebar while the goals surface is being evaluated."
+          title={uiText("Goals Sidebar Link")}
+          description={uiText("Restore the Goals item in the main sidebar while the goals surface is being evaluated.")}
           checked={enableGoalsSidebarLink}
           onCheckedChange={(checked) =>
             toggleMutation.mutate({ enableGoalsSidebarLink: checked })
@@ -698,7 +675,7 @@ export function InstanceExperimentalSettings() {
           disabled={toggleMutation.isPending}
           settingKey="enableGoalsSidebarLink"
           managed={managedKeys.enableGoalsSidebarLink}
-          ariaLabel="Toggle goals sidebar link experimental setting"
+          ariaLabel={uiText("Toggle goals sidebar link experimental setting")}
         />
       </section>
     </div>

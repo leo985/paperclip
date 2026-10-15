@@ -1,0 +1,24 @@
+{
+  "paperclip_url": "http://10.60.43.53:3100",
+  "company_id": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+  "agent_id": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+  "credential_file": "/Users/leo/.config/paperclip-dsp7-bridge/access.json",
+  "database": "/Users/leo/.config/paperclip-dsp7-bridge/bridge.sqlite3",
+  "harness_root": "/Users/leo/work/fingard/base-harness-infrastructure-dsp7",
+  "poll_seconds": 20,
+  "notifications": "local",
+  "auto_resume": true,
+  "jira_credential_file": "/Users/leo/.config/paperclip-dsp7-bridge/jira-access.json",
+  "paperclip_replay_approver_user_ids": [],
+  "same_session_resume": true,
+  "confirmation_wait_seconds": 3600,
+  "web_jira_intake_enabled": false,
+  "paperclip_intake_user_ids": [],
+  "intake_repository_roots": [
+    "/Users/leo/work"
+  ],
+  "intake_worktree_root": "/Users/leo/.config/paperclip-dsp7-bridge/worktrees",
+  "seat": {},
+  "seat_credential_file": "",
+  "project_repositories": {}
+}

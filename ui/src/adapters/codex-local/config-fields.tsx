@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { configFieldsForSection } from "../config-sections";
 import type { AdapterConfigFieldsProps } from "../types";
@@ -160,8 +161,8 @@ export function CodexLocalConfigFields({
     <>
       {!hideEngineChoice && (
         <Field
-          label="Execution engine"
-          hint="Default uses ACP. If ACP is unavailable, the run fails with a setup error. Choose CLI explicitly to use it."
+          label={uiText("Execution engine")}
+          hint={uiText("Default uses ACP. If ACP is unavailable, the run fails with a setup error. Choose CLI explicitly to use it.")}
         >
           <select
             className={inputClass}
@@ -182,7 +183,7 @@ export function CodexLocalConfigFields({
                   );
             }}
           >
-            <option value="auto">Default (ACP)</option>
+            <option value="auto">{uiText("Default (ACP)")}</option>
             <option value="cli">Codex CLI</option>
             <option value="acp">ACP</option>
           </select>
@@ -190,8 +191,8 @@ export function CodexLocalConfigFields({
       )}
       {runnerManaged && (
         <Field configSection="adapter"
-          label="Provider"
-          hint="The runner persists this provider with each run so recovery cannot drift after configuration changes."
+          label={uiText("Provider")}
+          hint={uiText("The runner persists this provider with each run so recovery cannot drift after configuration changes.")}
         >
           <select
             className={inputClass}
@@ -239,8 +240,8 @@ export function CodexLocalConfigFields({
       {runnerManaged && runnerProvider === "claude_managed" && (
         <>
           <Field
-            label="Managed Agent profile"
-            hint="Company-scoped qualified profile ID or key. Remote resource identity is loaded from the stored profile, not this agent config."
+            label={uiText("Managed Agent profile")}
+            hint={uiText("Company-scoped qualified profile ID or key. Remote resource identity is loaded from the stored profile, not this agent config.")}
           >
             <DraftInput
               value={String(runnerSchemaValue("managedProfileId", ""))}
@@ -253,8 +254,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <Field
-            label="Session spend ceiling (USD)"
-            hint="Optional per-agent hard ceiling. Leave 1.00 to use a conservative default."
+            label={uiText("Session spend ceiling (USD)")}
+            hint={uiText("Optional per-agent hard ceiling. Leave 1.00 to use a conservative default.")}
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("maxSessionListCostUsd", 1))}
@@ -267,8 +268,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <ToggleField
-            label="Acknowledge managed retention"
-            hint="Claude Managed is a stateful beta service and is not eligible for ZDR or HIPAA modes."
+            label={uiText("Acknowledge managed retention")}
+            hint={uiText("Claude Managed is a stateful beta service and is not eligible for ZDR or HIPAA modes.")}
             checked={
               runnerSchemaValue("managedAgentsRetentionAcknowledged", false) ===
               true
@@ -285,8 +286,8 @@ export function CodexLocalConfigFields({
       {runnerManaged && runnerProvider === "aws_agentcore" && (
         <>
           <Field
-            label="AgentCore profile"
-            hint="Company-scoped qualified profile ID or key. Harness, Memory, IAM, and context-store identity come from the stored profile."
+            label={uiText("AgentCore profile")}
+            hint={uiText("Company-scoped qualified profile ID or key. Harness, Memory, IAM, and context-store identity come from the stored profile.")}
           >
             <DraftInput
               value={String(runnerSchemaValue("agentCoreProfileId", ""))}
@@ -299,8 +300,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <Field
-            label="Estimated session ceiling (USD)"
-            hint="Paperclip estimate; AWS does not provide a per-session currency hard stop."
+            label={uiText("Estimated session ceiling (USD)")}
+            hint={uiText("Paperclip estimate; AWS does not provide a per-session currency hard stop.")}
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("maxEstimatedSessionCostUsd", 1))}
@@ -313,8 +314,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <Field
-            label="Maximum iterations"
-            hint="Qualified range is 1–8. Invalid values fail closed to 8."
+            label={uiText("Maximum iterations")}
+            hint={uiText("Qualified range is 1–8. Invalid values fail closed to 8.")}
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("maxIterations", 8))}
@@ -328,8 +329,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <Field
-            label="Maximum output tokens"
-            hint="Qualified range is 1–4096."
+            label={uiText("Maximum output tokens")}
+            hint={uiText("Qualified range is 1–4096.")}
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("maxOutputTokens", 4_096))}
@@ -343,8 +344,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <Field configSection="runPolicy"
-            label="Invocation timeout (seconds)"
-            hint="Qualified range is 1–300 seconds."
+            label={uiText("Invocation timeout (seconds)")}
+            hint={uiText("Qualified range is 1–300 seconds.")}
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("timeoutSeconds", 300))}
@@ -358,8 +359,8 @@ export function CodexLocalConfigFields({
             />
           </Field>
           <ToggleField
-            label="Acknowledge 90-day Memory retention"
-            hint="The qualified AgentCore profile retains short-term Memory events for exactly 90 days."
+            label={uiText("Acknowledge 90-day Memory retention")}
+            hint={uiText("The qualified AgentCore profile retains short-term Memory events for exactly 90 days.")}
             checked={
               runnerSchemaValue("agentCoreRetentionAcknowledged", false) ===
               true
@@ -372,8 +373,8 @@ export function CodexLocalConfigFields({
       )}
       {runnerManaged && runnerPermissionCapability.configurable && (runnerPermissionCapability.options.length > 1 || runnerPermissionModeUnsupported) && (
         <Field
-          label="Permission mode"
-          hint={`${runnerPermissionCapability.description} The selected mode does not widen Paperclip's workspace, network, credential, or planning boundaries.`}
+          label={uiText("Permission mode")}
+          hint={uiTextFormat("__PCVAR0__ The selected mode does not widen Paperclip's workspace, network, credential, or planning boundaries.", [runnerPermissionCapability.description])}
         >
           <Select
             value={
@@ -402,18 +403,16 @@ export function CodexLocalConfigFields({
               }
             }}
           >
-            <SelectTrigger aria-label="Permission mode" className="w-full font-sans">
+            <SelectTrigger aria-label={uiText("Permission mode")} className="w-full font-sans">
               <SelectValue>
                 {runnerPermissionModeUnsupported
-                  ? "Unsupported saved mode — select a qualified mode"
+                  ? uiText("Unsupported saved mode — select a qualified mode")
                   : runnerPermissionCapability.options.find((option) => option.value === runnerPermissionMode)?.label}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {runnerPermissionModeUnsupported && (
-                <SelectItem value="__unsupported__" disabled>
-                  Unsupported saved mode — select a qualified mode
-                </SelectItem>
+                <SelectItem value="__unsupported__" disabled>{uiText("Unsupported saved mode — select a qualified mode")}{" "}</SelectItem>
               )}
               {runnerPermissionCapability.options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -423,17 +422,14 @@ export function CodexLocalConfigFields({
             </SelectContent>
           </Select>
           {runnerPermissionModeUnsupported && runnerProvider === "codex" && (
-            <p className="mt-1 text-xs text-destructive" role="alert">
-              This saved Codex mode cannot start or recover a Paperclip Runner
-              run. Select Automatic (isolated) to remediate it.
-            </p>
+            <p className="mt-1 text-xs text-destructive" role="alert">{uiText("This saved Codex mode cannot start or recover a Paperclip Runner run. Select Automatic (isolated) to remediate it.")}{" "}</p>
           )}
         </Field>
       )}
       {runnerManaged && (
         <Field configSection="runPolicy"
-          label="Runner lifecycle"
-          hint="Turn by turn suspends after each run. Warm keeps the same provider process available between governed runs."
+          label={uiText("Runner lifecycle")}
+          hint={uiText("Turn by turn suspends after each run. Warm keeps the same provider process available between governed runs.")}
         >
           <select
             className={inputClass}
@@ -445,15 +441,15 @@ export function CodexLocalConfigFields({
                 : mark("adapterConfig", "lifecycleMode", value);
             }}
           >
-            <option value="per_turn">Turn by turn</option>
-            <option value="warm">Warm session</option>
+            <option value="per_turn">{uiText("Turn by turn")}</option>
+            <option value="warm">{uiText("Warm session")}</option>
           </select>
         </Field>
       )}
       {runnerManaged && runnerLifecycleMode === "warm" && (
         <Field configSection="runPolicy"
-          label="Warm idle timeout (ms)"
-          hint="After this much inactivity, runnerd checkpoints and suspends the provider session. The maximum is 24 hours."
+          label={uiText("Warm idle timeout (ms)")}
+          hint={uiText("After this much inactivity, runnerd checkpoints and suspends the provider session. The maximum is 24 hours.")}
         >
           {isCreate ? (
             <input
@@ -493,8 +489,8 @@ export function CodexLocalConfigFields({
         <>
           {!managedSandboxOnly && (
             <Field configSection="advanced"
-              label="ACP server command"
-              hint="Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary."
+              label={uiText("ACP server command")}
+              hint={uiText("Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary.")}
             >
               <DraftInput
                 value={
@@ -518,8 +514,8 @@ export function CodexLocalConfigFields({
             </Field>
           )}
           <Field configSection="runPolicy"
-            label="ACP session mode"
-            hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run."
+            label={uiText("ACP session mode")}
+            hint={uiText("Persistent keeps ACP session state between runs. One-shot starts fresh each run.")}
           >
             <select
               className={inputClass}
@@ -540,13 +536,13 @@ export function CodexLocalConfigFields({
                   : mark("adapterConfig", "mode", value);
               }}
             >
-              <option value="persistent">Persistent</option>
-              <option value="oneshot">One-shot</option>
+              <option value="persistent">{uiText("Persistent")}</option>
+              <option value="oneshot">{uiText("One-shot")}</option>
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
-            hint="Fallback if the ACP agent asks for input outside an interactive session."
+            label={uiText("ACP non-interactive permissions")}
+            hint={uiText("Fallback if the ACP agent asks for input outside an interactive session.")}
           >
             <select
               className={inputClass}
@@ -566,14 +562,14 @@ export function CodexLocalConfigFields({
                   : mark("adapterConfig", "nonInteractivePermissions", value);
               }}
             >
-              <option value="deny">Deny</option>
-              <option value="fail">Fail</option>
+              <option value="deny">{uiText("Deny")}</option>
+              <option value="fail">{uiText("Fail")}</option>
             </select>
           </Field>
           {!managedSandboxOnly && (
             <Field
-              label="ACP state directory"
-              hint="Optional ACP session state directory. Defaults to Paperclip-managed organization/agent scoped storage."
+              label={uiText("ACP state directory")}
+              hint={uiText("Optional ACP session state directory. Defaults to Paperclip-managed organization/agent scoped storage.")}
             >
               <div className="flex items-center gap-2">
                 <DraftInput
@@ -600,8 +596,8 @@ export function CodexLocalConfigFields({
             </Field>
           )}
           <Field configSection="runPolicy"
-            label="ACP warm process idle ms"
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            label={uiText("ACP warm process idle ms")}
+            hint={uiText("Defaults to 0, which closes the ACP process after each run while retaining persistent session state.")}
           >
             {isCreate ? (
               <input
@@ -630,7 +626,7 @@ export function CodexLocalConfigFields({
         </>
       )}
       {!runnerManaged && !hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={uiText("Agent instructions file")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -662,7 +658,7 @@ export function CodexLocalConfigFields({
       {!runnerManaged && (
         <>
           <ToggleField
-            label="Bypass sandbox"
+            label={uiText("Bypass sandbox")}
             hint={help.dangerouslyBypassSandbox}
             checked={
               isCreate
@@ -684,7 +680,7 @@ export function CodexLocalConfigFields({
             }
           />
           <ToggleField
-            label="Enable search"
+            label={uiText("Enable search")}
             hint={help.search}
             checked={
               isCreate
@@ -698,7 +694,7 @@ export function CodexLocalConfigFields({
             }
           />
           <ToggleField
-            label="Fast mode"
+            label={uiText("Fast mode")}
             hint={help.fastMode}
             checked={fastModeEnabled}
             onChange={(v) =>

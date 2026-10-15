@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -147,7 +148,7 @@ export function SidebarAccountMenu({
               "flex min-w-0 items-center gap-2.5 rounded-lg text-left text-(length:--text-compact) font-medium text-foreground/80 transition-colors hover:bg-accent/50 hover:text-foreground",
               rail ? "w-full px-3 py-2" : "flex-1 px-2 py-1.5",
             )}
-            aria-label="Open account menu"
+            aria-label={uiText("Open account menu")}
           >
             <Avatar size="sm">
               {session?.user.image ? <AvatarImage src={session.user.image} alt={displayName} /> : null}
@@ -179,22 +180,23 @@ export function SidebarAccountMenu({
 
             <div className="mt-4 space-y-1">
               <MenuAction
-                label="View profile"
-                description="Open your activity, task, and usage ledger."
+                label={uiText("View profile")}
+                description={uiText("Open your activity, task, and usage ledger.")}
                 icon={UserRound}
                 href={profileHref}
                 onClick={closeNavigationChrome}
               />
               <MenuAction
-                label="Edit profile"
-                description="Update your display name and avatar."
+                label={uiText("Edit profile")}
+                description={uiText("Update your display name and avatar.")}
                 icon={UserRoundPen}
                 href={PROFILE_SETTINGS_PATH}
                 onClick={closeNavigationChrome}
               />
+              <MenuAction label="帮助中心" description="查看功能、场景与接入指南。" icon={BookOpen} href="/help" onClick={closeNavigationChrome} />
               <MenuAction
-                label="Documentation"
-                description="Open Paperclip docs in a new tab."
+                label={uiText("Documentation")}
+                description={uiText("Open Paperclip docs in a new tab.")}
                 icon={BookOpen}
                 href={DOCS_URL}
                 external
@@ -216,10 +218,10 @@ export function SidebarAccountMenu({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium text-foreground">
-                      {signOutMutation.isPending ? "Signing out..." : "Sign out"}
+                      {signOutMutation.isPending ? uiText("Signing out...") : uiText("Sign out")}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      End this browser session.
+                      {uiText("End this browser session.")}
                     </span>
                   </span>
                 </button>
@@ -236,13 +238,13 @@ export function SidebarAccountMenu({
                 href={FEEDBACK_URL}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Share feedback"
+                aria-label={uiText("Share feedback")}
                 className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Flag className="h-4 w-4" aria-hidden="true" />
               </a>
             </TooltipTrigger>
-            <TooltipContent side="top">Share feedback</TooltipContent>
+            <TooltipContent side="top">{uiText("Share feedback")}</TooltipContent>
           </Tooltip>
         ) : null}
       </div>

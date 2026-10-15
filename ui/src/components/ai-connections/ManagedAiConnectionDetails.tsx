@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { heartbeatsApi } from "@/api/heartbeats";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,8 +25,8 @@ export function ManagedAiConnectionRow({
     <p className="text-xs text-muted-foreground">
       {aiMethodLabel(metadata.provider, metadata.method)} ·{" "}
       {connection.credentialPolicy === "per_user"
-        ? "Personal"
-        : "Company shared"}
+        ? uiText("Personal")
+        : uiText("Company shared")}
     </p>
   );
 }
@@ -83,8 +84,8 @@ export function ManagedAiConnectionDetails({
     return (
       <p role="status" className="text-sm text-muted-foreground">
         {accounts.isPending || grants.isPending
-          ? "Loading AI account…"
-          : "This account is not available to you."}
+          ? uiText("Loading AI account…")
+          : uiText("This account is not available to you.")}
       </p>
     );
   return (
@@ -116,7 +117,7 @@ export function ManagedAiConnectionDetails({
                   disabled={stop.isPending}
                   onClick={() => stop.mutate(run.id)}
                 >
-                  Stop run
+                  {uiText("Stop run")}
                 </Button>
               </div>
             ))}

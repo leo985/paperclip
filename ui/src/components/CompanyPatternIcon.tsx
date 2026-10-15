@@ -1,3 +1,4 @@
+import { uiTextFormat } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "../lib/utils";
 
@@ -173,7 +174,7 @@ export function CompanyPatternIcon({
       {logo ? (
         <img
           src={logo}
-          alt={`${companyName} logo`}
+          alt={uiTextFormat("__PCVAR0__ logo", [companyName])}
           onError={() => setImageError(true)}
           className={cn(
             "absolute inset-0 h-full w-full",

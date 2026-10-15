@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
@@ -61,10 +62,7 @@ export function MissingUserSecretsBanner({
         <div className="min-w-0 flex-1">
           <p className="font-medium">{title}</p>
           <p className="mt-0.5 text-amber-700/90 dark:text-amber-300/90">
-            {missing.length} user secret{missing.length === 1 ? "" : "s"} you are responsible for
-            {missing.length === 1 ? " has" : " have"} no value yet. Runs that require
-            {missing.length === 1 ? " it" : " them"} will fail until you set your value.
-          </p>
+            {missing.length}{" "}{uiText("user secret")}{missing.length === 1 ? "" : "s"}{" "}{uiText("you are responsible for")}{" "}{missing.length === 1 ? uiText(" has") : uiText(" have")}{" "}{uiText("no value yet. Runs that require")}{" "}{missing.length === 1 ? uiText(" it") : uiText(" them")}{" "}{uiText("will fail until you set your value.")}{" "}</p>
           <ul className="mt-2 space-y-1.5">
             {missing.map((entry) => (
               <li
@@ -75,9 +73,7 @@ export function MissingUserSecretsBanner({
                   <span className="font-medium text-foreground">{entry.definition.name}</span>{" "}
                   <code className="text-(length:--text-micro) text-muted-foreground">{entry.definition.key}</code>
                 </span>
-                <Button size="sm" onClick={() => setDialogFor(entry)}>
-                  Set value
-                </Button>
+                <Button size="sm" onClick={() => setDialogFor(entry)}>{uiText("Set value")}{" "}</Button>
               </li>
             ))}
           </ul>
@@ -85,9 +81,7 @@ export function MissingUserSecretsBanner({
             <Link
               to={secretsPath}
               className="mt-2 inline-block text-(length:--text-micro) font-medium underline underline-offset-2"
-            >
-              Manage all my secrets
-            </Link>
+            >{uiText("Manage all my secrets")}{" "}</Link>
           ) : null}
         </div>
       </div>

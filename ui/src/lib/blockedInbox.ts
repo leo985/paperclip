@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   Issue,
   IssueBlockedInboxAttention,
@@ -40,7 +41,7 @@ export const BLOCKED_REASON_VARIANT_ORDER: BlockedReasonVariant[] = [
 export const BLOCKED_VARIANT_LABELS: Record<BlockedReasonVariant, string> = {
   needs_decision: "Needs decision",
   stalled: "Blocked chain stalled",
-  needs_attention: "Needs attention",
+  needs_attention: uiText("Needs attention"),
   recovery_required: "Recovery required",
   external_wait: "External wait",
   owner_paused: "Owner paused",

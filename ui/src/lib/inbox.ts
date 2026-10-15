@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   Approval,
   DashboardSummary,
@@ -649,7 +650,7 @@ export function resolveIssueWorkspaceGroup(
 
   return {
     key: "workspace:none",
-    label: "No workspace",
+    label: uiText("No workspace"),
   };
 }
 
@@ -868,9 +869,9 @@ const inboxWorkItemKindOrder: InboxWorkItem["kind"][] = [
 ];
 
 const inboxWorkItemKindLabels: Record<InboxWorkItem["kind"], string> = {
-  issue: "Tasks",
-  approval: "Approvals",
-  failed_run: "Failed runs",
+  issue: uiText("Tasks"),
+  approval: uiText("Approvals"),
+  failed_run: uiText("Failed runs"),
   join_request: "Join requests",
 };
 
@@ -893,18 +894,18 @@ function resolveIssueAssigneeGroup(
   if (issue.assigneeUserId) {
     return {
       key: `assignee:user:${issue.assigneeUserId}`,
-      label: formatAssigneeUserLabel(issue.assigneeUserId, currentUserId, userLabelById) ?? "User",
+      label: formatAssigneeUserLabel(issue.assigneeUserId, currentUserId, userLabelById) ?? uiText("User"),
     };
   }
 
-  return { key: "assignee:none", label: "Unassigned" };
+  return { key: "assignee:none", label: uiText("Unassigned") };
 }
 
 function resolveIssueProjectGroup(
   issue: Pick<Issue, "projectId">,
   { projectById }: Pick<InboxWorkspaceGroupingOptions, "projectById">,
 ): { key: string; label: string } {
-  if (!issue.projectId) return { key: "project:none", label: "No project" };
+  if (!issue.projectId) return { key: "project:none", label: uiText("No project") };
 
   const projectName = projectById?.get(issue.projectId)?.name?.trim();
   return {

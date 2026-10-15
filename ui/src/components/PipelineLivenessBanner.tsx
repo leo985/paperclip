@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AlertTriangle, ExternalLink, Loader2, Lock, RefreshCw } from "lucide-react";
 import type { PipelineCaseLiveness } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
@@ -114,13 +115,10 @@ export function PipelineLivenessBanner({
           </h2>
           <p className="text-sm opacity-85">{view.body}</p>
           {view.permissionKey ? (
-            <p className="text-sm opacity-85">
-              Required permission:{" "}
+            <p className="text-sm opacity-85">{uiText("Required permission:")}{" "}
               <code className="rounded-sm bg-black/10 px-1 py-0.5 text-xs font-medium dark:bg-white/10">
                 {view.permissionKey}
-              </code>{" "}
-              on the target pipeline.
-            </p>
+              </code>{" "}{uiText("on the target pipeline.")}{" "}</p>
           ) : null}
           {view.blockerLink || view.automationLink ? (
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -169,7 +167,7 @@ export function PipelineLivenessBanner({
           ) : (
             <RefreshCw className="mr-2 h-4 w-4" />
           )}
-          {retryPending ? "Retrying…" : view.retryLabel}
+          {retryPending ? uiText("Retrying…") : view.retryLabel}
         </Button>
       ) : null}
     </section>

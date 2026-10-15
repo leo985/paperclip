@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -42,10 +43,10 @@ const localIcons = {
 } satisfies Record<AgentLocalDetailView, typeof Sparkles>;
 
 const auditItems = [
-  { section: "activity", label: "Activity", icon: Activity },
-  { section: "runs", label: "Runs", icon: PlayCircle },
-  { section: "costs", label: "Costs", icon: ReceiptText },
-  { section: "budgets", label: "Budgets", icon: BadgeDollarSign },
+  { section: "activity", label: uiText("Activity"), icon: Activity },
+  { section: "runs", label: uiText("Runs"), icon: PlayCircle },
+  { section: "costs", label: uiText("Costs"), icon: ReceiptText },
+  { section: "budgets", label: uiText("Budgets"), icon: BadgeDollarSign },
 ] as const;
 
 export function AgentContextualSidebar({
@@ -79,7 +80,7 @@ export function AgentContextualSidebar({
       className="border-r border-border bg-background"
     >
       <nav
-        aria-label={`${resolvedName} navigation`}
+        aria-label={uiTextFormat("__PCVAR0__ navigation", [resolvedName])}
         data-slot="contextual-sidebar-nav"
         className={contextualSidebarStyles.nav}
       >
@@ -118,7 +119,7 @@ export function AgentContextualSidebar({
             data-slot="contextual-sidebar-section-label"
             className={contextualSidebarStyles.sectionLabel}
           >
-            Audit
+            {uiText("Audit")}
           </p>
           <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
             {resolvedId ? auditItems.map((item) => (
@@ -129,7 +130,7 @@ export function AgentContextualSidebar({
                 icon={item.icon}
               />
             )) : (
-              <p className="px-2 py-1.5 text-xs text-muted-foreground">Loading audit links…</p>
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">{uiText("Loading audit links…")}</p>
             )}
           </div>
         </div>

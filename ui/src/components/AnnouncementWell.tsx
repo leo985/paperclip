@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useState } from "react";
 import { useAccountIdentity } from "@/api/companies-query";
 import type { HealthStatus } from "@/api/health";
@@ -33,15 +34,15 @@ export function AnnouncementWell({ health }: { health?: HealthStatus }) {
     userId, companyId: selectedCompanyId,
     enabled: Boolean(userId && !loading && selectedCompanyId && !onboardingOpen),
     onSaveFailure: (savedLocally) => toastActions?.pushToast({
-      title: savedLocally ? "Dismissed in this browser" : "Dismissed for this visit",
-      body: "Couldn’t save across devices. We’ll retry when you reconnect or return.",
+      title: savedLocally ? uiText("Dismissed in this browser") : uiText("Dismissed for this visit"),
+      body: uiText("Couldn’t save across devices. We’ll retry when you reconnect or return."),
       tone: "info", dedupeKey: "announcement-dismissal-sync",
     }),
   });
   const modalOpen = useModalOpen(Boolean(announcement));
   if (!announcement || modalOpen || (toasts?.length ?? 0) > 0) return null;
   return (
-    <aside aria-label="Paperclip announcements" className="announcement-well fixed left-3 bottom-(--announcement-mobile-bottom) z-40 w-(--announcement-available-width) max-w-(--announcement-width) max-h-(--announcement-mobile-max-height) overflow-y-auto md:bottom-3 md:max-h-(--announcement-max-height)">
+    <aside aria-label={uiText("Paperclip announcements")} className="announcement-well fixed left-3 bottom-(--announcement-mobile-bottom) z-40 w-(--announcement-available-width) max-w-(--announcement-width) max-h-(--announcement-mobile-max-height) overflow-y-auto md:bottom-3 md:max-h-(--announcement-max-height)">
       <AnnouncementCard key={announcement.id} announcement={announcement} onDismiss={() => dismiss(announcement.id)} />
     </aside>
   );

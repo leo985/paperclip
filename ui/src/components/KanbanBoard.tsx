@@ -1,3 +1,4 @@
+import { uiTextFormat,  localizedStatus, uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useMemo, useState } from "react";
 import { Link } from "@/lib/router";
@@ -67,7 +68,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-muted/50 ring-1 ring-neutral-400/25",
     header: "text-muted-foreground",
     count: "text-muted-foreground/60",
-    body: "bg-muted/30 ring-1 ring-inset ring-border/50",
+    body: uiText("bg-muted/30 ring-1 ring-inset ring-border/50"),
     bodyOver: "bg-muted/50 ring-1 ring-inset ring-neutral-400/25",
     card: "",
   },
@@ -76,7 +77,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-amber-100/70 ring-1 ring-amber-500/25 dark:bg-amber-950/35",
     header: "text-amber-700 dark:text-amber-300",
     count: "text-amber-700/65 dark:text-amber-300/65",
-    body: "bg-amber-50/45 ring-1 ring-inset ring-amber-500/15 dark:bg-amber-950/15",
+    body: uiText("bg-amber-50/45 ring-1 ring-inset ring-amber-500/15 dark:bg-amber-950/15"),
     bodyOver: "bg-amber-100/70 ring-1 ring-inset ring-amber-500/25 dark:bg-amber-950/30",
     card: "",
   },
@@ -85,7 +86,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-blue-100/70 ring-1 ring-blue-500/25 dark:bg-blue-950/35",
     header: "text-blue-700 dark:text-blue-300",
     count: "text-blue-700/65 dark:text-blue-300/65",
-    body: "bg-blue-50/45 ring-1 ring-inset ring-blue-500/15 dark:bg-blue-950/15",
+    body: uiText("bg-blue-50/45 ring-1 ring-inset ring-blue-500/15 dark:bg-blue-950/15"),
     bodyOver: "bg-blue-100/70 ring-1 ring-inset ring-blue-500/25 dark:bg-blue-950/30",
     card: "",
   },
@@ -94,7 +95,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-red-100/70 ring-1 ring-red-500/25 dark:bg-red-950/35",
     header: "text-red-700 dark:text-red-300",
     count: "text-red-700/65 dark:text-red-300/65",
-    body: "bg-red-50/45 ring-1 ring-inset ring-red-500/15 dark:bg-red-950/15",
+    body: uiText("bg-red-50/45 ring-1 ring-inset ring-red-500/15 dark:bg-red-950/15"),
     bodyOver: "bg-red-100/70 ring-1 ring-inset ring-red-500/25 dark:bg-red-950/30",
     card: "",
   },
@@ -103,7 +104,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-violet-100/70 ring-1 ring-violet-500/25 dark:bg-violet-950/35",
     header: "text-violet-700 dark:text-violet-300",
     count: "text-violet-700/65 dark:text-violet-300/65",
-    body: "bg-violet-50/45 ring-1 ring-inset ring-violet-500/15 dark:bg-violet-950/15",
+    body: uiText("bg-violet-50/45 ring-1 ring-inset ring-violet-500/15 dark:bg-violet-950/15"),
     bodyOver: "bg-violet-100/70 ring-1 ring-inset ring-violet-500/25 dark:bg-violet-950/30",
     card: "",
   },
@@ -112,7 +113,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-green-100/70 ring-1 ring-green-500/25 dark:bg-green-950/35",
     header: "text-green-700 dark:text-green-300",
     count: "text-green-700/65 dark:text-green-300/65",
-    body: "bg-green-50/45 ring-1 ring-inset ring-green-500/15 dark:bg-green-950/15",
+    body: uiText("bg-green-50/45 ring-1 ring-inset ring-green-500/15 dark:bg-green-950/15"),
     bodyOver: "bg-green-100/70 ring-1 ring-inset ring-green-500/25 dark:bg-green-950/30",
     card: "",
   },
@@ -121,7 +122,7 @@ export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanban
     railOver: "bg-muted/45 opacity-90 ring-1 ring-neutral-400/25 dark:bg-neutral-900/35",
     header: "text-muted-foreground/80",
     count: "text-muted-foreground/50",
-    body: "bg-muted/25 ring-1 ring-inset ring-border/50",
+    body: uiText("bg-muted/25 ring-1 ring-inset ring-border/50"),
     bodyOver: "bg-muted/45 ring-1 ring-inset ring-neutral-400/25",
     card: "bg-muted/35 text-muted-foreground opacity-80 hover:shadow-none",
   },
@@ -132,7 +133,7 @@ export function getKanbanColumnTone(status: IssueStatus) {
 }
 
 function statusLabel(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return localizedStatus(status);
 }
 
 export function resolveKanbanTargetStatus(overId: string, issues: Issue[]): IssueStatus | null {
@@ -254,12 +255,12 @@ function KanbanColumn({
             className="mt-1 flex w-full items-center justify-center rounded-md border border-dashed border-border bg-background/70 px-2 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             onClick={onShowMore}
           >
-            Show {nextRevealCount} more
+            {uiText("Show")} {nextRevealCount} {uiText("more")}
           </button>
         ) : null}
         {issues.length > 0 && (hiddenCount > 0 || issues.length >= visibleCount) ? (
           <p className="px-1 pt-1 text-(length:--text-micro) text-muted-foreground">
-            Showing {visibleIssues.length} of {issues.length}
+            {uiText("Showing")} {visibleIssues.length} of {issues.length}
           </p>
         ) : null}
       </div>
@@ -335,11 +336,11 @@ function KanbanCard({
           {isSuccessfulRunHandoffRequired(issue) ? (
             <Badge variant="outline"
               className="border-amber-400/45 bg-amber-50/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
-              title="This task needs a next step"
-              aria-label="Needs next step"
+              title={uiText("This task needs a next step")}
+              aria-label={uiText("Needs next step")}
             >
               <AlertTriangle className="h-3 w-3" />
-              Next step
+              {uiText("Next step")}
             </Badge>
           ) : null}
           {isLive && (
@@ -348,17 +349,16 @@ function KanbanCard({
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
               </span>
-              {compact ? "Live" : null}
+              {compact ? uiText("Live") : null}
             </span>
           )}
           {!isLive && subtreeLiveCount > 0 && (
             <Badge variant="outline"
               className="border-border px-1.5 text-(length:--text-nano) text-muted-foreground"
-              title={`${subtreeLiveCount} sub-task${subtreeLiveCount === 1 ? "" : "s"} running below`}
+              title={uiTextFormat("__PCVAR0__ sub-task__PCVAR1__ running below", [subtreeLiveCount, ""])}
             >
               <span className="h-2 w-2 shrink-0 rounded-full border border-muted-foreground/60" aria-hidden="true" />
-              {subtreeLiveCount} live below
-            </Badge>
+              {subtreeLiveCount}{" "}{uiText("live below")}{" "}</Badge>
           )}
         </div>
         <p className={`${compact ? "mb-1.5 text-xs" : "mb-2 text-sm"} leading-snug line-clamp-2`}>{issue.title}</p>

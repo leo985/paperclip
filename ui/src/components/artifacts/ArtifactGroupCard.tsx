@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { Layers } from "lucide-react";
 import type { To } from "react-router-dom";
 import type { CompanyArtifactGroup } from "@/api/artifacts";
@@ -80,7 +81,7 @@ export function ArtifactGroupCard({ group, to }: ArtifactGroupCardProps) {
           <div className="mt-0.5 flex items-center gap-1.5 text-(length:--text-micro) text-muted-foreground/65">
             <span>{countLabel}</span>
             <span className="text-muted-foreground/50">·</span>
-            <span>Updated {formatDate(group.updatedAt)}</span>
+            <span>{uiText("Updated")} {formatDate(group.updatedAt)}</span>
           </div>
         </div>
       </Link>

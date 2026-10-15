@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { AdapterModel } from "../../api/agents";
 import type { Issue, Project } from "@paperclipai/shared";
 import { extractProviderIdWithFallback } from "../../lib/model-utils";
@@ -55,19 +56,19 @@ export function toDateTimeLocalValue(value: string | null | undefined) {
 
 export const ISSUE_THINKING_EFFORT_OPTIONS = {
   claude_local: [
-    { value: "", label: "Default" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: uiText("Default") },
+    { value: "low", label: uiText("Low") },
+    { value: "medium", label: uiText("Medium") },
+    { value: "high", label: uiText("High") },
   ],
   opencode_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
-    { value: "max", label: "Max" },
+    { value: "", label: uiText("Default") },
+    { value: "minimal", label: uiText("Minimal") },
+    { value: "low", label: uiText("Low") },
+    { value: "medium", label: uiText("Medium") },
+    { value: "high", label: uiText("High") },
+    { value: "xhigh", label: uiText("X-High") },
+    { value: "max", label: uiText("Max") },
   ],
 } as const;
 

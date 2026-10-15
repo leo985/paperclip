@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { SecretStatus, UserSecretCoverageSummary } from "@paperclipai/shared";
 import { UserRound } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -65,7 +66,7 @@ export function myValueLabel(state: MyValueState): string {
     case "not_set":
       return "Not set";
     case "inactive":
-      return "Disabled";
+      return uiText("Disabled");
   }
 }
 

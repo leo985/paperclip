@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@/lib/router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ export function PauseResumeButton({
     return (
       <Button variant="outline" size={size} onClick={onResume} disabled={disabled}>
         <Play className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">Resume</span>
+        <span className="hidden sm:inline">{uiText("Resume")}</span>
       </Button>
     );
   }
@@ -93,7 +94,7 @@ export function PauseResumeButton({
   return (
     <Button variant="outline" size={size} onClick={onPause} disabled={disabled}>
       <Pause className="h-3.5 w-3.5 sm:mr-1" />
-      <span className="hidden sm:inline">Pause</span>
+      <span className="hidden sm:inline">{uiText("Pause")}</span>
     </Button>
   );
 }
@@ -114,10 +115,10 @@ export function ClearErrorButton({
       onClick={onClick}
       disabled={disabled}
       className="border-destructive/60 text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive/50"
-      aria-label="Clear error and return agent to idle"
+      aria-label={uiText("Clear error and return agent to idle")}
     >
       <CheckCircle2 className="h-3.5 w-3.5 sm:mr-1" />
-      <span className="hidden sm:inline">Clear error</span>
+      <span className="hidden sm:inline">{uiText("Clear error")}</span>
     </Button>
   );
 }
@@ -249,7 +250,7 @@ export function AgentActionButtons({
       if (onActionError) {
         onActionError(message);
       } else {
-        pushToast({ title: "Action failed", body: message, tone: "error" });
+        pushToast({ title: uiText("Action failed"), body: message, tone: "error" });
       }
     },
     [onActionError, pushToast],
@@ -316,7 +317,7 @@ export function AgentActionButtons({
   const duplicateAgent = useMutation({
     mutationFn: async () => {
       if (!resolvedCompanyId) {
-        throw new Error("Agent is not ready to duplicate");
+        throw new Error(uiText("Agent is not ready to duplicate"));
       }
       const instructionsBundle = await loadDuplicateInstructionsBundle(agent.id, resolvedCompanyId);
       const payload = buildDuplicateAgentPayload(agent, instructionsBundle);
@@ -335,14 +336,14 @@ export function AgentActionButtons({
       if (resolvedCompanyId) {
         await queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(resolvedCompanyId) });
       }
-      pushToast({ title: "Agent duplicated", body: createdAgent.name, tone: "success" });
+      pushToast({ title: uiText("Agent duplicated"), body: createdAgent.name, tone: "success" });
       if (!confirmLateNavigationChanges(duplicateStartedDirtyRef)) return;
       navigate(`/agents/${agentRouteRef(createdAgent)}/dashboard`);
     },
     onError: (err) => {
       const message = err instanceof Error ? err.message : "Failed to duplicate agent";
       onActionError?.(message);
-      pushToast({ title: "Could not duplicate agent", body: message, tone: "error" });
+      pushToast({ title: uiText("Could not duplicate agent"), body: message, tone: "error" });
     },
   });
 
@@ -384,11 +385,9 @@ export function AgentActionButtons({
       {persistentProviderTrace ? (
         <span
           className="hidden items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs font-medium text-primary lg:inline-flex"
-          title="Exact provider traffic will be captured for future runs and retained for up to 24 hours."
+          title={uiText("Exact provider traffic will be captured for future runs and retained for up to 24 hours.")}
         >
-          <Bug className="h-3.5 w-3.5" />
-          Raw tracing on
-        </span>
+          <Bug className="h-3.5 w-3.5" />{uiText("Raw tracing on")}{" "}</span>
       ) : null}
       <Button
         variant="outline"
@@ -418,10 +417,10 @@ export function AgentActionButtons({
             providerTraceAction.mutate();
           }}
           disabled={assignAndRunDisabled}
-          title="Capture exact provider traffic for this run (expires after 24 hours)"
+          title={uiText("Capture exact provider traffic for this run (expires after 24 hours)")}
         >
           <Bug className="h-3.5 w-3.5 sm:mr-1" />
-          <span className="hidden sm:inline">Run with provider trace</span>
+          <span className="hidden sm:inline">{uiText("Run with provider trace")}</span>
         </Button>
       )}
       {isError ? (
@@ -449,10 +448,8 @@ export function AgentActionButtons({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => agentAction.mutate("pause")}>
-                Pause anyway
-              </AlertDialogAction>
+              <AlertDialogCancel>{uiText("Cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={() => agentAction.mutate("pause")}>{uiText("Pause anyway")}{" "}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -465,7 +462,7 @@ export function AgentActionButtons({
       {children}
       <Popover open={moreOpen} onOpenChange={setMoreOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon-xs" aria-label={`Open actions for ${agent.name}`}>
+          <Button variant="ghost" size="icon-xs" aria-label={uiTextFormat("Open actions for __PCVAR0__", [agent.name])}>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
@@ -479,21 +476,17 @@ export function AgentActionButtons({
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
               <Copy className="h-3 w-3" />
-            )}
-            Duplicate Agent
-          </button>
+            )}{uiText("Duplicate Agent")}{" "}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
               void copyTextToClipboard(agent.id).catch(() => {
-                pushToast({ title: "Copy failed", body: "Clipboard access is unavailable.", tone: "error" });
+                pushToast({ title: uiText("Copy failed"), body: "Clipboard access is unavailable.", tone: "error" });
               });
               setMoreOpen(false);
             }}
           >
-            <Copy className="h-3 w-3" />
-            Copy Agent ID
-          </button>
+            <Copy className="h-3 w-3" />{uiText("Copy Agent ID")}{" "}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
@@ -501,9 +494,7 @@ export function AgentActionButtons({
               setMoreOpen(false);
             }}
           >
-            <RotateCcw className="h-3 w-3" />
-            Reset Sessions
-          </button>
+            <RotateCcw className="h-3 w-3" />{uiText("Reset Sessions")}{" "}</button>
           {!hideTerminate && (
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive"
@@ -514,7 +505,7 @@ export function AgentActionButtons({
               }}
             >
               <Trash2 className="h-3 w-3" />
-              Terminate
+              {uiText("Terminate")}
             </button>
           )}
         </PopoverContent>

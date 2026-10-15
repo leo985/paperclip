@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentAvatar, type AvatarAgent } from "./AgentAvatar";
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -88,7 +89,7 @@ export function DocumentFrameHeader({
             type="button"
             className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
             onClick={onToggleFolded}
-            aria-label={folded ? `Expand ${documentKey} document` : `Collapse ${documentKey} document`}
+            aria-label={folded ? uiTextFormat("Expand __PCVAR0__ document", [documentKey]) : uiTextFormat("Collapse __PCVAR0__ document", [documentKey])}
             aria-expanded={!folded}
           >
             {folded ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -122,9 +123,9 @@ export function DocumentFrameHeader({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
-                <DropdownMenuLabel>Revision history</DropdownMenuLabel>
+                <DropdownMenuLabel>{uiText("Revision history")}</DropdownMenuLabel>
                 {revisionMenu.loading && revisionMenu.revisions.length === 0 ? (
-                  <DropdownMenuItem disabled>Loading revisions...</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{uiText("Loading revisions...")}</DropdownMenuItem>
                 ) : revisionMenu.revisions.length > 0 ? (
                   <DropdownMenuRadioGroup value={revisionMenu.selectedRevisionId ?? revisionMenu.currentRevisionId ?? ""}>
                     {revisionMenu.revisions.map((revision) => {
@@ -141,7 +142,7 @@ export function DocumentFrameHeader({
                               <span className="font-medium">rev {revision.revisionNumber}</span>
                               {isCurrentRevision ? (
                                 <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                                  Current
+                                  {uiText("Current")}
                                 </Badge>
                               ) : null}
                             </div>
@@ -157,7 +158,7 @@ export function DocumentFrameHeader({
                     })}
                   </DropdownMenuRadioGroup>
                 ) : (
-                  <DropdownMenuItem disabled>No revisions yet</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{uiText("No revisions yet")}</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

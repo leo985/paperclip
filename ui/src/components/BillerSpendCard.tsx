@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import { useMemo } from "react";
 import type { CostByBiller, CostByProviderModel } from "@paperclipai/shared";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -80,7 +81,7 @@ export function BillerSpendCard({
       <CardContent className="px-4 pb-4 pt-3 space-y-4">
         {budgetMonthlyCents > 0 && (
           <QuotaBar
-            label="Period spend"
+            label={uiText("Period spend")}
             percentUsed={budgetPct}
             leftLabel={formatCents(row.costCents)}
             rightLabel={`${Math.round(budgetPct)}% of allocation`}
@@ -88,22 +89,19 @@ export function BillerSpendCard({
         )}
 
         <div className="text-xs text-muted-foreground">
-          {row.apiRunCount > 0 ? `${row.apiRunCount} metered run${row.apiRunCount === 1 ? "" : "s"}` : "0 metered runs"}
+          {row.apiRunCount > 0 ? uiTextFormat("__PCVAR0__ metered run__PCVAR1__", [row.apiRunCount, ""]) : uiText("0 metered runs")}
           {" · "}
           {row.subscriptionRunCount > 0
-            ? `${row.subscriptionRunCount} subscription run${row.subscriptionRunCount === 1 ? "" : "s"}`
-            : "0 subscription runs"}
+            ? uiTextFormat("__PCVAR0__ subscription run__PCVAR1__", [row.subscriptionRunCount, ""])
+            : uiText("0 subscription runs")}
           {" · "}
-          {formatCents(weekSpendCents)} this week
-        </div>
+          {formatCents(weekSpendCents)}{" "}{uiText("this week")}{" "}</div>
 
         {billingTypeBreakdown.length > 0 && (
           <>
             <div className="border-t border-border" />
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Billing types
-              </p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{uiText("Billing types")}{" "}</p>
               <div className="space-y-1.5">
                 {billingTypeBreakdown.map(([billingType, costCents]) => (
                   <div key={billingType} className="flex items-center justify-between gap-2 text-xs">
@@ -120,9 +118,7 @@ export function BillerSpendCard({
           <>
             <div className="border-t border-border" />
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Upstream providers
-              </p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{uiText("Upstream providers")}{" "}</p>
               <div className="space-y-1.5">
                 {providerBreakdown.map((entry) => (
                   <div key={entry.provider} className="flex items-center justify-between gap-2 text-xs">

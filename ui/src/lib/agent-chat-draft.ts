@@ -1,3 +1,4 @@
+import { uiTextFormat } from "@/i18n/interface";
 import type { Agent, Issue, IssueWorkMode } from "@paperclipai/shared";
 /** Ephemeral view model; never persisted until first send or upload. */
 export function agentChatDraft(
@@ -7,7 +8,7 @@ export function agentChatDraft(
   return {
     id: `chat:${agent.id}`,
     companyId: agent.companyId,
-    title: `Chat with ${agent.name}`,
+    title: uiTextFormat("Chat with __PCVAR0__", [agent.name]),
     conversationAgentId: agent.id,
     conversationUserId: "draft",
     conversationState: "waiting",

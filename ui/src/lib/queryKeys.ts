@@ -592,6 +592,7 @@ export const queryKeys = {
     currentBoardAccess: ["access", "current-board-access"] as const,
   },
   auth: {
+    passwordStatus: ["auth", "personnel-password-status"] as const,
     session: ["auth", "session"] as const,
   },
   inboxAgentPolicy: {

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { configFieldsForSection } from "../config-sections";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
@@ -26,7 +27,7 @@ export function OpenCodeLocalConfigFields({
   return configFieldsForSection(section, (
     <>
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={uiText("Agent instructions file")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -52,7 +53,7 @@ export function OpenCodeLocalConfigFields({
         </Field>
       )}
       <ToggleField
-        label="Skip permissions"
+        label={uiText("Skip permissions")}
         hint={help.dangerouslySkipPermissions}
         checked={
           isCreate

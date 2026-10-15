@@ -1,0 +1,37 @@
+{
+  "alerts": [
+    {
+      "id": "ATSES-493499:JCONF-ATSES-493499-4F4BA804",
+      "taskId": "31d58363-75f3-41b4-bcd8-65d49dfadbec",
+      "jiraKey": "ATSES-493499",
+      "level": "urgent",
+      "message": "ATSES-493499 等待人工决策 #JCONF-ATSES-493499-4F4BA804；请打开任务处理",
+      "elapsedMinutes": 2.4
+    }
+  ],
+  "deliveryEvents": [
+    {
+      "status": "submitted",
+      "notice_key": "dingtalk:78247fd31bd2303c458d2e090305267b42d1f48b239b20df36c264bc8a140c0f",
+      "jira_key": "ATSES-493499",
+      "recipient": "0704296864843839",
+      "profile": "ding8b17618e61d3bf79:0704296864843839",
+      "openTaskId": "TRda0as6a+s0GuZrcYXGMDt+HaIjkZCZg0nWqgM+c14="
+    },
+    {
+      "status": "submitted",
+      "notice_key": "dingtalk:eb49b5d90af461c0482a0fd5d77568a9776159798b61bf17d520e54168312694",
+      "jira_key": "ATSES-493499",
+      "recipient": "0704296864843839",
+      "profile": "ding8b17618e61d3bf79:0704296864843839",
+      "openTaskId": "+Z32P+0RE1UZQmGYcdxZsu4avpHQBj7Z8TvzUWLD4ek="
+    },
+    {
+      "status": "unknown",
+      "notice_key": "dingtalk:3b882348ccd2d4aa42fba914bac267e3bef581f5dddfa523dec6c35a7c366122",
+      "jira_key": "ATSES-493499",
+      "recipient": "0704296864843839",
+      "profile": "ding8b17618e61d3bf79:0704296864843839"
+    }
+  ]
+}

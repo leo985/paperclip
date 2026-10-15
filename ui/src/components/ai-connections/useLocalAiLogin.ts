@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useRef, useState } from "react";
 import type { AiConnectionLoginIntent, LocalAiLoginAttempt, LocalAiLoginStatus } from "@paperclipai/shared";
 import { aiConnectionsApi } from "@/api/ai-connections";
@@ -84,8 +85,8 @@ export function useLocalAiLogin(companyId: string | null, intent: AiConnectionLo
     error,
     retry: () => { restartRequested.current = true; cancelCurrent(); setGeneration((value) => value + 1); },
     connect: (input = intent) => {
-      if (!companyId) throw new Error("Choose a company before connecting.");
-      if (isolated && !attempt) throw new Error("Prepare local sign-in before connecting.");
+      if (!companyId) throw new Error(uiText("Choose a company before connecting."));
+      if (isolated && !attempt) throw new Error(uiText("Prepare local sign-in before connecting."));
       return aiConnectionsApi.connectLocal(companyId, { ...input, ...(attempt ? { localSessionId: attempt.sessionId } : {}) });
     },
   };

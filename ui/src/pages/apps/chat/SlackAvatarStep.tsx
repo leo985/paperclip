@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useId, useState } from "react";
 import {
   ArrowRight,
@@ -36,7 +37,7 @@ export function SlackAvatarContent({
         !response.ok ||
         !response.headers.get("content-type")?.startsWith("image/png")
       )
-        throw new Error("Avatar unavailable");
+        throw new Error(uiText("Avatar unavailable"));
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -62,19 +63,17 @@ export function SlackAvatarContent({
           src={avatarUrl}
           width={512}
           height={512}
-          alt={`${agentName}’s Cliptoon avatar`}
+          alt={uiTextFormat("__PCVAR0__’s Cliptoon avatar", [agentName])}
           className="size-40 shrink-0 rounded-lg bg-muted object-contain"
         />
         <div className="space-y-3">
           <div className="space-y-1">
             <h2 id={`${id}-download`} className="text-sm font-semibold">
               {compact
-                ? "Download your agent’s avatar"
-                : "1. Download your agent’s avatar"}
+                ? uiText("Download your agent’s avatar")
+                : uiText("1. Download your agent’s avatar")}
             </h2>
-            <p className="text-xs text-muted-foreground">
-              PNG · 512 × 512 · Ready for Slack
-            </p>
+            <p className="text-xs text-muted-foreground">{uiText("PNG · 512 × 512 · Ready for Slack")}{" "}</p>
           </div>
           <Button variant="outline" asChild>
             <a
@@ -90,14 +89,10 @@ export function SlackAvatarContent({
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <Download className="size-4" />
-              )}
-              Download avatar
-            </a>
+              )}{uiText("Download avatar")}{" "}</a>
           </Button>
           {downloadError && (
-            <p role="alert" className="text-sm text-destructive">
-              Couldn’t download the avatar. Try downloading it again.
-            </p>
+            <p role="alert" className="text-sm text-destructive">{uiText("Couldn’t download the avatar. Try downloading it again.")}{" "}</p>
           )}
         </div>
       </section>
@@ -109,18 +104,13 @@ export function SlackAvatarContent({
               ? "cursor-pointer text-sm underline underline-offset-4"
               : "hidden"
           }
-        >
-          How to upload in Slack
-        </summary>
+        >{uiText("How to upload in Slack")}{" "}</summary>
         <section aria-labelledby={`${id}-upload`} className="space-y-4">
           <div className="space-y-1">
             <h2 id={`${id}-upload`} className="text-sm font-semibold">
-              {compact ? "Upload it in Slack" : "2. Upload it in Slack"}
+              {compact ? uiText("Upload it in Slack") : uiText("2. Upload it in Slack")}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              You’ll upload the downloaded image directly in Slack’s app
-              settings.
-            </p>
+            <p className="text-sm text-muted-foreground">{uiText("You’ll upload the downloaded image directly in Slack’s app settings.")}{" "}</p>
           </div>
           <ol className="list-decimal space-y-3 pl-5 text-sm">
             <li>
@@ -130,24 +120,18 @@ export function SlackAvatarContent({
                 rel="noopener noreferrer"
                 className="underline underline-offset-4"
               >
-                Open Slack app Settings{" "}
+                {uiText("Open Slack app Settings")}{" "}
                 <ExternalLink className="inline size-3" />
-              </a>{" "}
-              and choose <strong>{appName}</strong>.
+              </a>{" "}{uiText("and choose")}{" "}<strong>{appName}</strong>.
             </li>
             <li>
-              Choose <strong>Basic Information</strong>, then scroll to{" "}
-              <strong>Display Information</strong>.
+              {uiText("Choose")} <strong>{uiText("Basic Information")}</strong>{uiText(", then scroll to")}{" "}
+              <strong>{uiText("Display Information")}</strong>.
             </li>
-            <li>
-              Under <strong>App icon &amp; Preview</strong>, click the app icon
-              and upload{" "}
+            <li>{uiText("Under")}{" "}<strong>{uiText("App icon & Preview")}</strong>{uiText(", click the app icon and upload")}{" "}
               <span className="break-all font-mono text-xs">{filename}</span>.
             </li>
-            <li>
-              Confirm the crop, then click <strong>Save Changes</strong> in
-              Slack.
-            </li>
+            <li>{uiText("Confirm the crop, then click")}{" "}<strong>{uiText("Save Changes")}</strong>{" "}{uiText("in Slack.")}{" "}</li>
           </ol>
         </section>
       </details>
@@ -171,14 +155,11 @@ export function SlackAvatarStep({
     <div className="space-y-8">
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">
-            Give {props.agentName} a face in Slack
-          </h1>
-          <span className="text-xs text-muted-foreground">Optional</span>
+          <h1 className="text-xl font-bold">{uiText("Give")}{" "}{props.agentName}{" "}{uiText("a face in Slack")}{" "}</h1>
+          <span className="text-xs text-muted-foreground">{uiText("Optional")}</span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Use {props.agentName}’s avatar so your team recognizes the agent
-        </p>
+          {uiText("Use")} {props.agentName}{uiText("’s avatar so your team recognizes the agent")}{" "}</p>
       </div>
       <SlackAvatarContent {...props} />
       {uploaded && (
@@ -186,16 +167,14 @@ export function SlackAvatarStep({
           role="status"
           className="flex items-center gap-2 rounded-lg bg-(--status-task-done)/10 p-3 text-sm"
         >
-          <Check className="size-4 text-(--status-task-done)" />
-          You marked the avatar as uploaded in Slack.
-        </p>
+          <Check className="size-4 text-(--status-task-done)" />{uiText("You marked the avatar as uploaded in Slack.")}{" "}</p>
       )}
       <SetupWizardFooter onSaveExit={onSaveExit}>
         <Button variant="ghost" onClick={onSkip}>
-          Skip for now
+          {uiText("Skip for now")}
         </Button>
         <Button onClick={onUploaded}>
-          {uploaded ? "Continue" : "I’ve uploaded the avatar"}
+          {uploaded ? uiText("Continue") : uiText("I’ve uploaded the avatar")}
           <ArrowRight className="size-4" />
         </Button>
       </SetupWizardFooter>
@@ -205,12 +184,11 @@ export function SlackAvatarStep({
 
 export function SlackAvatarSettings(props: SlackAvatarProps) {
   return (
-    <section className="space-y-4" aria-label="Slack avatar">
+    <section className="space-y-4" aria-label={uiText("Slack avatar")}>
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">Agent avatar</h2>
+        <h2 className="text-lg font-semibold">{uiText("Agent avatar")}</h2>
         <p className="text-sm text-muted-foreground">
-          Use {props.agentName}’s avatar so your team recognizes the agent
-        </p>
+          {uiText("Use")} {props.agentName}{uiText("’s avatar so your team recognizes the agent")}{" "}</p>
       </div>
       <SlackAvatarContent {...props} compact />
     </section>

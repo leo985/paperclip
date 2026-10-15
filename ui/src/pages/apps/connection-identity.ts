@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   ConnectionGrantKind,
   ConnectionAudienceMember,
@@ -73,15 +74,15 @@ export function connectionNameForCredentialPolicy(
 export function grantStatusLabel(status: ConnectionGrantStatus | null): string {
   switch (status) {
     case "active":
-      return "Connected";
+      return uiText("Connected");
     case "needs_reauthorization":
-      return "Needs attention";
+      return uiText("Needs attention");
     case "expired":
-      return "Expired";
+      return uiText("Expired");
     case "revoked":
-      return "Revoked";
+      return uiText("Revoked");
     default:
-      return "Not connected";
+      return uiText("Not connected");
   }
 }
 

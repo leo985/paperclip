@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import type { Issue } from "@paperclipai/shared";
@@ -149,7 +150,7 @@ function CheckNowButton({
       onClick={onCheckNow}
       disabled={checkingNow}
     >
-      {checkingNow ? "Checking…" : "Check now"}
+      {checkingNow ? uiText("Checking…") : uiText("Check now")}
     </Button>
   );
 }
@@ -218,8 +219,8 @@ export function IssueMonitorComposerStrip({
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
         {copy.workspaceWait
-          ? "You can keep sending instructions while the agent waits."
-          : "Sending a reply wakes the agent now — before the scheduled check."}
+          ? uiText("You can keep sending instructions while the agent waits.")
+          : uiText("Sending a reply wakes the agent now — before the scheduled check.")}
       </p>
     </div>
   );

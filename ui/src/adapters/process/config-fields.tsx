@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { configFieldsForSection } from "../config-sections";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
@@ -36,7 +37,7 @@ export function ProcessConfigFields({
 }: AdapterConfigFieldsProps) {
   return configFieldsForSection(section, (
     <>
-      <Field configSection="advanced" label="Command" hint={help.command}>
+      <Field configSection="advanced" label={uiText("Command")} hint={help.command}>
         <DraftInput
           value={
             isCreate
@@ -50,10 +51,10 @@ export function ProcessConfigFields({
           }
           immediate
           className={inputClass}
-          placeholder="e.g. node, python"
+          placeholder={uiText("e.g. node, python")}
         />
       </Field>
-      <Field configSection="advanced" label="Args (comma-separated)" hint={help.args}>
+      <Field configSection="advanced" label={uiText("Args (comma-separated)")} hint={help.args}>
         <DraftInput
           value={
             isCreate
@@ -71,7 +72,7 @@ export function ProcessConfigFields({
           }
           immediate
           className={inputClass}
-          placeholder="e.g. script.js, --flag"
+          placeholder={uiText("e.g. script.js, --flag")}
         />
       </Field>
     </>

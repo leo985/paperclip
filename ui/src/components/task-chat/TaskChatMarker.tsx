@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useId, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronDown, CircleDot, OctagonX, Square, Flag } from "lucide-react";
@@ -82,7 +83,7 @@ export function TaskChatMarker({
               disabled={tryAgainPending}
               data-testid="task-chat-run-failed-try-again"
             >
-              {tryAgainPending ? "Trying again..." : "Try again"}
+              {tryAgainPending ? uiText("Trying again...") : uiText("Try again")}
             </Button>
           ) : null}
         </div>
@@ -101,7 +102,7 @@ export function TaskChatMarker({
               <div className="flex items-center justify-end gap-2 border-t border-border/70 bg-background/50 px-3 py-2 dark:bg-background/30">
                 {item.runHref ? (
                   <Button asChild variant="ghost" size="xs">
-                    <Link to={item.runHref}>View run</Link>
+                    <Link to={item.runHref}>{uiText("View run")}</Link>
                   </Button>
                 ) : null}
                 {onTryAgain ? (
@@ -112,7 +113,7 @@ export function TaskChatMarker({
                     disabled={tryAgainPending}
                     data-testid="task-chat-run-failed-try-again"
                   >
-                    {tryAgainPending ? "Trying again..." : "Try again"}
+                    {tryAgainPending ? uiText("Trying again...") : uiText("Try again")}
                   </Button>
                 ) : null}
               </div>
@@ -157,7 +158,7 @@ export function TaskChatMarker({
             disabled={tryAgainPending}
             data-testid="task-chat-run-failed-try-again"
           >
-            {tryAgainPending ? "Trying again..." : "Try again"}
+            {tryAgainPending ? uiText("Trying again...") : uiText("Try again")}
           </Button>
         ) : null}
       </span>

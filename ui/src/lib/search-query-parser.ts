@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import {
   COMPANY_SEARCH_UPDATED_WITHIN_OPTIONS,
   ISSUE_PRIORITIES,
@@ -40,13 +41,13 @@ export interface SearchOperatorSuggestion {
 export const SEARCH_OPERATOR_QUICK_FILTERS = ["assignee:me", "is:open", "updated:>7d"] as const;
 
 export const SEARCH_OPERATOR_SUGGESTIONS: SearchOperatorSuggestion[] = [
-  { token: "status:todo", label: "Open todo tasks", description: "Filter by task status" },
-  { token: "status:blocked", label: "Blocked tasks", description: "Find blocked work" },
-  { token: "assignee:me", label: "Assigned to me", description: "Use your current board user" },
-  { token: "project:\"Paperclip App\"", label: "Project name", description: "Quote multi-word project names" },
-  { token: "label:bug", label: "Label", description: "Filter by issue label" },
-  { token: "priority:high", label: "High priority", description: "Filter by priority" },
-  { token: "updated:>7d", label: "Recently updated", description: "Updated in the last 7 days" },
+  { token: "status:todo", label: uiText("Open todo tasks"), description: uiText("Filter by task status") },
+  { token: "status:blocked", label: uiText("Blocked tasks"), description: uiText("Find blocked work") },
+  { token: "assignee:me", label: uiText("Assigned to me"), description: uiText("Use your current board user") },
+  { token: "project:\"Paperclip App\"", label: uiText("Project name"), description: uiText("Quote multi-word project names") },
+  { token: "label:bug", label: uiText("Label"), description: uiText("Filter by issue label") },
+  { token: "priority:high", label: uiText("High priority"), description: uiText("Filter by priority") },
+  { token: "updated:>7d", label: uiText("Recently updated"), description: uiText("Updated in the last 7 days") },
 ];
 
 export interface SearchQueryParserContext {

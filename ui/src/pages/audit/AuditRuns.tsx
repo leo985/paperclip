@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { HeartbeatRun, RoutineRunSummary } from "@paperclipai/shared";
@@ -59,9 +60,7 @@ function RoutineScopedRuns({
 }) {
   if (isLoading) {
     return (
-      <div className="border-y border-border py-14 text-center text-sm text-muted-foreground">
-        Loading routine runs…
-      </div>
+      <div className="border-y border-border py-14 text-center text-sm text-muted-foreground">{uiText("Loading routine runs…")}{" "}</div>
     );
   }
 
@@ -69,24 +68,22 @@ function RoutineScopedRuns({
     return (
       <div className="flex flex-col items-center gap-3 border-y border-border py-14 text-center">
         <p className="text-sm text-muted-foreground">{error.message}</p>
-        <Button variant="outline" size="sm" onClick={onRetry}>Try again</Button>
+        <Button variant="outline" size="sm" onClick={onRetry}>{uiText("Try again")}</Button>
       </div>
     );
   }
 
   if (runs.length === 0) {
-    return <EmptyState icon={Activity} message="No routine runs yet." />;
+    return <EmptyState icon={Activity} message={uiText("No routine runs yet.")} />;
   }
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Routine runs</h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Executions created by this routine, newest first.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("Routine runs")}</h2>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{uiText("Executions created by this routine, newest first.")}{" "}</p>
       </div>
-      <ul className="divide-y divide-border border-y border-border" aria-label="Routine runs">
+      <ul className="divide-y divide-border border-y border-border" aria-label={uiText("Routine runs")}>
         {runs.map((run) => {
           const content = (
             <>
@@ -121,7 +118,7 @@ function RoutineScopedRuns({
           );
         })}
       </ul>
-      <p className="text-xs text-muted-foreground">Showing the {RUN_LIMIT} most recent routine runs.</p>
+      <p className="text-xs text-muted-foreground">{uiText("Showing the")}{" "}{RUN_LIMIT}{" "}{uiText("most recent routine runs.")}</p>
     </div>
   );
 }
@@ -201,22 +198,19 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Runs</h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Recent agent executions across the organization. Open a run to inspect its transcript,
-          output, and task context.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("Runs")}</h2>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{uiText("Recent agent executions across the organization. Open a run to inspect its transcript, output, and task context.")}{" "}</p>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-y border-border py-3">
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-          <span>Agent</span>
+          <span>{uiText("Agent")}</span>
           <Select value={agentId} onValueChange={(value) => updateFilter("agentId", value)}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="All agents" />
+              <SelectValue placeholder={uiText("All agents")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All agents</SelectItem>
+              <SelectItem value={ALL}>{uiText("All agents")}</SelectItem>
               {(agents.data ?? []).map((agent) => (
                 <SelectItem key={agent.id} value={agent.id}>
                   {agent.name}
@@ -226,13 +220,13 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
           </Select>
         </label>
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-          <span>Status</span>
+          <span>{uiText("Status")}</span>
           <Select value={status} onValueChange={(value) => updateFilter("runStatus", value)}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue placeholder={uiText("All statuses")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All statuses</SelectItem>
+              <SelectItem value={ALL}>{uiText("All statuses")}</SelectItem>
               {statuses.map((value) => (
                 <SelectItem key={value} value={value}>
                   {readableSource(value)}
@@ -243,31 +237,29 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
         </label>
         {agentId !== ALL || status !== ALL ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear filters
+            {uiText("Clear filters")}
           </Button>
         ) : null}
       </div>
 
       {runs.isLoading ? (
-        <div className="border-y border-border py-14 text-center text-sm text-muted-foreground">
-          Loading runs…
-        </div>
+        <div className="border-y border-border py-14 text-center text-sm text-muted-foreground">{uiText("Loading runs…")}{" "}</div>
       ) : runs.error ? (
         <div className="flex flex-col items-center gap-3 border-y border-border py-14 text-center">
           <p className="text-sm text-muted-foreground">
-            {runs.error instanceof Error ? runs.error.message : "Failed to load runs."}
+            {runs.error instanceof Error ? runs.error.message : uiText("Failed to load runs.")}
           </p>
           <Button variant="outline" size="sm" onClick={() => runs.refetch()}>
-            Try again
+            {uiText("Try again")}
           </Button>
         </div>
       ) : visibleRuns.length === 0 ? (
         <EmptyState
           icon={agentId !== ALL || status !== ALL ? CircleDotDashed : Activity}
-          message={agentId !== ALL || status !== ALL ? "No runs match these filters." : "No runs yet."}
+          message={agentId !== ALL || status !== ALL ? uiText("No runs match these filters.") : uiText("No runs yet.")}
         />
       ) : (
-        <ul className="divide-y divide-border border-y border-border" aria-label="Recent runs">
+        <ul className="divide-y divide-border border-y border-border" aria-label={uiText("Recent runs")}>
           {visibleRuns.map((run) => {
             const agent = agentById.get(run.agentId);
             const summary = runSummary(run);
@@ -281,7 +273,7 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-foreground">
-                        {agent?.name ?? "Unknown agent"}
+                        {agent?.name ?? uiText("Unknown agent")}
                       </span>
                       <span className="font-mono text-(length:--text-micro) text-muted-foreground">
                         {run.id.slice(0, 8)}
@@ -289,7 +281,7 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
                       <StatusBadge status={run.status} />
                     </div>
                     <p className="mt-1 truncate text-sm text-muted-foreground">
-                      {summary ?? `${readableSource(run.invocationSource)} run`}
+                      {summary ?? uiTextFormat("__PCVAR0__ run", [readableSource(run.invocationSource)])}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground sm:justify-end">
@@ -306,7 +298,7 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
         </ul>
       )}
 
-      <p className="text-xs text-muted-foreground">Showing the {RUN_LIMIT} most recent runs.</p>
+      <p className="text-xs text-muted-foreground">{uiText("Showing the")}{" "}{RUN_LIMIT}{" "}{uiText("most recent runs.")}</p>
     </div>
   );
 }

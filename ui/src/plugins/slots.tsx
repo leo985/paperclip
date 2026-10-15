@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 /**
  * @fileoverview Plugin UI slot system — dynamic loading, error isolation,
  * and rendering of plugin-contributed UI extensions.
@@ -430,7 +431,7 @@ async function importPluginModule(url: string): Promise<Record<string, unknown>>
   // Fetch the module source text
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch plugin module: ${response.status} ${response.statusText}`);
+    throw new Error(uiTextFormat("Failed to fetch plugin module: __PCVAR0__ __PCVAR1__", [response.status, response.statusText]));
   }
 
   const source = await response.text();
@@ -730,8 +731,7 @@ class PluginSlotErrorBoundary extends Component<PluginSlotErrorBoundaryProps, Pl
     if (this.state.hasError) {
       return (
         <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", this.props.className)}>
-          {this.props.slot.pluginDisplayName}: failed to render
-        </div>
+          {this.props.slot.pluginDisplayName}{uiText(": failed to render")}{" "}</div>
       );
     }
     return this.props.children;
@@ -911,7 +911,7 @@ export function PluginSlotOutlet({
   if (errorMessage) {
     return (
       <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", errorClassName)}>
-        Plugin extensions unavailable: {errorMessage}
+        {uiText("Plugin extensions unavailable:")} {errorMessage}
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { WorkspaceFileSelector } from "@paperclipai/shared";
 import type { SidePanelTabRecord, SidePanelTabsState } from "@/components/side-panel";
 
@@ -212,15 +213,15 @@ export function writeTaskSidePanelState(
 }
 
 export function taskPanelPropertiesTab(): SidePanelTabRecord<TaskSidePanelTabPayload> {
-  return { id: "properties", type: "properties", label: "Properties", closable: true, contentMode: "padded", payload: { kind: "properties" } };
+  return { id: "properties", type: "properties", label: uiText("Properties"), closable: true, contentMode: "padded", payload: { kind: "properties" } };
 }
 
 export function taskPanelSubtasksTab(): SidePanelTabRecord<TaskSidePanelTabPayload> {
-  return { id: "subtasks", type: "subtasks", label: "Subtasks", closable: true, contentMode: "padded", payload: { kind: "subtasks" } };
+  return { id: "subtasks", type: "subtasks", label: uiText("Subtasks"), closable: true, contentMode: "padded", payload: { kind: "subtasks" } };
 }
 
 export function taskPanelArtifactsTab(): SidePanelTabRecord<TaskSidePanelTabPayload> {
-  return { id: "artifacts", type: "artifacts", label: "Artifacts", closable: true, contentMode: "padded", payload: { kind: "artifacts" } };
+  return { id: "artifacts", type: "artifacts", label: uiText("Artifacts"), closable: true, contentMode: "padded", payload: { kind: "artifacts" } };
 }
 
 export function taskPanelSkillTab(skillId: string, label = "Skill"): SidePanelTabRecord<TaskSidePanelTabPayload> {
@@ -242,7 +243,7 @@ export function taskPanelFilesTab(): SidePanelTabRecord<TaskSidePanelTabPayload>
   return {
     id: "files",
     type: "files-browser",
-    label: "Files",
+    label: uiText("Files"),
     closable: true,
     contentMode: "full-bleed",
     payload: { kind: "files-browser", query: null, folderPath: null, projectId: null, workspaceId: null },

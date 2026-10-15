@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect } from "react";
 import { useParams } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,7 +40,7 @@ export function GoalPropertiesToggleButton({
         panelVisible ? "opacity-0 pointer-events-none w-0 overflow-hidden" : "opacity-100",
       )}
       onClick={onShowProperties}
-      title="Show properties"
+      title={uiText("Show properties")}
     >
       <SlidersHorizontal className="h-4 w-4" />
     </Button>
@@ -99,7 +100,7 @@ export function GoalDetail() {
 
   const uploadImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!resolvedCompanyId) throw new Error("No organization selected");
+      if (!resolvedCompanyId) throw new Error(uiText("No organization selected"));
       return assetsApi.uploadImage(
         resolvedCompanyId,
         file,
@@ -118,8 +119,8 @@ export function GoalDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Goals", href: "/goals" },
-      { label: goal?.title ?? goalId ?? "Goal" }
+      { label: uiText("Goals"), href: "/goals" },
+      { label: goal?.title ?? goalId ?? uiText("Goal") }
     ]);
   }, [setBreadcrumbs, goal, goalId]);
 
@@ -167,7 +168,7 @@ export function GoalDetail() {
           onSave={(description) => updateGoal.mutate({ description })}
           as="p"
           className="text-sm text-muted-foreground"
-          placeholder="Add a description..."
+          placeholder={uiText("Add a description...")}
           multiline
           imageUploadHandler={async (file) => {
             const asset = await uploadImage.mutateAsync(file);
@@ -178,11 +179,9 @@ export function GoalDetail() {
 
       <Tabs defaultValue="children">
         <TabsList>
-          <TabsTrigger value="children">
-            Sub-Goals ({childGoals.length})
+          <TabsTrigger value="children">{uiText("Sub-Goals (")}{childGoals.length})
           </TabsTrigger>
-          <TabsTrigger value="projects">
-            Projects ({linkedProjects.length})
+          <TabsTrigger value="projects">{uiText("Projects (")}{linkedProjects.length})
           </TabsTrigger>
         </TabsList>
 
@@ -193,12 +192,10 @@ export function GoalDetail() {
               variant="outline"
               onClick={() => openNewGoal({ parentId: goalId })}
             >
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Sub Goal
-            </Button>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />{uiText("Sub Goal")}{" "}</Button>
           </div>
           {childGoals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No sub-goals.</p>
+            <p className="text-sm text-muted-foreground">{uiText("No sub-goals.")}</p>
           ) : (
             <GoalTree goals={childGoals} goalLink={(g) => `/goals/${g.id}`} />
           )}
@@ -206,7 +203,7 @@ export function GoalDetail() {
 
         <TabsContent value="projects" className="mt-4">
           {linkedProjects.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No linked projects.</p>
+            <p className="text-sm text-muted-foreground">{uiText("No linked projects.")}</p>
           ) : (
             <div className="border border-border">
               {linkedProjects.map((project) => (

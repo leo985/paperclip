@@ -1,3 +1,5 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Project } from "@paperclipai/shared";
@@ -29,10 +31,10 @@ type ProjectSortField = "name" | "updated" | "created" | "targetDate";
 type ProjectSortDir = "asc" | "desc";
 
 const PROJECT_SORT_OPTIONS: Array<{ field: ProjectSortField; label: string }> = [
-  { field: "name", label: "Name" },
-  { field: "updated", label: "Updated" },
-  { field: "created", label: "Created" },
-  { field: "targetDate", label: "Target date" },
+  { field: "name", label: uiText("Name") },
+  { field: "updated", label: uiText("Updated") },
+  { field: "created", label: uiText("Created") },
+  { field: "targetDate", label: uiText("Target date") },
 ];
 
 function compareProjectNames(left: Project, right: Project) {
@@ -78,13 +80,14 @@ function sortProjects(projects: Project[], sortField: ProjectSortField, sortDir:
 
 export function Projects() {
   const { selectedCompanyId } = useCompany();
+  const { canManage } = useManagementAccess();
   const { openNewProject } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [sortField, setSortField] = useState<ProjectSortField>("name");
   const [sortDir, setSortDir] = useState<ProjectSortDir>("asc");
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Projects" }]);
+    setBreadcrumbs([{ label: uiText("Projects") }]);
   }, [setBreadcrumbs]);
 
   const { data: allProjects, isLoading, error } = useQuery({
@@ -119,7 +122,7 @@ export function Projects() {
   const sortLabel = PROJECT_SORT_OPTIONS.find((option) => option.field === sortField)?.label ?? "Name";
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Hexagon} message="Select an organization to view projects." />;
+    return <EmptyState icon={Hexagon} message={uiText("Select an organization to view projects.")} />;
   }
 
   if (isLoading) {
@@ -131,9 +134,9 @@ export function Projects() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-fit text-xs" title="Sort">
+            <Button variant="ghost" size="sm" className="w-fit text-xs" title={uiText("Sort")}>
               <ArrowUpDown className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-              <span>Sort: {sortLabel}</span>
+              <span>{uiText("Sort:")} {sortLabel}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-44 p-0">
@@ -160,7 +163,7 @@ export function Projects() {
                   {sortField === option.field ? (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Check className="h-3 w-3" />
-                      {sortDir === "asc" ? "Asc" : "Desc"}
+                      {sortDir === "asc" ? uiText("Asc") : uiText("Desc")}
                     </span>
                   ) : null}
                 </button>
@@ -168,10 +171,10 @@ export function Projects() {
             </div>
           </PopoverContent>
         </Popover>
-        <Button size="sm" variant="outline" onClick={openNewProject}>
+        {canManage && <Button size="sm" variant="outline" onClick={openNewProject}>
           <Plus className="h-4 w-4 mr-1" />
-          Add Project
-        </Button>
+          {uiText("Add Project")}
+        </Button>}
       </div>
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -179,9 +182,9 @@ export function Projects() {
       {!isLoading && projects.length === 0 && (
         <EmptyState
           icon={Hexagon}
-          message="No projects yet."
-          action="Add Project"
-          onAction={openNewProject}
+          message={uiText("No projects yet.")}
+          action={canManage ? "Add Project" : undefined}
+          onAction={canManage ? openNewProject : undefined}
         />
       )}
 
@@ -223,7 +226,7 @@ export function Projects() {
                           <div className="flex items-center gap-3">
                             <span
                               className="hidden text-xs text-muted-foreground tabular-nums sm:inline"
-                              title={`${formatNumber(project.taskCount ?? 0)} task${(project.taskCount ?? 0) === 1 ? "" : "s"}`}
+                              title={uiTextFormat("__PCVAR0__ task__PCVAR1__", [formatNumber(project.taskCount ?? 0), ""])}
                             >
                               {formatNumber(project.taskCount ?? 0)} task{(project.taskCount ?? 0) === 1 ? "" : "s"}
                             </span>

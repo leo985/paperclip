@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect } from "react";
 import { useParams, useSearchParams } from "@/lib/router";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -28,16 +29,16 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Organization", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: mode === "edit" ? "Resume draft" : "New profile" },
+      { label: selectedCompany?.name ?? uiText("Organization"), href: "/dashboard" },
+      { label: uiText("Apps"), href: "/apps" },
+      { label: uiText("Access profiles"), href: advancedTabHref("profiles") },
+      { label: mode === "edit" ? uiText("Resume draft") : uiText("New profile") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name, mode]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to create a profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization to create a profile.")}</div>;
   }
 
   return (
@@ -45,11 +46,9 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <h1 className="text-xl font-bold text-foreground">
-            {mode === "edit" ? "Finish your profile" : "New access profile"}
+            {mode === "edit" ? uiText("Finish your profile") : uiText("New access profile")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose which tools this profile allows, then assign it to the agents that need them.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("Choose which tools this profile allows, then assign it to the agents that need them.")}{" "}</p>
         </header>
         <ProfileWizard
           companyId={selectedCompanyId}

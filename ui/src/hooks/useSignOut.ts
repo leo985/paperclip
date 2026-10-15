@@ -59,6 +59,9 @@ export function useSignOut({ onSignedOut }: UseSignOutOptions = {}) {
       if (target === "cloud") return;
 
       onSignedOut?.();
+      await queryClient.cancelQueries({
+        predicate: (query) => isAccountScopedQueryKey(query.queryKey),
+      });
 
       // Drop every account-scoped cache entry, rather than invalidating a
       // couple of them. `invalidateQueries` only marks an entry stale and goes
@@ -107,7 +110,11 @@ export function useSignOut({ onSignedOut }: UseSignOutOptions = {}) {
 
       // Instance-scoped, so refreshed in place rather than dropped — see
       // INSTANCE_SCOPED_QUERY_ROOTS.
-      await queryClient.invalidateQueries({ queryKey: queryKeys.health });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.health });
+
+      // Leave protected routes immediately and start with a fresh query client.
+      // A failed anonymous refetch must not strand the user on the old board.
+      navigateTopLevel("/auth");
     },
   });
 }

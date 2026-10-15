@@ -1,6 +1,11 @@
+import { uiText } from "@/i18n/interface";
+import { FocusedInbox } from "./components/FocusedInbox";
+import { ManagementCenter } from "./pages/ManagementCenter";
+import { JiraIntake } from "./pages/JiraIntake";
+import { ExecutionRecords } from "./pages/ExecutionRecords";
 import { lazy, Suspense, type ReactNode } from "react";
 import type { ToolConnectionCredentialSource } from "@paperclipai/shared";
-import { Navigate, Outlet, Route, Routes, useActiveCompanyPrefix, useLocation, useParams } from "@/lib/router";
+import { Link, Navigate, Outlet, Route, Routes, useActiveCompanyPrefix, useLocation, useParams } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n";
 import { Layout } from "./components/Layout";
@@ -23,6 +28,8 @@ import { CaseDetail } from "./pages/CaseDetail";
 import { OnboardingWizardVariant } from "./components/OnboardingWizardVariant";
 import { CloudAccessGate } from "./components/CloudAccessGate";
 import { PaperclipLoading } from "./components/AnimatedPaperclipIcon";
+import { Seats } from "./pages/Seats";
+import { Help } from "./pages/Help";
 import { Dashboard } from "./pages/Dashboard";
 import { DashboardLive } from "./pages/DashboardLive";
 import { Timeline } from "./pages/Timeline";
@@ -63,6 +70,7 @@ import { ResponsibleUserDenialUxLab } from "./pages/ResponsibleUserDenialUxLab";
 import { CrossIssueCollaborationUxLab } from "./pages/CrossIssueCollaborationUxLab";
 import { CompanySettingsPluginPage } from "./pages/CompanySettingsPluginPage";
 import { CompanyAccess, CompanyAccessLegacyRoute } from "./pages/CompanyAccess";
+import { PersonnelFederation } from "./pages/PersonnelFederation";
 import { AdvancedToolsRoute } from "./pages/tools/AdvancedToolsRoute";
 import { ProfileWizardRoute } from "./pages/tools/profiles/ProfileWizardRoute";
 import { ProfileDetailRoute } from "./pages/tools/profiles/ProfileDetailRoute";
@@ -87,6 +95,7 @@ import { CompanyImport } from "./pages/CompanyImport";
 import { DesignGuide } from "./pages/DesignGuide";
 import { InstanceExperimentalSettings } from "./pages/InstanceExperimentalSettings";
 import { InstanceAccess } from "./pages/InstanceAccess";
+import { InitialPasswordChange } from "./pages/InitialPasswordChange";
 import { ProfileSettings } from "./pages/ProfileSettings";
 import { PluginManager } from "./pages/PluginManager";
 import { PluginSettings } from "./pages/PluginSettings";
@@ -148,6 +157,11 @@ function boardRoutes(streamlinedUiEnabled: boolean) {
     <>
       <Route index element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={<Dashboard />} />
+      <Route path="management" element={<ManagementCenter />} />
+      <Route path="jira-intake" element={<JiraIntake />} />
+      <Route path="runs" element={<ExecutionRecords />} />
+      <Route path="help" element={<Help />} />
+      <Route path="seats" element={<Seats />} />
       <Route path="dashboard/live" element={<DashboardLive />} />
       <Route
         path="timeline"
@@ -156,6 +170,7 @@ function boardRoutes(streamlinedUiEnabled: boolean) {
       <Route path="onboarding" element={<OnboardingRoutePage />} />
       <Route path="companies" element={<Companies />} />
       <Route path="company/settings" element={<CompanySettings />} />
+      <Route path="company/settings/personnel" element={<PersonnelFederation />} />
       <Route path="company/settings/environments" element={<Navigate to="/company/settings/instance/environments" replace />} />
       <Route path="company/settings/cloud-upstream" element={<Navigate to="/company/export" replace />} />
       <Route element={<HiddenSettingsPageGate pageKey="company.members" />}>
@@ -419,11 +434,11 @@ function boardRoutes(streamlinedUiEnabled: boolean) {
       <Route path="decisions" element={<WhatNeedsMe />} />
       <Route path="decisions/queues/:key" element={<DecisionQueuePage />} />
       <Route path="inbox" element={<InboxRootRedirect />} />
-      <Route path="inbox/mine" element={<Inbox />} />
-      <Route path="inbox/recent" element={<Inbox />} />
-      <Route path="inbox/unread" element={<Inbox />} />
-      <Route path="inbox/blocked" element={<Inbox />} />
-      <Route path="inbox/all" element={<Inbox />} />
+      <Route path="inbox/mine" element={<FocusedInbox />} />
+      <Route path="inbox/recent" element={<FocusedInbox />} />
+      <Route path="inbox/unread" element={<FocusedInbox />} />
+      <Route path="inbox/blocked" element={<FocusedInbox />} />
+      <Route path="inbox/all" element={<FocusedInbox />} />
       <Route path="inbox/requests" element={<JoinRequestQueue />} />
       <Route path="inbox/new" element={<Navigate to="/inbox/mine" replace />} />
       <Route path="u/:userSlug" element={<UserProfile />} />
@@ -545,7 +560,7 @@ function legacyToolsRedirectTarget(tab?: string) {
 }
 
 export function OnboardingRoutePage() {
-  const { companies } = useCompany();
+  const { companies, selectedCompany } = useCompany();
   const { openOnboarding } = useDialogActions();
   const { t } = useTranslation();
   const cloudInstance = useCloudInstance();
@@ -580,7 +595,8 @@ export function OnboardingRoutePage() {
       <div className="rounded-lg border border-border bg-card p-6">
         <h1 className="text-xl font-semibold">{title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          {companies.length>0&&<Button asChild variant="outline"><Link to={`/${(matchedCompany??selectedCompany??companies[0]!).issuePrefix}/companies`}>返回组织列表</Link></Button>}
           {/* On a managed stack whose Cloud origin is unknown there is nowhere
               to send this click: creation lives on Cloud, and in-app creation
               is a 403 floor. A button that does nothing is worse than none, so
@@ -611,7 +627,7 @@ export function OnboardingRoutePage() {
                     : openOnboarding()
               }
             >
-              {matchedCompany ? "Add Agent" : "Start Onboarding"}
+              {matchedCompany ? uiText("Add Agent") : uiText("Start Onboarding")}
             </Button>
           )}
         </div>
@@ -745,6 +761,7 @@ export function App() {
     <>
       <Routes>
         <Route path="oauth-handoff" element={<PaperclipCloudOAuthHandoffPage />} />
+        <Route path="change-password" element={<InitialPasswordChange />} />
         <Route path="auth" element={<AuthPage />} />
         <Route path="board-claim/:token" element={<BoardClaimPage />} />
         <Route path="cli-auth/:id" element={<CliAuthPage />} />
@@ -765,6 +782,11 @@ export function App() {
           <Route path="instance" element={<LegacySettingsRedirect />} />
           <Route path="instance/settings" element={<LegacySettingsRedirect />} />
           <Route path="instance/settings/*" element={<LegacySettingsRedirect />} />
+          <Route path="help" element={<UnprefixedBoardRedirect />} />
+          <Route path="management" element={<UnprefixedBoardRedirect />} />
+          <Route path="jira-intake" element={<UnprefixedBoardRedirect />} />
+          <Route path="runs" element={<UnprefixedBoardRedirect />} />
+          <Route path="seats" element={<UnprefixedBoardRedirect />} />
           <Route path="companies" element={<UnprefixedBoardRedirect />} />
           <Route path="issues" element={<UnprefixedBoardRedirect />} />
           <Route path="tasks" element={<UnprefixedBoardRedirect />} />

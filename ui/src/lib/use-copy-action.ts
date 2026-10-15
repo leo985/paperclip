@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { copyTextToClipboard } from "./clipboard";
@@ -89,8 +90,8 @@ export function useCopyToast() {
         return true;
       } catch {
         pushToast?.({
-          title: "Couldn’t copy to clipboard",
-          body: "Select and copy the value manually.",
+          title: uiText("Couldn’t copy to clipboard"),
+          body: uiText("Select and copy the value manually."),
           tone: "error",
           dedupeKey: "copy-failed",
         });

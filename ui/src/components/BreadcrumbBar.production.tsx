@@ -1,3 +1,5 @@
+import { uiText } from "@/i18n/interface";
+import { PlatformHeaderActions } from "./PlatformHeaderActions";
 import { Link } from "@/lib/router";
 import { Menu } from "lucide-react";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
@@ -29,6 +31,7 @@ function GlobalToolbar({ context }: { context: GlobalToolbarContext }) {
   const { launchers } = usePluginLaunchers({ placementZones: ["globalToolbarButton"], companyId: context.companyId, enabled: !!context.companyId });
   return (
     <div className="ml-auto flex shrink-0 items-center gap-1 pl-2 empty:hidden">
+      <span className="hidden md:flex"><PlatformHeaderActions /></span>
       {slots.length > 0 ? (
         <PluginSlotOutlet slotTypes={["globalToolbarButton"]} context={context} className="flex items-center gap-1" />
       ) : null}
@@ -65,6 +68,7 @@ export function BreadcrumbBar() {
   if (breadcrumbs.length === 0) {
     return (
       <div className="border-b border-border px-4 md:px-6 h-12 shrink-0 flex items-center justify-end">
+        {isMobile && <Button variant="ghost" size="icon-sm" onClick={toggleSidebar} aria-label="打开导航"><Menu className="size-4" /></Button>}
         {globalToolbarSlots}
       </div>
     );
@@ -76,7 +80,7 @@ export function BreadcrumbBar() {
       size="icon-sm"
       className="mr-2 shrink-0"
       onClick={toggleSidebar}
-      aria-label="Open sidebar"
+      aria-label={uiText("Open sidebar")}
     >
       <Menu className="h-5 w-5" />
     </Button>
@@ -89,7 +93,7 @@ export function BreadcrumbBar() {
         {menuButton}
         <div className="min-w-0 overflow-hidden flex-1">
           {breadcrumbs[0].leading || breadcrumbs[0].identifier ? (
-            <h1 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wider">
+            <h1 className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
               {breadcrumbs[0].leading && (
                 <span className="flex shrink-0 items-center">{breadcrumbs[0].leading}</span>
               )}
@@ -97,7 +101,7 @@ export function BreadcrumbBar() {
               <span className="truncate">{breadcrumbs[0].label}</span>
             </h1>
           ) : (
-            <h1 className="text-sm font-semibold uppercase tracking-wider truncate">
+            <h1 className="text-sm font-semibold tracking-tight truncate">
               {breadcrumbs[0].label}
             </h1>
           )}

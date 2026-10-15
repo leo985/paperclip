@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useEffect, useState } from "react";
 import { Clock3, RefreshCw, Save, Trash2, Webhook, Zap } from "lucide-react";
 import type { RoutineTrigger } from "@paperclipai/shared";
@@ -70,7 +71,7 @@ export function RoutineTriggerCard({
 
   return (
     <form
-      aria-label={`Trigger: ${trigger.label ?? trigger.kind}`}
+      aria-label={uiTextFormat("Trigger: __PCVAR0__", [trigger.label ?? trigger.kind])}
       className="space-y-4 rounded-lg border border-border p-4"
       onSubmit={(event) => event.preventDefault()}
     >
@@ -94,7 +95,7 @@ export function RoutineTriggerCard({
           ) : null}
           <span className="text-xs text-muted-foreground">
             {trigger.kind === "schedule" && trigger.nextRunAt
-              ? `Next: ${new Date(trigger.nextRunAt).toLocaleString()}`
+              ? uiTextFormat("Next: __PCVAR0__", [new Date(trigger.nextRunAt).toLocaleString()])
               : trigger.kind === "webhook"
                 ? "Webhook"
                 : "API"}
@@ -104,17 +105,15 @@ export function RoutineTriggerCard({
 
       {trigger.kind === "webhook" && trigger.webhookUrl && (
         <div className="space-y-1.5">
-          <Label htmlFor={`webhook-url-${trigger.id}`} className="text-xs">Webhook URL</Label>
+          <Label htmlFor={`webhook-url-${trigger.id}`} className="text-xs">{uiText("Webhook URL")}</Label>
           <Input id={`webhook-url-${trigger.id}`} value={trigger.webhookUrl} readOnly onFocus={(event) => event.target.select()} />
-          <p className="text-xs text-muted-foreground">
-            Send a POST request with Content-Type: application/json. Keep this URL private when signing is disabled.
-          </p>
+          <p className="text-xs text-muted-foreground">{uiText("Send a POST request with Content-Type: application/json. Keep this URL private when signing is disabled.")}{" "}</p>
         </div>
       )}
 
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className="text-xs">Label</Label>
+          <Label className="text-xs">{uiText("Label")}</Label>
           <Input
             value={draft.label}
             disabled={disabled}
@@ -123,7 +122,7 @@ export function RoutineTriggerCard({
         </div>
         {trigger.kind === "schedule" && (
           <div className="space-y-1.5 md:col-span-2">
-            <Label className="text-xs">Schedule</Label>
+            <Label className="text-xs">{uiText("Schedule")}</Label>
             <ScheduleEditor
               value={draft.cronExpression}
               onChange={(cronExpression) =>
@@ -135,7 +134,7 @@ export function RoutineTriggerCard({
         {trigger.kind === "webhook" && (
           <>
             <div className="space-y-1.5">
-              <Label className="text-xs">Signing mode</Label>
+              <Label className="text-xs">{uiText("Signing mode")}</Label>
               <Select
                 value={draft.signingMode}
                 onValueChange={(signingMode) =>
@@ -157,7 +156,7 @@ export function RoutineTriggerCard({
             </div>
             {!SIGNING_MODES_WITHOUT_REPLAY_WINDOW.has(draft.signingMode) && (
               <div className="space-y-1.5">
-                <Label className="text-xs">Replay window (seconds)</Label>
+                <Label className="text-xs">{uiText("Replay window (seconds)")}</Label>
                 <Input
                   value={draft.replayWindowSec}
                   disabled={disabled}
@@ -180,12 +179,12 @@ export function RoutineTriggerCard({
             onClick={() => onDelete(trigger.id)}
           >
             <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-            Delete
+            {uiText("Delete")}
           </Button>
           {trigger.kind === "webhook" && (
             <Button variant="outline" size="sm" onClick={() => onRotate(trigger.id)}>
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Rotate secret
+              {uiText("Rotate secret")}
             </Button>
           )}
           <Button
@@ -195,9 +194,7 @@ export function RoutineTriggerCard({
               onSave(trigger.id, buildRoutineTriggerPatch(trigger, draft, getLocalTimezone()))
             }
           >
-            <Save className="mr-1.5 h-3.5 w-3.5" />
-            Save trigger
-          </Button>
+            <Save className="mr-1.5 h-3.5 w-3.5" />{uiText("Save trigger")}{" "}</Button>
         </div>
       )}
     </form>

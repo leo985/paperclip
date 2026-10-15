@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { SVGProps } from "react";
 import { cn } from "../lib/utils";
 
@@ -30,7 +31,7 @@ export function PaperclipLoading({ className }: { className?: string }) {
       className={cn("flex min-h-dvh w-full items-center justify-center", className)}
     >
       <AnimatedPaperclipIcon className="h-24 w-24 text-muted-foreground" />
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">{uiText("Loading…")}</span>
     </div>
   );
 }

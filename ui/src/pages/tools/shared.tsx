@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { ReactNode } from "react";
 import type {
   ToolRiskLevel,
@@ -12,7 +13,7 @@ import { ApiError } from "@/api/client";
 
 /** Risk classification badge for a catalog tool. */
 export function RiskBadge({ risk }: { risk: ToolRiskLevel | null | undefined }) {
-  if (!risk) return <Badge variant="outline">unknown</Badge>;
+  if (!risk) return <Badge variant="outline">{uiText("unknown")}</Badge>;
   const variant =
     risk === "high" || risk === "critical"
       ? "destructive"
@@ -91,12 +92,12 @@ function decisionToStatusKey(decision: string): { key: string; label: string } {
       return { key: "block", label: "block" };
     case "require_approval":
     case "requires_approval":
-      return { key: "require-approval", label: "require approval" };
+      return { key: "require-approval", label: uiText("require approval") };
     case "redact":
     case "redacted":
       return { key: "redacted", label: "redacted" };
     case "rate_limited":
-      return { key: "rate-limit", label: "rate limited" };
+      return { key: "rate-limit", label: uiText("rate limited") };
     case "defer":
     case "deferred":
       return { key: "deferred", label: "deferred" };
@@ -189,7 +190,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
         <div className="flex items-start gap-2 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <p className="font-medium">Could not load this view</p>
+            <p className="font-medium">{uiText("Could not load this view")}</p>
             <p className="text-destructive/80">{message}</p>
           </div>
         </div>
@@ -199,7 +200,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
             onClick={onRetry}
             className="self-start rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent"
           >
-            Retry
+            {uiText("Retry")}
           </button>
         ) : null}
       </CardContent>
@@ -230,8 +231,7 @@ export function PendingBackendNotice({
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">{body}</p>
         {issue ? (
-          <a href={issue.href} className="text-sm font-medium text-primary hover:underline">
-            Tracked in {issue.identifier} →
+          <a href={issue.href} className="text-sm font-medium text-primary hover:underline">{uiText("Tracked in")}{" "}{issue.identifier} →
           </a>
         ) : null}
       </CardContent>

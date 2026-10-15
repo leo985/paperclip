@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { Copy } from "lucide-react";
 import type { ToolMcpGatewayWithTokens, ToolProfileWithDetails } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -54,9 +55,9 @@ export function OverviewPanel({
   async function copy(value: string, label: string) {
     try {
       await copyTextToClipboard(value);
-      pushToast({ title: "Copied", body: label, tone: "success" });
+      pushToast({ title: uiText("Copied"), body: label, tone: "success" });
     } catch {
-      pushToast({ title: "Copy failed", body: "Clipboard access is unavailable.", tone: "error" });
+      pushToast({ title: uiText("Copy failed"), body: uiText("Clipboard access is unavailable."), tone: "error" });
     }
   }
 
@@ -64,46 +65,42 @@ export function OverviewPanel({
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border p-4">
-          <div className="text-xs font-medium text-muted-foreground">{on ? "On" : "Off"}</div>
+          <div className="text-xs font-medium text-muted-foreground">{on ? uiText("On") : uiText("Off")}</div>
           <div className="mt-2">
-            <ToggleSwitch checked={on} disabled={toggleDisabled} onCheckedChange={onToggle} aria-label="Toggle gateway" />
+            <ToggleSwitch checked={on} disabled={toggleDisabled} onCheckedChange={onToggle} aria-label={uiText("Toggle gateway")} />
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Toggle the whole gateway off here.</p>
+          <p className="mt-2 text-xs text-muted-foreground">{uiText("Toggle the whole gateway off here.")}</p>
         </div>
-        <StatCard label="Apps">
+        <StatCard label={uiText("Apps")}>
           {apps.length} {apps.length === 1 ? "app" : "apps"}
           {profile ? ` · ${allowedToolsLabel(profile)}` : ""}
         </StatCard>
-        <StatCard label="Tokens">
-          {active} active{expiring > 0 ? ` · ${expiring} expiring` : ""}
+        <StatCard label={uiText("Tokens")}>
+          {active}{" "}{uiText("active")}{expiring > 0 ? uiTextFormat(" · __PCVAR0__ expiring", [expiring]) : ""}
         </StatCard>
-        <StatCard label="Health">
-          {needsAttention.length === 0 ? "All green" : `${needsAttention.length} needs attention`}
+        <StatCard label={uiText("Health")}>
+          {needsAttention.length === 0 ? uiText("All green") : uiTextFormat("__PCVAR0__ needs attention", [needsAttention.length])}
         </StatCard>
       </div>
 
       <section className="rounded-lg border border-border p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Who can use it</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Anyone holding an active token below, restricted by the rules in the bound profile.
-            </p>
+            <h3 className="text-sm font-semibold text-foreground">{uiText("Who can use it")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{uiText("Anyone holding an active token below, restricted by the rules in the bound profile.")}{" "}</p>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Chip>Scope · {formatScope(gateway, projectNames, agentNames)}</Chip>
-          <Chip>Profile · {profile?.name ?? "Unavailable"}</Chip>
-          <Chip>{active} active {active === 1 ? "token" : "tokens"}</Chip>
+          <Chip>{uiText("Scope ·")}{" "}{formatScope(gateway, projectNames, agentNames)}</Chip>
+          <Chip>{uiText("Profile ·")}{" "}{profile?.name ?? uiText("Unavailable")}</Chip>
+          <Chip>{active}{" "}{uiText("active")}{" "}{active === 1 ? "token" : "tokens"}</Chip>
         </div>
       </section>
 
       <section className="rounded-lg border border-border p-4">
-        <h3 className="text-sm font-semibold text-foreground">Apps in this gateway</h3>
+        <h3 className="text-sm font-semibold text-foreground">{uiText("Apps in this gateway")}</h3>
         {apps.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            This gateway’s profile doesn’t include any apps yet.
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{uiText("This gateway’s profile doesn’t include any apps yet.")}{" "}</p>
         ) : (
           <ul className="mt-3 divide-y divide-border">
             {apps.map((app) => (
@@ -115,10 +112,10 @@ export function OverviewPanel({
 
       <section className="rounded-lg border border-border bg-muted/30 p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-foreground">How clients connect</h3>
+          <h3 className="text-sm font-semibold text-foreground">{uiText("How clients connect")}</h3>
           <Button variant="outline" size="sm" onClick={() => void copy(snippet, "Client config")}>
             <Copy className="mr-1 h-3.5 w-3.5" />
-            Copy
+            {uiText("Copy")}
           </Button>
         </div>
         <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words rounded bg-background p-3 font-mono text-xs text-muted-foreground">
@@ -169,7 +166,7 @@ function AppRow({ app }: { app: GatewayAppRow }) {
             : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
         )}
       >
-        {app.needsAttention ? "Needs attention" : "Healthy"}
+        {app.needsAttention ? uiText("Needs attention") : uiText("Healthy")}
       </span>
     </li>
   );

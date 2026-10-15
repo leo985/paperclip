@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 export type AppBrandManifestProvider = {
   slug: string;
   provider: string;
@@ -47,9 +48,9 @@ async function loadManifest(): Promise<AppBrandManifest> {
   if (!manifestPromise) {
     manifestPromise = fetch("/brands/apps/manifest.json", { credentials: "same-origin" })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`App brand manifest request failed (${response.status})`);
+        if (!response.ok) throw new Error(uiTextFormat("App brand manifest request failed (__PCVAR0__)", [response.status]));
         const value: unknown = await response.json();
-        if (!isManifest(value)) throw new Error("App brand manifest is invalid");
+        if (!isManifest(value)) throw new Error(uiText("App brand manifest is invalid"));
         return value;
       })
       .catch((error) => {

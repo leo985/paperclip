@@ -27,6 +27,7 @@ import {
   invites,
   joinRequests,
   principalPermissionGrants,
+  personnelPeople,
 } from "@paperclipai/db";
 import {
   acceptInviteSchema,
@@ -1246,6 +1247,10 @@ async function loadCompanyMemberRecords(
       : Promise.resolve([]),
   ]);
 
+  const federatedPeople = userIds.length > 0 ? await db.select({ userId: personnelPeople.userId, email: personnelPeople.email, username: personnelPeople.username }).from(personnelPeople).where(and(eq(personnelPeople.companyId, companyId), eq(personnelPeople.active, true), inArray(personnelPeople.userId, userIds))).orderBy(desc(personnelPeople.lastSyncedAt)) : [];
+  const federationByUser = new Map<string, { email: string | null; username: string | null }>();
+  for (const person of federatedPeople) if (person.userId && !federationByUser.has(person.userId)) federationByUser.set(person.userId, { email: person.email, username: person.username });
+
   const grantsByPrincipalId = new Map<string, typeof grants>();
   for (const grant of grants) {
     const existing = grantsByPrincipalId.get(grant.principalId) ?? [];
@@ -1260,6 +1265,7 @@ async function loadCompanyMemberRecords(
       ? normalizeHumanRole(member.membershipRole, "operator")
       : null,
     user: userMap.get(member.principalId) ?? null,
+    federation: federationByUser.get(member.principalId) ?? null,
     grants: grantsByPrincipalId.get(member.principalId) ?? [],
   }));
 }

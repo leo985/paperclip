@@ -1,0 +1,32 @@
+{
+  "checks": [
+    {
+      "name": "no_active_executor_before_configuration_probe",
+      "passed": true
+    },
+    {
+      "name": "configuration_probe_request_accepted",
+      "passed": true
+    },
+    {
+      "name": "real_settings_change_detected",
+      "passed": true
+    },
+    {
+      "name": "start_is_blocked_while_configuration_invalid",
+      "passed": true
+    },
+    {
+      "name": "restored_configuration_check_accepted",
+      "passed": true
+    },
+    {
+      "name": "restored_configuration_returns_to_idle",
+      "passed": true
+    },
+    {
+      "name": "settings_restored_exactly",
+      "passed": true
+    }
+  ]
+}

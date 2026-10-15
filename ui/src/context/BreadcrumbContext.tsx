@@ -70,8 +70,8 @@ export function buildDocumentTitle(breadcrumbs: Breadcrumb[], companyName?: stri
     ? []
     : [...breadcrumbs].reverse().map((breadcrumb) => breadcrumb.label);
   const companyPart = companyName?.trim() ? [companyName.trim()] : [];
-  const parts = [...pageParts, ...companyPart, "Paperclip"];
-  return parts.join(" • ");
+  const parts = [...pageParts, ...companyPart, "智研协同平台"];
+  return parts.join(" · ");
 }
 
 export function BreadcrumbProvider({ children, companyName }: BreadcrumbProviderProps) {

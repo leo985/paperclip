@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useMemo, useState } from "react";
 import { Link } from "@/lib/router";
@@ -97,12 +98,8 @@ export function LiveRunWidget({ issueId, companyId }: LiveRunWidgetProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-blue-500/25 bg-background/80 shadow-(--shadow-extract-11)">
       <div className="border-b border-border/60 bg-blue-500/[0.04] px-4 py-3">
-        <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-blue-700 dark:text-blue-300">
-          Live Runs
-        </div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          Uses the shared chat-style run surface from task activity.
-        </div>
+        <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-blue-700 dark:text-blue-300">{uiText("Live Runs")}{" "}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{uiText("Uses the shared chat-style run surface from task activity.")}{" "}</div>
       </div>
 
       <div className="divide-y divide-border/60">
@@ -136,14 +133,14 @@ export function LiveRunWidget({ issueId, companyId }: LiveRunWidgetProps) {
                       className="inline-flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/[0.06] px-2.5 py-1 text-(length:--text-micro) font-medium text-red-700 transition-colors hover:bg-red-500/[0.12] dark:text-red-300 disabled:opacity-50"
                     >
                       <Square className="h-2.5 w-2.5" fill="currentColor" />
-                      {cancellingRunIds.has(run.id) ? "Stopping…" : "Stop"}
+                      {cancellingRunIds.has(run.id) ? uiText("Stopping…") : uiText("Stop")}
                     </button>
                   )}
                   <Link
                     to={`/agents/${run.agentId}/runs/${run.id}`}
                     className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-(length:--text-micro) font-medium text-blue-700 transition-colors hover:border-blue-500/30 hover:text-blue-600 dark:text-blue-300"
                   >
-                    Open run
+                    {uiText("Open run")}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>

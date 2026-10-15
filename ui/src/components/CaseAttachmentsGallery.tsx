@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useMemo, useState } from "react";
 import { FileText } from "lucide-react";
 import {
@@ -36,7 +37,7 @@ export function CaseAttachmentsGallery({ attachments }: { attachments: CaseAttac
   );
 
   if (attachments.length === 0) {
-    return <p className="text-xs text-muted-foreground">No attachments.</p>;
+    return <p className="text-xs text-muted-foreground">{uiText("No attachments.")}</p>;
   }
 
   return (

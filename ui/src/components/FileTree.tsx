@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "../lib/utils";
@@ -217,18 +218,18 @@ export function parseFrontmatter(content: string): { data: FrontmatterData; body
 }
 
 export const FRONTMATTER_FIELD_LABELS: Record<string, string> = {
-  name: "Name",
-  title: "Title",
-  kind: "Kind",
-  reportsTo: "Reports to",
-  skills: "Skills",
-  status: "Status",
-  description: "Description",
-  priority: "Priority",
-  assignee: "Responsible",
-  project: "Project",
+  name: uiText("Name"),
+  title: uiText("Title"),
+  kind: uiText("Kind"),
+  reportsTo: uiText("Reports to"),
+  skills: uiText("Skills"),
+  status: uiText("Status"),
+  description: uiText("Description"),
+  priority: uiText("Priority"),
+  assignee: uiText("Responsible"),
+  project: uiText("Project"),
   recurring: "Recurring",
-  targetDate: "Target date",
+  targetDate: uiText("Target date"),
 };
 
 // -- File tree component -----------------------------------------------------
@@ -370,7 +371,7 @@ export function FileTree({
           </div>
           {error.retry && (
             <Button type="button" size="xs" variant="outline" onClick={error.retry}>
-              Retry
+              {uiText("Retry")}
             </Button>
           )}
         </div>
@@ -382,9 +383,9 @@ export function FileTree({
     return (
       <div aria-label={ariaLabel} role="tree" className="p-3">
         <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
-          <div className="text-sm font-medium">{empty?.title ?? "No files"}</div>
+          <div className="text-sm font-medium">{empty?.title ?? uiText("No files")}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {empty?.description ?? "Files will appear here when they are available."}
+            {empty?.description ?? uiText("Files will appear here when they are available.")}
           </div>
         </div>
       </div>
@@ -484,7 +485,7 @@ export function FileTree({
                   event.stopPropagation();
                   onToggleDir(node.path);
                 }}
-                aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
+                aria-label={expanded ? uiTextFormat("Collapse __PCVAR0__", [node.name]) : uiTextFormat("Expand __PCVAR0__", [node.name])}
               >
                 {expanded ? (
                   <ChevronDown className="h-3.5 w-3.5" />

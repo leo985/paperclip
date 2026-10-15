@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { Profiler, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, MessageSquarePlus } from "lucide-react";
 import type {
@@ -545,7 +546,7 @@ export function DocumentAnnotationLayer({
                 data-status={rect.status}
                 data-focused={isFocused || undefined}
                 data-hovered={isHovered || undefined}
-                aria-label="Open annotation thread"
+                aria-label={uiText("Open annotation thread")}
                 className={cn(
                   "paperclip-doc-annotation-hit-target pointer-events-auto absolute cursor-pointer rounded-none bg-transparent transition-colors",
                   isFocused && "ring-1 ring-transparent",
@@ -585,7 +586,7 @@ export function DocumentAnnotationLayer({
                   width: 16,
                   height: 16,
                 }}
-                title="Anchor moved — needs review"
+                title={uiText("Anchor moved — needs review")}
               >
                 <AlertTriangle className="h-3 w-3" />
               </span>
@@ -595,7 +596,7 @@ export function DocumentAnnotationLayer({
             <div
               data-testid="document-annotation-selection-toolbar"
               role="toolbar"
-              aria-label="Selection actions"
+              aria-label={uiText("Selection actions")}
               className="paperclip-doc-annotation-selection-toolbar pointer-events-auto absolute z-10 flex items-center gap-1 rounded-md border border-border bg-popover px-1 py-1 shadow-md"
               style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
               onMouseDown={(event) => event.preventDefault()}
@@ -609,10 +610,10 @@ export function DocumentAnnotationLayer({
                 disabled={newCommentDisabled}
                 title={newCommentDisabled
                   ? newCommentDisabledReason ?? undefined
-                  : "Add comment on selection (⌘⇧M)"}
+                  : uiText("Add comment on selection (⌘⇧M)")}
               >
                 <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
-                Comment
+                {uiText("Comment")}
               </Button>
             </div>
           ) : null}

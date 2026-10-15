@@ -1,7 +1,7 @@
+import { localizedRole,  localizedStatus, uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS,
   hidesCompanyPage,
   type Agent,
 } from "@paperclipai/shared";
@@ -31,6 +31,17 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PageTabBar } from "@/components/PageTabBar";
 import { useHiddenSettings } from "@/hooks/useHiddenSettings";
 import { InvitesSection } from "@/components/access/InvitesSection";
+
+const memberRoles = {
+  owner: { label: "组织负责人", description: "管理组织权限与管理员，建议仅授予少量负责人。" },
+  admin: { label: "组织管理员", description: "维护项目、共享仓库、席位和接单配置。实例级配置仍需实例管理员。" },
+  operator: { label: "研发成员", description: "使用已授权的席位执行工单、查看执行过程并处理任务决策。" },
+  viewer: { label: "观察成员", description: "查看进度与效果数据，不能接入工单、启动执行或提交决策。" },
+};
+function memberEmail(member: CompanyMember | null) {
+  const email = member?.federation?.email || member?.user?.email;
+  return email && !email.toLowerCase().endsWith("@paperclip.invalid") ? email : "未提供邮箱";
+}
 
 const reassignmentIssueStatuses = "backlog,todo,in_progress,in_review,blocked,failed,timed_out";
 type EditableMemberStatus = "pending" | "active" | "suspended";
@@ -69,9 +80,9 @@ export function CompanyAccess() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Organization", href: "/dashboard" },
-      { label: "Settings", href: "/company/settings" },
-      { label: "Members" },
+      { label: selectedCompany?.name ?? uiText("Organization"), href: "/dashboard" },
+      { label: uiText("Settings"), href: "/company/settings" },
+      { label: uiText("Members") },
     ]);
   }, [selectedCompany?.name, setBreadcrumbs]);
 
@@ -111,14 +122,14 @@ export function CompanyAccess() {
       setEditingMemberId(null);
       await refreshAccessData();
       pushToast({
-        title: "Member updated",
+        title: "成员已更新",
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update member",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "成员更新失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
@@ -129,14 +140,14 @@ export function CompanyAccess() {
     onSuccess: async () => {
       await refreshAccessData();
       pushToast({
-        title: "Join request approved",
+        title: "已同意加入申请",
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to approve join request",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "加入申请审批失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
@@ -147,14 +158,14 @@ export function CompanyAccess() {
     onSuccess: async () => {
       await refreshAccessData();
       pushToast({
-        title: "Join request rejected",
+        title: "已拒绝加入申请",
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to reject join request",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "拒绝加入申请失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
@@ -199,18 +210,18 @@ export function CompanyAccess() {
         await queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(selectedCompanyId) });
       }
       pushToast({
-        title: "Member removed",
+        title: uiText("Member removed"),
         body:
           result.reassignedIssueCount > 0
-            ? `${result.reassignedIssueCount} assigned task${result.reassignedIssueCount === 1 ? "" : "s"} cleaned up.`
+            ? `已处理 ${result.reassignedIssueCount} 张已分配工单。`
             : undefined,
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to remove member",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "移除成员失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
@@ -228,20 +239,20 @@ export function CompanyAccess() {
   }, [removingMember]);
 
   if (!selectedCompanyId) {
-    return <div className="text-sm text-muted-foreground">Select an organization to manage access.</div>;
+    return <div className="text-sm text-muted-foreground">请先选择要管理成员的组织。</div>;
   }
 
   if (membersQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading organization access…</div>;
+    return <div className="text-sm text-muted-foreground">正在加载组织成员…</div>;
   }
 
   if (membersQuery.error) {
     const message =
       membersQuery.error instanceof ApiError && membersQuery.error.status === 403
-        ? "You do not have permission to manage organization members."
+        ? "你没有管理组织成员的权限。"
         : membersQuery.error instanceof Error
           ? membersQuery.error.message
-          : "Failed to load organization members.";
+          : "组织成员加载失败。";
     return <div className="text-sm text-destructive">{message}</div>;
   }
 
@@ -264,15 +275,20 @@ export function CompanyAccess() {
     <div className="max-w-6xl space-y-8">
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-        <h1 className="text-lg font-semibold">Organization Members</h1>
+        <h1 className="text-lg font-semibold">组织成员</h1>
       </div>
 
+      <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+        <p>人员联邦新增成员默认以“研发成员”身份启用。组长在 Jira 指派工单，无需因此获得平台管理员权限。</p>
+        <p className="text-muted-foreground">组织角色、Jira 经办人映射与席位负责人授权分别配置；组织角色不会自动授予其他人的席位权限。</p>
+        <div className="grid gap-2 md:grid-cols-2">{Object.entries(memberRoles).map(([role, info]) => <p key={role}><strong>{info.label}：</strong>{info.description}</p>)}</div>
+      </div>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-4">
         {!hideInvitesTab && (
           <PageTabBar
             items={[
-              { value: "members", label: "Members" },
-              { value: "invites", label: "Invites" },
+              { value: "members", label: uiText("Members") },
+              { value: "invites", label: uiText("Invites") },
             ]}
             align="start"
             value={activeTab}
@@ -283,7 +299,7 @@ export function CompanyAccess() {
 
       {access && !access.currentUserRole && (
         <div className="rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-          This account can manage access here through instance-admin privileges, but it does not currently hold an active organization membership.
+          当前账号通过实例管理员权限管理此组织，但尚未拥有已启用的组织成员身份。
         </div>
       )}
 
@@ -292,12 +308,12 @@ export function CompanyAccess() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 className="text-sm font-semibold">Pending human joins</h3>
+                <h3 className="text-sm font-semibold">待审批的人员加入申请</h3>
                 <p className="text-sm text-muted-foreground">
-                  Review pending join requests before they become active organization members.
+                  请审核人员加入申请，审批通过后才能启用组织成员身份。
                 </p>
               </div>
-              <Badge variant="outline">{pendingHumanJoinRequests.length} pending</Badge>
+              <Badge variant="outline">{pendingHumanJoinRequests.length} 项待审批</Badge>
             </div>
             <div className="space-y-3">
               {pendingHumanJoinRequests.map((request) => (
@@ -307,22 +323,22 @@ export function CompanyAccess() {
                     request.requesterUser?.name ||
                     request.requestEmailSnapshot ||
                     request.requestingUserId ||
-                    "Unknown human requester"
+                    "未知申请人"
                   }
                   subtitle={
                     request.requesterUser?.email ||
                     request.requestEmailSnapshot ||
                     request.requestingUserId ||
-                    "No email available"
+                    "未提供邮箱"
                   }
                   context={
                     request.invite
-                      ? `${request.invite.allowedJoinTypes} join invite${request.invite.humanRole ? ` • default role ${request.invite.humanRole}` : ""}`
-                      : "Invite metadata unavailable"
+                      ? `加入邀请${request.invite.humanRole ? ` · 默认角色：${memberRoles[request.invite.humanRole].label}` : ""}`
+                      : "邀请信息不可用"
                   }
-                  detail={`Submitted ${new Date(request.createdAt).toLocaleString()}`}
-                  approveLabel="Approve human"
-                  rejectLabel="Reject human"
+                  detail={`提交时间：${new Date(request.createdAt).toLocaleString()}`}
+                  approveLabel="同意加入"
+                  rejectLabel="拒绝加入"
                   disabled={joinRequestActionPending}
                   onApprove={() => approveJoinRequestMutation.mutate(request.id)}
                   onReject={() => rejectJoinRequestMutation.mutate(request.id)}
@@ -336,18 +352,18 @@ export function CompanyAccess() {
           <table className="w-full min-w-(--sz-44rem) text-left text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground">
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Email</th>
-                <th className="px-3 py-2 font-medium">Role</th>
-                <th className="px-3 py-2 font-medium">Status</th>
-                <th className="px-3 py-2 text-right font-medium">Action</th>
+                <th className="px-3 py-2 font-medium">{uiText("Name")}</th>
+                <th className="px-3 py-2 font-medium">{uiText("Email")}</th>
+                <th className="px-3 py-2 font-medium">{uiText("Role")}</th>
+                <th className="px-3 py-2 font-medium">{uiText("Status")}</th>
+                <th className="px-3 py-2 text-right font-medium">{uiText("Action")}</th>
               </tr>
             </thead>
             <tbody>
               {members.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-3 py-8 text-muted-foreground">
-                    No user memberships found for this organization yet.
+                    此组织尚无成员。
                   </td>
                 </tr>
               ) : members.map((member) => {
@@ -366,22 +382,22 @@ export function CompanyAccess() {
                       </div>
                     </td>
                     <td className="px-3 py-3 text-muted-foreground">
-                      {member.user?.email || member.principalId}
+                      {memberEmail(member)}
                     </td>
                     <td className="px-3 py-3">
                       {member.membershipRole
-                        ? HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS[member.membershipRole]
-                        : "Unset"}
+                        ? memberRoles[member.membershipRole].label
+                        : "未设置"}
                     </td>
                     <td className="px-3 py-3">
                       <Badge variant={member.status === "active" ? "secondary" : member.status === "suspended" ? "destructive" : "outline"}>
-                        {member.status.replace("_", " ")}
+                        {member.status === "active" ? "已启用" : member.status === "suspended" ? "已停用" : localizedStatus(member.status)}
                       </Badge>
                     </td>
                     <td className="px-3 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" onClick={() => setEditingMemberId(member.id)}>
-                          Edit
+                          {uiText("Edit")}
                         </Button>
                         <span
                           className="inline-flex"
@@ -395,7 +411,7 @@ export function CompanyAccess() {
                             title={!canArchive ? removalReason ?? undefined : undefined}
                           >
                             <Trash2 className="mr-1 h-3.5 w-3.5" />
-                            Remove
+                            {uiText("Remove")}
                           </Button>
                         </span>
                       </div>
@@ -411,16 +427,16 @@ export function CompanyAccess() {
       <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMemberId(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit member</DialogTitle>
+            <DialogTitle>编辑成员</DialogTitle>
             <DialogDescription>
-              Update organization role and membership status for {editingMember?.user?.name || editingMember?.user?.email || editingMember?.principalId}.
+              修改 {memberDisplayName(editingMember)} 的组织角色和成员状态。
             </DialogDescription>
           </DialogHeader>
           {editingMember && (
             <div className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2 text-sm">
-                  <span className="font-medium">Organization role</span>
+                  <span className="font-medium">组织角色</span>
                   <select
                     className="w-full rounded-md border border-border bg-background px-3 py-2"
                     value={draftRole ?? ""}
@@ -428,16 +444,17 @@ export function CompanyAccess() {
                       setDraftRole((event.target.value || null) as CompanyMember["membershipRole"])
                     }
                   >
-                    <option value="">Unset</option>
-                    {Object.entries(HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS).map(([value, label]) => (
+                    {draftRole === null && <option value="" disabled>未设置（请选择角色）</option>}
+                    {Object.entries(memberRoles).map(([value, role]) => (
                       <option key={value} value={value}>
-                        {label}
+                        {role.label}
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-muted-foreground">{draftRole ? memberRoles[draftRole].description : "请选择明确的组织角色。"}</p>
                 </label>
                 <label className="space-y-2 text-sm">
-                  <span className="font-medium">Membership status</span>
+                  <span className="font-medium">成员状态</span>
                   <select
                     className="w-full rounded-md border border-border bg-background px-3 py-2"
                     value={draftStatus}
@@ -445,9 +462,9 @@ export function CompanyAccess() {
                       setDraftStatus(event.target.value as EditableMemberStatus)
                     }
                   >
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="suspended">Suspended</option>
+                    <option value="active">已启用</option>
+                    <option value="pending">{uiText("Pending")}</option>
+                    <option value="suspended">已停用</option>
                   </select>
                 </label>
               </div>
@@ -455,7 +472,7 @@ export function CompanyAccess() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingMemberId(null)}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button
               onClick={() => {
@@ -466,9 +483,9 @@ export function CompanyAccess() {
                   status: draftStatus,
                 });
               }}
-              disabled={updateMemberMutation.isPending}
+              disabled={updateMemberMutation.isPending || !draftRole}
             >
-              {updateMemberMutation.isPending ? "Saving…" : "Save member"}
+              {updateMemberMutation.isPending ? uiText("Saving…") : "保存成员"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -477,34 +494,34 @@ export function CompanyAccess() {
       <Dialog open={!!removingMember} onOpenChange={(open) => !open && setRemovingMemberId(null)}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Remove member</DialogTitle>
+            <DialogTitle>移除成员</DialogTitle>
             <DialogDescription>
-              Archive {memberDisplayName(removingMember)} and move active assignments before hiding this user from assignment fields.
+              归档 {memberDisplayName(removingMember)}，并转交其未完成工单。该成员将不再出现在分配选项中。
             </DialogDescription>
           </DialogHeader>
           {removingMember && (
             <div className="space-y-5">
               <div className="rounded-lg border border-border px-3 py-3">
                 <div className="text-sm font-medium">{memberDisplayName(removingMember)}</div>
-                <div className="text-sm text-muted-foreground">{removingMember.user?.email || removingMember.principalId}</div>
+                <div className="text-sm text-muted-foreground">{memberEmail(removingMember)}</div>
                 <div className="mt-2 text-sm text-muted-foreground">
                   {assignedIssuesQuery.isLoading
-                    ? "Checking assigned tasks..."
-                    : `${assignedIssues.length} open assigned task${assignedIssues.length === 1 ? "" : "s"}`}
+                    ? "正在检查已分配工单…"
+                    : `${assignedIssues.length} 张未完成工单`}
                 </div>
               </div>
 
               {assignedIssues.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="text-sm font-medium">Task reassignment</div>
+                  <div className="text-sm font-medium">工单转交</div>
                   <select
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                     value={reassignmentTarget}
                     onChange={(event) => setReassignmentTarget(event.target.value)}
                   >
-                    <option value="__unassigned">Leave unassigned</option>
+                    <option value="__unassigned">取消分配</option>
                     {activeReassignmentUsers.length > 0 ? (
-                      <optgroup label="Humans">
+                      <optgroup label="人员">
                         {activeReassignmentUsers.map((member) => (
                           <option key={member.id} value={`user:${member.principalId}`}>
                             {memberDisplayName(member)}
@@ -513,10 +530,10 @@ export function CompanyAccess() {
                       </optgroup>
                     ) : null}
                     {activeReassignmentAgents.length > 0 ? (
-                      <optgroup label="Agents">
+                      <optgroup label={uiText("Agents")}>
                         {activeReassignmentAgents.map((agent) => (
                           <option key={agent.id} value={`agent:${agent.id}`}>
-                            {agent.name} ({agent.role})
+                            {agent.name} ({localizedRole(agent.role)})
                           </option>
                         ))}
                       </optgroup>
@@ -531,7 +548,7 @@ export function CompanyAccess() {
                     ))}
                     {assignedIssues.length > 6 ? (
                       <div className="px-3 py-2 text-sm text-muted-foreground">
-                        {assignedIssues.length - 6} more task{assignedIssues.length - 6 === 1 ? "" : "s"}
+                        另有 {assignedIssues.length - 6} 张工单
                       </div>
                     ) : null}
                   </div>
@@ -541,7 +558,7 @@ export function CompanyAccess() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemovingMemberId(null)}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -554,7 +571,7 @@ export function CompanyAccess() {
               }}
               disabled={archiveMemberMutation.isPending || assignedIssuesQuery.isLoading}
             >
-              {archiveMemberMutation.isPending ? "Removing..." : "Remove member"}
+              {archiveMemberMutation.isPending ? uiText("Removing...") : "移除成员"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -581,8 +598,8 @@ export function CompanyAccessLegacyRoute() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
-      { label: "Access" },
+      { label: uiText("Settings"), href: "/company/settings" },
+      { label: uiText("Access") },
     ]);
   }, [setBreadcrumbs]);
 
@@ -592,7 +609,7 @@ export function CompanyAccessLegacyRoute() {
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Checking for advanced permission extensions...</div>;
+    return <div className="text-sm text-muted-foreground">正在检查高级权限扩展…</div>;
   }
 
   return (
@@ -600,29 +617,29 @@ export function CompanyAccessLegacyRoute() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Advanced Permissions</h1>
+          <h1 className="text-lg font-semibold">高级权限</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Advanced access, scoped assignment, and explicit grant controls are provided by installed organization settings extensions.
+          高级访问权限、范围分配和单独授权由已安装的组织设置扩展提供。
         </p>
       </div>
 
       <div className="space-y-4 rounded-xl border border-border px-5 py-5">
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold">Advanced permissions unavailable</h2>
+          <h2 className="text-sm font-semibold">高级权限暂不可用</h2>
           <p className="text-sm text-muted-foreground">
-            Core Paperclip keeps enforcing organization boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.
+            智研协同平台继续执行组织边界与已有权限限制；编辑高级权限需要安装相应扩展。
           </p>
           {errorMessage ? (
-            <p className="text-sm text-destructive">Plugin extensions unavailable: {errorMessage}</p>
+            <p className="text-sm text-destructive">{uiText("Plugin extensions unavailable:")} {errorMessage}</p>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link to="/company/settings/members">Open Members</Link>
+            <Link to="/company/settings/members">查看成员</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/company/settings/members?tab=invites">Open Invites</Link>
+            <Link to="/company/settings/members?tab=invites">查看邀请</Link>
           </Button>
         </div>
       </div>
@@ -631,7 +648,7 @@ export function CompanyAccessLegacyRoute() {
 }
 
 function memberDisplayName(member: CompanyMember | null) {
-  if (!member) return "this member";
+  if (!member) return "此成员";
   return member.user?.name?.trim() || member.user?.email || member.principalId;
 }
 

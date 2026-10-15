@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, MessageSquarePlus } from "lucide-react";
 import { chatEndpointsApi, type ChatProvider } from "@/api/chatEndpoints";
@@ -39,29 +40,22 @@ export function AgentChannelsPanel({
     <section className="max-w-3xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Channels</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Chat and email identities connected to this agent.
-          </p>
+          <h2 className="text-lg font-semibold">{uiText("Channels")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("Chat and email identities connected to this agent.")}{" "}</p>
         </div>
         <Button asChild size="sm">
           <Link to={`/apps?chatAgentId=${encodeURIComponent(agentId)}`}>
-            <MessageSquarePlus />
-            Connect a channel
-          </Link>
+            <MessageSquarePlus />{uiText("Connect a channel")}{" "}</Link>
         </Button>
       </div>
       {query.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading channels…</p>
+        <p className="text-sm text-muted-foreground">{uiText("Loading channels…")}</p>
       ) : endpoints.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-5">
-          <p className="text-sm font-medium">No channels connected</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Connect AgentMail, Slack, GitHub, Discord, Microsoft Teams, or Telegram from
-            Connectors.
-          </p>
+          <p className="text-sm font-medium">{uiText("No channels connected")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("Connect AgentMail, Slack, GitHub, Discord, Microsoft Teams, or Telegram from Connectors.")}{" "}</p>
           <Button asChild className="mt-3" variant="outline" size="sm">
-            <Link to="/apps">Open Connectors</Link>
+            <Link to="/apps">{uiText("Open Connectors")}</Link>
           </Button>
         </div>
       ) : (
@@ -78,13 +72,12 @@ export function AgentChannelsPanel({
                 <p className="truncate text-xs text-muted-foreground">
                   {endpoint.botLabel ??
                     endpoint.providerAccountLabel ??
-                    "Provider identity"}
+                    uiText("Provider identity")}
                 </p>
               </div>
               <StatusBadge status={endpoint.status} />
               <Button asChild size="sm" variant="outline">
-                <Link to={`/apps/chat/${endpoint.id}/settings`}>
-                  Open connection <ExternalLink />
+                <Link to={`/apps/chat/${endpoint.id}/settings`}>{uiText("Open connection")}{" "}<ExternalLink />
                 </Link>
               </Button>
             </div>

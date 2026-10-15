@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { PipelineCaseLiveness } from "@paperclipai/shared";
 
 /**
@@ -106,7 +107,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Automation paused — waiting on a blocker",
+        title: uiText("Automation paused — waiting on a blocker"),
         body: liveness.message,
         blockerLink: blockerLinkFromLiveness(liveness),
         automationLink: automationLinkFromLiveness(liveness),
@@ -121,7 +122,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Automation paused — waiting on a blocker",
+        title: uiText("Automation paused — waiting on a blocker"),
         body: liveness.message,
         blockerLink: blockerLinkFromLiveness(liveness),
         automationLink: automationLinkFromLiveness(liveness),
@@ -136,7 +137,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "permission",
-        title: "Permission needed before this can run",
+        title: uiText("Permission needed before this can run"),
         body: liveness.message,
         blockerLink: null,
         automationLink: automationLinkFromLiveness(liveness),
@@ -157,7 +158,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: recovered ? "retry" : "attention",
-        title: recovered ? "Blocker resolved — ready to retry" : "Automation failed",
+        title: recovered ? uiText("Blocker resolved — ready to retry") : uiText("Automation failed"),
         body: liveness.message,
         blockerLink: null,
         automationLink: automationLinkFromLiveness(liveness),
@@ -173,7 +174,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "attention",
-        title: "Waiting on breakdown evidence",
+        title: uiText("Waiting on breakdown evidence"),
         body: liveness.message,
         blockerLink: null,
         automationLink: null,
@@ -188,7 +189,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "blocked",
-        title: "Breakdown is incomplete",
+        title: uiText("Breakdown is incomplete"),
         body: missingPiecesBody(liveness),
         blockerLink: null,
         automationLink: null,
@@ -203,7 +204,7 @@ export function derivePipelineLivenessBanner(
       return {
         reason: liveness.reason,
         tone: "attention",
-        title: "This item is stuck",
+        title: uiText("This item is stuck"),
         body: NO_ACTION_PATH_BODY,
         blockerLink: null,
         automationLink: null,

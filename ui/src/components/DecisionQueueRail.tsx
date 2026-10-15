@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@/lib/router";
 import { decisionQueuesApi } from "../api/decisionQueues";
@@ -40,8 +41,8 @@ export function DecisionQueueRail({ companyId, activeQueueKey = null }: Decision
   const now = Date.now();
 
   return (
-    <nav className="flex flex-wrap items-center gap-1.5" aria-label="Decision queues" data-decision-queue-rail>
-      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label="All" />
+    <nav className="flex flex-wrap items-center gap-1.5" aria-label={uiText("Decision queues")} data-decision-queue-rail>
+      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label={uiText("All")} />
       {queues.map((queue) => {
         const recent = now - new Date(queue.updatedAt).getTime() < RECENT_ACTIVITY_MS;
         return (
@@ -84,7 +85,7 @@ function Chip({
       aria-current={active ? "page" : undefined}
     >
       {recent && (
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label="Recent activity" />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label={uiText("Recent activity")} />
       )}
       <span className="truncate">{label}</span>
       {count != null && count > 0 && (

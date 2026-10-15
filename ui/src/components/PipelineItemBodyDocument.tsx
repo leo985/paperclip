@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -201,9 +202,9 @@ export function PipelineItemBodyDocument({
     onSuccess: async () => {
       setSelectedRevisionId(null);
       await invalidateAll();
-      pushToast({ title: "Revision restored", tone: "success" });
+      pushToast({ title: uiText("Revision restored"), tone: "success" });
     },
-    onError: () => pushToast({ title: "Could not restore the revision", tone: "error" }),
+    onError: () => pushToast({ title: uiText("Could not restore the revision"), tone: "error" }),
   });
 
   const beginEdit = useCallback(() => {
@@ -229,13 +230,13 @@ export function PipelineItemBodyDocument({
       if (error instanceof ApiError && error.status === 409) {
         await caseDocumentQuery.refetch();
         pushToast({
-          title: "Body changed elsewhere",
-          body: "This item body was updated by someone else. Reloaded the latest — re-apply your edit.",
+          title: uiText("Body changed elsewhere"),
+          body: uiText("This item body was updated by someone else. Reloaded the latest — re-apply your edit."),
           tone: "error",
         });
         return;
       }
-      pushToast({ title: "Could not save the body", tone: "error" });
+      pushToast({ title: uiText("Could not save the body"), tone: "error" });
     }
   }, [caseDocumentQuery, doc?.latestRevisionId, draftBody, pushToast, saveMutation]);
 
@@ -265,7 +266,7 @@ export function PipelineItemBodyDocument({
         setPanelOpen(true);
       } catch {
         setPendingStartAnchor(null);
-        pushToast({ title: "Could not start the conversation", tone: "error" });
+        pushToast({ title: uiText("Could not start the conversation"), tone: "error" });
       }
     },
     [conversationIssueId, doc?.latestRevisionId, latestBody, onStartConversation, pushToast, saveMutation],
@@ -295,7 +296,7 @@ export function PipelineItemBodyDocument({
           <MarkdownEditor
             value={draftBody}
             onChange={setDraftBody}
-            placeholder="Write the item body in Markdown…"
+            placeholder={uiText("Write the item body in Markdown…")}
             bordered={false}
             className="min-h-(--sz-220px) bg-transparent"
             contentClassName={bodyContentClassName}
@@ -305,16 +306,14 @@ export function PipelineItemBodyDocument({
           />
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-(length:--text-micro) text-muted-foreground">
-            Saving creates rev {(doc?.latestRevisionNumber ?? 0) + 1} · ⌘↵ to save · Esc to cancel
-          </span>
+          <span className="text-(length:--text-micro) text-muted-foreground">{uiText("Saving creates rev")}{" "}{(doc?.latestRevisionNumber ?? 0) + 1}{" "}{uiText("· ⌘↵ to save · Esc to cancel")}{" "}</span>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={saveMutation.isPending}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button size="sm" onClick={() => void handleSave()} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-              {saveMutation.isPending ? "Saving…" : "Save"}
+              {saveMutation.isPending ? uiText("Saving…") : uiText("Save")}
             </Button>
           </div>
         </div>
@@ -327,23 +326,18 @@ export function PipelineItemBodyDocument({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Viewing revision {selectedHistoricalRevision.revisionNumber}
+                {uiText("Viewing revision")} {selectedHistoricalRevision.revisionNumber}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Historical preview. New comments are disabled while previewing a historical revision. Restoring it
-                creates a new latest revision and keeps history append-only.
-              </p>
+              <p className="text-xs text-muted-foreground">{uiText("Historical preview. New comments are disabled while previewing a historical revision. Restoring it creates a new latest revision and keeps history append-only.")}{" "}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setSelectedRevisionId(null)}>
-                Return to latest
-              </Button>
+              <Button variant="outline" size="sm" onClick={() => setSelectedRevisionId(null)}>{uiText("Return to latest")}{" "}</Button>
               <Button
                 size="sm"
                 onClick={() => restoreMutation.mutate(selectedHistoricalRevision.id)}
                 disabled={restoreMutation.isPending}
               >
-                {restoreMutation.isPending ? "Restoring…" : "Restore this revision"}
+                {restoreMutation.isPending ? uiText("Restoring…") : uiText("Restore this revision")}
               </Button>
             </div>
           </div>
@@ -357,7 +351,7 @@ export function PipelineItemBodyDocument({
   } else if (!hasDocument) {
     // Truly empty (A).
     bodyContent = (
-      <EmptyState icon={FileText} message="No body yet. Capture the item's details here." action="Add the item body" onAction={beginEdit} />
+      <EmptyState icon={FileText} message={uiText("No body yet. Capture the item's details here.")} action="Add the item body" onAction={beginEdit} />
     );
   } else if (annotationsLinked && bodyIssueDocument) {
     bodyContent = (
@@ -407,7 +401,7 @@ export function PipelineItemBodyDocument({
 
   return (
     <section
-      aria-label="Item body"
+      aria-label={uiText("Item body")}
       id="pipeline-item-body-document"
       data-testid="pipeline-item-body-document"
       className="rounded-lg border border-border p-3"
@@ -448,7 +442,7 @@ export function PipelineItemBodyDocument({
         ) : (
           <Button variant="ghost" size="sm" className="h-auto gap-1.5 px-2 py-1 text-xs" onClick={beginEdit}>
             <FilePenLine className="h-3.5 w-3.5" />
-            Edit
+            {uiText("Edit")}
           </Button>
         )}
       />

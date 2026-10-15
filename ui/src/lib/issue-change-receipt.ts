@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { IssueChangeReceiptEntry } from "@paperclipai/shared";
 import { formatReviewPolicyValue } from "./review-policy";
 
@@ -17,28 +18,28 @@ import { formatReviewPolicyValue } from "./review-policy";
 
 /** Field names whose raw ids carry no meaning in a scannable summary. */
 const FIELD_LABELS: Record<string, string> = {
-  assigneeAgentId: "Assignee",
+  assigneeAgentId: uiText("Assignee"),
   assigneeUserId: "Assignee (user)",
   responsibleUserId: "Responsible user",
-  blockedByIssueIds: "Blockers",
-  labelIds: "Labels",
-  parentId: "Parent",
-  projectId: "Project",
-  goalId: "Goal",
+  blockedByIssueIds: uiText("Blockers"),
+  labelIds: uiText("Labels"),
+  parentId: uiText("Parent"),
+  projectId: uiText("Project"),
+  goalId: uiText("Goal"),
   workMode: "Work mode",
   reviewPolicy: "Who can approve",
   billingCode: "Billing code",
   checkoutRunId: "Checkout run",
   executionRunId: "Execution run",
-  hiddenAt: "Hidden",
-  startedAt: "Started",
-  completedAt: "Completed",
-  cancelledAt: "Cancelled",
+  hiddenAt: uiText("Hidden"),
+  startedAt: uiText("Started"),
+  completedAt: uiText("Completed"),
+  cancelledAt: uiText("Cancelled"),
   requestDepth: "Request depth",
   sourceTrust: "Source trust",
   executionPolicy: "Execution policy",
-  executionWorkspaceId: "Execution workspace",
-  projectWorkspaceId: "Project workspace",
+  executionWorkspaceId: uiText("Execution workspace"),
+  projectWorkspaceId: uiText("Project workspace"),
 };
 
 /** Human label for a changed field, e.g. `assigneeAgentId` → "Assignee". */

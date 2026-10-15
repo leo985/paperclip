@@ -1,9 +1,10 @@
+import { uiText } from "@/i18n/interface";
 export type TaskDateGroup = "today" | "yesterday" | "earlier";
 
 export const taskDateGroupLabels: Record<TaskDateGroup, string> = {
-  today: "Today",
-  yesterday: "Yesterday",
-  earlier: "Earlier",
+  today: uiText("Today"),
+  yesterday: uiText("Yesterday"),
+  earlier: uiText("Earlier"),
 };
 
 function localCalendarOrdinal(date: Date): number {

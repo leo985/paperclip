@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Check,
@@ -120,7 +121,7 @@ function selectionLabel({
   allLabel: string;
 }) {
   if (selection === "all") return allLabel;
-  if (selection === "unfiled") return "Unfiled";
+  if (selection === "unfiled") return uiText("Unfiled");
   return folders.find((folder) => folder.id === selection)?.name ?? allLabel;
 }
 
@@ -222,10 +223,10 @@ export function FolderRail({
   }
 
   return (
-    <nav aria-label={`${itemLabelPlural} folders`} className="hidden w-(--sz-folder-rail) shrink-0 border-r border-border pr-3 md:block">
+    <nav aria-label={uiTextFormat("__PCVAR0__ folders", [itemLabelPlural])} className="hidden w-(--sz-folder-rail) shrink-0 border-r border-border pr-3 md:block">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">Folders</div>
-        <Button variant="ghost" size="icon-sm" title="New folder" onClick={onCreate}>
+        <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">{uiText("Folders")}</div>
+        <Button variant="ghost" size="icon-sm" title={uiText("New folder")} onClick={onCreate}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -255,7 +256,7 @@ export function FolderRail({
             />
           ))}
           <div className="px-2 pb-1 pt-3 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-            System
+            {uiText("System")}
           </div>
           {renderVirtualRow("unfiled", "Unfiled", result?.unfiledCount ?? 0, <FolderSwatch color={null} className="mt-0.5" />)}
         </div>
@@ -334,18 +335,18 @@ export function FolderRailItem({
             variant="ghost"
             size="icon-sm"
             className="h-6 w-6 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
-            aria-label={`Folder actions for ${folder.name}`}
+            aria-label={uiTextFormat("Folder actions for __PCVAR0__", [folder.name])}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={onStartRename}>Rename</DropdownMenuItem>
-          <DropdownMenuItem onSelect={onEdit}>Edit color</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onStartRename}>{uiText("Rename")}</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onEdit}>{uiText("Edit color")}</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={onDelete}>
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
+            {uiText("Delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -388,13 +389,9 @@ export function AllUnfiledBanner({
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
       <FolderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <span className="min-w-0 flex-1 text-muted-foreground">
-        Group these {itemLabelPlural} into folders to keep things tidy.
-      </span>
-      <Button size="sm" variant="outline" onClick={onCreateFolder}>
-        Create your first folder
-      </Button>
-      <Button size="icon-sm" variant="ghost" aria-label="Dismiss folder suggestion" onClick={dismiss}>
+      <span className="min-w-0 flex-1 text-muted-foreground">{uiText("Group these")}{" "}{itemLabelPlural}{" "}{uiText("into folders to keep things tidy.")}{" "}</span>
+      <Button size="sm" variant="outline" onClick={onCreateFolder}>{uiText("Create your first folder")}{" "}</Button>
+      <Button size="icon-sm" variant="ghost" aria-label={uiText("Dismiss folder suggestion")} onClick={dismiss}>
         <X className="h-3.5 w-3.5" />
       </Button>
     </div>
@@ -466,7 +463,7 @@ export function MobileFolderSheet({
             <>
               {model.my ? renderBranch(model.my, "My Skills") : null}
               <div className="px-2 pb-0.5 pt-2 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                Organization
+                {uiText("Organization")}
               </div>
               {model.company.map((node) => renderBranch(node))}
               {model.projects ? renderBranch(model.projects, "Projects") : null}
@@ -477,7 +474,7 @@ export function MobileFolderSheet({
           )}
           <MobileFolderRow
             id="unfiled"
-            label="Unfiled"
+            label={uiText("Unfiled")}
             count={result?.unfiledCount ?? 0}
             selected={selection === "unfiled"}
             onSelect={select}
@@ -486,7 +483,7 @@ export function MobileFolderSheet({
         <div className="border-t border-border px-4 pt-3">
           <Button size="sm" variant="outline" className="w-full" onClick={onCreate}>
             <Plus className="mr-2 h-3.5 w-3.5" />
-            New folder
+            {uiText("New folder")}
           </Button>
         </div>
       </SheetContent>
@@ -538,7 +535,7 @@ export function MoveToMenu({
 }) {
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger>Move to...</DropdownMenuSubTrigger>
+      <DropdownMenuSubTrigger>{uiText("Move to...")}</DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="w-56">
         <MoveToMenuItems
           folders={folders}
@@ -577,14 +574,14 @@ function MoveToMenuItems({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => event.stopPropagation()}
-            placeholder="Search folders"
+            placeholder={uiText("Search folders")}
             className="h-7 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onMove(null)}>
           <FolderSwatch color={null} />
-          Unfiled
+          {uiText("Unfiled")}
           {currentFolderId == null ? <Check className="ml-auto h-3.5 w-3.5" /> : null}
         </DropdownMenuItem>
         {visibleFolders.map((folder) => (
@@ -595,13 +592,11 @@ function MoveToMenuItems({
           </DropdownMenuItem>
         ))}
         {visibleFolders.length === 0 ? (
-          <div className="px-2 py-2 text-xs text-muted-foreground">No folders match.</div>
+          <div className="px-2 py-2 text-xs text-muted-foreground">{uiText("No folders match.")}</div>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onCreateAndMove}>
-          <Plus className="h-3.5 w-3.5" />
-          New folder...
-        </DropdownMenuItem>
+          <Plus className="h-3.5 w-3.5" />{uiText("New folder...")}{" "}</DropdownMenuItem>
     </>
   );
 }
@@ -635,14 +630,14 @@ export function FolderFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit folder" : "Create folder"}</DialogTitle>
+          <DialogTitle>{isEdit ? uiText("Edit folder") : uiText("Create folder")}</DialogTitle>
           <DialogDescription>
-            {kind === "routine" ? "Organize routines in this organization." : "Organize installed organization skills."}
+            {kind === "routine" ? uiText("Organize routines in this organization.") : uiText("Organize installed organization skills.")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="folder-name">Name</label>
+            <label className="text-sm font-medium" htmlFor="folder-name">{uiText("Name")}</label>
             <Input
               id="folder-name"
               value={name}
@@ -654,13 +649,13 @@ export function FolderFormDialog({
             />
           </div>
           <div className="space-y-2">
-            <div className="text-sm font-medium">Color</div>
+            <div className="text-sm font-medium">{uiText("Color")}</div>
             <div className="flex flex-wrap gap-2">
               {FOLDER_COLORS.map((swatch) => (
                 <button
                   key={swatch}
                   type="button"
-                  aria-label={`Use folder color ${swatch}`}
+                  aria-label={uiTextFormat("Use folder color __PCVAR0__", [swatch])}
                   className={cn(
                     "h-7 w-7 rounded-md border border-border",
                     color === swatch && "ring-2 ring-ring ring-offset-2 ring-offset-background",
@@ -677,17 +672,17 @@ export function FolderFormDialog({
                 )}
                 onClick={() => setColor(null)}
               >
-                None
+                {uiText("None")}
               </button>
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
+            {uiText("Cancel")}
           </Button>
           <Button onClick={() => onSubmit({ name: name.trim(), color })} disabled={pending || !name.trim()}>
-            {pending ? "Saving..." : isEdit ? "Save" : "Create folder"}
+            {pending ? uiText("Saving...") : isEdit ? uiText("Save") : uiText("Create folder")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -714,13 +709,11 @@ export function DeleteFolderDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete folder</AlertDialogTitle>
-          <AlertDialogDescription>
-            The {folder?.itemCount ?? 0} {itemLabelPlural} in this folder won't be deleted. They'll move to Unfiled.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{uiText("Delete folder")}</AlertDialogTitle>
+          <AlertDialogDescription>{uiText("The")}{" "}{folder?.itemCount ?? 0} {itemLabelPlural}{" "}{uiText("in this folder won't be deleted. They'll move to Unfiled.")}{" "}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{uiText("Cancel")}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={pending || !folder}
@@ -729,7 +722,7 @@ export function DeleteFolderDialog({
               onConfirm();
             }}
           >
-            {pending ? "Deleting..." : "Delete folder"}
+            {pending ? uiText("Deleting...") : uiText("Delete folder")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -758,7 +751,7 @@ export function BulkBar({
       <span className="mr-auto text-sm text-muted-foreground">{selectedCount} selected</span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline">Move to...</Button>
+          <Button size="sm" variant="outline">{uiText("Move to...")}</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <MoveToMenuItems
@@ -769,8 +762,8 @@ export function BulkBar({
           />
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button size="sm" variant="ghost" onClick={onClear}>Deselect all</Button>
-      <Button size="sm" onClick={onDone}>Done</Button>
+      <Button size="sm" variant="ghost" onClick={onClear}>{uiText("Deselect all")}</Button>
+      <Button size="sm" onClick={onDone}>{uiText("Done")}</Button>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ShortcutEntry {
@@ -15,48 +16,48 @@ interface ShortcutSection {
 
 const sections: ShortcutSection[] = [
   {
-    title: "Inbox",
+    title: uiText("Inbox"),
     shortcuts: [
-      { keys: ["j"], label: "Move down" },
-      { keys: ["↓"], label: "Move down" },
-      { keys: ["k"], label: "Move up" },
-      { keys: ["↑"], label: "Move up" },
-      { keys: ["←"], label: "Collapse selected group" },
-      { keys: ["→"], label: "Expand selected group" },
-      { keys: ["Enter"], label: "Open selected item" },
-      { keys: ["a"], label: "Archive item" },
-      { keys: ["y"], label: "Archive item" },
-      { keys: ["r"], label: "Mark as read" },
-      { keys: ["U"], label: "Mark as unread" },
+      { keys: ["j"], label: uiText("Move down") },
+      { keys: ["↓"], label: uiText("Move down") },
+      { keys: ["k"], label: uiText("Move up") },
+      { keys: ["↑"], label: uiText("Move up") },
+      { keys: ["←"], label: uiText("Collapse selected group") },
+      { keys: ["→"], label: uiText("Expand selected group") },
+      { keys: ["Enter"], label: uiText("Open selected item") },
+      { keys: ["a"], label: uiText("Archive item") },
+      { keys: ["y"], label: uiText("Archive item") },
+      { keys: ["r"], label: uiText("Mark as read") },
+      { keys: ["U"], label: uiText("Mark as unread") },
     ],
   },
   {
-    title: "Task detail",
+    title: uiText("Task detail"),
     shortcuts: [
-      { keys: ["y"], label: "Quick-archive back to inbox" },
-      { keys: ["g", "i"], label: "Go to inbox" },
-      { keys: ["g", "c"], label: "Focus comment composer" },
+      { keys: ["y"], label: uiText("Quick-archive back to inbox") },
+      { keys: ["g", "i"], label: uiText("Go to inbox") },
+      { keys: ["g", "c"], label: uiText("Focus comment composer") },
     ],
   },
   {
-    title: "Decisions",
+    title: uiText("Decisions"),
     shortcuts: [
-      { keys: ["j"], label: "Move down" },
-      { keys: ["↓"], label: "Move down" },
-      { keys: ["k"], label: "Move up" },
-      { keys: ["↑"], label: "Move up" },
-      { keys: ["Enter"], label: "Open or close selected decision" },
-      { keys: ["x"], label: "Dismiss selected decision" },
+      { keys: ["j"], label: uiText("Move down") },
+      { keys: ["↓"], label: uiText("Move down") },
+      { keys: ["k"], label: uiText("Move up") },
+      { keys: ["↑"], label: uiText("Move up") },
+      { keys: ["Enter"], label: uiText("Open or close selected decision") },
+      { keys: ["x"], label: uiText("Dismiss selected decision") },
     ],
   },
   {
-    title: "Global",
+    title: uiText("Global"),
     shortcuts: [
-      { keys: ["/"], label: "Search current page or quick search" },
-      { keys: ["c"], label: "New task" },
-      { keys: ["["], label: "Toggle sidebar" },
-      { keys: ["]"], label: "Toggle panel" },
-      { keys: ["?"], label: "Show keyboard shortcuts" },
+      { keys: ["/"], label: uiText("Search current page or quick search") },
+      { keys: ["c"], label: uiText("New task") },
+      { keys: ["["], label: uiText("Toggle sidebar") },
+      { keys: ["]"], label: uiText("Toggle panel") },
+      { keys: ["?"], label: uiText("Show keyboard shortcuts") },
     ],
   },
 ];
@@ -104,9 +105,7 @@ export function KeyboardShortcutsCheatsheetContent() {
         ))}
       </div>
       <div className="border-t border-border px-5 py-3">
-        <p className="text-xs text-muted-foreground">
-          Press <KeyCap>Esc</KeyCap> to close &middot; Shortcuts are disabled in text fields
-        </p>
+        <p className="text-xs text-muted-foreground">{uiText("Press")}{" "}<KeyCap>Esc</KeyCap>{" "}{uiText("to close · Shortcuts are disabled in text fields")}{" "}</p>
       </div>
     </>
   );
@@ -123,7 +122,7 @@ export function KeyboardShortcutsCheatsheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden" showCloseButton={false}>
         <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle className="text-base">Keyboard shortcuts</DialogTitle>
+          <DialogTitle className="text-base">{uiText("Keyboard shortcuts")}</DialogTitle>
         </DialogHeader>
         <KeyboardShortcutsCheatsheetContent />
       </DialogContent>

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -34,19 +35,19 @@ export async function fetchIssueExternalObjectSummariesInBatches(
 function formatMentionSourceLabel(mention: ExternalObjectMention): string {
   switch (mention.sourceKind) {
     case "title":
-      return "Title";
+      return uiText("Title");
     case "description":
-      return "Description";
+      return uiText("Description");
     case "comment":
-      return "Comment";
+      return uiText("Comment");
     case "document":
       return mention.documentKey ? `Document: ${mention.documentKey}` : "Document";
     case "property":
       return mention.propertyKey ? `Property: ${mention.propertyKey}` : "Property";
     case "plugin":
-      return "Plugin";
+      return uiText("Plugin");
     default:
-      return "Source";
+      return uiText("Source");
   }
 }
 

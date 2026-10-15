@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy } from "lucide-react";
@@ -14,27 +15,27 @@ import { Badge } from "@/components/ui/badge";
 const inviteRoleOptions = [
   {
     value: "viewer",
-    label: "Viewer",
-    description: "Can view organization work and follow along.",
-    gets: "View-only organization membership.",
+    label: "观察成员",
+    description: "查看组织工单进度与效果数据。",
+    gets: "仅可查看，不能执行工单或提交决策。",
   },
   {
     value: "operator",
-    label: "Operator",
-    description: "Recommended for people who need to help run work without managing access.",
-    gets: "Can assign tasks.",
+    label: "研发成员",
+    description: "适用于参与研发并使用本机 Claude 执行工单的人员。",
+    gets: "使用已授权席位接入、执行工单并处理任务决策。",
   },
   {
     value: "admin",
-    label: "Admin",
-    description: "Recommended for operators who need to invite people, create agents, and approve joins.",
-    gets: "Can create agents, invite users, assign tasks, and approve join requests.",
+    label: "组织管理员",
+    description: "适用于维护组织项目、共享仓库、席位和接单配置的人员。",
+    gets: "可以配置执行智能体、邀请人员和审批加入申请；实例级配置仍需实例管理员。",
   },
   {
     value: "owner",
-    label: "Owner",
-    description: "Full organization access, including membership management.",
-    gets: "Everything in Admin, plus managing members.",
+    label: "组织负责人",
+    description: "管理组织权限与管理员，建议仅授予少量负责人。",
+    gets: "拥有组织管理员能力，并管理成员权限。",
   },
 ] as const;
 
@@ -76,7 +77,7 @@ export function InvitesSection() {
       afterFallback?.();
     }
     pushToast({
-      title: "Clipboard unavailable",
+      title: "浏览器不允许自动复制",
       body: unavailableBody,
       tone: "warn",
     });
@@ -84,7 +85,7 @@ export function InvitesSection() {
   }
 
   async function copyInviteUrl(url: string) {
-    return copyText(url, "The invite URL is selected. Copy it manually from the field.", selectLatestInviteUrl);
+    return copyText(url, "已选中邀请链接，请手动复制。", selectLatestInviteUrl);
   }
 
   const inviteHistoryQueryKey = queryKeys.access.invites(selectedCompanyId ?? "", "all", INVITE_HISTORY_PAGE_SIZE);
@@ -117,19 +118,19 @@ export function InvitesSection() {
     onSuccess: async (invite) => {
       setLatestInviteUrl(invite.inviteUrl);
       setLatestInviteCopied(false);
-      const copied = await copyText(invite.inviteUrl, "Copy the invite URL manually from the field below.");
+      const copied = await copyText(invite.inviteUrl, "请从下方输入框手动复制邀请链接。");
 
       await queryClient.invalidateQueries({ queryKey: inviteHistoryQueryKey });
       pushToast({
-        title: "Invite created",
-        body: copied ? "Invite ready below and copied to clipboard." : "Invite ready below.",
+        title: "邀请已创建",
+        body: copied ? "邀请链接已生成并复制。" : "邀请链接已在下方生成。",
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to create invite",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "创建邀请失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
@@ -139,52 +140,51 @@ export function InvitesSection() {
     mutationFn: (inviteId: string) => accessApi.revokeInvite(inviteId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: inviteHistoryQueryKey });
-      pushToast({ title: "Invite revoked", tone: "success" });
+      pushToast({ title: "邀请已撤销", tone: "success" });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to revoke invite",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: "撤销邀请失败",
+        body: error instanceof Error ? error.message : "未知错误",
         tone: "error",
       });
     },
   });
 
   if (!selectedCompanyId) {
-    return <div className="text-sm text-muted-foreground">Select an organization to manage invites.</div>;
+    return <div className="text-sm text-muted-foreground">请先选择要管理邀请的组织。</div>;
   }
 
   if (invitesQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading invites…</div>;
+    return <div className="text-sm text-muted-foreground">正在加载邀请…</div>;
   }
 
   if (invitesQuery.error) {
     const message =
       invitesQuery.error instanceof ApiError && invitesQuery.error.status === 403
-        ? "You do not have permission to manage organization invites."
+        ? "你没有管理组织邀请的权限。"
         : invitesQuery.error instanceof Error
           ? invitesQuery.error.message
-          : "Failed to load invites.";
+          : "邀请加载失败。";
     return <div className="text-sm text-destructive">{message}</div>;
   }
 
   return (
     <div className="max-w-6xl space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Invite people to request access to this organization. New invite links are copied to your clipboard when they are
-        generated.
+        邀请人员加入此组织。链接生成后会尝试复制；浏览器不允许复制时，可手动选中链接复制。
       </p>
 
       <section className="space-y-4 rounded-xl border border-border p-5">
         <div className="space-y-1">
-          <h2 className="text-sm font-semibold">Invite a person</h2>
+          <h2 className="text-sm font-semibold">邀请人员</h2>
           <p className="text-sm text-muted-foreground">
-            Generate a human invite link and choose the default access it should request.
+            生成一次性人员邀请链接，并选择加入后的组织角色。
           </p>
         </div>
 
         <fieldset className="space-y-3">
-          <legend className="text-sm font-medium">Choose a role</legend>
+          <legend className="text-sm font-medium">选择角色</legend>
           <div className="rounded-xl border border-border">
             {inviteRoleOptions.map((option, index) => {
               const checked = humanRole === option.value;
@@ -206,7 +206,7 @@ export function InvitesSection() {
                       <span className="text-sm font-medium">{option.label}</span>
                       {option.value === "operator" ? (
                         <Badge variant="outline" className="border-border text-muted-foreground">
-                          Default
+                          {uiText("Default")}
                         </Badge>
                       ) : null}
                     </span>
@@ -220,34 +220,32 @@ export function InvitesSection() {
         </fieldset>
 
         <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-          Each invite link is single-use. Human invitees get the selected role immediately after sign-in; agent invites still create a join request for approval.
+          每条邀请链接仅可使用一次。人员登录加入后立即获得所选角色；智能体邀请仍需审批。
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => createInviteMutation.mutate()} disabled={createInviteMutation.isPending}>
-            {createInviteMutation.isPending ? "Creating…" : "Create invite"}
+            {createInviteMutation.isPending ? uiText("Creating…") : uiText("Create invite")}
           </Button>
-          <span className="text-sm text-muted-foreground">Invite history below keeps the audit trail.</span>
+          <span className="text-sm text-muted-foreground">下方邀请历史保留操作记录。</span>
         </div>
 
         {latestInviteUrl ? (
           <div className="space-y-3 rounded-lg border border-border px-4 py-4">
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-3">
-                <div className="text-sm font-medium">Latest invite link</div>
+                <div className="text-sm font-medium">最新邀请链接</div>
                 {latestInviteCopied ? (
                   <div className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
                     <Check className="h-3.5 w-3.5" />
-                    Copied
+                    {uiText("Copied")}
                   </div>
                 ) : null}
               </div>
-              <div className="text-sm text-muted-foreground">
-                This URL includes the current Paperclip domain returned by the server.
-              </div>
+              <div className="text-sm text-muted-foreground">{uiText("This URL includes the current Paperclip domain returned by the server.")}{" "}</div>
             </div>
             <label className="block space-y-1">
-              <span className="sr-only">Latest invite URL</span>
+              <span className="sr-only">最新邀请链接</span>
               <input
                 ref={latestInviteInputRef}
                 readOnly
@@ -255,7 +253,7 @@ export function InvitesSection() {
                 onFocus={(event) => event.currentTarget.select()}
                 onClick={(event) => event.currentTarget.select()}
                 className="w-full rounded-md border border-border bg-muted/60 px-3 py-2 text-sm text-foreground outline-none transition-colors selection:bg-primary selection:text-primary-foreground focus:border-ring"
-                aria-label="Latest invite URL"
+                aria-label="最新邀请链接"
               />
             </label>
             <div className="flex flex-wrap gap-2">
@@ -269,7 +267,7 @@ export function InvitesSection() {
                 }}
               >
                 <Copy className="h-4 w-4" />
-                Copy link
+                {uiText("Copy link")}
               </Button>
             </div>
           </div>
@@ -279,19 +277,15 @@ export function InvitesSection() {
       <section className="rounded-xl border border-border">
         <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-semibold">Invite history</h2>
-            <p className="text-sm text-muted-foreground">
-              Review invite status, audience, inviter, and any linked join request.
-            </p>
+            <h2 className="text-sm font-semibold">邀请历史</h2>
+            <p className="text-sm text-muted-foreground">{uiText("Review invite status, audience, inviter, and any linked join request.")}{" "}</p>
           </div>
-          <Link to="/inbox/requests" className="text-sm underline underline-offset-4">
-            Open join request queue
-          </Link>
+          <Link to="/inbox/requests" className="text-sm underline underline-offset-4">{uiText("Open join request queue")}{" "}</Link>
         </div>
 
         {inviteHistory.length === 0 ? (
           <div className="border-t border-border px-5 py-8 text-sm text-muted-foreground">
-            No invites have been created for this organization yet.
+            此组织尚未创建邀请。
           </div>
         ) : (
           <div className="border-t border-border">
@@ -299,12 +293,12 @@ export function InvitesSection() {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-5 py-3 font-medium text-muted-foreground">State</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">For</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Invited by</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Created</th>
-                    <th className="px-5 py-3 font-medium text-muted-foreground">Join request</th>
-                    <th className="px-5 py-3 text-right font-medium text-muted-foreground">Action</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{uiText("State")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{uiText("For")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{uiText("Invited by")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">{uiText("Created")}</th>
+                    <th className="px-5 py-3 font-medium text-muted-foreground">加入申请</th>
+                    <th className="px-5 py-3 text-right font-medium text-muted-foreground">{uiText("Action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,7 +311,7 @@ export function InvitesSection() {
                       </td>
                       <td className="px-5 py-3 align-top">{formatInviteAudience(invite)}</td>
                       <td className="px-5 py-3 align-top">
-                        <div>{invite.invitedByUser?.name || invite.invitedByUser?.email || "Unknown inviter"}</div>
+                        <div>{invite.invitedByUser?.name || invite.invitedByUser?.email || "未知邀请人"}</div>
                         {invite.invitedByUser?.email && invite.invitedByUser.name ? (
                           <div className="text-xs text-muted-foreground">{invite.invitedByUser.email}</div>
                         ) : null}
@@ -328,7 +322,7 @@ export function InvitesSection() {
                       <td className="px-5 py-3 align-top">
                         {invite.relatedJoinRequestId ? (
                           <Link to="/inbox/requests" className="underline underline-offset-4">
-                            Review request
+                            {uiText("Review request")}
                           </Link>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -342,10 +336,10 @@ export function InvitesSection() {
                             onClick={() => revokeMutation.mutate(invite.id)}
                             disabled={revokeMutation.isPending}
                           >
-                            Revoke
+                            {uiText("Revoke")}
                           </Button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Inactive</span>
+                          <span className="text-xs text-muted-foreground">{uiText("Inactive")}</span>
                         )}
                       </td>
                     </tr>
@@ -361,7 +355,7 @@ export function InvitesSection() {
                   onClick={() => invitesQuery.fetchNextPage()}
                   disabled={invitesQuery.isFetchingNextPage}
                 >
-                  {invitesQuery.isFetchingNextPage ? "Loading more…" : "View more"}
+                  {invitesQuery.isFetchingNextPage ? "正在加载更多…" : "查看更多"}
                 </Button>
               </div>
             ) : null}
@@ -373,11 +367,12 @@ export function InvitesSection() {
 }
 
 function formatInviteState(state: "active" | "accepted" | "expired" | "revoked") {
-  return state.charAt(0).toUpperCase() + state.slice(1);
+  return ({ active: "可使用", accepted: "已接受", expired: "已过期", revoked: "已撤销" })[state];
 }
 
 function formatInviteAudience(invite: Awaited<ReturnType<typeof accessApi.listInvites>>["invites"][number]) {
-  if (invite.allowedJoinTypes === "agent") return "Agent";
-  if (invite.allowedJoinTypes === "both") return invite.humanRole ? `Human or agent · ${invite.humanRole}` : "Human or agent";
-  return invite.humanRole ?? "Human";
+  const role = inviteRoleOptions.find(option => option.value === invite.humanRole)?.label;
+  if (invite.allowedJoinTypes === "agent") return "智能体";
+  if (invite.allowedJoinTypes === "both") return role ? `人员或智能体 · ${role}` : "人员或智能体";
+  return role ?? "人员";
 }

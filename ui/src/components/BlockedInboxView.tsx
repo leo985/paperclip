@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -159,9 +160,8 @@ export function BlockedInboxView({
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium">Couldn't load the Blocked tab.</p>
-            <p className="text-xs opacity-80">
-              Other Inbox tabs still work. {message}
+            <p className="text-sm font-medium">{uiText("Couldn't load the Blocked tab.")}</p>
+            <p className="text-xs opacity-80">{uiText("Other Inbox tabs still work.")}{" "}{message}
             </p>
           </div>
           <Button
@@ -172,7 +172,7 @@ export function BlockedInboxView({
             onClick={() => void refetch()}
             disabled={isFetching}
           >
-            {isFetching ? "Trying…" : "Try again"}
+            {isFetching ? uiText("Trying…") : uiText("Try again")}
           </Button>
         </div>
       </div>
@@ -189,10 +189,8 @@ export function BlockedInboxView({
           <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">No work is stopped.</p>
-          <p className="text-xs text-muted-foreground">
-            Tasks that need a decision, recovery, or external action will appear here.
-          </p>
+          <p className="text-sm font-medium text-foreground">{uiText("No work is stopped.")}</p>
+          <p className="text-xs text-muted-foreground">{uiText("Tasks that need a decision, recovery, or external action will appear here.")}{" "}</p>
         </div>
       </Card>
     );
@@ -204,9 +202,7 @@ export function BlockedInboxView({
         <Card
           data-testid="blocked-inbox-no-search-results"
           className="block border-border/70 bg-card/40 px-4 py-6 text-center text-sm text-muted-foreground"
-        >
-          No stopped items match your search.
-        </Card>
+        >{uiText("No stopped items match your search.")}{" "}</Card>
       </div>
     );
   }

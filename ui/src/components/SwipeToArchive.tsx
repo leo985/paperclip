@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Archive } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -200,7 +201,7 @@ export function SwipeToArchive({
       >
         <span className="inline-flex items-center gap-2 text-sm font-medium">
           <Archive className="h-4 w-4" />
-          Archive
+          {uiText("Archive")}
         </span>
       </div>
       <div

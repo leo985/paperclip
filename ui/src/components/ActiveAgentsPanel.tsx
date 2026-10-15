@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { memo, useMemo } from "react";
 import { Link } from "@/lib/router";
@@ -23,13 +24,13 @@ const EMPTY_TRANSCRIPT: TranscriptEntry[] = [];
 const EMPTY_RUNS: LiveRunForIssue[] = [];
 
 const runStatusLabels: Record<string, string> = {
-  running: "Running",
-  queued: "Queued",
-  succeeded: "Succeeded",
-  failed: "Failed",
-  timed_out: "Timed out",
-  cancelled: "Cancelled",
-  interrupted: "Interrupted",
+  running: uiText("Running"),
+  queued: uiText("Queued"),
+  succeeded: uiText("Succeeded"),
+  failed: uiText("Failed"),
+  timed_out: uiText("Timed out"),
+  cancelled: uiText("Cancelled"),
+  interrupted: uiText("Interrupted"),
 };
 
 interface ActiveAgentsPanelProps {
@@ -139,8 +140,8 @@ export function ActiveAgentsPanel({
         <div className="mt-3 flex justify-end text-xs text-muted-foreground">
           <Link to="/dashboard/live" className="hover:text-foreground hover:underline">
             {hiddenRunCount > 0
-              ? `${hiddenRunCount} more active/recent run${hiddenRunCount === 1 ? "" : "s"}`
-              : "View all runs"}
+              ? uiTextFormat("__PCVAR0__ more active/recent run__PCVAR1__", [hiddenRunCount, ""])
+              : uiText("View all runs")}
           </Link>
         </div>
       )}
@@ -170,8 +171,8 @@ export const AgentRunCard = memo(function AgentRunCard({
   const statusLabel = runStatusLabels[run.status] ?? run.status.replace(/[_-]/g, " ");
   const runUrl = `/agents/${run.agentId}/runs/${run.id}`;
   const timestamp = run.finishedAt
-    ? `Finished ${relativeTime(run.finishedAt)}`
-    : run.startedAt ? `Started ${relativeTime(run.startedAt)}` : `Queued ${relativeTime(run.createdAt)}`;
+    ? `结束于 ${relativeTime(run.finishedAt)}`
+    : run.startedAt ? `开始于 ${relativeTime(run.startedAt)}` : `排队于 ${relativeTime(run.createdAt)}`;
   const taskTitle = issue?.title ?? (issueLoadFailed ? "Task unavailable" : "Loading task…");
 
   return (
@@ -187,7 +188,7 @@ export const AgentRunCard = memo(function AgentRunCard({
         <Link
           to={runUrl}
           title={`${run.agentName} — ${statusLabel} · ${timestamp}`}
-          aria-label={`${run.agentName} — ${statusLabel}. View run`}
+          aria-label={uiTextFormat("__PCVAR0__ — __PCVAR1__. View run", [run.agentName, statusLabel])}
           className="flex min-w-0 items-center gap-2 rounded-md text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <AgentIdentity agent={{ id: run.agentId, name: run.agentName, appearance: run.agentAppearance }} size="sm" className="gap-2 font-medium" />
@@ -205,7 +206,7 @@ export const AgentRunCard = memo(function AgentRunCard({
                   status={issue?.status ?? "backlog"}
                   size="md"
                   className="self-center"
-                  title={issue ? `Task ${issue.status.replace(/_/g, " ")}` : undefined}
+                  title={issue ? uiTextFormat("Task __PCVAR0__", [issue.status.replace(/_/g, " ")]) : undefined}
                 />
                 <span className="truncate">{taskTitle}</span>
               </span>
@@ -215,7 +216,7 @@ export const AgentRunCard = memo(function AgentRunCard({
         ) : (
           <Link to={runUrl} className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-background/60 px-2.5 py-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Clock3 className="size-4 shrink-0" aria-hidden />
-            <span className="truncate">{run.invocationSource === "timer" ? "Scheduled heartbeat" : "No linked task"}</span>
+            <span className="truncate">{run.invocationSource === "timer" ? uiText("Scheduled heartbeat") : uiText("No linked task")}</span>
           </Link>
         )}
         <time

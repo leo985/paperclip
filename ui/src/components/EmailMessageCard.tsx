@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Mail, Paperclip } from "lucide-react";
@@ -62,14 +63,14 @@ export function EmailMessageCard({
   return (
     <article
       aria-label={
-        message.direction === "inbound" ? "Email received" : "Email sent"
+        message.direction === "inbound" ? uiText("Email received") : uiText("Email sent")
       }
       className="space-y-4 rounded-xl border border-border bg-card p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-sm font-semibold">
           <Mail className="size-4" />
-          {message.direction === "inbound" ? "Email received" : "Email sent"}
+          {message.direction === "inbound" ? uiText("Email received") : uiText("Email sent")}
         </span>
         <span className="text-xs text-muted-foreground">
           {new Date(message.timestamp).toLocaleString()}
@@ -80,22 +81,21 @@ export function EmailMessageCard({
           {message.from}
           {message.direction === "inbound" && (
             <span className="ml-2 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-              External
+              {uiText("External")}
             </span>
           )}
         </p>
         <p className="break-words text-xs text-muted-foreground">
-          To: {message.to.join(", ")}
+          {uiText("To:")} {message.to.join(", ")}
         </p>
         {!!message.cc?.length && (
-          <p className="break-words text-xs text-muted-foreground">
-            Cc: {message.cc.join(", ")}
+          <p className="break-words text-xs text-muted-foreground">{uiText("Cc:")}{" "}{message.cc.join(", ")}
           </p>
         )}
         <p className="text-sm font-semibold">{message.subject}</p>
       </div>
       <div className="whitespace-pre-wrap break-words text-sm">
-        {message.text || "(No text body)"}
+        {message.text || uiText("(No text body)")}
       </div>
       {!!message.attachmentIds.length && (
         <div className="flex flex-wrap gap-2">
@@ -110,17 +110,17 @@ export function EmailMessageCard({
                 className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs"
               >
                 <Paperclip className="size-3.5" />
-                {attachment?.originalFilename ?? "Open attachment"}
+                {attachment?.originalFilename ?? uiText("Open attachment")}
               </a>
             );
           })}
         </div>
       )}
       <details className="text-xs text-muted-foreground">
-        <summary className="cursor-pointer">Email details</summary>
+        <summary className="cursor-pointer">{uiText("Email details")}</summary>
         <div className="space-y-2 pt-3">
-          {!!message.bcc?.length && <p>Bcc: {message.bcc.join(", ")}</p>}
-          <p className="break-all">Message ID: {message.providerMessageId}</p>
+          {!!message.bcc?.length && <p>{uiText("Bcc:")}{" "}{message.bcc.join(", ")}</p>}
+          <p className="break-all">{uiText("Message ID:")}{" "}{message.providerMessageId}</p>
           {message.fullText !== message.text && (
             <div className="whitespace-pre-wrap break-words">
               {message.fullText}
@@ -131,21 +131,19 @@ export function EmailMessageCard({
       {publication && (
         <p className="border-t border-border pt-3 text-xs text-muted-foreground">
           {publication.outcome === "delivered"
-            ? "Delivered"
+            ? uiText("Delivered")
             : publication.outcome === "failed"
-              ? "Delivery failed"
+              ? uiText("Delivery failed")
               : publication.outcome === "uncertain"
-                ? "Delivery uncertain"
+                ? uiText("Delivery uncertain")
                 : publication.outcome === "queued"
-                  ? "Queued"
-                  : "Sent"}
+                  ? uiText("Queued")
+                  : uiText("Sent")}
           {publication.error ? ` · ${publication.error}` : ""}
         </p>
       )}
       {attachments.error && (
-        <p role="alert" className="text-xs text-destructive">
-          Attachments could not be loaded.
-        </p>
+        <p role="alert" className="text-xs text-destructive">{uiText("Attachments could not be loaded.")}{" "}</p>
       )}
     </article>
   );

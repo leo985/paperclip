@@ -1,10 +1,12 @@
+import { uiText } from "@/i18n/interface";
 import { useMemo } from "react";
-import { NavLink, useLocation } from "@/lib/router";
+import { NavLink, useLocation, useNavigate } from "@/lib/router";
 import {
   House,
   CircleCheck,
   SquarePen,
   Users,
+  Network,
   Inbox,
 } from "lucide-react";
 import { useCompany } from "../context/CompanyContext";
@@ -37,20 +39,21 @@ type MobileNavItem = MobileNavLinkItem | MobileNavActionItem;
 
 export function MobileBottomNav({ visible }: MobileBottomNavProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { openNewIssue } = useDialogActions();
   const inboxBadge = useInboxBadge(selectedCompanyId);
 
   const items = useMemo<MobileNavItem[]>(
     () => [
-      { type: "link", to: "/dashboard", label: "Home", icon: House },
-      { type: "link", to: "/issues", label: "Tasks", icon: CircleCheck },
-      { type: "action", label: "New Task", icon: SquarePen, onClick: () => openNewIssue() },
-      { type: "link", to: "/agents/all", label: "Agents", icon: Users },
+      { type: "link", to: "/dashboard", label: uiText("Home"), icon: House },
+      { type: "link", to: "/issues", label: uiText("Tasks"), icon: CircleCheck },
+      { type: "link", to: "/jira-intake", label: "接入工单", icon: SquarePen },
+      { type: "link", to: "/seats", label: "席位", icon: Network },
       {
         type: "link",
         to: "/inbox",
-        label: "Inbox",
+        label: "待处理",
         icon: Inbox,
         badge: inboxBadge.inbox,
       },
@@ -64,7 +67,7 @@ export function MobileBottomNav({ visible }: MobileBottomNavProps) {
         "fixed bottom-0 left-0 right-0 z-30 bg-border/50 transition-transform duration-200 ease-out dark:bg-muted md:hidden pb-(--sz-safe-bottom)",
         visible ? "translate-y-0" : "translate-y-full",
       )}
-      aria-label="Mobile navigation"
+      aria-label={uiText("Mobile navigation")}
     >
       <div className="grid h-16 grid-cols-5 px-1">
         {items.map((item) => {

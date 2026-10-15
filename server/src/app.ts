@@ -105,6 +105,11 @@ import {
 } from "./routes/instance-database-backups.js";
 import { llmRoutes } from "./routes/llms.js";
 import { authRoutes } from "./routes/auth.js";
+import { personnelFederationRoutes } from "./routes/personnel-federation.js";
+import { personnelDirectoryService } from "./services/personnel-directory.js";
+import { personnelPasswordGate } from "./auth/personnel-passwords.js";
+import { focusedManagementGate } from "./middleware/focused-management.js";
+import { personnelAuthRateLimit } from "./auth/personnel-login-plugin.js";
 import { assetRoutes } from "./routes/assets.js";
 import { accessRoutes } from "./routes/access.js";
 import { pluginRoutes } from "./routes/plugins.js";
@@ -569,7 +574,11 @@ export async function createApp(
   // REPLACES whatever actor the request otherwise resolved to, and only on
   // the one endpoint it authorizes (see the middleware for the contract).
   app.use(cloudControlMiddleware());
+  app.use("/api", personnelPasswordGate(db));
+  app.use("/api", focusedManagementGate(db));
   app.use("/api/auth", authRoutes(db));
+  app.use(["/api/auth/personnel-sign-in", "/api/auth/personnel-activate"], personnelAuthRateLimit);
+  app.use("/api", personnelFederationRoutes(db));
   if (opts.betterAuthHandler) {
     app.all("/api/auth/{*authPath}", opts.betterAuthHandler);
   }
@@ -1301,12 +1310,17 @@ export async function createApp(
   // second caller (for example the `exit` handler) awaits the same completion
   // instead of starting a second teardown.
   let appServicesShutdown: Promise<void> | null = null;
+  const personnelSync = personnelDirectoryService(db);
+  const personnelTimer = setInterval(() => { void personnelSync.tick(); }, 60_000);
+  personnelTimer.unref();
   const shutdownAppServices = (): Promise<void> => {
     if (appServicesShutdown) return appServicesShutdown;
     appServicesShutdown = (async () => {
       // The scheduler tick queries the database. Stop it here, inside the
       // awaited teardown, so no tick runs after the caller ends the pool.
       scheduler.stop();
+      clearInterval(personnelTimer);
+      await personnelSync.drain();
       jobCoordinator.stop();
       disableFeedbackExportFlushes();
       unsubscribeChatPublicationSignals();

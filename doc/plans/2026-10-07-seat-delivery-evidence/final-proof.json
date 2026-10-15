@@ -1,0 +1,21 @@
+{
+  "online": true,
+  "policy": {
+    "mode": "manual",
+    "dingtalk": {
+      "userId": "0704296864843839",
+      "profile": "ding8b17618e61d3bf79:0704296864843839"
+    },
+    "jiraKeys": [
+      "ATSES-493499"
+    ],
+    "reminderMinutes": 10,
+    "escalationMinutes": 30
+  },
+  "autoPermitRevoked": true,
+  "temporaryServerSeatAbsent": true,
+  "pageErrors": [],
+  "helpPublished": true,
+  "bridgeDownloaded": true,
+  "trackerHealthy": true
+}

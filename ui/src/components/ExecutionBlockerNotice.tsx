@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ExecutionBlocker } from "@paperclipai/shared";
 import { agentsApi } from "../api/agents";
@@ -31,18 +32,18 @@ export function ExecutionBlockerNotice({ companyId, issueId, blocker, onRetried 
     },
   });
   return (
-    <div role="status" aria-label="Task recovery" className="mx-(--sz-execution-blocker-inline) my-(--sz-execution-blocker-block) flex flex-wrap items-center justify-between execution-blocker-notice border border-border bg-muted text-foreground">
+    <div role="status" aria-label={uiText("Task recovery")} className="mx-(--sz-execution-blocker-inline) my-(--sz-execution-blocker-block) flex flex-wrap items-center justify-between execution-blocker-notice border border-border bg-muted text-foreground">
       <span>{blocker.cause === "legacy_execution_requires_reconciliation"
-        ? "Automatic recovery of this task stopped."
+        ? uiText("Automatic recovery of this task stopped.")
         : `${requiresInspection ? "Recovery needed. " : ""}${blocker.nextAction}`}</span>
       {requiresInspection && blocker.agentId && blocker.runId && (
         <Button variant="outline" size="sm" asChild>
-          <Link to={`/agents/${blocker.agentId}/runs/${blocker.runId}`}>Inspect run</Link>
+          <Link to={`/agents/${blocker.agentId}/runs/${blocker.runId}`}>{uiText("Inspect run")}</Link>
         </Button>
       )}
       {!requiresInspection && failedRun && (
         <Button variant="outline" size="sm" disabled={retry.isPending} onClick={() => retry.mutate()}>
-          {retry.isPending ? "Retrying…" : "Retry"}
+          {retry.isPending ? uiText("Retrying…") : uiText("Retry")}
         </Button>
       )}
       {retry.isError && (

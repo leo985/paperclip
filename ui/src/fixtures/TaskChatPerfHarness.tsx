@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -47,7 +48,7 @@ function Harness() {
         <output data-testid="stream-tick">{tick}</output>
       </header>
       <TaskChatThreadView items={reproject ? history.map((item) => ({ ...item })) : history} contentKey={tick} tail={<p>Live response {tick}</p>} />
-      <textarea className="shrink-0 border p-3" aria-label="Reply" placeholder="Reply to the task" />
+      <textarea className="shrink-0 border p-3" aria-label={uiText("Reply")} placeholder="Reply to the task" />
     </div>
   );
 }

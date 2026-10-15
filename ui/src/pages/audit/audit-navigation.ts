@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 export type AuditSection = "activity" | "runs" | "costs" | "budgets" | "timeline";
 
 export const AUDIT_SECTIONS: ReadonlyArray<{
@@ -5,11 +6,11 @@ export const AUDIT_SECTIONS: ReadonlyArray<{
   label: string;
   href: string;
 }> = [
-  { value: "activity", label: "Activity", href: "/activity" },
-  { value: "runs", label: "Runs", href: "/activity/runs" },
-  { value: "costs", label: "Costs", href: "/activity/costs" },
-  { value: "budgets", label: "Budgets", href: "/activity/budgets" },
-  { value: "timeline", label: "Timeline", href: "/activity/timeline" },
+  { value: "activity", label: uiText("Activity"), href: "/activity" },
+  { value: "runs", label: uiText("Runs"), href: "/activity/runs" },
+  { value: "costs", label: uiText("Costs"), href: "/activity/costs" },
+  { value: "budgets", label: uiText("Budgets"), href: "/activity/budgets" },
+  { value: "timeline", label: uiText("Timeline"), href: "/activity/timeline" },
 ];
 
 export interface AuditLinkScope {

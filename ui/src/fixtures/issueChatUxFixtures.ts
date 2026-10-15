@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { Agent, FeedbackVote } from "@paperclipai/shared";
 import type { LiveRunForIssue } from "../api/heartbeats";
 import type { InlineEntityOption } from "../components/InlineEntitySelector";
@@ -105,7 +106,7 @@ export const issueChatUxReassignOptions: InlineEntityOption[] = [
   },
   {
     id: "user:user-1",
-    label: "Board",
+    label: uiText("Board"),
     searchText: "board user",
   },
 ];

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   SystemNoticeMetadataSection,
   SystemNoticeProps,
@@ -21,7 +22,7 @@ const HANDOFF_METADATA: SystemNoticeMetadataSection[] = [
       },
       {
         kind: "agent",
-        label: "Owner",
+        label: uiText("Owner"),
         name: "CTO",
         href: "/PAP/agents/cto",
       },
@@ -37,7 +38,7 @@ const HANDOFF_METADATA: SystemNoticeMetadataSection[] = [
     rows: [
       {
         kind: "run",
-        label: "Source run",
+        label: uiText("Source run"),
         runId: "9cdba892-c7ca-4d93-8604-4843873b127c",
         href: "/PAP/agents/codexcoder/runs/9cdba892-c7ca-4d93-8604-4843873b127c",
         status: "succeeded",
@@ -71,13 +72,13 @@ const REQUIRED_METADATA: SystemNoticeMetadataSection[] = [
       },
       {
         kind: "agent",
-        label: "Responsible",
+        label: uiText("Responsible"),
         name: "CodexCoder",
         href: "/PAP/agents/codexcoder",
       },
       {
         kind: "text",
-        label: "Next step",
+        label: uiText("Next step"),
         value: "Pick done, blocked, or in_review and post a one-line rationale.",
       },
     ],
@@ -112,13 +113,13 @@ const NEUTRAL_METADATA: SystemNoticeMetadataSection[] = [
       },
       {
         kind: "agent",
-        label: "From",
+        label: uiText("From"),
         name: "CodexCoder",
         href: "/PAP/agents/codexcoder",
       },
       {
         kind: "text",
-        label: "Reason",
+        label: uiText("Reason"),
         value: "Manual reassignment requested by Board.",
       },
     ],

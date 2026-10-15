@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * @fileoverview Classifies a failed skill mutation into the four visual states
  * from the Phase 3 UX spec (PAP-13865 / §9.10 Company Skill Policy Contract).
@@ -136,7 +137,7 @@ export function classifySkillDenial(
       state: "platform_admin",
       code,
       reason,
-      title: "This change needs administration access.",
+      title: uiText("This change needs administration access."),
       remediation: remediation ?? DEFAULT_ADMIN_REMEDIATION,
     };
   }
@@ -150,7 +151,7 @@ export function classifySkillDenial(
       state: "platform",
       code,
       reason,
-      title: (code && PLATFORM_TITLES[code]) ?? "This action is blocked by a platform safety rule.",
+      title: (code && PLATFORM_TITLES[code]) ?? uiText("This action is blocked by a platform safety rule."),
       remediation:
         remediation
         ?? (code && PLATFORM_REMEDIATIONS[code])

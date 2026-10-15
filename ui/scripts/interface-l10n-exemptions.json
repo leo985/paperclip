@@ -1,0 +1,542 @@
+[
+  {
+    "file": "ui/src/adapters/http/index.ts",
+    "text": "HTTP Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/IssueDocumentsSection.tsx",
+    "text": "IssueDocumentsSection requires either issue or subject",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/components/JsonSchemaForm.tsx",
+    "text": "__PCVAR0__ JSON",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/KeyboardShortcutsCheatsheet.tsx",
+    "text": "Esc",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/OnboardingWizard.tsx",
+    "text": "__PCVAR0__ exec --json -",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/OnboardingWizard.tsx",
+    "text": "KIMI_MODEL_NAME + KIMI_MODEL_API_KEY",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/PathInstructionsModal.tsx",
+    "text": "macOS",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/PathInstructionsModal.tsx",
+    "text": "Windows",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/PathInstructionsModal.tsx",
+    "text": "Linux",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProjectProperties.tsx",
+    "text": "{{issue.identifier}}-{{slug}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProjectProperties.tsx",
+    "text": ".paperclip/worktrees",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProjectProperties.tsx",
+    "text": "bash ./scripts/provision-worktree.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProjectProperties.tsx",
+    "text": "bash ./scripts/provision-worktree-runtime.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProjectProperties.tsx",
+    "text": "bash ./scripts/teardown-worktree.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/ProviderQuotaCard.tsx",
+    "text": "~__PCVAR0__ api",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/RoutineTriggerCard.tsx",
+    "text": "Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/RoutineVariablesEditor.tsx",
+    "text": "{{name}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/RoutineVariablesEditor.tsx",
+    "text": "{{variable_name}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/agent-config-primitives.tsx",
+    "text": "macOS (Finder)",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/routine-sections/context.tsx",
+    "text": "useRoutineDetail must be used within a RoutineDetailContext provider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/components/routine-triggers/RoutineTriggers.tsx",
+    "text": "Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/routine-triggers/RoutineTriggers.tsx",
+    "text": "GitHub webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/routine-triggers/RoutineTriggers.tsx",
+    "text": "Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/task-chat/TaskChatUsageReadout.tsx",
+    "text": "ctx (",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/components/task-chat/TweakPanel.tsx",
+    "text": "__PCVAR0__ms",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/context/BreadcrumbContext.tsx",
+    "text": "useBreadcrumbs must be used within BreadcrumbProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/CompanyContext.tsx",
+    "text": "useCompany must be used within CompanyProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/DialogContext.tsx",
+    "text": "useDialogActions must be used within DialogProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/DialogContext.tsx",
+    "text": "useDialogState must be used within DialogProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/FileViewerContext.tsx",
+    "text": "useRequiredFileViewer must be used within a FileViewerProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/PanelContext.tsx",
+    "text": "usePanel must be used within PanelProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/SidebarContext.tsx",
+    "text": "useSidebar must be used within SidebarProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/ThemeContext.tsx",
+    "text": "useTheme must be used within ThemeProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/ToastContext.tsx",
+    "text": "useToastState must be used within a ToastProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/context/ToastContext.tsx",
+    "text": "useToastActions must be used within a ToastProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/features/connections/ConnectionSetupFlow.tsx",
+    "text": "Vercel Connect",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/features/connections/ConnectionSetupFlow.tsx",
+    "text": "Zapier MCP URL",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/i18n/locale-validation.ts",
+    "text": "Invalid locale messages:\n__PCVAR0__",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/i18n/locales.ts",
+    "text": "Invalid locale file path: __PCVAR0__",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/i18n/locales.ts",
+    "text": "Missing default locale messages for __PCVAR0__",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/i18n/locales.ts",
+    "text": "Invalid __PCVAR0__ locale messages: __PCVAR1__",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/lib/vite-sw-build-id.ts",
+    "text": "refusing to stamp the service worker with an empty build id",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/pages/CompanyEnvironments.tsx",
+    "text": "id __PCVAR0__",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/Costs.production.tsx",
+    "text": "__PCVAR0__ api",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/Costs.tsx",
+    "text": "__PCVAR0__ api",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/DesignGuide.tsx",
+    "text": "IssueReferencePill",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/DesignGuide.tsx",
+    "text": "minSize=\"240px\"",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ExecutionWorkspaceDetail.tsx",
+    "text": "PAP-946-workspace",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ExecutionWorkspaceDetail.tsx",
+    "text": "bash ./scripts/provision-worktree.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ExecutionWorkspaceDetail.tsx",
+    "text": "bash ./scripts/provision-worktree-runtime.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ExecutionWorkspaceDetail.tsx",
+    "text": "bash ./scripts/teardown-worktree.sh",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/IssueDetail.tsx",
+    "text": "Assignee",
+    "reason": "内部标识；组件内部已翻译可见文字"
+  },
+  {
+    "file": "ui/src/pages/IssueDetail.tsx",
+    "text": "Originating",
+    "reason": "内部标识；组件内部已翻译可见文字"
+  },
+  {
+    "file": "ui/src/pages/PersonnelFederation.tsx",
+    "text": "CorpId",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/PluginManager.tsx",
+    "text": "@paperclipai/plugin-example",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ResponsibleUserDenialUxLab.tsx",
+    "text": "PAP-12462 · P7",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ResponsibleUserDenialUxLab.tsx",
+    "text": "(RESPONSIBLE_USER_UNAUTHORIZED)",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ResponsibleUserDenialUxLab.tsx",
+    "text": "(deny_missing_membership)",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/ResponsibleUserDenialUxLab.tsx",
+    "text": "(RESPONSIBLE_USER_UNAVAILABLE)",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/Secrets.tsx",
+    "text": "API ·",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{skillName}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{skillKey}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{skillInvocation}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{skillVersion}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{runId}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{issueId}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SkillStudio.tsx",
+    "text": "{{outputDocumentKey}}",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/SystemNoticeUxLab.tsx",
+    "text": "PAP-3525 plan",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/apps/app-detail/RailwayAccessPanel.tsx",
+    "text": "ssh.railway.com ssh-ed25519 …",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/apps/chat/EmailEndpointSetup.tsx",
+    "text": "Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/apps/chat/EmailEndpointSetup.tsx",
+    "text": "Webhook",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+    "text": "· GitHub ID",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+    "text": "GitHub ID",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/pages/tools/connection-dialogs.tsx",
+    "text": "__PCVAR0__ms",
+    "reason": "技术名称、标识、单位或示例"
+  },
+  {
+    "file": "ui/src/plugins/launchers.tsx",
+    "text": "usePluginLauncherRuntime must be used within PluginLauncherProvider",
+    "reason": "开发诊断信息"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Claude Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Paperclip Runner",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Gemini CLI",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Grok Build",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Kimi Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Hermes Gateway",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "Cursor Cloud",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/adapter-display-registry.ts",
+    "text": "OpenClaw Gateway",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/claude-local/config-fields.tsx",
+    "text": "Claude CLI",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/claude-local/index.ts",
+    "text": "Claude Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/codex-local/config-fields.tsx",
+    "text": "Codex CLI",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/codex-local/config-fields.tsx",
+    "text": "OpenCode 1.18.29",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/codex-local/config-fields.tsx",
+    "text": "Claude Managed",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/codex-local/config-fields.tsx",
+    "text": "AWS AgentCore",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/codex-local/config-fields.tsx",
+    "text": "ACPX Claude",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/cursor-cloud/index.ts",
+    "text": "Cursor Cloud",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/gemini-local/config-fields.tsx",
+    "text": "Gemini CLI",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/gemini-local/index.ts",
+    "text": "Gemini CLI",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/grok-local/index.ts",
+    "text": "Grok Build",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/hermes-gateway/config-fields.tsx",
+    "text": "{\"x-custom-header\": \"value\"}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/hermes-gateway/index.ts",
+    "text": "Hermes Gateway",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/kimi-local/index.ts",
+    "text": "Kimi Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/openclaw-gateway/config-fields.tsx",
+    "text": "{\"x-custom-header\": \"value\"}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/openclaw-gateway/index.ts",
+    "text": "OpenClaw Gateway",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/paperclip-runner/index.ts",
+    "text": "Paperclip Runner",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/runtime-json-fields.tsx",
+    "text": "{\n  \"services\": [\n    {\n      \"name\": \"preview\",\n      \"lifecycle\": \"ephemeral\",\n      \"metadata\": {\n        \"purpose\": \"remote preview\"\n      }\n    }\n  ]\n}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/adapters/runtime-json-fields.tsx",
+    "text": "{\n  \"agentId\": \"remote-agent-123\",\n  \"metadata\": {\n    \"team\": \"platform\"\n  }\n}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/components/new-agent/NewAgentSetup.tsx",
+    "text": "Paperclip Runner",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/components/onboarding/ConnectModelPreview.tsx",
+    "text": "Claude Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/pages/ExecutionWorkspaceDetail.tsx",
+    "text": "{\n  \"commands\": [\n    {\n      \"id\": \"web\",\n      \"name\": \"web\",\n      \"kind\": \"service\",\n      \"command\": \"pnpm dev\",\n      \"cwd\": \".\",\n      \"port\": { \"type\": \"auto\" }\n    },\n    {\n      \"id\": \"db-migrate\",\n      \"name\": \"db:migrate\",\n      \"kind\": \"job\",\n      \"command\": \"pnpm db:migrate\",\n      \"cwd\": \".\"\n    }\n  ]\n}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/pages/InstanceExperimentalSettings.tsx",
+    "text": "Paperclip Runner",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/pages/InviteUxLab.tsx",
+    "text": "Claude Code",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  },
+  {
+    "file": "ui/src/pages/ProjectWorkspaceDetail.tsx",
+    "text": "{\n  \"commands\": [\n    {\n      \"id\": \"web\",\n      \"name\": \"web\",\n      \"kind\": \"service\",\n      \"command\": \"pnpm dev\",\n      \"cwd\": \".\",\n      \"port\": { \"type\": \"auto\" },\n      \"readiness\": {\n        \"type\": \"http\",\n        \"urlTemplate\": \"http://127.0.0.1:${port}\"\n      },\n      \"expose\": {\n        \"type\": \"url\",\n        \"urlTemplate\": \"http://127.0.0.1:${port}\"\n      },\n      \"lifecycle\": \"shared\",\n      \"reuseScope\": \"project_workspace\"\n    },\n    {\n      \"id\": \"db-migrate\",\n      \"name\": \"db:migrate\",\n      \"kind\": \"job\",\n      \"command\": \"pnpm db:migrate\",\n      \"cwd\": \".\"\n    }\n  ]\n}",
+    "reason": "产品名称或 JSON 配置示例，保持原文"
+  }
+]

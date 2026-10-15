@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Live adapter: normalize the existing IssueChatComment stream (including
  * optimistic echoes) into the redesign's TaskChatItem[] model. This is the
@@ -70,7 +71,7 @@ export function commentsToTaskChatItems(
   for (const comment of comments) {
     if (comment.deletedAt) continue;
     if (comment.conversationSessionGeneration != null) {
-      items.push({ id: comment.id, kind: "marker", variant: "session_start", label: "New session",
+      items.push({ id: comment.id, kind: "marker", variant: "session_start", label: uiText("New session"),
         detail: "Earlier messages and files are still available.", createdAtIso: new Date(comment.createdAt).toISOString() });
       continue;
     }

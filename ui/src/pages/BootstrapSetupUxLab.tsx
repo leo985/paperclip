@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { ReactElement, ReactNode } from "react";
 import { Loader2, ShieldCheck, Terminal, TriangleAlert } from "lucide-react";
 import { BOOTSTRAP_FALLBACK_COMMAND } from "@/bootstrapSetup";
@@ -35,12 +36,12 @@ function CliFallback({ hasActiveInvite }: { hasActiveInvite: boolean }) {
     <div className="mt-6 border-t border-border pt-5">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Terminal className="size-4 text-muted-foreground" aria-hidden />
-        <span>Prefer to finish setup from the host?</span>
+        <span>{uiText("Prefer to finish setup from the host?")}</span>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {hasActiveInvite
-          ? "A bootstrap invite is already active. Check your Paperclip startup logs for the first‑admin URL, or run this command on the host to rotate it:"
-          : "Run this command on the host that runs Paperclip to print a one‑time first‑admin invite URL:"}
+          ? uiText("A bootstrap invite is already active. Check your Paperclip startup logs for the first‑admin URL, or run this command on the host to rotate it:")
+          : uiText("Run this command on the host that runs Paperclip to print a one‑time first‑admin invite URL:")}
       </p>
       <pre className="mt-3 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 font-mono text-xs">
 {BOOTSTRAP_FALLBACK_COMMAND}
@@ -60,14 +61,11 @@ function StateChrome({ children }: { children: ReactNode }) {
 function SignedOutPrivate() {
   return (
     <StateChrome>
-      <h1 className="text-xl font-semibold">Finish setting up this Paperclip</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        No admin has claimed this instance yet. Sign in or create your Paperclip account to become the first
-        admin from this browser.
-      </p>
+      <h1 className="text-xl font-semibold">{uiText("Finish setting up this Paperclip")}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{uiText("No admin has claimed this instance yet. Sign in or create your Paperclip account to become the first admin from this browser.")}{" "}</p>
       <div className="mt-5">
         <Button asChild>
-          <a href="/auth?next=/">Sign in / Create account</a>
+          <a href="/auth?next=/">{uiText("Sign in / Create account")}</a>
         </Button>
       </div>
       <CliFallback hasActiveInvite={false} />
@@ -78,21 +76,18 @@ function SignedOutPrivate() {
 function SignedInPrivate() {
   return (
     <StateChrome>
-      <h1 className="text-xl font-semibold">Finish setting up this Paperclip</h1>
+      <h1 className="text-xl font-semibold">{uiText("Finish setting up this Paperclip")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.
+        {uiText("No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.")}
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <Button>Claim this instance</Button>
+        <Button>{uiText("Claim this instance")}</Button>
         <span className="text-sm text-muted-foreground">
-          Signed in as <span className="font-medium text-foreground">jane@appliance.local</span>
+          {uiText("Signed in as")} <span className="font-medium text-foreground">jane@appliance.local</span>
         </span>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Wrong account?{" "}
-        <a href="/auth?next=/" className="underline underline-offset-2">
-          Switch account
-        </a>
+      <p className="mt-3 text-xs text-muted-foreground">{uiText("Wrong account?")}{" "}
+        <a href="/auth?next=/" className="underline underline-offset-2">{uiText("Switch account")}{" "}</a>
         .
       </p>
       <CliFallback hasActiveInvite={false} />
@@ -103,17 +98,15 @@ function SignedInPrivate() {
 function ClaimingPrivate() {
   return (
     <StateChrome>
-      <h1 className="text-xl font-semibold">Finish setting up this Paperclip</h1>
+      <h1 className="text-xl font-semibold">{uiText("Finish setting up this Paperclip")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.
+        {uiText("No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.")}
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button disabled>
-          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-          Claiming…
-        </Button>
+          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />{uiText("Claiming…")}{" "}</Button>
         <span className="text-sm text-muted-foreground">
-          Signed in as <span className="font-medium text-foreground">jane@appliance.local</span>
+          {uiText("Signed in as")} <span className="font-medium text-foreground">jane@appliance.local</span>
         </span>
       </div>
       <CliFallback hasActiveInvite={false} />
@@ -124,14 +117,14 @@ function ClaimingPrivate() {
 function ClaimErrorPrivate() {
   return (
     <StateChrome>
-      <h1 className="text-xl font-semibold">Finish setting up this Paperclip</h1>
+      <h1 className="text-xl font-semibold">{uiText("Finish setting up this Paperclip")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.
+        {uiText("No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.")}
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <Button>Claim this instance</Button>
+        <Button>{uiText("Claim this instance")}</Button>
         <span className="text-sm text-muted-foreground">
-          Signed in as <span className="font-medium text-foreground">jane@appliance.local</span>
+          {uiText("Signed in as")} <span className="font-medium text-foreground">jane@appliance.local</span>
         </span>
       </div>
       <div
@@ -140,10 +133,9 @@ function ClaimErrorPrivate() {
       >
         <TriangleAlert className="mt-0.5 size-4 flex-shrink-0" aria-hidden />
         <div>
-          <p className="font-medium">Someone else has already claimed this instance.</p>
-          <p className="mt-1 text-destructive/90">
-            Refresh to sign in, or ask the existing admin to invite you from{" "}
-            <span className="font-mono">Settings → Access</span>.
+          <p className="font-medium">{uiText("Someone else has already claimed this instance.")}</p>
+          <p className="mt-1 text-destructive/90">{uiText("Refresh to sign in, or ask the existing admin to invite you from")}{" "}
+            <span className="font-mono">{uiText("Settings → Access")}</span>.
           </p>
         </div>
       </div>
@@ -160,19 +152,17 @@ function ClaimSuccess() {
           <ShieldCheck className="size-5" aria-hidden />
         </div>
         <div>
-          <h1 className="text-xl font-semibold">You&rsquo;re the instance admin</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Setup is complete. Taking you to onboarding to create your first organization&hellip;
-          </p>
+          <h1 className="text-xl font-semibold">{uiText("You’re the instance admin")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{uiText("Setup is complete. Taking you to onboarding to create your first organization…")}{" "}</p>
         </div>
       </div>
       <div className="mt-5 flex items-center gap-3">
         <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
-        <span className="text-sm text-muted-foreground">Redirecting&hellip;</span>
+        <span className="text-sm text-muted-foreground">{uiText("Redirecting…")}</span>
       </div>
       <div className="mt-5">
         <Button asChild variant="outline">
-          <a href="/">Continue to dashboard</a>
+          <a href="/">{uiText("Continue to dashboard")}</a>
         </Button>
       </div>
     </StateChrome>
@@ -182,16 +172,10 @@ function ClaimSuccess() {
 function PublicInviteOnly() {
   return (
     <StateChrome>
-      <h1 className="text-xl font-semibold">This Paperclip is waiting on its first admin</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This instance runs in invite‑only mode. The operator must generate a one‑time first‑admin invite URL
-        from the host. Once you have the link, open it from this browser to finish setup.
-      </p>
+      <h1 className="text-xl font-semibold">{uiText("This Paperclip is waiting on its first admin")}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{uiText("This instance runs in invite‑only mode. The operator must generate a one‑time first‑admin invite URL from the host. Once you have the link, open it from this browser to finish setup.")}{" "}</p>
       <CliFallback hasActiveInvite />
-      <p className="mt-4 text-xs text-muted-foreground">
-        Browser‑based claim is intentionally disabled in public mode so anyone on the network can&rsquo;t
-        promote themselves.
-      </p>
+      <p className="mt-4 text-xs text-muted-foreground">{uiText("Browser‑based claim is intentionally disabled in public mode so anyone on the network can’t promote themselves.")}{" "}</p>
     </StateChrome>
   );
 }
@@ -210,21 +194,17 @@ export function BootstrapSetupUxLab() {
     <div className="bg-background min-h-screen pb-16">
       <header className="border-b border-border bg-muted/20">
         <div className="mx-auto max-w-3xl px-6 py-6">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">UX Lab</p>
-          <h1 className="mt-1 text-2xl font-semibold">Bootstrap-pending setup states</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Fixtures for the bootstrap-pending screen in <span className="font-mono">CloudAccessGate</span>. Used
-            as the UX spec for{" "}
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{uiText("UX Lab")}</p>
+          <h1 className="mt-1 text-2xl font-semibold">{uiText("Bootstrap-pending setup states")}</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{uiText("Fixtures for the bootstrap-pending screen in")}{" "}<span className="font-mono">{uiText("CloudAccessGate")}</span>{uiText(". Used as the UX spec for")}{" "}
             <a className="underline underline-offset-2" href="/PAP/issues/PAP-10113">
               PAP-10113
-            </a>{" "}
-            and the implementation reference for{" "}
+            </a>{" "}{uiText("and the implementation reference for")}{" "}
             <a className="underline underline-offset-2" href="/PAP/issues/PAP-10114">
               PAP-10114
-            </a>
-            . The browser claim CTA only appears when{" "}
-            <span className="font-mono">deploymentMode === &quot;authenticated&quot;</span> and{" "}
-            <span className="font-mono">deploymentExposure === &quot;private&quot;</span>.
+            </a>{uiText(". The browser claim CTA only appears when")}{" "}
+            <span className="font-mono">{uiText("deploymentMode === \"authenticated\"")}</span> and{" "}
+            <span className="font-mono">{uiText("deploymentExposure === \"private\"")}</span>.
           </p>
         </div>
       </header>

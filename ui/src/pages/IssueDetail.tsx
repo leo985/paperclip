@@ -1,3 +1,5 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
+import { isDsp7ConfirmationMessage, projectDsp7Comment } from "../lib/dsp7-confirmations";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { clearLegacyChatMessageRequests } from "@/lib/chat-message-request";
@@ -705,8 +707,8 @@ function AttributionAvatar({
   via?: string | null;
 }) {
   const accessibleLabel = via
-    ? `${label}: ${actor.name} · via ${via}`
-    : `${label}: ${actor.name}`;
+    ? `${uiText(label)}：${actor.name} · 经由 ${via}`
+    : `${uiText(label)}：${actor.name}`;
   const testIdLabel = label.toLowerCase();
 
   return (
@@ -734,14 +736,14 @@ function AttributionAvatar({
           )}
           <div className="min-w-0">
             <div className="text-(length:--text-nano) font-medium uppercase leading-none text-background/70">
-              {label}
+              {uiText(label)}
             </div>
             <div className="max-w-48 truncate text-xs font-medium leading-4 text-background">
               {actor.name}
             </div>
             {via ? (
               <div className="max-w-48 truncate text-(length:--text-nano) leading-3 text-background/60">
-                via {via}
+                经由 {via}
               </div>
             ) : null}
           </div>
@@ -817,7 +819,7 @@ function IssueAttributionByline({
     <TooltipProvider>
       <AvatarGroup
         className="-space-x-1.5"
-        aria-label="Task people"
+        aria-label={uiText("Task people")}
         data-testid="issue-attribution-avatar-stack"
       >
         {assignee ? (
@@ -993,10 +995,10 @@ function IssueDetailLoadingState({
                 <Badge
                   variant="outline"
                   className="border-violet-500/30 bg-violet-500/10 text-(length:--text-nano) text-violet-600 dark:text-violet-400"
-                  title={`Routine execution from routine ${headerSeed.originId}`}
+                  title={uiTextFormat("Routine execution from routine __PCVAR0__", [headerSeed.originId])}
                 >
                   <Repeat className="h-3 w-3" />
-                  Routine
+                  {uiText("Routine")}
                 </Badge>
               ) : null}
               {/* Seeded header — same anatomy as the resolved one below, so the
@@ -1011,7 +1013,7 @@ function IssueDetailLoadingState({
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
                   <ProjectTile size="xs" />
-                  No project
+                  {uiText("No project")}
                 </span>
               )}
             </>
@@ -1111,7 +1113,7 @@ function InboxMobileToolbar({
             navigate(backHref);
           }
         }}
-        aria-label="Back to inbox"
+        aria-label={uiText("Back to inbox")}
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>
@@ -1123,7 +1125,7 @@ function InboxMobileToolbar({
             size="icon-sm"
             onClick={onArchive}
             disabled={archivePending}
-            aria-label="Archive from inbox"
+            aria-label={uiText("Archive from inbox")}
           >
             <Archive className="h-5 w-5" />
           </Button>
@@ -1131,7 +1133,7 @@ function InboxMobileToolbar({
 
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="More actions">
+            <Button variant="ghost" size="icon-sm" aria-label={uiText("More actions")}>
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
@@ -1144,7 +1146,7 @@ function InboxMobileToolbar({
               }}
             >
               <Copy className="h-3 w-3" />
-              Copy as markdown
+              {uiText("Copy as markdown")}
             </button>
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
@@ -1154,7 +1156,7 @@ function InboxMobileToolbar({
               }}
             >
               <SlidersHorizontal className="h-3 w-3" />
-              Properties
+              {uiText("Properties")}
             </button>
             {issueIdProp && (
               <button
@@ -1165,7 +1167,7 @@ function InboxMobileToolbar({
                 }}
               >
                 <EyeOff className="h-3 w-3" />
-                Hide this task
+                {uiText("Hide this task")}
               </button>
             )}
           </PopoverContent>
@@ -1239,6 +1241,7 @@ type IssueDetailChatTabProps = {
    * chat-style thread (PAP-375). Ignored by the classic thread.
    */
   issueBrief?: TaskChatIssueBrief;
+  dsp7ConfirmationDescription?: string | null;
   footer?: ReactNode;
   feedbackVotes?: FeedbackVote[];
   feedbackDataSharingPreference: "allowed" | "not_allowed" | "prompt";
@@ -1325,6 +1328,7 @@ type IssueDetailChatTabProps = {
 };
 
 const IssueDetailChatTab = memo(function IssueDetailChatTab({
+  dsp7ConfirmationDescription,
   onOpenSkill,
   issueId,
   companyId,
@@ -1547,7 +1551,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
   const retryFailedRun = useMutation({
     mutationFn: async (runId: string) => {
       const failedRun = resolvedLinkedRuns.find((run) => run.runId === runId);
-      if (!failedRun) throw new Error("Failed run is no longer available.");
+      if (!failedRun) throw new Error(uiText("Failed run is no longer available."));
       return agentsApi.retryFailedRun(
         failedRun.agentId,
         failedRun.runId,
@@ -1557,8 +1561,8 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     onSuccess: (result) => {
       if (!result.runId) {
         pushToast({
-          title: "Retry queued",
-          body: "The exact request will retry when this task is ready.",
+          title: uiText("Retry queued"),
+          body: uiText("The exact request will retry when this task is ready."),
           tone: "success",
         });
       }
@@ -1576,8 +1580,8 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     },
     onError: (error) => {
       pushToast({
-        title: "Run retry failed",
-        body: error instanceof Error ? error.message : "Unable to retry run",
+        title: uiText("Run retry failed"),
+        body: error instanceof Error ? error.message : uiText("Unable to retry run"),
         tone: "error",
       });
     },
@@ -1604,6 +1608,20 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       hasStoredOutput: (run.logBytes ?? 0) > 0,
     }));
   }, [liveRunIds, resolvedLinkedRuns]);
+  const dsp7Enabled = agentMap.get(issueAssigneeAgentId ?? "")?.adapterConfig?.dsp7ExternalConfirmation === true;
+  const dsp7HasComments = comments.some((comment) => Boolean(comment.authorUserId) && isDsp7ConfirmationMessage(comment.body));
+  const { data: dsp7ReceiptDescription } = useQuery({
+    queryKey: [...queryKeys.issues.detail(issueId), "dsp7-confirmation-status"],
+    queryFn: async () => (await issuesApi.get(issueId)).description,
+    enabled: dsp7Enabled && dsp7HasComments,
+    refetchInterval: dsp7Enabled && dsp7HasComments && issueStatus !== "done" && issueStatus !== "cancelled" ? 5000 : false,
+  });
+  const dsp7Description = dsp7ReceiptDescription ?? dsp7ConfirmationDescription;
+  useEffect(() => {
+    if (dsp7Enabled && dsp7HasComments) {
+      void queryClient.invalidateQueries({ queryKey: [...queryKeys.issues.detail(issueId), "dsp7-confirmation-status"] });
+    }
+  }, [dsp7ConfirmationDescription, dsp7Enabled, dsp7HasComments, issueId, queryClient]);
   const commentsWithRunMeta = useMemo<IssueDetailComment[]>(() => {
     const activeRunStartedAt =
       interruptibleIssueRun?.startedAt ??
@@ -1740,6 +1758,9 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     }
 
     const projectedComments = comments.map((comment) => {
+      const dsp7Comment = projectDsp7Comment(comment, dsp7Description,
+        agentMap.get(issueAssigneeAgentId ?? "")?.adapterConfig?.dsp7ExternalConfirmation === true);
+      if (dsp7Comment) return dsp7Comment;
       const activityMeta = runMetaByCommentId.get(comment.id);
       // Internal run finalization can persist a reply without a separate
       // comment_added activity row. Its durable authoring run is stronger
@@ -1963,6 +1984,9 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     return [...projectedComments, ...responseComments];
   }, [
     comments,
+    dsp7Description,
+    agentMap,
+    issueAssigneeAgentId,
     classicTaskInterfaceEnabled,
     interactions,
     liveRunIds,
@@ -2067,7 +2091,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       const queueId = effectiveQueuedCommentQueue?.queueId;
       if (!queueId)
         throw new Error(
-          "The queued message is awaiting server acknowledgement.",
+          uiText("The queued message is awaiting server acknowledgement."),
         );
       try {
         storeQueuedCommentQueue(
@@ -2098,7 +2122,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       const queueId = effectiveQueuedCommentQueue?.queueId;
       if (!queueId)
         throw new Error(
-          "The queued messages are awaiting server acknowledgement.",
+          uiText("The queued messages are awaiting server acknowledgement."),
         );
       try {
         storeQueuedCommentQueue(
@@ -2126,7 +2150,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       const targetRunId = effectiveQueuedCommentQueue?.targetRunId;
       if (!queueId || !targetRunId)
         throw new Error(
-          "The queued message no longer has an active run target.",
+          uiText("The queued message no longer has an active run target."),
         );
       try {
         const nextQueue = await issuesApi.steerQueuedComment(
@@ -2192,7 +2216,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       const queueId = effectiveQueuedCommentQueue?.queueId;
       if (!queueId)
         throw new Error(
-          "The queued message is awaiting server acknowledgement.",
+          uiText("The queued message is awaiting server acknowledgement."),
         );
       try {
         storeQueuedCommentQueue(
@@ -2241,8 +2265,8 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
               : null;
         if (code === "queued_comment_already_dispatching") {
           pushToast({
-            title: "Message is already being sent",
-            body: "The continuation started before the discard was confirmed, so Paperclip could not unsend it.",
+            title: uiText("Message is already being sent"),
+            body: uiText("The continuation started before the discard was confirmed, so Paperclip could not unsend it."),
             tone: "error",
             ttlMs: 15_000,
             dedupeKey: `queued-comment-already-dispatching:${issueId}:${commentId}`,
@@ -2280,8 +2304,8 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
         onClick={onLoadOlderComments}
       >
         {commentsLoadingOlder
-          ? "Loading earlier comments..."
-          : "Load earlier comments"}
+          ? uiText("Loading earlier comments...")
+          : uiText("Load earlier comments")}
       </Button>
     </div>
   ) : null;
@@ -2645,18 +2669,18 @@ function IssueDetailActivityTab({
       {shouldShowCostSummary && (
         <div className="mb-3 px-3 py-2 rounded-lg border border-border">
           <div className="text-sm font-medium text-muted-foreground mb-1">
-            Cost Summary
+            {uiText("Cost Summary")}
           </div>
           {!issueCostSummary.hasCost &&
           !issueCostSummary.hasTokens &&
           !hasIssueTreeCost ? (
             <div className="text-xs text-muted-foreground">
-              No cost data yet.
+              {uiText("No cost data yet.")}
             </div>
           ) : (
             <div className="space-y-1 text-xs text-muted-foreground tabular-nums">
               <div className="flex flex-wrap gap-3">
-                <span className="font-medium text-foreground">This task</span>
+                <span className="font-medium text-foreground">{uiText("This task")}</span>
                 {issueCostSummary.hasCost ? (
                   <span className="font-medium text-foreground">
                     ${issueCostSummary.cost.toFixed(4)}
@@ -2664,28 +2688,28 @@ function IssueDetailActivityTab({
                 ) : null}
                 {issueCostSummary.hasTokens ? (
                   <span>
-                    Tokens {formatTokens(issueCostSummary.totalTokens)}
+                    {uiText("Tokens")} {formatTokens(issueCostSummary.totalTokens)}
                     {issueCostSummary.cached > 0
-                      ? ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)}, cached ${formatTokens(issueCostSummary.cached)})`
-                      : ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)})`}
+                      ? uiTextFormat(" (in __PCVAR0__, out __PCVAR1__, cached __PCVAR2__)", [formatTokens(issueCostSummary.input), formatTokens(issueCostSummary.output), formatTokens(issueCostSummary.cached)])
+                      : uiTextFormat(" (in __PCVAR0__, out __PCVAR1__)", [formatTokens(issueCostSummary.input), formatTokens(issueCostSummary.output)])}
                   </span>
                 ) : null}
                 {issueCostSummary.hasRuntime ? (
                   <span>
-                    Runtime {formatDurationMs(issueCostSummary.runtimeMs)}
-                    {` (${issueCostSummary.runCount} run${issueCostSummary.runCount === 1 ? "" : "s"})`}
+                    {uiText("Runtime")} {formatDurationMs(issueCostSummary.runtimeMs)}
+                    {uiTextFormat(" (__PCVAR0__ run__PCVAR1__)", [issueCostSummary.runCount, ""])}
                   </span>
                 ) : null}
                 {!issueCostSummary.hasCost &&
                 !issueCostSummary.hasTokens &&
                 !issueCostSummary.hasRuntime ? (
-                  <span>No direct cost data.</span>
+                  <span>{uiText("No direct cost data.")}</span>
                 ) : null}
               </div>
               {hasIssueTreeCost && issueTreeCostSummary ? (
                 <div className="flex flex-wrap gap-3">
                   <span className="font-medium text-foreground">
-                    Including sub-tasks{" "}
+                    {uiText("Including sub-tasks")}{" "}
                     {(issueTreeCostSummary.costCents / 100).toLocaleString(
                       undefined,
                       {
@@ -2697,15 +2721,15 @@ function IssueDetailActivityTab({
                     )}
                   </span>
                   <span>
-                    Tokens {formatTokens(issueTreeCostTokens)}
+                    {uiText("Tokens")} {formatTokens(issueTreeCostTokens)}
                     {issueTreeCostSummary.cachedInputTokens > 0
-                      ? ` (in ${formatTokens(issueTreeCostSummary.inputTokens)}, out ${formatTokens(issueTreeCostSummary.outputTokens)}, cached ${formatTokens(issueTreeCostSummary.cachedInputTokens)})`
-                      : ` (in ${formatTokens(issueTreeCostSummary.inputTokens)}, out ${formatTokens(issueTreeCostSummary.outputTokens)})`}
+                      ? uiTextFormat(" (in __PCVAR0__, out __PCVAR1__, cached __PCVAR2__)", [formatTokens(issueTreeCostSummary.inputTokens), formatTokens(issueTreeCostSummary.outputTokens), formatTokens(issueTreeCostSummary.cachedInputTokens)])
+                      : uiTextFormat(" (in __PCVAR0__, out __PCVAR1__)", [formatTokens(issueTreeCostSummary.inputTokens), formatTokens(issueTreeCostSummary.outputTokens)])}
                   </span>
                   {issueTreeCostSummary.runCount > 0 ? (
                     <span>
-                      Runtime {formatDurationMs(issueTreeCostSummary.runtimeMs)}
-                      {` (${issueTreeCostSummary.runCount} run${issueTreeCostSummary.runCount === 1 ? "" : "s"})`}
+                      {uiText("Runtime")} {formatDurationMs(issueTreeCostSummary.runtimeMs)}
+                      {uiTextFormat(" (__PCVAR0__ run__PCVAR1__)", [issueTreeCostSummary.runCount, ""])}
                     </span>
                   ) : null}
                   <span>
@@ -3217,7 +3241,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
   const sourceBreadcrumb = useMemo(
     () =>
       readIssueDetailBreadcrumb(issueId, location.state, location.search) ?? {
-        label: "Tasks",
+        label: uiText("Tasks"),
         href: "/issues",
       },
     [issueId, location.state, location.search],
@@ -3674,7 +3698,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       options.push({ id: `agent:${agent.id}`, label: agent.name });
     }
     if (currentUserId) {
-      options.push({ id: `user:${currentUserId}`, label: "Me" });
+      options.push({ id: `user:${currentUserId}`, label: uiText("Me") });
     }
     return options;
   }, [agents, companyMembers?.users, currentUserId]);
@@ -3869,7 +3893,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
 
       try {
         await issuesApi.unarchiveFromInbox(id);
-        pushToast({ title: "Task restored to inbox", tone: "success" });
+        pushToast({ title: uiText("Task restored to inbox"), tone: "success" });
       } catch (error) {
         if (companyId) {
           beginLocalInboxArchive(companyId, id);
@@ -3877,11 +3901,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           boundLocalInboxArchive(companyId, id);
         }
         pushToast({
-          title: "Undo failed",
+          title: uiText("Undo failed"),
           body:
             error instanceof Error
               ? error.message
-              : "Unable to restore this task to the inbox",
+              : uiText("Unable to restore this task to the inbox"),
           tone: "error",
         });
       } finally {
@@ -4042,9 +4066,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         );
       }
       pushToast({
-        title: "Task update failed",
+        title: uiText("Task update failed"),
         body:
-          err instanceof Error ? err.message : "Unable to save task changes",
+          err instanceof Error ? err.message : uiText("Unable to save task changes"),
         tone: "error",
       });
     },
@@ -4077,11 +4101,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     },
     onError: (err) => {
       pushToast({
-        title: "Recovery resolution failed",
+        title: uiText("Recovery resolution failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to resolve recovery action",
+            : uiText("Unable to resolve recovery action"),
         tone: "error",
       });
     },
@@ -4114,7 +4138,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         const pauseHoldId = treeControlState?.activePauseHold?.holdId;
         if (!pauseHoldId) {
           throw new Error(
-            "No active subtree pause hold is available to resume.",
+            uiText("No active subtree pause hold is available to resume."),
           );
         }
         const releasedHold = await issuesApi.releaseTreeHold(
@@ -4258,8 +4282,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           status === "done"
-            ? "Run stopped and task done"
-            : "Run stopped and task cancelled",
+            ? uiText("Run stopped and task done")
+            : uiText("Run stopped and task cancelled"),
         tone: "success",
       });
     },
@@ -4267,14 +4291,14 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       const runWasStopped = didRunCancelBeforeStatusUpdateFail(err);
       pushToast({
         title: runWasStopped
-          ? "Run stopped; task update failed"
+          ? uiText("Run stopped; task update failed")
           : status === "done"
-            ? "Stop and done failed"
-            : "Stop and cancel failed",
+            ? uiText("Stop and done failed")
+            : uiText("Stop and cancel failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to stop the run and update the task",
+            : uiText("Unable to stop the run and update the task"),
         tone: "error",
       });
     },
@@ -4312,11 +4336,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     },
     onError: (err) => {
       pushToast({
-        title: "Task update failed",
+        title: uiText("Task update failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to save sub-task changes",
+            : uiText("Unable to save sub-task changes"),
         tone: "error",
       });
     },
@@ -4349,7 +4373,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             issue,
             currentUserId,
           )}
-          createIssueLabel="Sub-task"
+          createIssueLabel={uiText("Sub-task")}
           defaultSortField="workflow"
           showProgressSummary
           parentIssueIdForCostSummary={issue.id}
@@ -4380,17 +4404,17 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueRunState();
       invalidateIssueCollections();
       pushToast({
-        title: "Monitor check queued",
+        title: uiText("Monitor check queued"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Monitor check failed",
+        title: uiText("Monitor check failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to trigger the monitor right now",
+            : uiText("Unable to trigger the monitor right now"),
         tone: "error",
       });
     },
@@ -4429,8 +4453,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           variables.action === "approve"
-            ? "Approval approved"
-            : "Approval rejected",
+            ? uiText("Approval approved")
+            : uiText("Approval rejected"),
         tone: "success",
       });
     },
@@ -4438,9 +4462,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           variables.action === "approve"
-            ? "Approval failed"
-            : "Rejection failed",
-        body: err instanceof Error ? err.message : "Unable to update approval",
+            ? uiText("Approval failed")
+            : uiText("Rejection failed"),
+        body: err instanceof Error ? err.message : uiText("Unable to update approval"),
         tone: "error",
       });
     },
@@ -4471,7 +4495,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       const previousIssue = queryClient.getQueryData<Issue>(
         queryKeys.issues.detail(issueId!),
       );
-      const queuedComment = !interrupt
+      const dsp7Decision = agentMap.get(issue?.assigneeAgentId ?? "")?.adapterConfig?.dsp7ExternalConfirmation === true && isDsp7ConfirmationMessage(body);
+      const queuedComment = !interrupt && !dsp7Decision
         ? readIssueRunStateFromCache(queryClient, issueId!, issue)
             .interruptibleIssueRun
         : null;
@@ -4527,11 +4552,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
+            title: uiText("Cancel failed"),
             body:
               err instanceof Error
                 ? err.message
-                : "Unable to cancel the queued comment",
+                : uiText("Unable to cancel the queued comment"),
             tone: "error",
           });
         }
@@ -4594,9 +4619,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           err instanceof CommentSubmissionUnknownError
-            ? "Comment save unconfirmed"
-            : "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+            ? uiText("Comment save unconfirmed")
+            : uiText("Comment failed"),
+        body: err instanceof Error ? err.message : uiText("Unable to post comment"),
         tone: "error",
       });
     },
@@ -4662,22 +4687,22 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           interaction.kind === "request_confirmation"
-            ? "Request confirmed"
+            ? uiText("Request confirmed")
             : interaction.kind === "request_checkbox_confirmation"
-              ? "Selection confirmed"
+              ? uiText("Selection confirmed")
               : skippedCount > 0
                 ? `Accepted ${createdCount} draft${createdCount === 1 ? "" : "s"} and skipped ${skippedCount}`
-                : "Suggested tasks accepted",
+                : uiText("Suggested tasks accepted"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Accept failed",
+        title: uiText("Accept failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to accept the suggested tasks",
+            : uiText("Unable to accept the suggested tasks"),
         tone: "error",
       });
     },
@@ -4698,17 +4723,17 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         title:
           interaction.kind === "request_confirmation"
             ? buildIssueThreadInteractionSummary(interaction)
-            : "Suggestion rejected",
+            : uiText("Suggestion rejected"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Reject failed",
+        title: uiText("Reject failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to reject the suggested tasks",
+            : uiText("Unable to reject the suggested tasks"),
         tone: "error",
       });
     },
@@ -4726,14 +4751,14 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Answers submitted",
+        title: uiText("Answers submitted"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Submit failed",
-        body: err instanceof Error ? err.message : "Unable to submit answers",
+        title: uiText("Submit failed"),
+        body: err instanceof Error ? err.message : uiText("Unable to submit answers"),
         tone: "error",
       });
     },
@@ -4763,16 +4788,16 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           : false;
       pushToast({
         title: complete
-          ? "All verdicts applied"
+          ? uiText("All verdicts applied")
           : `Applied ${applied} decision${applied === 1 ? "" : "s"}`,
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Apply failed",
+        title: uiText("Apply failed"),
         body:
-          err instanceof Error ? err.message : "Unable to apply the verdicts",
+          err instanceof Error ? err.message : uiText("Unable to apply the verdicts"),
         tone: "error",
       });
     },
@@ -4789,15 +4814,15 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Question cancelled",
+        title: uiText("Question cancelled"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
+        title: uiText("Cancel failed"),
         body:
-          err instanceof Error ? err.message : "Unable to cancel the question",
+          err instanceof Error ? err.message : uiText("Unable to cancel the question"),
         tone: "error",
       });
     },
@@ -4813,9 +4838,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     },
     onError: (err) => {
       pushToast({
-        title: "Skip failed",
+        title: uiText("Skip failed"),
         body:
-          err instanceof Error ? err.message : "Unable to skip this request",
+          err instanceof Error ? err.message : uiText("Unable to skip this request"),
         tone: "error",
       });
     },
@@ -4922,11 +4947,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
+            title: uiText("Cancel failed"),
             body:
               err instanceof Error
                 ? err.message
-                : "Unable to cancel the queued comment",
+                : uiText("Unable to cancel the queued comment"),
             tone: "error",
           });
         }
@@ -4986,9 +5011,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast({
         title:
           err instanceof CommentSubmissionUnknownError
-            ? "Comment save unconfirmed"
-            : "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+            ? uiText("Comment save unconfirmed")
+            : uiText("Comment failed"),
+        body: err instanceof Error ? err.message : uiText("Unable to post comment"),
         tone: "error",
       });
     },
@@ -5015,8 +5040,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueDetail();
       invalidateIssueRunState();
       pushToast({
-        title: "Interrupt requested",
-        body: "Queued messages will be sent when the previous run has stopped.",
+        title: uiText("Interrupt requested"),
+        body: uiText("Queued messages will be sent when the previous run has stopped."),
         tone: "success",
       });
     },
@@ -5024,11 +5049,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueDetail();
       invalidateIssueRunState();
       pushToast({
-        title: "Interrupt failed",
+        title: uiText("Interrupt failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to interrupt the active run",
+            : uiText("Unable to interrupt the active run"),
         tone: "error",
       });
     },
@@ -5050,18 +5075,18 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueThreadLazily();
       invalidateIssueCollections();
       pushToast({
-        title: "Queued comment canceled",
-        body: "The queued message was restored to the composer.",
+        title: uiText("Queued comment canceled"),
+        body: uiText("The queued message was restored to the composer."),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
+        title: uiText("Cancel failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to cancel the queued comment",
+            : uiText("Unable to cancel the queued comment"),
         tone: "error",
       });
     },
@@ -5078,16 +5103,16 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       invalidateIssueCollections();
       invalidateIssueDocumentAnnotationState();
       pushToast({
-        title: "Comment deleted",
-        body: "The thread now shows a deleted-comment marker.",
+        title: uiText("Comment deleted"),
+        body: uiText("The thread now shows a deleted-comment marker."),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Delete failed",
+        title: uiText("Delete failed"),
         body:
-          err instanceof Error ? err.message : "Unable to delete the comment",
+          err instanceof Error ? err.message : uiText("Unable to delete the comment"),
         tone: "error",
       });
     },
@@ -5106,8 +5131,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         if (cancelledCommentBody) {
           restoreQueuedCommentDraft(cancelledCommentBody);
           pushToast({
-            title: "Queued comment canceled",
-            body: "The queued message was restored to the composer.",
+            title: uiText("Queued comment canceled"),
+            body: uiText("The queued message was restored to the composer."),
             tone: "success",
           });
         }
@@ -5170,11 +5195,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         title:
           variables.sharingPreferenceAtSubmit === "prompt"
             ? variables.allowSharing
-              ? "Feedback saved. Future votes will share"
-              : "Feedback saved. Future votes will stay local"
+              ? uiText("Feedback saved. Future votes will share")
+              : uiText("Feedback saved. Future votes will stay local")
             : variables.allowSharing
-              ? "Feedback saved and sharing enabled"
-              : "Feedback saved",
+              ? uiText("Feedback saved and sharing enabled")
+              : uiText("Feedback saved"),
         tone: "success",
       });
     },
@@ -5186,8 +5211,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         );
       }
       pushToast({
-        title: "Failed to save feedback",
-        body: err instanceof Error ? err.message : "Unknown error",
+        title: uiText("Failed to save feedback"),
+        body: err instanceof Error ? err.message : uiText("Unknown error"),
         tone: "error",
       });
     },
@@ -5199,7 +5224,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         return issuesApi.uploadAttachment(conversation.agent.companyId, await resolveWritableIssueId(), file);
       }
       if (!loadedIssue)
-        throw new Error("Task details are still loading. Please try again.");
+        throw new Error(uiText("Task details are still loading. Please try again."));
       return issuesApi.uploadAttachment(
         loadedIssue.companyId,
         loadedIssue.id,
@@ -5291,10 +5316,10 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         { replace: true },
       );
       pushToast({
-        title: "Task archived from inbox",
+        title: uiText("Task archived from inbox"),
         tone: "success",
         action: {
-          label: "Undo",
+          label: uiText("Undo"),
           onClick: () => {
             void undoInboxArchive(
               id,
@@ -5311,11 +5336,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         restoreIssueToInboxCaches(queryClient, context.previousData, id);
       }
       pushToast({
-        title: "Archive failed",
+        title: uiText("Archive failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to archive this task from the inbox",
+            : uiText("Unable to archive this task from the inbox"),
         tone: "error",
       });
     },
@@ -5342,7 +5367,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         label: conversationAgent.name,
         leading: <Avatar className="size-6 shrink-0"><AvatarFallback>{deriveInitials(conversationAgent.name)}</AvatarFallback></Avatar>,
         leadingKey: `agent:${conversationAgent.id}`,
-        trailing: <Button variant="ghost" size="icon-xs" asChild aria-label={`Configure ${conversationAgent.name}`}><Link to={agentDetailHref(conversationAgent.id, "runtime")}><ChatSettings /></Link></Button>,
+        trailing: <Button variant="ghost" size="icon-xs" asChild aria-label={uiTextFormat("Configure __PCVAR0__", [conversationAgent.name])}><Link to={agentDetailHref(conversationAgent.id, "runtime")}><ChatSettings /></Link></Button>,
         trailingKey: `configure:${conversationAgent.id}`,
       }]);
       return;
@@ -6029,15 +6054,15 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     try {
       await copyTextToClipboard(md);
       setCopied(true);
-      pushToast({ title: "Copied to clipboard", tone: "success" });
+      pushToast({ title: uiText("Copied to clipboard"), tone: "success" });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       pushToast({
-        title: "Copy failed",
+        title: uiText("Copy failed"),
         body:
           error instanceof Error
             ? error.message
-            : "Unable to copy task markdown",
+            : uiText("Unable to copy task markdown"),
         tone: "error",
       });
     }
@@ -6228,7 +6253,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     () => [
       {
         id: "cancel",
-        label: "Stop and cancel",
+        label: uiText("Stop and cancel"),
         pendingLabel: "Stopping and cancelling...",
         isPending:
           stopAndFinalizeRun.isPending &&
@@ -6242,7 +6267,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       },
       {
         id: "done",
-        label: "Stop and done",
+        label: uiText("Stop and done"),
         pendingLabel: "Stopping and marking done...",
         isPending:
           stopAndFinalizeRun.isPending &&
@@ -6332,7 +6357,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
   const issueIdForResume = issue?.id ?? null;
   const resumeAssigneeAgent = useMutation({
     mutationFn: async () => {
-      if (!issueAssigneeAgentIdForResume) throw new Error("No assignee agent");
+      if (!issueAssigneeAgentIdForResume) throw new Error(uiText("No assignee agent"));
       await agentsApi.resume(
         issueAssigneeAgentIdForResume,
         issueCompanyIdForResume ?? undefined,
@@ -6433,7 +6458,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     mutationFn: async (
       request: import("../components/IssueRecoveryActionCard").RecoveryReissueRequest,
     ) => {
-      if (!issue) throw new Error("Task is not loaded yet.");
+      if (!issue) throw new Error(uiText("Task is not loaded yet."));
       const sourceLabel = issue.identifier ?? "the stalled task";
       const descriptionLines = [
         `Re-issued from ${sourceLabel} on an isolated git worktree after a workspace branch divergence.`,
@@ -6448,7 +6473,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         issue.description ?? "",
       ];
       return issuesApi.create(issue.companyId, {
-        title: `Re-issue (isolated): ${issue.title ?? sourceLabel}`,
+        title: uiTextFormat("Re-issue (isolated): __PCVAR0__", [issue.title ?? sourceLabel]),
         description: descriptionLines.join("\n"),
         priority: issue.priority,
         projectId: issue.projectId ?? null,
@@ -6468,10 +6493,10 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     onSuccess: (created) => {
       invalidateIssueCollections();
       pushToast({
-        title: "Isolated re-issue created",
+        title: uiText("Isolated re-issue created"),
         body: created.identifier
           ? `${created.identifier} will run on a fresh isolated workspace.`
-          : "A fresh isolated re-issue was created.",
+          : uiText("A fresh isolated re-issue was created."),
         tone: "success",
       });
       if (created.identifier) {
@@ -6480,11 +6505,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     },
     onError: (err) => {
       pushToast({
-        title: "Re-issue failed",
+        title: uiText("Re-issue failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to create an isolated re-issue.",
+            : uiText("Unable to create an isolated re-issue."),
         tone: "error",
       });
     },
@@ -6524,24 +6549,24 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       pushToast(
         variables.mode === "quarantine_restore"
           ? {
-              title: "Workspace repaired",
-              body: "Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume.",
+              title: uiText("Workspace repaired"),
+              body: uiText("Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume."),
               tone: "success",
             }
           : {
-              title: "Workspace branch reconciled",
-              body: "The recorded branch now matches the live branch; the task will resume.",
+              title: uiText("Workspace branch reconciled"),
+              body: uiText("The recorded branch now matches the live branch; the task will resume."),
               tone: "success",
             },
       );
     },
     onError: (err) => {
       pushToast({
-        title: "Reconcile failed",
+        title: uiText("Reconcile failed"),
         body:
           err instanceof Error
             ? err.message
-            : "Unable to reconcile the workspace branch.",
+            : uiText("Unable to reconcile the workspace branch."),
         tone: "error",
       });
     },
@@ -6559,8 +6584,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
   const handleReconcileForwardRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Reconcile failed",
-        body: "This task has no execution workspace to reconcile.",
+        title: uiText("Reconcile failed"),
+        body: uiText("This task has no execution workspace to reconcile."),
         tone: "error",
       });
       return;
@@ -6578,8 +6603,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     (reason: string) => {
       if (!reconcileExecutionWorkspaceId) {
         pushToast({
-          title: "Reconcile failed",
-          body: "This task has no execution workspace to reconcile.",
+          title: uiText("Reconcile failed"),
+          body: uiText("This task has no execution workspace to reconcile."),
           tone: "error",
         });
         return;
@@ -6601,8 +6626,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
   const handleQuarantineRestoreRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Repair failed",
-        body: "This task has no execution workspace to repair.",
+        title: uiText("Repair failed"),
+        body: uiText("This task has no execution workspace to repair."),
         tone: "error",
       });
       return;
@@ -6790,11 +6815,11 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       >
         <Paperclip className="h-3.5 w-3.5 mr-1.5" />
         {uploadAttachment.isPending || importMarkdownDocument.isPending ? (
-          "Uploading..."
+          uiText("Uploading...")
         ) : (
           <>
-            <span className="hidden sm:inline">Upload attachment</span>
-            <span className="sm:hidden">Upload</span>
+            <span className="hidden sm:inline">{uiText("Upload attachment")}</span>
+            <span className="sm:hidden">{uiText("Upload")}</span>
           </>
         )}
       </Button>
@@ -6917,7 +6942,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
             </span>
-            Live
+            {uiText("Live")}
           </Badge>
         )}
 
@@ -6925,10 +6950,10 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           <Link
             to={`/routines/${issue.originId}`}
             className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/30 px-2 py-0.5 text-(length:--text-nano) font-medium text-violet-600 dark:text-violet-400 shrink-0 hover:bg-violet-500/20 transition-colors"
-            title={`Routine execution from routine ${issue.originId}`}
+            title={uiTextFormat("Routine execution from routine __PCVAR0__", [issue.originId])}
           >
             <Repeat className="h-3 w-3" />
-            Routine
+            {uiText("Routine")}
           </Link>
         )}
 
@@ -6936,10 +6961,10 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           <Badge
             variant="outline"
             className="border-sky-500/40 bg-sky-500/10 text-(length:--text-nano) text-sky-700 dark:text-sky-300"
-            title="This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate."
+            title={uiText("This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate.")}
           >
             <ScanEye className="h-3 w-3" />
-            Watchdog
+            {uiText("Watchdog")}
           </Badge>
         ) : null}
 
@@ -6959,7 +6984,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                     "text-(length:--text-nano)",
                     workModeMeta.classes.badge,
                   )}
-                  title={`This task is in ${workModeMeta.label.toLowerCase()}.`}
+                  title={uiTextFormat("This task is in __PCVAR0__.", [workModeMeta.label.toLowerCase()])}
                 >
                   <WorkModeIcon className="h-3 w-3" aria-hidden />
                   {workModeMeta.label}
@@ -6973,10 +6998,10 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             variant="outline"
             data-testid="issue-detail-parked-blocker"
             className="border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-            title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+            title={uiText("Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee.")}
           >
             <Flag className="h-3 w-3" />
-            Blocked by parked work
+            {uiText("Blocked by parked work")}
           </Badge>
         ) : null}
 
@@ -7005,7 +7030,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         ) : (
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
             <ProjectTile size="xs" />
-            No project
+            {uiText("No project")}
           </span>
         )}
 
@@ -7046,7 +7071,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               variant="ghost"
               size="icon-xs"
               onClick={copyIssueToClipboard}
-              title="Copy task as markdown"
+              title={uiText("Copy task as markdown")}
             >
               {copied ? (
                 <Check className="h-4 w-4 text-green-500" />
@@ -7058,7 +7083,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               variant="ghost"
               size="icon-xs"
               onClick={() => setMobilePropsOpen(true)}
-              title="Properties"
+              title={uiText("Properties")}
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -7075,8 +7100,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                   archiveFromInbox.mutate(issue.id);
               }}
               disabled={archivePending}
-              title="Archive from inbox"
-              aria-label="Archive from inbox"
+              title={uiText("Archive from inbox")}
+              aria-label={uiText("Archive from inbox")}
             >
               <Archive className="h-4 w-4" />
             </Button>
@@ -7086,8 +7111,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               variant="ghost"
               size="icon-xs"
               onClick={() => setFileViewerPromptOpen(true)}
-              title="Open file... (g f)"
-              aria-label="Open file in this issue"
+              title={uiText("Open file... (g f)")}
+              aria-label={uiText("Open file in this issue")}
             >
               <FileCode2 className="h-4 w-4" />
             </Button>
@@ -7097,7 +7122,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               variant="ghost"
               size="icon-xs"
               onClick={copyIssueToClipboard}
-              title="Copy task as markdown"
+              title={uiText("Copy task as markdown")}
             >
               {copied ? (
                 <Check className="h-4 w-4 text-green-500" />
@@ -7131,8 +7156,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                   variant="ghost"
                   size="icon-xs"
                   className="shrink-0"
-                  aria-label="More task actions"
-                  title="More task actions"
+                  aria-label={uiText("More task actions")}
+                  title={uiText("More task actions")}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -7154,7 +7179,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                       }}
                     >
                       <Plus className="h-3 w-3" />
-                      Add subtask
+                      {uiText("Add subtask")}
                     </button>
                     <button
                       className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent/50"
@@ -7168,7 +7193,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                       ) : (
                         <Copy className="h-3 w-3" />
                       )}
-                      Copy as markdown
+                      {uiText("Copy as markdown")}
                     </button>
                     {canArchiveFromInbox ? (
                       <button
@@ -7181,7 +7206,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                         }}
                       >
                         <Archive className="h-3 w-3" />
-                        Archive from inbox
+                        {uiText("Archive from inbox")}
                       </button>
                     ) : null}
                   </>
@@ -7239,7 +7264,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                   }}
                 >
                   <EyeOff className="h-3 w-3" />
-                  Hide this task
+                  {uiText("Hide this task")}
                 </button>
               </PopoverContent>
             </Popover>
@@ -7276,7 +7301,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           onSave={(description) => updateIssue.mutateAsync({ description })}
           as="p"
           className="text-sm leading-7 text-foreground"
-          placeholder="Add a description..."
+          placeholder={uiText("Add a description...")}
           multiline
           foldable
           mentions={mentionOptions}
@@ -7390,7 +7415,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               )}
             >
               <EyeOff className="h-4 w-4 shrink-0" />
-              This task is hidden
+              {uiText("This task is hidden")}
             </div>
           )}
           {treeControlWakeWarning ? (
@@ -7420,7 +7445,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Sub-tasks
+                  {uiText("Sub-tasks")}
                 </h3>
               </div>
               <IssuesList
@@ -7443,7 +7468,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                   issue,
                   currentUserId,
                 )}
-                createIssueLabel="Sub-task"
+                createIssueLabel={uiText("Sub-task")}
                 defaultSortField="workflow"
                 showProgressSummary
                 parentIssueIdForCostSummary={issue.id}
@@ -7459,7 +7484,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                 className="shrink-0 shadow-none"
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                New Sub-task
+                {uiText("New Sub-task")}
               </Button>
             </div>
           )}
@@ -7605,7 +7630,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-sm font-medium text-muted-foreground">
-                      Artifacts
+                      {uiText("Artifacts")}
                     </h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -7645,15 +7670,15 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               >
                 <TabsTrigger value="chat" className="gap-1.5">
                   <MessageSquare className="h-3.5 w-3.5" />
-                  Chat
+                  {uiText("Chat")}
                 </TabsTrigger>
                 <TabsTrigger value="activity" className="gap-1.5">
                   <ActivityIcon className="h-3.5 w-3.5" />
-                  Activity
+                  {uiText("Activity")}
                 </TabsTrigger>
                 <TabsTrigger value="related-work" className="gap-1.5">
                   <ListTree className="h-3.5 w-3.5" />
-                  Related work
+                  {uiText("Related work")}
                 </TabsTrigger>
                 {issuePluginTabItems.map((item) => (
                   <TabsTrigger key={item.value} value={item.value}>
@@ -7685,6 +7710,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               )}
               {resolvedDetailTab === "chat" ? (
                 <IssueDetailChatTab
+                  dsp7ConfirmationDescription={issue.description}
                   onOpenSkill={handleOpenSkill}
                   threadHeader={<>{taskChatThreadHeader}{instanceExperimentalSettings?.enableChatConnectors && <EmailTaskActivity key={issue.id} companyId={issue.companyId} issueId={issue.id} />}</>}
                   issueBrief={
@@ -7831,7 +7857,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                     } : undefined,
                     resumeHref: !activePauseHold.isRoot ? createIssueDetailPath(activePauseHoldRoot?.identifier ?? activePauseHold.rootIssueId) : undefined,
                   } : null}
-                  composerDisabledReason={issue.conversationAgentId && !instanceExperimentalSettings?.enableAgentChat ? "Agent Chat is disabled in Experimental settings." : treeControlStateError ? "Couldn’t check whether this task is paused. Refresh to try again." : null}
+                  composerDisabledReason={issue.conversationAgentId && !instanceExperimentalSettings?.enableAgentChat ? uiText("Agent Chat is disabled in Experimental settings.") : treeControlStateError ? uiText("Couldn’t check whether this task is paused. Refresh to try again.") : null}
                   composerHint={composerHint}
                   queuedCommentReason={queuedCommentReason}
                   onVote={handleCommentVote}
@@ -8073,7 +8099,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
               {taskChatShellEnabled ? (
                 <>
                   <SheetHeader className="sr-only">
-                    <SheetTitle>Task side panel</SheetTitle>
+                    <SheetTitle>{uiText("Task side panel")}</SheetTitle>
                   </SheetHeader>
                   <TaskSidePanel
                     key={`${issue.id}:mobile`}
@@ -8134,8 +8160,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
                   <SheetHeader>
                     <SheetTitle className="text-sm">
                       {documentDeepLink?.documentKey === "plan"
-                        ? "Plan"
-                        : "Properties"}
+                        ? uiText("Plan")
+                        : uiText("Properties")}
                     </SheetTitle>
                   </SheetHeader>
                   <ScrollArea className="flex-1 overflow-y-auto">

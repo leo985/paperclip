@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { defaultStatusCardRefreshPolicy } from "@paperclipai/shared";
@@ -74,30 +75,25 @@ export function CreateStatusCardDialog({
     <Dialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New card</DialogTitle>
-          <DialogDescription>
-            One message sets up the whole card: say what you want to watch and what each update
-            should tell you. The agent builds the query from it and writes every update against it.
-          </DialogDescription>
+          <DialogTitle>{uiText("New card")}</DialogTitle>
+          <DialogDescription>{uiText("One message sets up the whole card: say what you want to watch and what each update should tell you. The agent builds the query from it and writes every update against it.")}{" "}</DialogDescription>
         </DialogHeader>
 
-        {error ? <InlineBanner tone="danger" title="Create failed">{error}</InlineBanner> : null}
+        {error ? <InlineBanner tone="danger" title={uiText("Create failed")}>{error}</InlineBanner> : null}
 
         <div className="space-y-3">
-          <label htmlFor="status-card-prompt" className="block pb-1 text-sm font-semibold">
-            What do you want to keep an eye on?
-          </label>
+          <label htmlFor="status-card-prompt" className="block pb-1 text-sm font-semibold">{uiText("What do you want to keep an eye on?")}{" "}</label>
           <Textarea
             id="status-card-prompt"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
             rows={5}
             autoFocus
-            placeholder="Keep an eye on the ID and Cloud projects. Tell me whether the service is live, and if not, the exact three actions needed to get it to production."
+            placeholder={uiText("Keep an eye on the ID and Cloud projects. Tell me whether the service is live, and if not, the exact three actions needed to get it to production.")}
             className="text-sm"
           />
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Examples</span>
+            <span className="text-xs font-medium text-muted-foreground">{uiText("Examples")}</span>
             {EXAMPLES.map((example) => (
               <button
                 key={example}
@@ -112,25 +108,21 @@ export function CreateStatusCardDialog({
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-semibold">Agent</label>
+          <label className="block text-sm font-semibold">{uiText("Agent")}</label>
           <SummarizerAgentSelect companyId={companyId} value={agentId} onChange={setAgentId} enabled={open} />
-          <p className="text-xs text-muted-foreground">
-            Runs this card's setup and updates. Leave on the default unless another agent should own it.
-          </p>
+          <p className="text-xs text-muted-foreground">{uiText("Runs this card's setup and updates. Leave on the default unless another agent should own it.")}{" "}</p>
         </div>
 
         <DialogFooter>
           <div className="flex gap-2">
             <Button variant="outline" onClick={close} disabled={createMutation.isPending}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button
               onClick={() => createMutation.mutate()}
               disabled={prompt.trim().length === 0 || createMutation.isPending}
             >
-              {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}
-              Create card
-            </Button>
+              {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}{uiText("Create card")}{" "}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

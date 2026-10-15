@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 /**
  * @fileoverview Adapter Manager page — install, view, and manage external adapters.
  *
@@ -77,11 +78,11 @@ function AdapterRow({
                   external adapter ever provides one. */}
               {adapter.label && adapter.label !== adapter.type ? adapter.label : getAdapterLabel(adapter.type)}
             </span>
-            <Badge variant="outline">{adapter.source === "external" ? "External" : "Built-in"}</Badge>
+            <Badge variant="outline">{adapter.source === "external" ? uiText("External") : uiText("Built-in")}</Badge>
             {adapter.source === "external" && (
               adapter.isLocalPath
-                ? <span title="Installed from local path"><FolderOpen className="h-4 w-4 text-amber-500" /></span>
-                : <span title="Installed from npm"><Package className="h-4 w-4 text-red-500" /></span>
+                ? <span title={uiText("Installed from local path")}><FolderOpen className="h-4 w-4 text-amber-500" /></span>
+                : <span title={uiText("Installed from npm")}><Package className="h-4 w-4 text-red-500" /></span>
             )}
             {adapter.version && (
               <Badge variant="secondary" className="font-mono text-(length:--text-nano)">
@@ -89,18 +90,15 @@ function AdapterRow({
               </Badge>
             )}
             {adapter.overriddenBuiltin && (
-              <Badge variant="secondary" className="text-blue-600 border-blue-400">
-                Overrides built-in
-              </Badge>
+              <Badge variant="secondary" className="text-blue-600 border-blue-400">{uiText("Overrides built-in")}{" "}</Badge>
             )}
             {overriddenBy && (
-              <Badge variant="secondary" className="text-blue-600 border-blue-400">
-                Overridden by {overriddenBy}
+              <Badge variant="secondary" className="text-blue-600 border-blue-400">{uiText("Overridden by")}{" "}{overriddenBy}
               </Badge>
             )}
             {adapter.disabled && (
               <Badge variant="secondary" className="text-amber-600 border-amber-400">
-                {disabledBadgeLabel ?? "Hidden from menus"}
+                {disabledBadgeLabel ?? uiText("Hidden from menus")}
               </Badge>
             )}
           </div>
@@ -118,7 +116,7 @@ function AdapterRow({
               variant="outline"
               size="icon-sm"
               className="h-8 w-8"
-              title="Reinstall adapter (pull latest from npm)"
+              title={uiText("Reinstall adapter (pull latest from npm)")}
               disabled={isReinstalling}
               onClick={() => onReinstall(adapter.type)}
             >
@@ -130,7 +128,7 @@ function AdapterRow({
               variant="outline"
               size="icon-sm"
               className="h-8 w-8"
-              title="Reload adapter (hot-swap)"
+              title={uiText("Reload adapter (hot-swap)")}
               disabled={isReloading}
               onClick={() => onReload(adapter.type)}
             >
@@ -142,8 +140,8 @@ function AdapterRow({
             size="icon-sm"
             className="h-8 w-8"
             title={adapter.disabled
-              ? (toggleTitleEnabled ?? "Show in agent menus")
-              : (toggleTitleDisabled ?? "Hide from agent menus")}
+              ? (toggleTitleEnabled ?? uiText("Show in agent menus"))
+              : (toggleTitleDisabled ?? uiText("Hide from agent menus"))}
             disabled={isToggling}
             onClick={() => onToggle(adapter.type, !adapter.disabled)}
           >
@@ -154,7 +152,7 @@ function AdapterRow({
               variant="outline"
               size="icon-sm"
               className="h-8 w-8 text-destructive hover:text-destructive"
-              title="Remove adapter"
+              title={uiText("Remove adapter")}
               onClick={() => onRemove(adapter.type)}
             >
               <Trash2 className="h-4 w-4" />
@@ -204,49 +202,43 @@ function ReinstallDialog({
     <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reinstall Adapter</DialogTitle>
-          <DialogDescription>
-            This will pull the latest version of{" "}
-            <strong>{adapter?.packageName}</strong> from npm and hot-swap
-            the running adapter module. Existing agents will use the new
-            version on their next run.
-          </DialogDescription>
+          <DialogTitle>{uiText("Reinstall Adapter")}</DialogTitle>
+          <DialogDescription>{uiText("This will pull the latest version of")}{" "}
+            <strong>{adapter?.packageName}</strong>{" "}{uiText("from npm and hot-swap the running adapter module. Existing agents will use the new version on their next run.")}{" "}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-md border bg-muted/50 px-4 py-3 text-sm space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Package</span>
+            <span className="text-muted-foreground">{uiText("Package")}</span>
             <span className="font-mono">{adapter?.packageName}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Current</span>
+            <span className="text-muted-foreground">{uiText("Current")}</span>
             <span className="font-mono">
-              {adapter?.version ? `v${adapter.version}` : "unknown"}
+              {adapter?.version ? `v${adapter.version}` : uiText("unknown")}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Latest on npm</span>
+            <span className="text-muted-foreground">{uiText("Latest on npm")}</span>
             <span className="font-mono">
               {isFetchingVersion
                 ? "checking..."
                 : latestVersion
                   ? `v${latestVersion}`
-                  : "unavailable"}
+                  : uiText("unavailable")}
             </span>
           </div>
           {isUpToDate && (
-            <p className="text-xs text-muted-foreground pt-1">
-              Already on the latest version.
-            </p>
+            <p className="text-xs text-muted-foreground pt-1">{uiText("Already on the latest version.")}{" "}</p>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isReinstalling}>
-            Cancel
+            {uiText("Cancel")}
           </Button>
           <Button disabled={isReinstalling} onClick={onConfirm}>
-            {isReinstalling ? "Reinstalling..." : "Reinstall"}
+            {isReinstalling ? uiText("Reinstalling...") : uiText("Reinstall")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -269,9 +261,9 @@ export function AdapterManager() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Organization", href: "/dashboard" },
-      { label: "Settings", href: "/company/settings" },
-      { label: "Adapters" },
+      { label: selectedCompany?.name ?? uiText("Organization"), href: "/dashboard" },
+      { label: uiText("Settings"), href: "/company/settings" },
+      { label: uiText("Adapters") },
     ]);
   }, [selectedCompany?.name, setBreadcrumbs]);
 
@@ -294,13 +286,13 @@ export function AdapterManager() {
       setInstallVersion("");
       setIsLocalPath(false);
       pushToast({
-        title: "Adapter installed",
-        body: `Type "${result.type}" registered successfully.${result.version ? ` (v${result.version})` : ""}`,
+        title: uiText("Adapter installed"),
+        body: uiTextFormat("Type \"__PCVAR0__\" registered successfully.__PCVAR1__", [result.type, result.version ? ` (v${result.version})` : ""]),
         tone: "success",
       });
     },
     onError: (err: Error) => {
-      pushToast({ title: "Install failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Install failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -308,10 +300,10 @@ export function AdapterManager() {
     mutationFn: (type: string) => adaptersApi.remove(type),
     onSuccess: () => {
       invalidate();
-      pushToast({ title: "Adapter removed", tone: "success" });
+      pushToast({ title: uiText("Adapter removed"), tone: "success" });
     },
     onError: (err: Error) => {
-      pushToast({ title: "Removal failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Removal failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -322,7 +314,7 @@ export function AdapterManager() {
       invalidate();
     },
     onError: (err: Error) => {
-      pushToast({ title: "Toggle failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Toggle failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -333,7 +325,7 @@ export function AdapterManager() {
       invalidate();
     },
     onError: (err: Error) => {
-      pushToast({ title: "Override toggle failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Override toggle failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -344,13 +336,13 @@ export function AdapterManager() {
       invalidateDynamicParser(result.type);
       invalidateConfigSchemaCache(result.type);
       pushToast({
-        title: "Adapter reloaded",
-        body: `Type "${result.type}" reloaded.${result.version ? ` (v${result.version})` : ""}`,
+        title: uiText("Adapter reloaded"),
+        body: uiTextFormat("Type \"__PCVAR0__\" reloaded.__PCVAR1__", [result.type, result.version ? ` (v${result.version})` : ""]),
         tone: "success",
       });
     },
     onError: (err: Error) => {
-      pushToast({ title: "Reload failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Reload failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -361,13 +353,13 @@ export function AdapterManager() {
       invalidateDynamicParser(result.type);
       invalidateConfigSchemaCache(result.type);
       pushToast({
-        title: "Adapter reinstalled",
-        body: `Type "${result.type}" updated from npm.${result.version ? ` (v${result.version})` : ""}`,
+        title: uiText("Adapter reinstalled"),
+        body: uiTextFormat("Type \"__PCVAR0__\" updated from npm.__PCVAR1__", [result.type, result.version ? ` (v${result.version})` : ""]),
         tone: "success",
       });
     },
     onError: (err: Error) => {
-      pushToast({ title: "Reinstall failed", body: err.message, tone: "error" });
+      pushToast({ title: uiText("Reinstall failed"), body: err.message, tone: "error" });
     },
   });
 
@@ -391,7 +383,7 @@ export function AdapterManager() {
       menuDisabled: !!a.disabled,
     }));
 
-  if (isLoading) return <div className="p-4 text-sm text-muted-foreground">Loading adapters...</div>;
+  if (isLoading) return <div className="p-4 text-sm text-muted-foreground">{uiText("Loading adapters...")}</div>;
 
   const isMutating = installMutation.isPending || removeMutation.isPending || toggleMutation.isPending || overrideMutation.isPending || reloadMutation.isPending || reinstallMutation.isPending;
 
@@ -401,24 +393,19 @@ export function AdapterManager() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Cpu className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-xl font-semibold">Adapters</h1>
-          <Badge variant="outline" className="text-amber-600 border-amber-400">
-            Alpha
-          </Badge>
+          <h1 className="text-xl font-semibold">{uiText("Adapters")}</h1>
+          <Badge variant="outline" className="text-amber-600 border-amber-400">{uiText("Alpha")}{" "}</Badge>
         </div>
 
         <Dialog open={installDialogOpen} onOpenChange={setInstallDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Install Adapter
-            </Button>
+              <Plus className="h-4 w-4" />{uiText("Install Adapter")}{" "}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Install External Adapter</DialogTitle>
-              <DialogDescription>
-                Add an adapter from npm or a local path. The adapter package must export <code className="text-xs bg-muted px-1 py-0.5 rounded">createServerAdapter()</code>.
+              <DialogTitle>{uiText("Install External Adapter")}</DialogTitle>
+              <DialogDescription>{uiText("Add an adapter from npm or a local path. The adapter package must export")}{" "}<code className="text-xs bg-muted px-1 py-0.5 rounded">createServerAdapter()</code>.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -448,14 +435,14 @@ export function AdapterManager() {
                   onClick={() => setIsLocalPath(true)}
                 >
                   <FolderOpen className="h-3.5 w-3.5" />
-                  Local path
+                  {uiText("Local path")}
                 </button>
               </div>
 
               {isLocalPath ? (
                 /* Local path input */
                 <div className="grid gap-2">
-                  <Label htmlFor="adapterLocalPath">Path to adapter package</Label>
+                  <Label htmlFor="adapterLocalPath">{uiText("Path to adapter package")}</Label>
                   <div className="flex gap-2">
                     <Input
                       id="adapterLocalPath"
@@ -466,15 +453,13 @@ export function AdapterManager() {
                     />
                     <ChoosePathButton />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Accepts Linux, WSL, and Windows paths. Windows paths are auto-converted.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{uiText("Accepts Linux, WSL, and Windows paths. Windows paths are auto-converted.")}{" "}</p>
                 </div>
               ) : (
                 /* npm package input */
                 <>
                   <div className="grid gap-2">
-                    <Label htmlFor="adapterPackageName">Package Name</Label>
+                    <Label htmlFor="adapterPackageName">{uiText("Package Name")}</Label>
                     <Input
                       id="adapterPackageName"
                       placeholder="my-paperclip-adapter"
@@ -483,7 +468,7 @@ export function AdapterManager() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="adapterVersion">Version (optional)</Label>
+                    <Label htmlFor="adapterVersion">{uiText("Version (optional)")}</Label>
                     <Input
                       id="adapterVersion"
                       placeholder="latest"
@@ -495,7 +480,7 @@ export function AdapterManager() {
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setInstallDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setInstallDialogOpen(false)}>{uiText("Cancel")}</Button>
               <Button
                 onClick={() =>
                   installMutation.mutate({
@@ -506,7 +491,7 @@ export function AdapterManager() {
                 }
                 disabled={!installPackage || installMutation.isPending}
               >
-                {installMutation.isPending ? "Installing..." : "Install"}
+                {installMutation.isPending ? uiText("Installing...") : uiText("Install")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -518,11 +503,8 @@ export function AdapterManager() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
           <div className="space-y-1 text-sm">
-            <p className="font-medium text-foreground">External adapters are alpha.</p>
-            <p className="text-muted-foreground">
-              The adapter plugin system is under active development. APIs and storage format may change.
-              Use the power icon to hide adapters from agent menus without removing them.
-            </p>
+            <p className="font-medium text-foreground">{uiText("External adapters are alpha.")}</p>
+            <p className="text-muted-foreground">{uiText("The adapter plugin system is under active development. APIs and storage format may change. Use the power icon to hide adapters from agent menus without removing them.")}{" "}</p>
           </div>
         </div>
       </div>
@@ -531,17 +513,15 @@ export function AdapterManager() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Cpu className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-base font-semibold">External Adapters</h2>
+          <h2 className="text-base font-semibold">{uiText("External Adapters")}</h2>
         </div>
 
         {externalAdapters.length === 0 ? (
           <Card className="bg-muted/30">
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Cpu className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-sm font-medium">No external adapters installed</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Install an adapter package to extend model support.
-              </p>
+              <p className="text-sm font-medium">{uiText("No external adapters installed")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{uiText("Install an adapter package to extend model support.")}{" "}</p>
             </CardContent>
           </Card>
         ) : (
@@ -588,11 +568,11 @@ export function AdapterManager() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Cpu className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-base font-semibold">Built-in Adapters</h2>
+          <h2 className="text-base font-semibold">{uiText("Built-in Adapters")}</h2>
         </div>
 
         {builtinAdapters.length === 0 && overriddenBuiltins.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No built-in adapters found.</div>
+          <div className="text-sm text-muted-foreground">{uiText("No built-in adapters found.")}</div>
         ) : (
           <Card className="block py-0">
           <ul className="divide-y">
@@ -643,18 +623,15 @@ export function AdapterManager() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove Adapter</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to remove the <strong>{removeType}</strong> adapter?
-              It will be unregistered and removed from the adapter store.
-              {removeType && adapters?.find((a) => a.type === removeType)?.packageName && (
+            <DialogTitle>{uiText("Remove Adapter")}</DialogTitle>
+            <DialogDescription>{uiText("Are you sure you want to remove the")}{" "}<strong>{removeType}</strong>{" "}{uiText("adapter? It will be unregistered and removed from the adapter store.")}{" "}{removeType && adapters?.find((a) => a.type === removeType)?.packageName && (
                 <> npm packages will be cleaned up from disk.</>
               )}
-              {" "}This action cannot be undone.
+              {" "}{uiText("This action cannot be undone.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRemoveType(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRemoveType(null)}>{uiText("Cancel")}</Button>
             <Button
               variant="destructive"
               disabled={removeMutation.isPending}
@@ -666,7 +643,7 @@ export function AdapterManager() {
                 }
               }}
             >
-              {removeMutation.isPending ? "Removing..." : "Remove"}
+              {removeMutation.isPending ? uiText("Removing...") : uiText("Remove")}
             </Button>
           </DialogFooter>
         </DialogContent>

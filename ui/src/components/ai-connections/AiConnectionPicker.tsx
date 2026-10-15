@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { AppLogo } from "@/pages/apps/AppLogo";
 import { ConnectionChoiceList } from "@/features/connections/ConnectionChoiceList";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ export function AiConnectionPicker({
       grantId: connection.grantId,
     });
   return (
-    <section className="flex flex-col gap-4" aria-label="AI connection">
+    <section className="flex flex-col gap-4" aria-label={uiText("AI connection")}>
       <div className="flex items-center gap-3">
         <AppLogo
           name={AI_PROVIDERS[requirement.provider].name}
@@ -79,7 +80,7 @@ export function AiConnectionPicker({
           size={32}
         />
         <div className="flex min-w-0 flex-col gap-1">
-        <h3 className="text-sm font-semibold">AI connection</h3>
+        <h3 className="text-sm font-semibold">{uiText("AI connection")}</h3>
         <p className="text-xs text-muted-foreground">
           {AI_PROVIDERS[requirement.provider].name}
           {value && value.mode !== "responsible_user" && ` · ${aiMethodLabel(value.provider, value.method)}`}
@@ -87,7 +88,7 @@ export function AiConnectionPicker({
         </div>
       </div>
       {loading ? (
-        <div role="status" aria-label="Loading AI connections">
+        <div role="status" aria-label={uiText("Loading AI connections")}>
           <Skeleton className="h-24 w-full" />
         </div>
       ) : error ? (
@@ -96,9 +97,7 @@ export function AiConnectionPicker({
             {error}
           </p>
           {onRetry && (
-            <Button type="button" variant="outline" onClick={onRetry}>
-              Retry connections
-            </Button>
+            <Button type="button" variant="outline" onClick={onRetry}>{uiText("Retry connections")}{" "}</Button>
           )}
         </div>
       ) : (
@@ -108,7 +107,7 @@ export function AiConnectionPicker({
             selectedId={value?.mode === "responsible_user" ? "responsible_user" : value?.connectionId}
             choices={[
               { id: "responsible_user", name: "Responsible user’s connection", description: <>
-                <span className="block">For you: {personalDefault?.name ?? "Not connected"}</span>
+                <span className="block">For you: {personalDefault?.name ?? uiText("Not connected")}</span>
                 <span className="block">Other users’ tasks use their own {AI_PROVIDERS[requirement.provider].name} connection.</span>
               </> },
               ...compatible.filter((connection) => connection.ownership === "shared").map((connection) => ({
@@ -133,9 +132,7 @@ export function AiConnectionPicker({
               variant="outline"
               className="self-end"
               onClick={onConnect}
-            >
-              Connect another account
-            </Button>
+            >{uiText("Connect another account")}{" "}</Button>
           )}
         </>
       )}

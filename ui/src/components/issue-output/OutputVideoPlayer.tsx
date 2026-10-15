@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import { cn } from "@/lib/utils";
 
 interface OutputVideoPlayerProps {
@@ -25,7 +26,7 @@ export function OutputVideoPlayer({ src, poster, className, title }: OutputVideo
         controls
         preload="metadata"
         playsInline
-        aria-label={title ? `Video output: ${title}` : "Video output"}
+        aria-label={title ? uiTextFormat("Video output: __PCVAR0__", [title]) : uiText("Video output")}
         className="absolute inset-0 h-full w-full"
       />
     </div>

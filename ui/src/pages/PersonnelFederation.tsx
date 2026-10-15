@@ -1,0 +1,39 @@
+import { uiText } from "@/i18n/interface";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/client";
+import { useCompany } from "@/context/CompanyContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+type Source={id:string;type:string;name:string;corpId:string;appKey:string;syncScope:string;enabled:boolean;autoSync:boolean;syncInterval:number;secretConfigured:boolean;lastSyncAt:string|null;lastResult:Record<string,unknown>|null;syncing:boolean};
+type Person={id:string;sourceId:string;username:string;name:string;email:string|null;phone:string|null;departmentIds:string[];userId:string|null;active:boolean;managedAccount:boolean;requirePasswordChange:boolean;loginConfigured:boolean};
+type Directory={existingAccounts:Array<{id:string;name:string;email:string}>;sources:Source[];people:Person[];departments:Array<{sourceId:string;externalId:string;name:string;active:boolean}>};
+const initial={type:"DingTalk",name:"",corpId:"",appKey:"",syncScope:"",enabled:true,autoSync:false,syncInterval:3600};
+export function PersonnelFederation(){
+ const {selectedCompanyId}=useCompany();const base=`/companies/${selectedCompanyId}/personnel-federation`;
+ const q=useQuery({queryKey:["personnel-federation",selectedCompanyId],queryFn:()=>api.get<Directory>(base),enabled:!!selectedCompanyId,retry:false});
+ const [form,setForm]=useState(initial),[secret,setSecret]=useState(""),[filter,setFilter]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const [linkPerson,setLinkPerson]=useState<Person|null>(null),[linkUser,setLinkUser]=useState("");
+ function chooseAccount(p:Person){setLinkUser("");setLinkPerson(p);}
+ async function action(work:()=>Promise<void>){setBusy(true);setMessage("");try{await work();await q.refetch();}catch(e){setMessage(e instanceof Error?e.message:"操作失败");}finally{setBusy(false);}}
+ function edit(s:Source){setForm({type:s.type,name:s.name,corpId:s.corpId,appKey:s.appKey,syncScope:s.syncScope,enabled:s.enabled,autoSync:s.autoSync,syncInterval:s.syncInterval});setSecret("");}
+ if(!selectedCompanyId)return <p>请先选择组织。</p>;
+ return <div className="space-y-6 p-6"><div><h1 className="text-xl font-semibold">人员联邦</h1><p className="text-sm text-muted-foreground">从钉钉／企业微信同步人员和部门，关联网站账号。仅实例管理员可管理，不同步密码和管理员权限。</p></div>
+ {q.error&&<p role="alert" className="text-destructive">{q.error.message}</p>}
+ <section className="space-y-3 rounded-md border border-border p-4"><h2 className="font-medium">身份源配置</h2><div className="grid gap-3 md:grid-cols-2">
+ <label className="text-sm">类型<select value={form.type} onChange={e=>setForm({...form,type:e.target.value})} className="w-full rounded-md border border-border bg-background p-2"><option>{uiText("DingTalk")}</option><option>{uiText("WeCom")}</option></select></label>
+ <label className="text-sm">名称<Input value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>
+ <label className="text-sm">CorpId<Input value={form.corpId} onChange={e=>setForm({...form,corpId:e.target.value})}/></label>
+ <label className="text-sm">AppKey（钉钉）<Input value={form.appKey} onChange={e=>setForm({...form,appKey:e.target.value})}/></label>
+ <label className="text-sm">应用密钥<Input type="password" autoComplete="new-password" value={secret} onChange={e=>setSecret(e.target.value)} placeholder="首次填写；编辑留空保留，加密保存不回显"/></label>
+ <label className="text-sm">同步根部门 ID（逗号分隔，包含子部门）<Input value={form.syncScope} onChange={e=>setForm({...form,syncScope:e.target.value})}/></label>
+ <label className="text-sm">自动同步间隔（秒，至少 300）<Input type="number" min={300} max={86400} value={form.syncInterval} onChange={e=>setForm({...form,syncInterval:Number(e.target.value)})}/></label>
+ </div><label className="flex gap-2 text-sm"><input type="checkbox" checked={form.enabled} onChange={e=>setForm({...form,enabled:e.target.checked})}/>启用身份源</label><label className="flex gap-2 text-sm"><input type="checkbox" checked={form.autoSync} onChange={e=>setForm({...form,autoSync:e.target.checked})}/>按间隔自动同步</label>
+ <div className="flex justify-between"><Button variant="outline" onClick={()=>{setForm(initial);setSecret("");}}>新建／清空表单</Button><Button disabled={busy||!!q.error} onClick={()=>void action(async()=>{await api.post(base,{...form,...(secret?{credentials:{secret}}:{})});setSecret("");setMessage("配置已保存");})}>保存身份源</Button></div></section>
+ {q.data?.sources.map(s=><section key={s.id} className="space-y-2 rounded-md border border-border p-4"><h2 className="font-medium">{s.name} · {s.type}</h2><p className="text-sm text-muted-foreground">范围：{s.syncScope}；密钥：{s.secretConfigured?"已配置":"未配置"}；{s.enabled?"启用":"暂停"}；{s.autoSync?`${s.syncInterval} 秒自动同步`:"手动同步"}；最近同步：{s.lastSyncAt?new Date(s.lastSyncAt).toLocaleString():"尚未同步"}</p><p className="text-sm">{s.lastResult?JSON.stringify(s.lastResult):""}</p><div className="flex gap-2"><Button variant="outline" disabled={busy} onClick={()=>edit(s)}>编辑</Button><Button disabled={busy||!s.enabled||s.syncing} onClick={()=>void action(async()=>{await api.post(base+`/${s.id}/sync`,{});setMessage("人员与部门同步完成");})}>{s.syncing?"同步中":"立即同步"}</Button></div></section>)}
+ {message&&<p role="status" className="text-sm">{message}</p>}
+ <section className="space-y-3"><h2 className="font-medium">同步人员（{q.data?.people.length||0}）</h2><p className="text-sm text-muted-foreground">同步新建的是普通成员账号，默认启用，初始密码为 12345，首次登录必须修改密码，不需要管理员激活。登录页支持企业邮箱，或选择“企业人员账号”输入用户名。与已有邮箱冲突时需明确关联原网站用户 ID，保留原有席位关系。目录缺失只标记待核对，不自动删除网站权限。</p><Input placeholder="搜索姓名、邮箱或用户名" value={filter} onChange={e=>setFilter(e.target.value)}/><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">姓名／登录名</th><th className="p-2">部门</th><th className="p-2">状态</th><th className="p-2">账号</th></tr></thead><tbody>{q.data?.people.filter(p=>[p.name,p.username,p.email].some(v=>v?.toLowerCase().includes(filter.toLowerCase()))).map(p=><tr key={p.id} className="border-t border-border"><td className="p-2">{p.name}<p className="text-xs text-muted-foreground">{p.username}</p></td><td className="p-2">{p.departmentIds.map(id=>q.data?.departments.find(d=>d.sourceId===p.sourceId&&d.externalId===id)?.name||id).join("、")}</td><td className="p-2">{p.active?"在同步范围":"缺失，待核对"} · {p.loginConfigured?(p.requirePasswordChange?"已启用，首次需改密":"已配置登录"):"待初始化／关联"}</td><td className="p-2">{p.userId?<><p className="text-xs text-muted-foreground">{p.userId}</p>{p.active&&p.managedAccount&&!p.loginConfigured&&<Button size="sm" variant="outline" disabled={busy} onClick={()=>chooseAccount(p)}>关联原账号</Button>}</>:<Button size="sm" disabled={busy||!p.active} onClick={()=>chooseAccount(p)}>关联已有账号</Button>}</td></tr>)}</tbody></table></div></section>
+ <Dialog open={!!linkPerson} onOpenChange={open=>{if(!open)setLinkPerson(null);}}><DialogContent><DialogHeader><DialogTitle>关联 {linkPerson?.name} 的原网站账号</DialogTitle><DialogDescription>请核对姓名和邮箱；关联后保留原席位和权限。未激活的新账号成员资格将停用。</DialogDescription></DialogHeader><label className="space-y-2 text-sm">原网站账号<select className="w-full rounded-md border border-border bg-background p-2" value={linkUser} onChange={e=>setLinkUser(e.target.value)}><option value="">请选择已核对的原账号</option>{q.data?.existingAccounts.map(u=><option key={u.id} value={u.id}>{u.name} · {u.email}</option>)}</select></label><DialogFooter><Button variant="outline" onClick={()=>setLinkPerson(null)}>取消</Button><Button disabled={busy||!linkUser} onClick={()=>void action(async()=>{await api.post(base+`/people/${linkPerson!.id}/link`,{userId:linkUser,confirm:true});setLinkPerson(null);setMessage("已关联原账号，原席位保持不变");})}>确认关联</Button></DialogFooter></DialogContent></Dialog>
+ </div>;
+}

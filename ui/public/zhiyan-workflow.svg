@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1180" role="img" aria-labelledby="title desc">
+<title id="title">智研协同平台工作流程泳道图</title>
+<desc id="desc">人员在 Jira 指派工单。本机接入桥发现符合规则的工单，平台登记与排队。本机领取任务并启动 Claude 和 Harness。遇到阻塞时上报平台并通知负责人，按正确渠道决策和校验后继续。交付证据保存至 Harness Tracker，平台展示运行和用量，人员完成验收。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#64748b"/></marker><marker id="decision-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#b45309"/></marker></defs>
+<style>text{font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;fill:#1e293b}.heading{font-size:17px;font-weight:600}.node-title{font-size:15px;font-weight:600}.node-detail{font-size:12px;fill:#475569}.label{font-size:12px;fill:#475569;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}.arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}.decision{stroke:#b45309;marker-end:url(#decision-arrow)}.note{font-size:13px;fill:#475569}</style>
+<rect width="1200" height="1180" rx="16" fill="#fff"/>
+<text x="40" y="38" class="heading" style="fill:#4338ca">智研协同平台 · 工单执行与人机协同</text>
+<text x="40" y="64" class="note">推荐日常流程：组长在 Jira 指派 → 在线席位自动执行 → 遇到阻塞通知负责人 → 确认后继续</text>
+<rect x="40" y="88" width="280" height="990" fill="#eef2ff" stroke="#e2e8f0"/><rect x="40" y="88" width="280" height="65" fill="#eef2ff" stroke="#cbd5e1"/><text x="180" y="114" text-anchor="middle" class="heading">人员与 Jira</text><text x="180" y="136" text-anchor="middle" class="node-detail">指派 · 需求决策 · 验收</text>
+<rect x="320" y="88" width="280" height="990" fill="#eef2ff" stroke="#e2e8f0"/><rect x="320" y="88" width="280" height="65" fill="#eef2ff" stroke="#cbd5e1"/><text x="460" y="114" text-anchor="middle" class="heading">智研协同平台</text><text x="460" y="136" text-anchor="middle" class="node-detail">任务 · 协调 · 运行可见性</text>
+<rect x="600" y="88" width="280" height="990" fill="#f0fdf4" stroke="#e2e8f0"/><rect x="600" y="88" width="280" height="65" fill="#f0fdf4" stroke="#cbd5e1"/><text x="740" y="114" text-anchor="middle" class="heading">研发电脑</text><text x="740" y="136" text-anchor="middle" class="node-detail">接入桥 · Claude · Harness</text>
+<rect x="880" y="88" width="280" height="990" fill="#f8fafc" stroke="#e2e8f0"/><rect x="880" y="88" width="280" height="65" fill="#f8fafc" stroke="#cbd5e1"/><text x="1020" y="114" text-anchor="middle" class="heading">Harness Tracker</text><text x="1020" y="136" text-anchor="middle" class="node-detail">领域流程 · 交付效果</text>
+<path d="M290 207H630" class="arrow"/>
+<text x="460" y="196" text-anchor="middle" class="label">本机按规则查询 Jira</text>
+<path d="M740 244V284" class="arrow"/>
+<path d="M630 321H570" class="arrow"/>
+<text x="600" y="311" text-anchor="middle" class="label">登记</text>
+<path d="M460 358V402" class="arrow"/>
+<path d="M570 439H630" class="arrow"/>
+<text x="600" y="428" text-anchor="middle" class="label">领取 / 续租</text>
+<path d="M740 476V527" class="arrow"/>
+<path d="M685 562H570" class="arrow decision"/>
+<text x="624" y="550" text-anchor="middle" class="label">是：上报阻塞</text>
+<path d="M350 562H290" class="arrow decision"/>
+<text x="320" y="551" text-anchor="middle" class="label">通知负责人</text>
+<path d="M180 599V652" class="arrow decision"/>
+<path d="M290 689H630" class="arrow decision"/>
+<text x="460" y="678" text-anchor="middle" class="label">按渠道确认，满足校验后续传</text>
+<path d="M740 726V812" class="arrow"/>
+<path d="M795 562H864V790H740V812" class="arrow" stroke-dasharray="6 4"/>
+<text x="835" y="550" text-anchor="middle" class="label">否</text>
+<path d="M850 849H910" class="arrow"/>
+<text x="880" y="837" text-anchor="middle" class="label">回执 / 证据</text>
+<path d="M740 886V964" class="arrow"/>
+<path d="M630 1001H570" class="arrow"/>
+<text x="600" y="989" text-anchor="middle" class="label">运行结果</text>
+<path d="M350 1001H290" class="arrow"/>
+<text x="320" y="989" text-anchor="middle" class="label">查看证据</text>
+<path d="M1020 886V964" class="arrow"/>
+<rect x="70" y="170" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="180" y="196" text-anchor="middle" class="node-title">① 创建并指派 Jira 子工单</text>
+<text x="180" y="216" text-anchor="middle" class="node-detail">组长拆分编码 / Bug / 设计任务</text>
+<text x="180" y="232" text-anchor="middle" class="node-detail">指定经办人、状态与项目</text>
+<rect x="630" y="170" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="196" text-anchor="middle" class="node-title">② 自动发现工单</text>
+<text x="740" y="216" text-anchor="middle" class="node-detail">本机接入桥按经办人等规则查询</text>
+<text x="740" y="232" text-anchor="middle" class="node-detail">席位离线期间不执行</text>
+<rect x="630" y="284" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="310" text-anchor="middle" class="node-title">③ 校验接单范围</text>
+<text x="740" y="330" text-anchor="middle" class="node-detail">核对项目、仓库映射与开工状态</text>
+<text x="740" y="346" text-anchor="middle" class="node-detail">按授权规则发起登记</text>
+<rect x="350" y="284" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="460" y="310" text-anchor="middle" class="node-title">④ 登记并持久排队</text>
+<text x="460" y="330" text-anchor="middle" class="node-detail">记录任务、执行席位与来源</text>
+<text x="460" y="346" text-anchor="middle" class="node-detail">重复登记与执行锁保护</text>
+<rect x="350" y="402" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="460" y="428" text-anchor="middle" class="node-title">⑤ 调度与记录运行</text>
+<text x="460" y="448" text-anchor="middle" class="node-detail">匹配执行席位，提供运行凭证</text>
+<text x="460" y="464" text-anchor="middle" class="node-detail">保留任务与运行记录</text>
+<rect x="630" y="402" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="428" text-anchor="middle" class="node-title">⑥ 本机领取并启动执行</text>
+<text x="740" y="448" text-anchor="middle" class="node-detail">空闲且校验通过后准备工作树</text>
+<text x="740" y="464" text-anchor="middle" class="node-detail">Claude 加载公共技能与 Harness</text>
+<path d="M740 527L795 562L740 597L685 562Z" fill="#fffbeb" stroke="#d97706"/><text x="740" y="558" text-anchor="middle" class="node-detail">需要人工</text><text x="740" y="575" text-anchor="middle" class="node-detail">决策？</text>
+<rect x="350" y="525" width="220" height="74" rx="10" fill="#fffbeb" stroke="#d97706"/><text x="460" y="551" text-anchor="middle" class="node-title">⑦ 记录阻塞并发出提醒</text>
+<text x="460" y="571" text-anchor="middle" class="node-detail">网页待处理 / 已配置的外部通知</text>
+<text x="460" y="587" text-anchor="middle" class="node-detail">钉钉等提醒需配置和发送授权</text>
+<rect x="70" y="525" width="220" height="74" rx="10" fill="#fffbeb" stroke="#d97706"/><text x="180" y="551" text-anchor="middle" class="node-title">⑧ 负责人收到提醒</text>
+<text x="180" y="571" text-anchor="middle" class="node-detail">阅读问题、方案与确认编号</text>
+<text x="180" y="587" text-anchor="middle" class="node-detail">先识别属于哪一种决策</text>
+<rect x="70" y="652" width="220" height="74" rx="10" fill="#fffbeb" stroke="#d97706"/><text x="180" y="678" text-anchor="middle" class="node-title">⑨ 在对应渠道处理</text>
+<text x="180" y="698" text-anchor="middle" class="node-detail">需求：Jira/Harness；审批：网页</text>
+<text x="180" y="714" text-anchor="middle" class="node-detail">工具权限：本机 Claude</text>
+<text x="180" y="756" text-anchor="middle" class="node-detail">拒绝或资料不足：保持阻塞，补充后再推进</text>
+<rect x="630" y="652" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="678" text-anchor="middle" class="node-title">⑩ 校验决策并继续</text>
+<text x="740" y="698" text-anchor="middle" class="node-detail">按对应渠道获取有效决策</text>
+<text x="740" y="714" text-anchor="middle" class="node-detail">满足门禁后续传 / 恢复执行</text>
+<rect x="630" y="812" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="838" text-anchor="middle" class="node-title">⑪ 形成交付证据</text>
+<text x="740" y="858" text-anchor="middle" class="node-detail">开发 / 设计 / 验证与领域门禁</text>
+<text x="740" y="874" text-anchor="middle" class="node-detail">执行中持续回传日志、阶段与用量</text>
+<rect x="910" y="812" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="1020" y="838" text-anchor="middle" class="node-title">⑫ 接收领域回执</text>
+<text x="1020" y="858" text-anchor="middle" class="node-detail">保存流程阶段、结果与证据</text>
+<text x="1020" y="874" text-anchor="middle" class="node-detail">支持效果追踪和复盘</text>
+<rect x="630" y="964" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="740" y="990" text-anchor="middle" class="node-title">⑬ 回传本轮运行结果</text>
+<text x="740" y="1010" text-anchor="middle" class="node-detail">结束或更新运行状态</text>
+<text x="740" y="1026" text-anchor="middle" class="node-detail">运行结束不等于业务验收完成</text>
+<rect x="350" y="964" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="460" y="990" text-anchor="middle" class="node-title">⑭ 展示执行记录</text>
+<text x="460" y="1010" text-anchor="middle" class="node-detail">任务、运行、阻塞、日志与用量</text>
+<text x="460" y="1026" text-anchor="middle" class="node-detail">供研发和负责人观察与协调</text>
+<rect x="70" y="964" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="180" y="990" text-anchor="middle" class="node-title">⑮ 人员验收交付</text>
+<text x="180" y="1010" text-anchor="middle" class="node-detail">按 Harness / Jira 流程验收</text>
+<text x="180" y="1026" text-anchor="middle" class="node-detail">按权限更新正式工单状态</text>
+<rect x="910" y="964" width="220" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/><text x="1020" y="990" text-anchor="middle" class="node-title">保留流程与效果数据</text>
+<text x="1020" y="1010" text-anchor="middle" class="node-detail">对照交付证据与领域门禁</text>
+<text x="1020" y="1026" text-anchor="middle" class="node-detail">用于后续知识改进</text>
+<text x="40" y="1110" class="note">前提：一次性完成席位登记、共享项目与本机仓库映射、Jira 凭证和自动接单规则；本机接入桥在线。</text>
+<text x="40" y="1135" class="note">边界：普通网页评论不能替代正式工程确认；平台观察和协调执行，Claude 与业务源码运行在研发电脑。</text>
+<text x="40" y="1160" class="note">图中箭头表示流程和信息流，不表示所有决策渠道都能自动续传；需按实际确认机制与门禁推进。</text>
+</svg>

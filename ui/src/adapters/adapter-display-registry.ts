@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Single source of truth for adapter display metadata.
  *
@@ -61,8 +62,8 @@ export interface AdapterDisplayInfo {
 
 const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   acpx_local: {
-    label: "ACPX (retired)",
-    description: "Retired standalone ACPX adapter",
+    label: uiText("ACPX (retired)"),
+    description: uiText("Retired standalone ACPX adapter"),
     icon: Bot,
     comingSoon: true,
     disabledLabel: "Use Claude Code or Codex with the ACP engine",
@@ -70,71 +71,71 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   },
   claude_local: {
     label: "Claude Code",
-    description: "Claude Code CLI harness",
+    description: uiText("Claude Code CLI harness"),
     icon: Sparkles,
     recommended: true,
   },
   codex_local: {
     label: "Codex",
-    description: "Codex CLI harness",
+    description: uiText("Codex CLI harness"),
     icon: Code,
     recommended: true,
   },
   paperclip_runner: {
     label: "Paperclip Runner",
-    description: "Experimental Rust runner with a Codex provider",
+    description: uiText("Experimental Rust runner with a Codex provider"),
     icon: Cpu,
     experimental: true,
   },
   gemini_local: {
     label: "Gemini CLI",
-    description: "Gemini CLI harness",
+    description: uiText("Gemini CLI harness"),
     icon: Gem,
   },
   grok_local: {
     label: "Grok Build",
-    description: "Grok Build harness",
+    description: uiText("Grok Build harness"),
     icon: Bot,
   },
   kimi_local: {
     label: "Kimi Code",
-    description: "Kimi Code CLI harness",
+    description: uiText("Kimi Code CLI harness"),
     icon: Moon,
   },
   hermes_gateway: {
     label: "Hermes Gateway",
-    description: "Remote Hermes API server",
+    description: uiText("Remote Hermes API server"),
     icon: Bot,
     hideFromVisualSelection: true,
   },
   hermes_local: {
     label: "Hermes",
-    description: "Hermes harness",
+    description: uiText("Hermes harness"),
     icon: Bot,
   },
   opencode_local: {
     label: "OpenCode",
-    description: "OpenCode multi-provider harness",
+    description: uiText("OpenCode multi-provider harness"),
     icon: OpenCodeLogoIcon,
   },
   pi_local: {
     label: "Pi",
-    description: "Pi harness",
+    description: uiText("Pi harness"),
     icon: Terminal,
   },
   cursor: {
     label: "Cursor",
-    description: "Cursor CLI harness",
+    description: uiText("Cursor CLI harness"),
     icon: MousePointer2,
   },
   cursor_cloud: {
     label: "Cursor Cloud",
-    description: "Managed remote Cursor agent",
+    description: uiText("Managed remote Cursor agent"),
     icon: MousePointer2,
   },
   openclaw_gateway: {
     label: "OpenClaw Gateway",
-    description: "External gateway adapter",
+    description: uiText("External gateway adapter"),
     icon: Bot,
     comingSoon: true,
     disabledLabel: "Invite external agents from the add-agent modal",
@@ -142,13 +143,13 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   },
   process: {
     label: "Process",
-    description: "Internal process adapter",
+    description: uiText("Internal process adapter"),
     icon: Cpu,
     comingSoon: true,
   },
   http: {
     label: "HTTP",
-    description: "Internal HTTP adapter",
+    description: uiText("Internal HTTP adapter"),
     icon: Cpu,
     comingSoon: true,
   },
@@ -195,7 +196,7 @@ export function getAdapterDisplay(type: string): AdapterDisplayInfo {
   const label = withSuffix(humanizeType(type), suffix);
   return {
     label,
-    description: suffix ? `External ${suffix} adapter` : "External adapter",
+    description: suffix ? `External ${suffix} adapter` : uiText("External adapter"),
     icon: Cpu,
   };
 }

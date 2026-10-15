@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -400,8 +401,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-foreground">
-            {enabledRows.length} of {libraryRows.length} enabled
-          </span>
+            {enabledRows.length} of {libraryRows.length}{" "}{uiText("enabled")}{" "}</span>
           {applicationLabel ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -425,23 +425,21 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search skills"
+                placeholder={uiText("Search skills")}
                 className="h-8 w-full pl-8 sm:w-56"
-                aria-label="Search skills"
+                aria-label={uiText("Search skills")}
               />
             </div>
             <Button asChild variant="outline" size="sm" className="shrink-0">
               <Link to="/skills" className="no-underline">
-                <Store className="h-3.5 w-3.5" />
-                Browse skills store
-              </Link>
+                <Store className="h-3.5 w-3.5" />{uiText("Browse skills store")}{" "}</Link>
             </Button>
           </div>
         </div>
 
         {syncSkills.isError ? (
           <p className="text-xs text-destructive">
-            {syncSkills.error instanceof Error ? syncSkills.error.message : "Failed to update skills"}
+            {syncSkills.error instanceof Error ? syncSkills.error.message : uiText("Failed to update skills")}
           </p>
         ) : null}
       </div>
@@ -462,15 +460,14 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               className="flex items-center justify-between gap-3 border-b border-amber-300/40 bg-amber-50/60 px-3 py-2 text-xs text-amber-800 last:border-b-0 dark:border-amber-500/20 dark:bg-amber-950/20 dark:text-amber-200"
             >
               <span className="min-w-0 truncate">
-                <span className="font-medium">{key}</span> is enabled but missing from the organization library.
-              </span>
+                <span className="font-medium">{key}</span>{" "}{uiText("is enabled but missing from the organization library.")}{" "}</span>
               <button
                 type="button"
                 onClick={() => toggleSkill(key, false)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/50 px-2 py-0.5 font-medium transition-colors hover:bg-amber-100/60 dark:hover:bg-amber-900/30"
               >
                 <X className="h-3 w-3" />
-                Remove
+                {uiText("Remove")}
               </button>
             </div>
           ))}
@@ -483,26 +480,26 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
         <EmptyLibraryCard />
       ) : (
         <div className="space-y-4">
-          <SkillSection title="Enabled on this agent" count={filteredEnabled.length}>
+          <SkillSection title={uiText("Enabled on this agent")} count={filteredEnabled.length}>
             {filteredEnabled.length > 0 ? (
               filteredEnabled.map((row) => renderRow(row, "enabled"))
             ) : (
               <SectionEmpty>
-                {search ? "No enabled skills match your search." : "No skills enabled on this agent yet."}
+                {search ? uiText("No enabled skills match your search.") : uiText("No skills enabled on this agent yet.")}
               </SectionEmpty>
             )}
           </SkillSection>
 
-          <SkillSection title="Available from the library" count={filteredAvailable.length}>
+          <SkillSection title={uiText("Available from the library")} count={filteredAvailable.length}>
             {filteredAvailable.length > 0 ? (
               filteredAvailable.map((row) => renderRow(row, "available"))
             ) : (
               <SectionEmpty>
                 {search
-                  ? "No available skills match your search."
+                  ? uiText("No available skills match your search.")
                   : libraryEmpty
-                    ? "Import skills into the organization library to enable them here."
-                    : "Every library skill is enabled on this agent."}
+                    ? uiText("Import skills into the organization library to enable them here.")
+                    : uiText("Every library skill is enabled on this agent.")}
               </SectionEmpty>
             )}
           </SkillSection>
@@ -517,9 +514,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
                       detectedOpen ? "" : "-rotate-90",
                     )}
                   />
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Automatic and detected skills (read-only)
-                  </span>
+                  <span className="text-xs font-medium text-muted-foreground">{uiText("Automatic and detected skills (read-only)")}{" "}</span>
                   <span className="text-xs text-muted-foreground/70">{filteredDetected.length}</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -528,7 +523,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
                       <AgentSkillRow key={row.key} variant="readonly" data={row} />
                     ))
                   ) : (
-                    <SectionEmpty>No detected skills match your search.</SectionEmpty>
+                    <SectionEmpty>{uiText("No detected skills match your search.")}</SectionEmpty>
                   )}
                 </CollapsibleContent>
               </div>
@@ -536,7 +531,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
           ) : null}
 
           <div className="text-xs text-muted-foreground">
-            Adapter: {adapterLabels[agent.adapterType] ?? agent.adapterType}
+            {uiText("Adapter:")} {adapterLabels[agent.adapterType] ?? agent.adapterType}
           </div>
         </div>
       )}
@@ -557,30 +552,26 @@ function SaveStatusChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Saving…
+        {uiText("Saving…")}
       </span>
     );
   }
   if (error) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-destructive">
-        <AlertCircle className="h-3.5 w-3.5" />
-        Couldn’t save
-      </span>
+        <AlertCircle className="h-3.5 w-3.5" />{uiText("Couldn’t save")}{" "}</span>
     );
   }
   if (unsaved) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Saving soon…
-      </span>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />{uiText("Saving soon…")}{" "}</span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-(--status-task-done)">
       <CheckCircle2 className="h-3.5 w-3.5" />
-      Saved
+      {uiText("Saved")}
     </span>
   );
 }
@@ -614,16 +605,12 @@ function EmptyLibraryCard() {
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-10 text-center">
       <Store className="h-8 w-8 text-muted-foreground/60" />
       <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">No skills in the organization library</p>
-        <p className="text-xs text-muted-foreground">
-          Install skills to the organization, then enable them on this agent.
-        </p>
+        <p className="text-sm font-medium text-foreground">{uiText("No skills in the organization library")}</p>
+        <p className="text-xs text-muted-foreground">{uiText("Install skills to the organization, then enable them on this agent.")}{" "}</p>
       </div>
       <Button asChild variant="outline" size="sm">
         <Link to="/skills" className="no-underline">
-          <Store className="h-3.5 w-3.5" />
-          Browse skills store
-        </Link>
+          <Store className="h-3.5 w-3.5" />{uiText("Browse skills store")}{" "}</Link>
       </Button>
     </div>
   );

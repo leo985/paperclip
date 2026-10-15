@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import type { PaperclipQuestion, PaperclipQuestionResponse, PaperclipQuestionSet, TranscriptEntry } from "@paperclipai/adapter-utils";
 import type { UIAdapterModule } from "../types";
 import { parseCodexStdoutLine, buildPaperclipRunnerConfig } from "@paperclipai/adapter-codex-local/ui";
@@ -446,8 +447,8 @@ function runtimeRequestEntry(
   const actionLabels: Record<string, string> = {
     accept: "Allow once",
     accept_for_session: "Allow for session",
-    decline: "Deny",
-    cancel: "Cancel",
+    decline: uiText("Deny"),
+    cancel: uiText("Cancel"),
   };
   const actions = (Array.isArray(request.actions) ? request.actions : [])
     .filter((action): action is string => typeof action === "string" && action in actionLabels)
@@ -700,7 +701,7 @@ function parsePrpEvent(
   }
   if (eventType === "workspace.file.referenced") {
     const entry = workspaceFileReferenceEntry(payload, ts);
-    return entry ? [entry] : [{ kind: "system", ts, text: "Runner: Ignored an unsafe workspace file reference" }];
+    return entry ? [entry] : [{ kind: "system", ts, text: uiText("Runner: Ignored an unsafe workspace file reference") }];
   }
   if (eventType.startsWith("runtime_request.")) {
     const entry = runtimeRequestEntry(eventType, payload, event, ts, state);
@@ -718,10 +719,10 @@ function parsePrpEvent(
     const context = record(payload.context);
     const model = text(context.model, text(record(payload.model).name, "Paperclip runner"));
     const sessionId = text(payload.providerSessionId, text(payload.driverSessionId, text(event.normalizedSessionId)));
-    return [{ kind: "system", ts, text: `Paperclip session ${eventType === "session.resumed" ? "resumed" : "started"} · ${model}${sessionId ? ` · ${sessionId}` : ""}` }];
+    return [{ kind: "system", ts, text: uiTextFormat("Paperclip session __PCVAR0__ · __PCVAR1____PCVAR2__", [eventType === "session.resumed" ? "resumed" : "started", model, sessionId ? ` · ${sessionId}` : ""]) }];
   }
-  if (eventType === "turn.started") return [{ kind: "system", ts, text: "Turn started" }];
-  if (eventType === "turn.completed") return [{ kind: "system", ts, text: "Turn completed" }];
+  if (eventType === "turn.started") return [{ kind: "system", ts, text: uiText("Turn started") }];
+  if (eventType === "turn.completed") return [{ kind: "system", ts, text: uiText("Turn completed") }];
   if (eventType === "turn.failed") return [{ kind: "stderr", ts, text: text(record(payload.error).message, "Turn failed") }];
   if (eventType === "item.started" || eventType === "item.completed") {
     if (payload.kind === "usage") return [usageEntry(payload, ts)];
@@ -747,7 +748,7 @@ function parsePrpEvent(
   }
   if (eventType === "run.terminal") return [runTerminalEntry(payload, ts)];
   if (eventType === "harness.diagnostic" || eventType === "runner.diagnostic" || eventType === "session.failed" || eventType === "mcp_app.failed") {
-    return [{ kind: "system", ts, text: `Runner: ${text(payload.message, text(payload.code, eventType))}` }];
+    return [{ kind: "system", ts, text: uiTextFormat("Runner: __PCVAR0__", [text(payload.message, text(payload.code, eventType))]) }];
   }
   return [];
 }

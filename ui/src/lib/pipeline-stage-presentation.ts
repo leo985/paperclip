@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 const defaultPipelineStageColumnTone = {
   outer: "border-border bg-background",
   header: "border-border text-muted-foreground",
@@ -11,21 +12,21 @@ export const pipelineStageColumnTones: Record<string, typeof defaultPipelineStag
     outer: "border-violet-500/25 bg-violet-50/50 dark:bg-violet-950/15",
     header: "border-violet-500/15 text-violet-700 dark:text-violet-300",
     meta: "border-violet-500/15",
-    body: "bg-violet-50/30 dark:bg-violet-950/10",
+    body: uiText("bg-violet-50/30 dark:bg-violet-950/10"),
     bodyOver: "bg-violet-100/65 dark:bg-violet-950/30",
   },
   in_review: {
     outer: "border-violet-500/25 bg-violet-50/50 dark:bg-violet-950/15",
     header: "border-violet-500/15 text-violet-700 dark:text-violet-300",
     meta: "border-violet-500/15",
-    body: "bg-violet-50/30 dark:bg-violet-950/10",
+    body: uiText("bg-violet-50/30 dark:bg-violet-950/10"),
     bodyOver: "bg-violet-100/65 dark:bg-violet-950/30",
   },
   done: {
     outer: "border-green-500/25 bg-green-50/50 dark:bg-green-950/15",
     header: "border-green-500/15 text-green-700 dark:text-green-300",
     meta: "border-green-500/15",
-    body: "bg-green-50/30 dark:bg-green-950/10",
+    body: uiText("bg-green-50/30 dark:bg-green-950/10"),
     bodyOver: "bg-green-100/65 dark:bg-green-950/30",
   },
   cancelled: {

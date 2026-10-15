@@ -1,3 +1,5 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -192,7 +194,7 @@ function SortableCompanyItem({
         <button
           type="button"
           ref={setActivatorNodeRef}
-          aria-label={`Reorder ${company.name}`}
+          aria-label={uiTextFormat("Reorder __PCVAR0__", [company.name])}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-(length:--rad-2) focus-visible:ring-ring"
           onClick={(event) => {
             event.preventDefault();
@@ -213,6 +215,7 @@ function SortableCompanyItem({
 }
 
 export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompanyMenuProps = {}) {
+  const { isInstanceAdmin, canManage } = useManagementAccess();
   const [internalOpen, setInternalOpen] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const { companies, selectedCompany, setSelectedCompanyId, companyListUnavailable, retryCompanies } =
@@ -372,8 +375,8 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
           className="h-9 min-w-0 flex-1 justify-start gap-2 px-4 text-left hover:bg-sidebar-accent hover:text-sidebar-accent-foreground has-[>svg]:px-4 dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
           aria-label={
             currentName
-              ? `Open ${currentName} ${switcherNoun} switcher`
-              : `Open ${switcherNoun} switcher`
+              ? uiTextFormat("Open __PCVAR0__ __PCVAR1__ switcher", [currentName, switcherNoun])
+              : uiTextFormat("Open __PCVAR0__ switcher", [switcherNoun])
           }
         >
           <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -391,7 +394,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
               )}
               title={currentName ?? undefined}
             >
-              {currentName ?? `Select ${switcherNoun}`}
+              {currentName ?? uiTextFormat("Select __PCVAR0__", [switcherNoun])}
             </span>
           </span>
           {!rail && <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />}
@@ -404,7 +407,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
       >
         <div className="flex h-(--organization-popover-header-height) items-center justify-between gap-2 px-3.5">
           <DropdownMenuLabel className="p-0 text-(length:--text-compact) font-semibold text-foreground">
-            Organizations
+            {uiText("Organizations")}
           </DropdownMenuLabel>
           {/* Stack order is owned by cloud's own portfolio in v1, so the
               drag-to-reorder affordance stays self-hosted-only. */}
@@ -418,7 +421,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
               }}
               className="rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              {isEditingOrder ? "Done" : "Edit"}
+              {isEditingOrder ? uiText("Done") : uiText("Edit")}
             </button>
           )}
         </div>
@@ -436,10 +439,10 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
               {stacks.length === 0 ? (
                 <DropdownMenuItem disabled>
                   {stacksQuery.isLoading
-                    ? "Loading organizations..."
+                    ? uiText("Loading organizations...")
                     : stacksQuery.isError
-                      ? "Could not load organizations"
-                      : "No organizations"}
+                      ? uiText("Could not load organizations")
+                      : uiText("No organizations")}
                 </DropdownMenuItem>
               ) : null}
             </>
@@ -472,7 +475,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
                 // offer the way back.
                 companyListUnavailable ? (
                   <>
-                    <DropdownMenuItem disabled>Couldn&apos;t load organizations</DropdownMenuItem>
+                    <DropdownMenuItem disabled>{uiText("Couldn't load organizations")}</DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={(event) => {
                         // Keep the menu open so the result of the retry is visible.
@@ -481,11 +484,11 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
                       }}
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Try again
+                      {uiText("Try again")}
                     </DropdownMenuItem>
                   </>
                 ) : (
-                  <DropdownMenuItem disabled>No organizations</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{uiText("No organizations")}</DropdownMenuItem>
                 )
               ) : null}
             </>
@@ -494,7 +497,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
         <div className="flex flex-col gap-0.5 border-t border-border px-2.5 pb-2.5 pt-2">
           {/* A cloud instance without a configured cloud origin has nowhere to
               send the user, so the row drops out entirely. */}
-          {isCloud && !createStackUrl ? null : (
+          {!isInstanceAdmin || (isCloud && !createStackUrl) ? null : (
             <DropdownMenuItem
               onClick={addCompany}
               className={ORGANIZATION_ACTION_CLASS}
@@ -503,10 +506,10 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
               <span className="flex size-5 shrink-0 items-center justify-center text-muted-foreground">
                 <Plus className="size-4" />
               </span>
-              <span className="min-w-0 flex-1 truncate">Create organization</span>
+              <span className="min-w-0 flex-1 truncate">{uiText("Create organization")}</span>
             </DropdownMenuItem>
           )}
-          {showInvitePeople ? (
+          {canManage && showInvitePeople ? (
             <DropdownMenuItem asChild disabled={isEditingOrder} className={ORGANIZATION_ACTION_CLASS}>
               <Link
                 to="/company/settings/members?tab=invites"
@@ -522,7 +525,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
                   <UserPlus className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1 truncate">
-                  {currentName ? `Invite people to ${currentName}` : "Invite people"}
+                  {currentName ? uiTextFormat("Invite people to __PCVAR0__", [currentName]) : uiText("Invite people")}
                 </span>
               </Link>
             </DropdownMenuItem>
@@ -537,7 +540,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
                 <LogOut className="size-4" />
               </span>
               <span className="min-w-0 flex-1 truncate">
-                {signOutMutation.isPending ? "Signing out..." : "Sign out"}
+                {signOutMutation.isPending ? uiText("Signing out...") : uiText("Sign out")}
               </span>
             </DropdownMenuItem>
           ) : null}

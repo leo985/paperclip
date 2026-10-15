@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   ToolCatalogEntry,
   ToolProfileDefaultAction,
@@ -31,9 +32,9 @@ export function toolCapability(tool: ToolCatalogEntry): ToolCapability {
 }
 
 export const CAPABILITY_LABEL: Record<ToolCapability, string> = {
-  read: "Read-only",
+  read: uiText("Read-only"),
   write: "Makes changes",
-  destructive: "Destructive",
+  destructive: uiText("Destructive"),
 };
 
 // --- App grouping ----------------------------------------------------------
@@ -368,11 +369,11 @@ export interface TemplateDef {
 }
 
 export const TEMPLATES: TemplateDef[] = [
-  { key: "read_only", title: "Read-only", description: "See and fetch, but never change anything." },
-  { key: "everyday", title: "Everyday work", description: "Read and make routine changes — no destructive tools." },
-  { key: "full_access", title: "Full access", description: "Everything every connected app offers." },
-  { key: "scratch", title: "Start from scratch", description: "An empty profile you build up tool by tool." },
-  { key: "copy", title: "Copy an existing profile", description: "Start from a profile you already have." },
+  { key: "read_only", title: uiText("Read-only"), description: uiText("See and fetch, but never change anything.") },
+  { key: "everyday", title: uiText("Everyday work"), description: uiText("Read and make routine changes — no destructive tools.") },
+  { key: "full_access", title: uiText("Full access"), description: uiText("Everything every connected app offers.") },
+  { key: "scratch", title: uiText("Start from scratch"), description: uiText("An empty profile you build up tool by tool.") },
+  { key: "copy", title: uiText("Copy an existing profile"), description: uiText("Start from a profile you already have.") },
 ];
 
 function capabilityPredicate(key: TemplateKey): (tool: ToolCatalogEntry) => boolean {

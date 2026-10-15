@@ -1,3 +1,4 @@
+import { uiTextFormat,  localizedStatus, uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -160,7 +161,7 @@ function CardShell({
           )}
         >
           <StatusIcon status={status} className="h-3.5 w-3.5" />
-          {status.replaceAll("_", " ")}
+          {localizedStatus(status)}
         </span>
       ) : null}
     </div>
@@ -214,7 +215,7 @@ function CardShell({
                 )}
               >
                 <StatusIcon status={status} className="h-3.5 w-3.5" />
-                {status.replaceAll("_", " ")}
+                {localizedStatus(status)}
               </span>
             ) : null}
           </div>
@@ -233,7 +234,7 @@ function CardShell({
 function PlanSteps({ steps }: { steps: TaskChatProtocolStep[] }) {
   if (steps.length === 0) return null;
   return (
-    <ol className="flex flex-col gap-1.5" aria-label="Plan steps">
+    <ol className="flex flex-col gap-1.5" aria-label={uiText("Plan steps")}>
       {steps.map((step) => (
         <li key={step.id} className="flex items-start gap-2 text-sm">
           <StatusIcon status={step.status} className="mt-0.5 shrink-0" />
@@ -273,7 +274,7 @@ function ProviderActivityCard({
     >
       {item.steps.length > 0 ? <PlanSteps steps={item.steps} /> : null}
       {item.children.length > 0 ? (
-        <ul className="flex flex-col gap-2" aria-label="Delegated agents">
+        <ul className="flex flex-col gap-2" aria-label={uiText("Delegated agents")}>
           {item.children.map((child) => (
             <li
               key={child.id}
@@ -288,7 +289,7 @@ function ProviderActivityCard({
                     statusTone(child.status),
                   )}
                 >
-                  {child.status}
+                  {localizedStatus(child.status)}
                 </span>
               </div>
               {child.metadata ? (
@@ -306,7 +307,7 @@ function ProviderActivityCard({
         </ul>
       ) : null}
       {item.links.length > 0 ? (
-        <ul className="flex flex-col gap-2" aria-label="Research sources">
+        <ul className="flex flex-col gap-2" aria-label={uiText("Research sources")}>
           {item.links.map((link) => (
             <li key={link.href}>
               <a
@@ -337,7 +338,7 @@ function ProviderActivityCard({
           )}
         >
           <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground">
-            <ChevronDown aria-hidden className="h-3.5 w-3.5" /> Details
+            <ChevronDown aria-hidden className="h-3.5 w-3.5" /> {uiText("Details")}
           </summary>
           {item.details.length > 0 ? (
             <dl className="mt-2 flex min-w-0 flex-col gap-1.5 text-xs">
@@ -366,7 +367,7 @@ function ProviderActivityCard({
           ) : null}
           {item.outputTruncated ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              Output truncated to 8 KiB.
+              {uiText("Output truncated to 8 KiB.")}
             </p>
           ) : null}
         </details>
@@ -404,7 +405,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
     <>
       <CardShell
         icon={GitBranch}
-        title="Workspace changes"
+        title={uiText("Workspace changes")}
         status={item.complete ? "completed" : "running"}
         summary={summary}
         testId="task-chat-workspace-change"
@@ -424,7 +425,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
                     : file.path}
                 </span>
                 <span className="text-xs capitalize text-muted-foreground">
-                  {file.binary ? "binary · " : ""}
+                  {file.binary ? uiText("binary · ") : ""}
                   {file.operation.replaceAll("_", " ")}
                 </span>
               </span>
@@ -441,8 +442,8 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
               onClick={() => setExpanded((value) => !value)}
             >
               {expanded
-                ? "Show fewer files"
-                : `Show ${item.files.length - 3} more files`}
+                ? uiText("Show fewer files")
+                : uiTextFormat("Show __PCVAR0__ more files", [item.files.length - 3])}
             </Button>
           ) : null}
           {item.files.length > 0 ? (
@@ -451,9 +452,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
               size="sm"
               variant="outline"
               onClick={() => setSelectedPath(item.files[0].path)}
-            >
-              Review diff
-            </Button>
+            >{uiText("Review diff")}{" "}</Button>
           ) : null}
         </div>
       </CardShell>
@@ -466,13 +465,13 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
         <DialogContent className="w-full max-w-(--pct-90) overflow-hidden">
           <DialogHeader>
             <DialogTitle className="font-mono text-sm">
-              {selected?.path ?? "Workspace diff"}
+              {selected?.path ?? uiText("Workspace diff")}
             </DialogTitle>
           </DialogHeader>
           {item.files.length > 1 ? (
             <div
               className="flex max-w-full gap-1 overflow-x-auto pb-1"
-              aria-label="Changed files"
+              aria-label={uiText("Changed files")}
             >
               {item.files.map((file) => (
                 <Button
@@ -488,17 +487,13 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
             </div>
           ) : null}
           {selected?.binary ? (
-            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              Binary file; text diff is unavailable.
-            </p>
+            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">{uiText("Binary file; text diff is unavailable.")}{" "}</p>
           ) : selected?.diff ? (
             <pre className="max-h-(--sz-70vh) overflow-auto whitespace-pre rounded-sm bg-muted/50 p-3 font-mono text-xs">
               {selected.diff}
             </pre>
           ) : (
-            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              No inline patch was recorded for this file.
-            </p>
+            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">{uiText("No inline patch was recorded for this file.")}{" "}</p>
           )}
         </DialogContent>
       </Dialog>
@@ -546,7 +541,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
             variant="outline"
             onClick={() => setOpen(true)}
           >
-            Preview
+            {uiText("Preview")}
           </Button>
         </div>
       </CardShell>
@@ -557,10 +552,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
           </DialogHeader>
           <p className="font-mono text-xs text-muted-foreground">{item.path}</p>
           {item.preview == null ? (
-            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              Preview unavailable. The verified workspace reference is still
-              available above.
-            </p>
+            <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">{uiText("Preview unavailable. The verified workspace reference is still available above.")}{" "}</p>
           ) : item.presentation === "document" ? (
             <div className="max-h-(--sz-70vh) overflow-auto rounded-sm bg-muted/30 p-3">
               <MarkdownBody>{item.preview}</MarkdownBody>
@@ -580,7 +572,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
           )}
           {item.previewTruncated ? (
             <p className="text-xs text-muted-foreground">
-              Preview truncated by the runner.
+              {uiText("Preview truncated by the runner.")}
             </p>
           ) : null}
         </DialogContent>
@@ -626,8 +618,8 @@ function RuntimeQuestionHistory({
           ))}
           <p className="text-xs text-muted-foreground">
             {item.status === "resolved"
-              ? "Answer details were not recorded by this older runtime."
-              : `No answers were submitted; this request was ${item.status}.`}
+              ? uiText("Answer details were not recorded by this older runtime.")
+              : uiTextFormat("No answers were submitted; this request was __PCVAR0__.", [localizedStatus(item.status)])}
           </p>
         </div>
       )}
@@ -671,7 +663,7 @@ function RuntimeQuestionReceipt({
       <div className="pb-3 pl-7 pr-1">
         <div className="mb-3">
           <p className="text-sm font-medium text-foreground">
-            {item.questionSet?.title ?? "Runtime input"}
+            {item.questionSet?.title ?? uiText("Runtime input")}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{item.prompt}</p>
         </div>
@@ -704,7 +696,7 @@ function RuntimeRequestCard({
   const fields =
     item.fields.length > 0
       ? item.fields
-      : [{ name: "answer", label: "Response", placeholder: null }];
+      : [{ name: "answer", label: uiText("Response"), placeholder: null }];
   const [values, setValues] = useState<Record<string, string>>(() =>
     draftKey ? loadStructuredDraft(draftKey, {}) : {},
   );
@@ -839,7 +831,7 @@ function RuntimeRequestCard({
               size="sm"
               disabled={!onDecision || submitting || !canSubmitInput}
             >
-              {submitting ? "Submitting…" : "Submit response"}
+              {submitting ? uiText("Submitting…") : uiText("Submit response")}
             </Button>
             {item.choices.some((choice) => choice.key === "decline") ? (
               <Button
@@ -849,7 +841,7 @@ function RuntimeRequestCard({
                 disabled={!onDecision || submitting}
                 onClick={() => void submit({ action: "decline" })}
               >
-                Deny
+                {uiText("Deny")}
               </Button>
             ) : null}
             {presentation === "timeline" ? (
@@ -860,7 +852,7 @@ function RuntimeRequestCard({
                 disabled={!onDecision || submitting}
                 onClick={() => void submit({ action: "cancel" })}
               >
-                Cancel
+                {uiText("Cancel")}
               </Button>
             ) : null}
           </div>
@@ -892,15 +884,13 @@ function RuntimeRequestCard({
                   }
                 }}
               >
-                {submitting ? "Submitting…" : choice.label}
+                {submitting ? uiText("Submitting…") : choice.label}
               </Button>
             ))}
         </div>
       ) : null}
       {item.status === "pending" && !onDecision ? (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Resolve this request in the active runtime session.
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">{uiText("Resolve this request in the active runtime session.")}{" "}</p>
       ) : null}
       {error ? (
         <p className="mt-2 text-xs text-destructive" role="alert">
@@ -924,7 +914,7 @@ function ResultCard({
   return (
     <CardShell
       icon={PackageCheck}
-      title="Run result"
+      title={uiText("Run result")}
       status={item.disposition}
       summary={item.summary}
       testId="task-chat-run-result"
@@ -933,7 +923,7 @@ function ResultCard({
         <div className="flex flex-col gap-3 text-sm">
           {item.blocker ? (
             <div className="rounded-sm bg-muted/50 p-2">
-              <strong>Blocked: {item.blocker.reasonCode}</strong>
+              <strong>{uiText("Blocked:")}{" "}{item.blocker.reasonCode}</strong>
               <p className="mt-1 text-muted-foreground">
                 {item.blocker.unblockAction}
               </p>
@@ -942,7 +932,7 @@ function ResultCard({
           {item.verification.length > 0 ? (
             <ul
               className="flex flex-col gap-1"
-              aria-label="Verification results"
+              aria-label={uiText("Verification results")}
             >
               {item.verification.map((check, index) => (
                 <li
@@ -972,7 +962,7 @@ function ResultCard({
               {item.remainingWork.map((work, index) => (
                 <li key={`${work.description}:${index}`}>
                   {work.description}
-                  {work.blocksCompletion ? " · blocks completion" : ""}
+                  {work.blocksCompletion ? uiText(" · blocks completion") : ""}
                 </li>
               ))}
             </ul>
@@ -1003,7 +993,7 @@ function TerminalCard({
   return (
     <CardShell
       icon={TerminalSquare}
-      title="Run ended"
+      title={uiText("Run ended")}
       status={item.runState}
       summary={[item.disposition.replaceAll("_", " "), item.stopReason]
         .filter(Boolean)

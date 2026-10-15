@@ -1,0 +1,14 @@
+{
+  "kind": "start",
+  "taskId": "a426ffe5-3d89-4fed-abce-697e7fd3585c",
+  "agentId": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+  "revision": 1,
+  "commandId": "03f6e58f-eec0-5b13-8219-65ef6842f926",
+  "expiresAt": "2026-10-07T04:08:55.430Z",
+  "requestedBy": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+  "status": "awaiting_local",
+  "message": "已到达本机，等待终端确认",
+  "sequence": 1,
+  "runId": null,
+  "createdAt": "2026-10-07T03:53:55.428Z"
+}

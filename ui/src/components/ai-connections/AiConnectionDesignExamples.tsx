@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { AiConnectionPicker } from "./AiConnectionPicker";
 import { LocalProviderLoginInstructions, ProviderApiKeyCard } from "@/components/AdapterLoginChrome";
@@ -33,13 +34,8 @@ export function AiConnectionDesignExamples() {
   });
   return (
     <div className="flex max-w-2xl flex-col gap-5">
-      <p className="text-sm text-muted-foreground">
-        Shared AI connection identity, account selection, and existing
-        authentication chrome. The full interactive state matrix lives in
-        Storybook under AI Connections / Review. Example controls below do not
-        connect accounts.
-      </p>
-      <p className="text-sm text-muted-foreground">Provider lists and account management use Browse and AppDetail from the Connectors interface. The picker below uses ConnectionChoiceList, also used by ConnectionSetupFlow.</p>
+      <p className="text-sm text-muted-foreground">{uiText("Shared AI connection identity, account selection, and existing authentication chrome. The full interactive state matrix lives in Storybook under AI Connections / Review. Example controls below do not connect accounts.")}{" "}</p>
+      <p className="text-sm text-muted-foreground">{uiText("Provider lists and account management use Browse and AppDetail from the Connectors interface. The picker below uses ConnectionChoiceList, also used by ConnectionSetupFlow.")}</p>
       <AiConnectionPicker
         requirement={requirement}
         connections={[account]}
@@ -57,7 +53,7 @@ export function AiConnectionDesignExamples() {
         disabled
         onChange={() => {}}
         onSubmit={() => {}}
-        placeholder="Enter API key here"
+        placeholder={uiText("Enter API key here")}
       />
       <LocalProviderLoginInstructions
         adapterType="claude_local"

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { getPageVisibility, usePageVisibility } from "../lib/page-visibility";
 import {
   createContext,
@@ -184,7 +185,7 @@ function resolveActorLabel(
       `Agent ${shortId(actorId)}`
     );
   }
-  if (actorType === "system") return "System";
+  if (actorType === "system") return uiText("System");
   if (actorType === "user" && actorId) {
     return resolveUserName(queryClient, companyId, actorId) ?? "Board";
   }
@@ -950,10 +951,10 @@ function buildActivityToast(
 
   if (action === "issue.created") {
     return {
-      title: `${actor} created ${issue.ref}`,
+      title: uiTextFormat("__PCVAR0__ created __PCVAR1__", [actor, issue.ref]),
       body: issue.title ? truncate(issue.title, 96) : undefined,
       tone: "success",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: uiTextFormat("View __PCVAR0__", [issue.ref]), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -972,10 +973,10 @@ function buildActivityToast(
         ? truncate(issue.title, 96)
         : issue.label;
     return {
-      title: `${actor} updated ${issue.ref}`,
+      title: uiTextFormat("__PCVAR0__ updated __PCVAR1__", [actor, issue.ref]),
       body: truncate(body, 100),
       tone: "info",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: uiTextFormat("View __PCVAR0__", [issue.ref]), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -1008,7 +1009,7 @@ function buildActivityToast(
     title,
     body: body ? truncate(body, 96) : undefined,
     tone: "info",
-    action: { label: `View ${issue.ref}`, href: issue.href },
+    action: { label: uiTextFormat("View __PCVAR0__", [issue.ref]), href: issue.href },
     dedupeKey: `activity:${action}:${entityId}:${commentId ?? "na"}`,
   };
 }
@@ -1029,10 +1030,10 @@ function buildJoinRequestToast(
   const label = requestType === "agent" ? "Agent" : "Someone";
 
   return {
-    title: `${label} wants to join`,
-    body: "A new join request is waiting for approval.",
+    title: uiTextFormat("__PCVAR0__ wants to join", [label]),
+    body: uiText("A new join request is waiting for approval."),
     tone: "info",
-    action: { label: "View inbox", href: "/inbox/mine" },
+    action: { label: uiText("View inbox"), href: "/inbox/mine" },
     dedupeKey: `join-request:${entityId}`,
   };
 }
@@ -1061,7 +1062,7 @@ function buildAgentStatusToast(
     title,
     body,
     tone,
-    action: { label: "View agent", href: `/agents/${agentId}` },
+    action: { label: uiText("View agent"), href: `/agents/${agentId}` },
     dedupeKey: `agent-status:${agentId}:${status}`,
   };
 }
@@ -1092,11 +1093,11 @@ function buildRunStatusToast(
     contextSource?.startsWith("chat:")
   ) {
     return {
-      title: `${name} couldn't start this chat`,
-      body: "This external chat identity isn't linked, and isolated guest workspaces are disabled. Link the identity in Connectors or enable isolated workspaces, then start a new task.",
+      title: uiTextFormat("__PCVAR0__ couldn't start this chat", [name]),
+      body: uiText("This external chat identity isn't linked, and isolated guest workspaces are disabled. Link the identity in Connectors or enable isolated workspaces, then start a new task."),
       tone: "warn",
       ttlMs: 10_000,
-      action: { label: "Open chat connections", href: "/apps" },
+      action: { label: uiText("Open chat connections"), href: "/apps" },
       dedupeKey: `run-status:${runId}:${status}`,
     };
   }
@@ -1128,7 +1129,7 @@ function buildRunStatusToast(
     body,
     tone,
     ttlMs: status === "succeeded" ? 5000 : 7000,
-    action: { label: "View run", href: `/agents/${agentId}/runs/${runId}` },
+    action: { label: uiText("View run"), href: `/agents/${agentId}/runs/${runId}` },
     dedupeKey: `run-status:${runId}:${status}`,
   };
 }

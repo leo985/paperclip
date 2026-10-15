@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 // token-extraction: allowlisted — intentional one-off decoration (DECISION-SHEET.md B1
 // user ruling). The bg-[...gradient...] / shadow-[...] literals in this demo/UX-lab page
 // are deliberate one-off decoration, reverted from --gradient-extract-*/--shadow-extract-*
@@ -23,23 +24,23 @@ const surfaceOptions: Array<{
 }> = [
   {
     id: "detail",
-    label: "Run Detail",
+    label: uiText("Run Detail"),
     eyebrow: "Full transcript",
-    description: "The long-form run page with the `Nice | Raw` toggle and the most inspectable transcript view.",
+    description: uiText("The long-form run page with the `Nice | Raw` toggle and the most inspectable transcript view."),
     icon: MonitorCog,
   },
   {
     id: "live",
-    label: "Issue Widget",
+    label: uiText("Issue Widget"),
     eyebrow: "Live stream",
-    description: "The issue-detail live run widget, optimized for following an active run without leaving the task page.",
+    description: uiText("The issue-detail live run widget, optimized for following an active run without leaving the task page."),
     icon: RadioTower,
   },
   {
     id: "dashboard",
-    label: "Dashboard Card",
+    label: uiText("Dashboard Card"),
     eyebrow: "Dense card",
-    description: "The active-agents dashboard card, tuned for compact scanning while keeping the same transcript language.",
+    description: uiText("The active-agents dashboard card, tuned for compact scanning while keeping the same transcript language."),
     icon: PanelsTopLeft,
   },
 ];
@@ -67,16 +68,14 @@ function RunDetailPreview({
     <div className="overflow-hidden rounded-xl border border-border/70 bg-background/80 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
       <div className="border-b border-border/60 bg-background/90 px-5 py-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="uppercase tracking-(--tracking-caps) text-(length:--text-nano)">
-            Run Detail
-          </Badge>
+          <Badge variant="outline" className="uppercase tracking-(--tracking-caps) text-(length:--text-nano)">{uiText("Run Detail")}{" "}</Badge>
           <StatusBadge status={streaming ? "running" : "succeeded"} />
           <span className="text-xs text-muted-foreground">
             {formatDateTime(runTranscriptFixtureMeta.startedAt)}
           </span>
         </div>
         <div className="mt-2 text-sm font-medium">
-          Transcript ({runTranscriptFixtureEntries.length})
+          {uiText("Transcript (")}{runTranscriptFixtureEntries.length})
         </div>
       </div>
       <div className="max-h-(--sz-720px) overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(8,145,178,0.08),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.10),transparent_28%)] p-5">
@@ -103,12 +102,8 @@ function LiveWidgetPreview({
   return (
     <div className="overflow-hidden rounded-xl border border-cyan-500/25 bg-background/85 shadow-[0_20px_50px_rgba(6,182,212,0.10)]">
       <div className="border-b border-border/60 bg-cyan-500/[0.05] px-5 py-4">
-        <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
-          Live Runs
-        </div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          Compact live transcript stream for the issue detail page.
-        </div>
+        <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">{uiText("Live Runs")}{" "}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{uiText("Compact live transcript stream for the issue detail page.")}{" "}</div>
       </div>
       <div className="px-5 py-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -123,7 +118,7 @@ function LiveWidgetPreview({
             </div>
           </div>
           <Badge variant="outline" className="border-border/70 bg-background/70 px-2.5 py-1 text-(length:--text-micro) text-muted-foreground">
-            Open run
+            {uiText("Open run")}
             <ExternalLink className="h-3 w-3" />
           </Badge>
         </div>
@@ -169,7 +164,7 @@ function DashboardPreview({
                 <Identity name={runTranscriptFixtureMeta.agentName} size="sm" />
               </div>
               <div className="mt-2 text-(length:--text-micro) text-muted-foreground">
-                {streaming ? "Live now" : "Finished 2m ago"}
+                {streaming ? uiText("Live now") : uiText("Finished 2m ago")}
               </div>
             </div>
             <Badge variant="outline" className="[&>svg]:size-2.5 border-border/70 bg-background/70 py-1 text-(length:--text-nano) text-muted-foreground">
@@ -209,13 +204,9 @@ export function RunTranscriptUxLab() {
           <aside className="border-b border-border/60 bg-background/75 p-5 lg:border-b-0 lg:border-r">
             <div className="mb-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
-                <FlaskConical className="h-3.5 w-3.5" />
-                UX Lab
-              </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight">Run Transcript Fixtures</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Built from a real Paperclip development run, then sanitized so no secrets, local paths, or environment details survive into the fixture.
-              </p>
+                <FlaskConical className="h-3.5 w-3.5" />{uiText("UX Lab")}{" "}</div>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight">{uiText("Run Transcript Fixtures")}</h1>
+              <p className="mt-2 text-sm text-muted-foreground">{uiText("Built from a real Paperclip development run, then sanitized so no secrets, local paths, or environment details survive into the fixture.")}{" "}</p>
             </div>
 
             <div className="space-y-2">
@@ -267,7 +258,7 @@ export function RunTranscriptUxLab() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                  Source run {runTranscriptFixtureMeta.sourceRunId.slice(0, 8)}
+                  {uiText("Source run")} {runTranscriptFixtureMeta.sourceRunId.slice(0, 8)}
                 </Badge>
                 <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
                   {runTranscriptFixtureMeta.issueIdentifier}
@@ -276,9 +267,7 @@ export function RunTranscriptUxLab() {
             </div>
 
             <div className="mb-5 flex flex-wrap items-center gap-2">
-              <span className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                Controls
-              </span>
+              <span className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{uiText("Controls")}{" "}</span>
               <div className="inline-flex rounded-full border border-border/70 bg-background/80 p-1">
                 {(["nice", "raw"] as const).map((mode) => (
                   <button
@@ -315,7 +304,7 @@ export function RunTranscriptUxLab() {
                 className="rounded-full"
                 onClick={() => setStreaming((value) => !value)}
               >
-                {streaming ? "Show settled state" : "Show streaming state"}
+                {streaming ? uiText("Show settled state") : uiText("Show streaming state")}
               </Button>
             </div>
 

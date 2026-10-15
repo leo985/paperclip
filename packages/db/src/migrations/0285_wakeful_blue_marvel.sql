@@ -1,0 +1,1 @@
+ALTER TABLE "personnel_people" ADD COLUMN "require_password_change" boolean DEFAULT false NOT NULL;

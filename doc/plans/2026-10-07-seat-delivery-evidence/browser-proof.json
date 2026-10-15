@@ -1,0 +1,42 @@
+{
+  "startedAt": "2026-10-07T03:31:36.343Z",
+  "checks": [
+    {
+      "name": "management_page_and_live_mac",
+      "passed": true
+    },
+    {
+      "name": "browser_check_request_accepted",
+      "passed": true,
+      "details": {
+        "commandId": "58fde6db-7bb2-47da-abe6-eccd8744819e"
+      }
+    },
+    {
+      "name": "actual_mac_checks_and_server_receipt",
+      "passed": true,
+      "details": {
+        "commandId": "58fde6db-7bb2-47da-abe6-eccd8744819e",
+        "status": "succeeded"
+      }
+    },
+    {
+      "name": "onboarding_wizard_visible",
+      "passed": true
+    },
+    {
+      "name": "bridge_download_available",
+      "passed": true
+    },
+    {
+      "name": "published_online_help",
+      "passed": true
+    },
+    {
+      "name": "no_browser_runtime_errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "finishedAt": "2026-10-07T03:32:03.489Z"
+}

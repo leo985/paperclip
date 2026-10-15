@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
@@ -23,6 +24,7 @@ export type FooterPrimaryIcon = "arrow" | "spinner" | "none";
  */
 export function FooterNav({
   onBack,
+  backLabel,
   primaryLabel,
   primaryDisabled,
   loading,
@@ -31,6 +33,7 @@ export function FooterNav({
   onPrimary,
 }: {
   onBack?: () => void;
+  backLabel?: string;
   primaryLabel: string;
   primaryDisabled?: boolean;
   loading?: boolean;
@@ -66,7 +69,7 @@ export function FooterNav({
           disabled={loading}
         >
           <ArrowLeft className="mr-1 size-3.5" />
-          Back
+          {backLabel??uiText("Back")}
         </Button>
       ) : (
         <span />

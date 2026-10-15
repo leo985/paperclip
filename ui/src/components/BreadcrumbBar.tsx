@@ -1,3 +1,5 @@
+import { PlatformHeaderActions } from "./PlatformHeaderActions";
+import { uiText } from "@/i18n/interface";
 import { Link } from "@/lib/router";
 import { Menu, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
@@ -41,6 +43,7 @@ function GlobalToolbar({
   const { launchers } = usePluginLaunchers({ placementZones: ["globalToolbarButton"], companyId: context.companyId, enabled: !!context.companyId });
   return (
     <div className="ml-auto flex shrink-0 items-center gap-1 pl-2 empty:hidden">
+      <span className="hidden md:flex"><PlatformHeaderActions /></span>
       {pageToolbar}
       {slots.length > 0 ? (
         <PluginSlotOutlet slotTypes={["globalToolbarButton"]} context={context} className="flex items-center gap-1" />
@@ -91,6 +94,7 @@ export function BreadcrumbBar({ taskDetailLayout = false }: { taskDetailLayout?:
   if (breadcrumbs.length === 0) {
     return (
       <div className="h-(--sz-60px) shrink-0 flex items-center justify-end border-b border-border px-4 md:px-6">
+        {isMobile && <Button variant="ghost" size="icon-sm" onClick={toggleSidebar} aria-label="打开导航"><Menu className="size-4" /></Button>}
         {globalToolbarSlots}
       </div>
     );
@@ -102,7 +106,7 @@ export function BreadcrumbBar({ taskDetailLayout = false }: { taskDetailLayout?:
       size="icon-sm"
       className="mr-2 shrink-0"
       onClick={toggleSidebar}
-      aria-label="Open sidebar"
+      aria-label={uiText("Open sidebar")}
     >
       <Menu className="h-5 w-5" />
     </Button>
@@ -196,7 +200,7 @@ export function BreadcrumbBar({ taskDetailLayout = false }: { taskDetailLayout?:
         {menuButton}
         <div className="min-w-0 overflow-hidden flex-1">
           {breadcrumbs[0].leading || breadcrumbs[0].identifier ? (
-            <h1 className="flex items-baseline gap-1.5 text-sm font-semibold uppercase tracking-wider">
+            <h1 className="flex items-baseline gap-1.5 text-sm font-semibold tracking-tight">
               {breadcrumbs[0].leading && (
                 <span className="flex shrink-0 items-center self-center">{breadcrumbs[0].leading}</span>
               )}
@@ -204,7 +208,7 @@ export function BreadcrumbBar({ taskDetailLayout = false }: { taskDetailLayout?:
               <span className="truncate">{breadcrumbs[0].label}</span>
             </h1>
           ) : (
-            <h1 className="text-sm font-semibold uppercase tracking-wider truncate">
+            <h1 className="text-sm font-semibold tracking-tight truncate">
               {breadcrumbs[0].label}
             </h1>
           )}
@@ -231,8 +235,8 @@ export function BreadcrumbBar({ taskDetailLayout = false }: { taskDetailLayout?:
           size="icon-sm"
           className="ml-5 size-9 shrink-0 text-muted-foreground"
           onClick={toggleTaskPanel}
-          aria-label={taskPanelOpen ? "Hide properties" : "Show properties"}
-          title={taskPanelOpen ? "Hide properties" : "Show properties"}
+          aria-label={taskPanelOpen ? uiText("Hide properties") : uiText("Show properties")}
+          title={taskPanelOpen ? uiText("Hide properties") : uiText("Show properties")}
         >
           {taskPanelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
         </Button>

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import {
   COMPANY_SEARCH_SORTS,
   type CompanySearchSort,
@@ -17,13 +18,13 @@ export const SORT_LABELS: Record<CompanySearchSort, string> = {
   relevance: "Relevance",
   updated: "Recently updated",
   created: "Newest created",
-  priority: "Priority",
+  priority: uiText("Priority"),
 };
 
 export const UPDATED_WITHIN_LABELS: Record<string, string> = {
-  "24h": "Last 24 hours",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
+  "24h": uiText("Last 24 hours"),
+  "7d": uiText("Last 7 days"),
+  "30d": uiText("Last 30 days"),
   "90d": "Last 90 days",
 };
 
@@ -109,15 +110,15 @@ function humanize(value: string): string {
 }
 
 function assigneeChipLabel(filters: SearchFilters, lookups: FilterChipLookups): string {
-  if (filters.assigneeAgentId === null) return "Unassigned";
+  if (filters.assigneeAgentId === null) return uiText("Unassigned");
   if (typeof filters.assigneeAgentId === "string") {
     return lookups.agentName(filters.assigneeAgentId) ?? "Agent";
   }
   if (filters.assigneeUserId) {
-    if (filters.assigneeUserId === lookups.currentUserId) return "Me";
+    if (filters.assigneeUserId === lookups.currentUserId) return uiText("Me");
     return lookups.userName(filters.assigneeUserId) ?? "User";
   }
-  return "Assignee";
+  return uiText("Assignee");
 }
 
 /** Removable chip descriptors for the active-filter row. */
@@ -126,7 +127,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   for (const status of filters.status ?? []) {
     chips.push({
       id: `status:${status}`,
-      label: `Status: ${humanize(status)}`,
+      label: uiTextFormat("Status: __PCVAR0__", [humanize(status)]),
       remove: (current) => {
         const next = { ...current };
         const remaining = (current.status ?? []).filter((value) => value !== status);
@@ -144,7 +145,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   for (const priority of filters.priority ?? []) {
     chips.push({
       id: `priority:${priority}`,
-      label: `Priority: ${humanize(priority)}`,
+      label: uiTextFormat("Priority: __PCVAR0__", [humanize(priority)]),
       remove: (current) => {
         const next = { ...current };
         const remaining = (current.priority ?? []).filter((value) => value !== priority);
@@ -157,7 +158,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   if (filters.assigneeAgentId !== undefined || filters.assigneeUserId) {
     chips.push({
       id: "assignee",
-      label: `Assignee: ${assigneeChipLabel(filters, lookups)}`,
+      label: uiTextFormat("Assignee: __PCVAR0__", [assigneeChipLabel(filters, lookups)]),
       remove: (current) => {
         const next = { ...current };
         delete next.assigneeAgentId;
@@ -169,7 +170,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   if (filters.projectId) {
     chips.push({
       id: "project",
-      label: `Project: ${lookups.projectName(filters.projectId) ?? "Project"}`,
+      label: uiTextFormat("Project: __PCVAR0__", [lookups.projectName(filters.projectId) ?? "Project"]),
       remove: (current) => {
         const next = { ...current };
         delete next.projectId;
@@ -180,7 +181,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   if (filters.labelId) {
     chips.push({
       id: "label",
-      label: `Label: ${lookups.labelName(filters.labelId) ?? "Label"}`,
+      label: uiTextFormat("Label: __PCVAR0__", [lookups.labelName(filters.labelId) ?? "Label"]),
       remove: (current) => {
         const next = { ...current };
         delete next.labelId;
@@ -191,7 +192,7 @@ export function buildFilterChips(filters: SearchFilters, lookups: FilterChipLook
   if (filters.updatedWithin) {
     chips.push({
       id: "updated",
-      label: `Updated: ${updatedWithinLabel(filters.updatedWithin)}`,
+      label: uiTextFormat("Updated: __PCVAR0__", [updatedWithinLabel(filters.updatedWithin)]),
       remove: (current) => {
         const next = { ...current };
         delete next.updatedWithin;

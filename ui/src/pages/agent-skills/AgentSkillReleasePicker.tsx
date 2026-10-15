@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { CompanySkillVersion } from "@paperclipai/shared";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -82,7 +83,7 @@ export function AgentSkillReleasePicker({
       <SelectTrigger
         size="sm"
         className="w-full max-w-(--sz-16rem) sm:w-(--sz-16rem)"
-        aria-label="Skill release"
+        aria-label={uiText("Skill release")}
       >
         <SelectValue placeholder={DEFAULT_LABEL}>{triggerLabel}</SelectValue>
       </SelectTrigger>
@@ -92,9 +93,7 @@ export function AgentSkillReleasePicker({
           <SelectItem key={release.id} value={release.id}>
             <span className="flex items-center gap-2">
               <span className="truncate">{releaseOptionLabel(release)}</span>
-              <Badge variant="secondary" className="shrink-0 text-(length:--text-nano)">
-                Beta
-              </Badge>
+              <Badge variant="secondary" className="shrink-0 text-(length:--text-nano)">{uiText("Beta")}{" "}</Badge>
             </span>
           </SelectItem>
         ))}

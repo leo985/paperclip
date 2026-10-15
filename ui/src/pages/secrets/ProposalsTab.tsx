@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -31,12 +32,12 @@ import {
 /** ISO expiry → "expires in 12d" / "expires in 5h" / "expired". */
 function expiryLabel(expiresAt: string): { text: string; urgent: boolean } {
   const ms = new Date(expiresAt).getTime() - Date.now();
-  if (Number.isNaN(ms)) return { text: "no expiry", urgent: false };
+  if (Number.isNaN(ms)) return { text: uiText("no expiry"), urgent: false };
   if (ms <= 0) return { text: "expired", urgent: true };
   const hours = Math.floor(ms / 3_600_000);
-  if (hours < 24) return { text: `expires in ${hours}h`, urgent: true };
+  if (hours < 24) return { text: uiTextFormat("expires in __PCVAR0__h", [hours]), urgent: true };
   const days = Math.floor(hours / 24);
-  return { text: `expires in ${days}d`, urgent: days <= 2 };
+  return { text: uiTextFormat("expires in __PCVAR0__d", [days]), urgent: days <= 2 };
 }
 
 function ProposalRow({
@@ -167,16 +168,14 @@ export function ProposalsTab({
   if (proposalsQuery.isError) {
     return (
       <div className="flex items-center gap-2 py-4 text-sm text-destructive">
-        <AlertCircle className="size-4" /> Couldn’t load proposals. Try again.
-      </div>
+        <AlertCircle className="size-4" />{" "}{uiText("Couldn’t load proposals. Try again.")}{" "}</div>
     );
   }
 
   if (proposalsQuery.isPending) {
     return (
       <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Loading proposals…
-      </div>
+        <Loader2 className="size-4 animate-spin" />{" "}{uiText("Loading proposals…")}{" "}</div>
     );
   }
 
@@ -184,18 +183,15 @@ export function ProposalsTab({
     return (
       <EmptyState
         icon={Inbox}
-        title="No pending proposals"
-        message="When an agent proposes a secret or an access binding, it shows up here for review."
+        title={uiText("No pending proposals")}
+        message={uiText("When an agent proposes a secret or an access binding, it shows up here for review.")}
       />
     );
   }
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">
-        Agents propose credentials and access bindings; you approve or reject them here. Proposed
-        values are never shown — only a fingerprint and length.
-      </p>
+      <p className="text-xs text-muted-foreground">{uiText("Agents propose credentials and access bindings; you approve or reject them here. Proposed values are never shown — only a fingerprint and length.")}{" "}</p>
       {sorted.map((proposal) => (
         <ProposalRow
           key={proposal.id}

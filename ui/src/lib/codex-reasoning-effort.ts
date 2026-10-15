@@ -1,15 +1,16 @@
+import { uiText } from "@/i18n/interface";
 import {
   codexLocalReasoningEffortsForModel,
   type CodexLocalReasoningEffort,
 } from "@paperclipai/adapter-codex-local";
 
 const CODEX_REASONING_EFFORT_LABELS: Record<CodexLocalReasoningEffort, string> = {
-  minimal: "Minimal",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
+  minimal: uiText("Minimal"),
+  low: uiText("Low"),
+  medium: uiText("Medium"),
+  high: uiText("High"),
   xhigh: "X-High",
-  max: "Max",
+  max: uiText("Max"),
   ultra: "Ultra",
 };
 

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useStreamlinedTaskChatPresentation } from "./presentation-mode";
@@ -100,12 +101,12 @@ export function TaskChatTurn({
             />
           ) : null}
           <span className="min-w-0 truncate">
-            {item.continuedAfterSteering ? "Continued after steering · " : ""}
+            {item.continuedAfterSteering ? uiText("Continued after steering · ") : ""}
             {item.summary.durationLabel
-              ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
+              ? uiTextFormat("__PCVAR0__ for __PCVAR1__", [item.summary.failed ? "Stopped" : "Worked", item.summary.durationLabel])
               : item.summary.failed
-                ? "Stopped"
-                : "Worked"}
+                ? uiText("Stopped")
+                : uiText("Worked")}
           </span>
         </div>
         {item.items.length > 0 ? (
@@ -206,10 +207,10 @@ export function TaskChatTurn({
       ) : null}
       <span>
         {item.standaloneHeader && item.summary.durationLabel
-          ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
+          ? uiTextFormat("__PCVAR0__ for __PCVAR1__", [item.summary.failed ? "Stopped" : "Worked", item.summary.durationLabel])
           : item.summary.failed
-            ? "Stopped"
-            : "Worked"}
+            ? uiText("Stopped")
+            : uiText("Worked")}
       </span>
       {!item.standaloneHeader && turnSummaryMetrics(item.summary) ? (
         // Time/tools/tokens is demoted, not deleted (PAP-502): it stays in the

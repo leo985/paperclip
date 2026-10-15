@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { ExternalLink, Loader2, Play, ScrollText, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,10 +34,10 @@ const STATE_BADGE_CLASSES: Record<ActiveWorkspaceAccessState, string> = {
 const STATE_LABELS: Record<ActiveWorkspaceAccessState, string> = {
   provisioning: "Provisioning",
   validating: "Validating clone",
-  ready: "Ready",
-  degraded: "Degraded",
+  ready: uiText("Ready"),
+  degraded: uiText("Degraded"),
   repairing: "Repairing",
-  failed: "Failed",
+  failed: uiText("Failed"),
 };
 
 const ACTION_ICONS = {
@@ -115,14 +116,10 @@ export function WorkspaceAccessCard({
             {access.action.label}
           </Button>
           {access.state === "ready" && !access.handoffAvailable ? (
-            <span className="text-xs text-muted-foreground">
-              Signs in with the snapshot-local credentials captured when this clone was made.
-            </span>
+            <span className="text-xs text-muted-foreground">{uiText("Signs in with the snapshot-local credentials captured when this clone was made.")}{" "}</span>
           ) : null}
           {access.state === "ready" && access.handoffAvailable ? (
-            <span className="text-xs text-muted-foreground">
-              Uses a single-use login handoff — no password needed.
-            </span>
+            <span className="text-xs text-muted-foreground">{uiText("Uses a single-use login handoff — no password needed.")}{" "}</span>
           ) : null}
         </div>
         {errorMessage ? (

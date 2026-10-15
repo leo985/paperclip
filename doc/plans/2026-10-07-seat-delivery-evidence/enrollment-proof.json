@@ -1,0 +1,32 @@
+{
+  "checks": [
+    {
+      "name": "real_browser_downloads_single_use_invitation",
+      "passed": true
+    },
+    {
+      "name": "invalid_invitation_token_rejected",
+      "passed": true
+    },
+    {
+      "name": "actual_mac_cannot_bind_second_executor",
+      "passed": true
+    },
+    {
+      "name": "server_invitation_created",
+      "passed": true
+    },
+    {
+      "name": "physical_server_enrollment_and_heartbeat",
+      "passed": true
+    },
+    {
+      "name": "temporary_server_identity_paused_intake_disabled",
+      "passed": true
+    },
+    {
+      "name": "consumed_or_expired_invitation_reuse_rejected",
+      "passed": true
+    }
+  ]
+}

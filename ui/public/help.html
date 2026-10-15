@@ -1,0 +1,613 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>智研协同平台 帮助中心</title><link rel="stylesheet" href="/help.css?v=f1b0083cb45e"></head><body><header id="top"><h1>智研协同平台 帮助中心</h1><p>功能说明 · 使用场景 · 操作流程 · 故障排查</p><p>更新于 2026-10-15 · 当前 DSP7 接入版本</p><div class="actions"><a href="/">进入网站</a><button id="print" type="button">打印 / 保存 PDF</button></div></header><div class="reader"><div class="toolbar"><button id="toggle-directory" aria-expanded="true" aria-controls="directory-slot" type="button">收起目录</button><button id="open-directory" type="button" aria-haspopup="dialog">浏览主题</button><label class="sr-only" for="search">搜索完整手册</label><input type="search" id="search" placeholder="搜索席位、审批、Token…"><span id="count" aria-live="polite">27 个主题</span></div><div class="layout"><div id="directory-slot"><nav id="directory" aria-label="帮助目录"><details data-category="快速入门" open><summary>快速入门<span>5</span></summary><div><a href="#workflow" data-topic="workflow">流程总览：从 Jira 指派到交付验收</a><a href="#focused-navigation" data-topic="focused-navigation">日常导航与管理员入口</a><a href="#start" data-topic="start">开始使用与一张工单的完整流程</a><a href="#concepts" data-topic="concepts">认识组织、项目、任务、智能体和席位</a><a href="#windows-seat" data-topic="windows-seat">Windows 原生席位接入</a></div></details><details data-category="日常管理"><summary>日常管理<span>7</span></summary><div><a href="#dashboard" data-topic="dashboard">概览：发现正在运行和需要处理的工作</a><a href="#tasks" data-topic="tasks">任务：安排、拆分、跟踪与交付</a><a href="#decisions" data-topic="decisions">阻塞与人工决策：知道该在哪里回复</a><a href="#runs" data-topic="runs">运行记录、Token 与执行过程</a><a href="#inbox" data-topic="inbox">收件箱、搜索与活动审计</a><a href="#approvals" data-topic="approvals">平台审批与预算决策</a><a href="#costs" data-topic="costs">费用与预算：管理上限、分析用量</a></div></details><details data-category="研发接入"><summary>研发接入<span>5</span></summary><div><a href="#projects" data-topic="projects">项目与共享仓库：配置一次，供多张工单使用</a><a href="#jira" data-topic="jira">网页接入 Jira 工单：从申请到准备完成</a><a href="#seats" data-topic="seats">多席位：多人、多电脑如何协作</a><a href="#terminal" data-topic="terminal">本地 Claude 终端：启动、观察与续传</a><a href="#seat-control" data-topic="seat-control">席位管理：运行概览、自动接单与通知</a></div></details><details data-category="平台功能"><summary>平台功能<span>6</span></summary><div><a href="#agents" data-topic="agents">智能体与组织架构：执行身份和责任链</a><a href="#skills" data-topic="skills">技能与知识：公共技能与 Harness 联合加载</a><a href="#automation" data-topic="automation">目标、例行任务、流水线与业务案例</a><a href="#artifacts" data-topic="artifacts">产物、文件与交付证据</a><a href="#connections" data-topic="connections">连接器、密钥与运行环境</a><a href="#settings" data-topic="settings">组织、成员、个人资料与设置</a></div></details><details data-category="故障与边界"><summary>故障与边界<span>2</span></summary><div><a href="#troubleshooting" data-topic="troubleshooting">常见问题与排查顺序</a><a href="#boundaries" data-topic="boundaries">当前能力边界与可用性说明</a></div></details><details data-category="管理与配置"><summary>管理与配置<span>1</span></summary><div><a href="#personnel-federation" data-topic="personnel-federation">人员联邦与自动启用账号</a></div></details><details data-category="账号与权限"><summary>账号与权限<span>1</span></summary><div><a href="#change-password" data-topic="change-password">修改个人登录密码</a></div></details></nav></div><main><article id="workflow"><p class="category">快速入门</p><h2>流程总览：从 Jira 指派到交付验收</h2><p>用四条泳道看清谁负责、在哪里执行、遇到阻塞由谁处理，以及最终如何验收。</p><aside><strong>什么时候使用</strong><ul><li>首次了解智研协同平台的工作流程</li><li>组长希望 Jira 指派后自动执行</li><li>研发人员确认阻塞处理与交付渠道</li><li>向团队介绍平台、本机 Harness 与 Tracker 的分工</li></ul></aside><figure class="workflow"><a href="/zhiyan-workflow.svg" target="_blank" rel="noreferrer">打开完整流程图 / 放大查看</a><button type="button" class="diagram-zoom" aria-pressed="false">放大阅读</button><div class="workflow-scroll" tabindex="0" role="region" aria-label="工作流程图，可横向滚动"><img src="/zhiyan-workflow.svg" width="1200" height="1180" alt="人员与 Jira、智研协同平台、研发电脑、Harness Tracker 四条泳道，从指派、执行、阻塞决策到交付验收。详细步骤见下方文字。"></div><figcaption>从上往下阅读；橙色表示人工决策分支，虚线表示无需决策时继续。默认适应页面宽度；点击“放大阅读”后可左右滚动。</figcaption></figure><h2>先完成一次性接入</h2>
+<ol>
+<li>管理员配置组织权限、共享 Project、仓库 URL 和基线分支。</li>
+<li>研发人员登记自己的电脑席位，绑定本机源码仓库，配置 Claude 与 Harness。</li>
+<li>在席位的接单设置中配置 Jira 地址、PAT、经办人、项目、允许状态和工单类型，启用自动执行规则。</li>
+<li>配置阻塞提醒的接收人和发送机器人。外部提醒需要实际凭据、配置与授权。</li>
+<li>保持本机接入桥在线。只有在线且空闲、满足校验的席位才能开工；不会绕过其他执行者的锁。</li>
+</ol>
+<h2>按泳道理解日常流程</h2>
+<table><thead><tr><th>阶段</th><th>谁负责</th><th>发生什么</th><th>人在哪里查看或操作</th></tr></thead><tbody><tr><td>① 指派</td><td>组长 / Jira</td><td>创建需求，拆出编码、Bug 或设计子工单并指派经办人</td><td>Jira 工单</td></tr><tr><td>②③ 发现和校验</td><td>研发电脑接入桥</td><td>主动查询 Jira，核对接单范围、项目、仓库映射和开工状态</td><td>席位 → 接单设置 / 设备与诊断</td></tr><tr><td>④⑤ 登记和调度</td><td>智研协同平台</td><td>建立任务和持久队列，匹配席位，记录真实运行</td><td>工单、席位、运行详情</td></tr><tr><td>⑥ 执行</td><td>本机 Claude + Harness</td><td>准备执行目录 / 工作树，加载公共技能和领域技能，执行任务</td><td>本地终端观察，网页看阶段、日志和用量</td></tr><tr><td>⑦⑧ 阻塞与提醒</td><td>本机 → 平台 → 负责人</td><td>记录问题、方案和确认编号，展示待处理项，按通知配置提醒</td><td>工作台、工单详情、席位及已配置的钉钉通知</td></tr><tr><td>⑨⑩ 决策与继续</td><td>授权负责人 + 对应执行机制</td><td>在正确渠道处理，满足校验和门禁后续传；拒绝或资料不足时仍保持阻塞</td><td>见下方决策渠道表</td></tr><tr><td>⑪⑫ 交付与回执</td><td>本机 Harness + Harness Tracker</td><td>按领域门禁形成交付证据，记录阶段、结果和效果数据</td><td>工单证据、Harness、Tracker</td></tr><tr><td>⑬⑭⑮ 结果与验收</td><td>平台 + 研发 / 负责人</td><td>展示运行结果与用量，人员按正式流程验收并更新 Jira 状态</td><td>网页运行记录、Tracker 和 Jira</td></tr></tbody></table>
+<h2>遇到人工决策，该在哪里处理？</h2>
+<table><thead><tr><th>决策类型</th><th>正确渠道</th><th>处理原则</th></tr></thead><tbody><tr><td>需求不明确、设计或工程方案确认</td><td>Jira / Harness 正式领域流程</td><td>按确认编号和授权负责人处理，满足领域门禁后推进</td></tr><tr><td>平台原生审批</td><td>智研协同平台的审批 / 待决策页面</td><td>查看申请及权限影响，使用审批操作</td></tr><tr><td>Claude 工具或文件权限</td><td>本机 Claude 终端</td><td>按 Claude 原生提示授权或拒绝</td></tr><tr><td>当前模拟任务的 JCONF 确认</td><td>对应工单的网页确认机制</td><td>使用准确的确认编号；模拟机制不能代替正式工程确认</td></tr></tbody></table>
+<p><strong>普通网页评论不能替代正式工程确认。</strong> 不同决策渠道的续传机制不同；看到“同意”评论不等于所有门禁已通过。</p>
+<h2>自动模式与人工模式</h2>
+<ul>
+<li><strong>推荐日常模式</strong>：组长在 Jira 指派，已授权规则发现符合条件的工单，在线空闲席位自动执行；不需要每天重新配置，也不需要逐单确认开工。</li>
+<li><strong>人工接入模式</strong>：在项目页登记工单，研发在本机执行 <code>harness start ATSES-XXXXX --confirm-no-other-executor</code>。适合手动启动或未启用自动接单的场景；校验仍然生效。</li>
+<li><strong>离线或忙碌</strong>：平台保留队列，等待目标席位满足执行条件；不会默认让其他电脑接管。</li>
+</ul>
+<h2>三个容易误解的边界</h2>
+<ol>
+<li>智研协同平台管理和协调执行，Claude 与业务源码在研发电脑上运行。</li>
+<li>运行结束、网页显示完成，都不能替代正式交付验收。</li>
+<li>工作台的“待执行任务”是待办 / 待排期工单，真实自动执行队列要到席位页核对。</li>
+</ol><a href="#top">返回目录 ↑</a></article>
+<article id="focused-navigation"><p class="category">快速入门</p><h2>日常导航与管理员入口</h2><p>研发日常围绕 Jira、工单和席位；通用平台能力归入管理中心。</p><aside><strong>什么时候使用</strong><ul><li>找不到以前的连接器、技能或例行任务入口</li><li>研发人员希望接入 Jira 工单</li><li>管理员配置项目仓库、权限或高级能力</li></ul></aside><h2>日常入口</h2>
+<p>侧栏保留协同工作台、工单、待处理中心、项目、席位管理、执行记录、搜索和帮助中心。顶部“接入 Jira 工单”用于登记已有 Jira 子工单；手机底栏同步保留工作台、工单、接入、席位和待处理。</p>
+<p>普通成员使用新建任务按钮或 C 快捷键时进入 Jira 接入。任务来源保持在 Jira，正式确认仍走 Jira/Harness。席位自动接单、Claude 执行、公共技能加载、提醒和运行记录不因菜单调整而停用。</p>
+<h2>待处理中心</h2>
+<p>统一展示席位阻塞提醒与原有待处理列表、失败和审批入口。提醒会说明应去 Jira/Harness、网页审批或本机权限提示处理；普通评论不是正式确认。</p>
+<h2>管理中心</h2>
+<p>实例管理员及当前组织的 owner/admin 可进入管理中心。组织管理员仅能管理自己所属组织，实例级配置仍需实例管理员。普通成员直接访问管理页面会看到权限说明；个人设置和修改密码始终可用。</p>
+<ul>
+<li>人员与权限：成员、邀请、人员联邦（联邦需实例管理员）。</li>
+<li>项目与执行配置：共享项目仓库、执行智能体、环境。</li>
+<li>用量与审计：组织费用、预算、操作记录和诊断。</li>
+<li>高级管理：公共协作技能、连接器、例行任务、目标、产物及原有实验能力；仍受原有开关控制。</li>
+</ul>
+<p>当前 Harness 通过 GitLab 维护和分发技能、领域知识及 MCP 配置。平台连接器为可选治理能力，不是席位接入的前提。平台公共技能管理仅用于确有需要的公共协作技能。</p>
+<h2>原有能力没有删除</h2>
+<p>调整的是入口与权限。管理员仍可使用高级功能；运行数据、审批、领域回执和技能分配保留。试点诊断卡片已从首页移至管理中心。</p>
+<p>组织费用与智能体配置接口按管理权限控制；普通成员的 Agent 展示响应不再提供完整执行配置。正式交付证据仍在工单和 Tracker 中查看。</p><a href="#top">返回目录 ↑</a></article>
+<article id="start"><p class="category">快速入门</p><h2>开始使用与一张工单的完整流程</h2><p>先了解三套系统的分工，再按工单生命周期使用网站。</p><aside><strong>什么时候使用</strong><ul><li>研发人员第一次接入</li><li>负责人安排编码或设计任务</li><li>复盘一次 Agent 执行</li></ul></aside><h2>协同工作台与全站导航</h2>
+<p>点击左上角“智研协同平台”返回工作台。组织切换位于品牌名称下方；各页面仍有独立标题和面包屑。右上角可进入在线帮助、待处理中心、个人设置和退出登录；手机端单独显示品牌栏。</p>
+<ul>
+<li><strong>我的工作</strong>：显示直接指派给当前用户的工单，以及其负责席位智能体的工单。</li>
+<li><strong>组织概览</strong>：显示当前组织内有权限查看的工单和席位，不扩大接口权限。</li>
+<li><strong>需要你处理</strong>：优先展示席位提醒、阻塞工单与组织待审批入口。个人工单数量与组织审批数量分开显示。</li>
+<li><strong>正在执行</strong>：按工单的执行中状态展示；真实进程、实时心跳和席位在线状态应到席位页核对。</li>
+<li><strong>待执行任务</strong>：包含待办和待排期工单，不代表已领取的自动执行队列。</li>
+<li><strong>组织运行概况</strong>：展示组织当前状态和本月费用；图表保留其实际统计周期，不当成今日统计。</li>
+</ul>
+<p>浅色与深色模式共用靛蓝主色。绿色、橙色、红色分别提示完成、待处理与异常；状态仍需结合文字理解。</p>
+<h2>网站解决什么问题</h2>
+<p>智研协同平台 是智能体的管理台。它集中展示任务、运行记录、阻塞、决策和资源用量，让研发人员及负责人能了解“谁在做什么、什么时候做的、为什么停下来”。当前业务接入使用 <strong>Jira + 本地 Harness + 本地 Claude Code + Harness Tracker</strong>。</p>
+<table><thead><tr><th>系统</th><th>职责</th><th>你主要在这里做什么</th></tr></thead><tbody><tr><td>Jira</td><td>需求、子工单、经办人和正式工程确认</td><td>建需求、拆编码／设计子工单、维护状态、正式确认</td></tr><tr><td>智研协同平台 网页</td><td>协调、可见性和任务管理</td><td>选择项目和席位、登记工单、查看运行、处理待决策事项</td></tr><tr><td>本地 Claude + Harness</td><td>执行和领域流程</td><td>在终端观察 Claude，按技能开发、设计、校验和续传</td></tr><tr><td>Harness Tracker</td><td>流程效果和交付数据</td><td>查看 Harness 上报的结果、阶段和效果数据</td></tr></tbody></table>
+<h2>Jira 自动执行与人工接入</h2>
+<p>日常研发推荐在席位页面配置“Jira 指派后自动执行”：组长指派 → 自动发现并排队 → 本机 Claude 执行 → 阻塞通知负责人 → 有效决策后继续。详情见“席位”。以下流程保留为人工接入方式。</p>
+<h2>人工接入流程</h2>
+<ol>
+<li>在 Jira 创建需求，并拆出编码、Bug 或设计子工单，指定研发经办人。</li>
+<li>管理员配置共享 Project 的仓库 URL、基线分支，配置组织接入权限；研发人员通过“席位 → 接入我的电脑”登记独立执行席位。</li>
+<li>研发人员在自己的电脑绑定本地业务源码仓库；同一项目的映射通常只需配置一次。</li>
+<li>在 Project 详情页点击 <strong>接入工单</strong>，填写 Jira 子工单号、共享工作区、执行席位和允许开工的 Jira 状态。</li>
+<li>等待网页显示“接入已完成”。<strong>登记完成不代表已经开工</strong>。</li>
+<li>在选中的电脑打开终端，运行 <code>harness start ATSES-XXXXX --confirm-no-other-executor</code>。未启用 Jira 自动执行规则时，使用这一人工启动方式。</li>
+<li>用网页查看任务、阶段、评论和运行，用终端观察 Claude 的具体执行和权限请求。</li>
+<li>遇到业务歧义或需要人工决定时，先看阻塞说明和确认编号；按对应确认渠道处理。</li>
+<li>完成后按 Harness 门禁提供交付证据和 Tracker 回执，再结束本地会话。网页任务状态不能替代领域验收。</li>
+</ol>
+<h2>各角色从哪里开始</h2>
+<ul>
+<li><strong>研发人员</strong>：先读“项目与共享仓库”“Jira 网页接入”“本地终端”“阻塞与人工决策”。</li>
+<li><strong>研发负责人／项目经理</strong>：先读“概览”“任务”“运行与用量”“费用”“审计”。</li>
+<li><strong>管理员</strong>：先读“席位”“组织与权限”“设置”“能力边界”。</li>
+</ul>
+<p>某些功能由实验开关、插件或账号权限控制，菜单未出现时应先核对配置。没有菜单并不意味着网页故障。</p><a href="#top">返回目录 ↑</a></article>
+<article id="concepts"><p class="category">快速入门</p><h2>认识组织、项目、任务、智能体和席位</h2><p>用同一套概念理解网站各页面的关系。</p><aside><strong>什么时候使用</strong><ul><li>多个项目共用管理台</li><li>多位研发使用不同电脑</li></ul></aside><table><thead><tr><th>概念</th><th>含义</th><th>示例</th></tr></thead><tbody><tr><td>组织</td><td>管理任务、智能体、权限和预算的范围</td><td>一个研发团队</td></tr><tr><td>项目（Project）</td><td>对同一业务目标和源码仓库的长期归类</td><td>DSP7 银企直联</td></tr><tr><td>工作区（Workspace）</td><td>项目的仓库及执行环境配置</td><td>DSP7 仓库 URL 和基线分支</td></tr><tr><td>任务（Task / Issue）</td><td>一项具体工作，有执行者、状态、讨论和交付证据</td><td>一张 Jira 编码子工单对应的网页任务</td></tr><tr><td>智能体（Agent）</td><td>智研协同平台 中登记的执行身份及其运行配置</td><td>某研发电脑上的 Claude 执行身份</td></tr><tr><td>执行席位</td><td>当前集成为一台研发电脑定义的独立身份</td><td>张三的 Mac</td></tr><tr><td>运行（Run）</td><td>某个智能体的一次实际执行记录</td><td>一次 <code>harness start</code> 创建的运行</td></tr><tr><td>会话（Session）</td><td>Claude 的交互上下文</td><td>同一次本地会话内的开发与确认续传</td></tr></tbody></table>
+<h2>容易混淆的地方</h2>
+<ul>
+<li>网站账号是人的登录身份；Agent 是执行身份。这里的“席位”是本地执行电脑标识，并非 智研协同平台 的计费许可证数量。</li>
+<li>一个项目可以有很多任务，不需要为每张 Jira 工单新建项目。</li>
+<li>任务可以经历多次运行；一次运行结束不一定代表任务已经完成。</li>
+<li>Project 的共享仓库配置不应依赖某位研发的 <code>/Users/...</code> 路径。每台电脑维护自己的路径映射。</li>
+<li>编码源码工作树与 Harness 的 <code>tickets/...</code> 工单目录职责不同：前者隔离源码修改，后者保存领域状态、方案和证据。</li>
+</ul><a href="#top">返回目录 ↑</a></article>
+<article id="dashboard"><p class="category">日常管理</p><h2>概览：发现正在运行和需要处理的工作</h2><p>从团队全局快速进入活动任务、失败运行和待审批事项。</p><aside><strong>什么时候使用</strong><ul><li>负责人每日查看研发进度</li><li>排查某个 Agent 是否还在工作</li></ul></aside><h2>主要看什么</h2>
+<p>概览汇总当前组织的智能体、任务、费用以及近期活动。实时运行区域用于查看活动运行和最近完成的运行；待审批或预算提示用于发现需要人工处理的事项。</p>
+<h2>使用步骤</h2>
+<ol>
+<li>在侧栏顶部选择组织，进入“概览”。</li>
+<li>先看活动运行和待处理事项，再看任务状态分布及近期活动。</li>
+<li>点击任务进入任务详情；点击智能体或运行进入执行记录。</li>
+<li>结合任务评论、阶段和阻塞原因判断进度，而不是只凭“运行中”判断有效产出。</li>
+</ol>
+<h2>如何读状态</h2>
+<p>“智能体空闲”表示当前没有活动运行，不证明研发电脑在线。“任务进行中”也不保证本地 Claude 仍在执行；需要同时看运行状态和本地会话。预算暂停、运行失败、业务阻塞是不同问题，应进入详情查看原因。</p><a href="#top">返回目录 ↑</a></article>
+<article id="tasks"><p class="category">日常管理</p><h2>任务：安排、拆分、跟踪与交付</h2><p>用任务列表和详情页管理工作的状态、参与者及上下文。</p><aside><strong>什么时候使用</strong><ul><li>负责人分派工作</li><li>研发更新进度</li><li>拆出评审或补充设计工作</li></ul></aside><h2>列表和筛选</h2>
+<p>“任务”页用于查看组织内任务。可按状态、优先级、执行者、项目等条件筛选；列表、分组或看板视图是否可用，以当前页面为准。项目任务应关联到对应 Project，方便统一查看。</p>
+<table><thead><tr><th>状态</th><th>常见含义</th><th>建议操作</th></tr></thead><tbody><tr><td>待安排</td><td>已登记，尚未准备开工</td><td>核对执行者、条件和排期</td></tr><tr><td>待执行</td><td>已准备好，等待执行</td><td>检查所选席位及本地环境</td></tr><tr><td>进行中</td><td>工作已开始</td><td>查看运行、阶段和评论</td></tr><tr><td>评审中</td><td>等待评审或验收</td><td>查看证据和评审意见</td></tr><tr><td>已阻塞</td><td>暂时无法推进</td><td>读取阻塞原因及需要谁做什么</td></tr><tr><td>已完成</td><td>网页任务结束</td><td>正式工单还需核对领域验收和交付回执</td></tr><tr><td>已取消</td><td>不再推进</td><td>核对本地进程是否也已结束</td></tr></tbody></table>
+<h2>详情页怎么用</h2>
+<ul>
+<li><strong>说明</strong>：保存工作目标、范围、约束和验收条件。</li>
+<li><strong>执行者／负责人</strong>：谁执行、谁对任务负责；不要用反复换执行者来绕过独占登记。</li>
+<li><strong>评论／会话</strong>：补充信息、提出调整、处理已明确的人工决策。</li>
+<li><strong>运行／活动</strong>：查看执行记录和状态变化。</li>
+<li><strong>子任务／关联工作</strong>：拆分评审、补充设计或依赖工作，并保留父子关系。</li>
+<li><strong>文件／产物</strong>：核对交付文件和可追溯证据。</li>
+</ul>
+<h2>新建网页任务与登记 Jira 的区别</h2>
+<p>“新建任务”可创建 智研协同平台 普通任务，但<strong>不会自动成为正式 Harness 工单</strong>。正式编码、Bug 或设计子工单，请使用 Project 的“接入 Jira 工单”入口。不要仅在标题写一个 Jira 编号就开始执行。</p>
+<p>修改网页状态、点击“已完成”，不等于已经执行 Harness 的完成门禁，也不会因此自动完成 Jira。当前集成没有把普通网页任务创建替换成 Jira 工单创建。</p><a href="#top">返回目录 ↑</a></article>
+<article id="projects"><p class="category">研发接入</p><h2>项目与共享仓库：配置一次，供多张工单使用</h2><p>按业务仓库建立长期项目，每台电脑自行绑定本地路径。</p><aside><strong>什么时候使用</strong><ul><li>多个工单属于同一仓库</li><li>多人在不同目录开发同一产品</li></ul></aside><h2>Project 有什么用</h2>
+<p>Project 把任务、仓库工作区、项目说明、状态概况、成员及预算归在一起。适用于同一个产品、源码仓库或长期研发目标。项目摘要可帮助负责人了解当前状态、下一步和待人工处理的事项，具体更新取决于摘要智能体是否启用。</p>
+<h2>共享配置建议</h2>
+<ol>
+<li>创建项目，填写清晰的项目名称和说明。</li>
+<li>添加共享工作区，设置 <strong>仓库 URL</strong> 和 <strong>基线分支</strong>。</li>
+<li>共享工作区不要把某位研发电脑的本地 <code>cwd</code> 当成所有人的工作路径。</li>
+<li>为各执行电脑登记席位，并在本机配置工作区到仓库路径的映射。</li>
+</ol>
+<h2>本机绑定示例</h2>
+<p>以下 UUID 和路径是占位符，需换成自己的 Project、工作区和业务源码路径：</p>
+<pre><code class="language-sh">harness seat info
+harness repo bind --project &lt;Project-UUID&gt;   --workspace &lt;Workspace-UUID&gt;   --path /Users/yourname/work/dsp7.1_git
+harness repo list
+</code></pre>
+<p>绑定时会核对仓库根目录、本机路径白名单、Git origin 与共享 URL，以及本机是否存在基线引用；不会自动拉取或覆盖源码。绑定对象是业务仓库，不是 Harness 知识库目录。</p>
+<h2>工作树怎么生成</h2>
+<p>编码和 Bug 工单通常准备独立工作树，分支使用 <code>harness/&lt;Jira编号&gt;</code>，目录位于该席位自己的工作树根目录。设计工单通常使用本机登记的源仓库，不额外创建源码工作树。</p>
+<p>具体路径以接入结果或 <code>harness status</code> 为准，不要凭其他电脑的目录推断自己的路径。改动共享 URL、基线或本机映射可能导致执行校验停止，应先核对已有工单，避免在执行期间随意更换配置。</p><a href="#top">返回目录 ↑</a></article>
+<article id="jira"><p class="category">研发接入</p><h2>网页接入 Jira 工单：从申请到准备完成</h2><p>通过项目页面把真实 Jira 子工单登记到所选电脑。</p><aside><strong>什么时候使用</strong><ul><li>正式编码子工单开工</li><li>Bug 修复接入</li><li>设计子工单登记</li></ul></aside><h2>接入前准备</h2>
+<ul>
+<li>Jira 已指定研发经办人，工单类型属于当前支持的编码、Bug 或设计工作流。</li>
+<li>真实工单尚未完成，当前 Jira 状态允许开工。</li>
+<li>Project 已配置共享仓库 URL 和基线。</li>
+<li>所选执行席位已登记，本机已绑定该工作区的业务仓库。</li>
+<li>申请账号在该席位允许接入的用户范围内。</li>
+</ul>
+<h2>网页操作步骤</h2>
+<ol>
+<li>进入目标 Project 的详情页，打开“接入工单”。</li>
+<li>输入 Jira 子工单号，例如 <code>ATSES-XXXXX</code>。</li>
+<li>选择项目的共享工作区。</li>
+<li>选择实际执行的电脑／席位。</li>
+<li>填写 <strong>允许执行的 Jira 状态</strong>，应与 Jira 当前可开工状态一致。</li>
+<li>提交后，网页创建接入申请。所选本地桥在线时会核验并准备工作目录。</li>
+<li>等待结果为“接入已完成”，然后在该电脑运行启动命令。</li>
+</ol>
+<p>提交申请时网页会留下真实创建者的授权评论。不要手工编辑申请中的隐藏标记来换工单、换项目或换席位；它们与中央归属校验关联。</p>
+<h2>各种结果如何处理</h2>
+<table><thead><tr><th>显示结果</th><th>含义</th><th>下一步</th></tr></thead><tbody><tr><td>等待接入桥处理</td><td>申请已保存，所选桥尚未完成核验</td><td>确认选对席位，检查该电脑的桥是否运行</td></tr><tr><td>接入已完成</td><td>已登记并准备目录，但尚未开工</td><td>在所选电脑打开终端启动</td></tr><tr><td>接入未完成／已阻塞</td><td>Jira、仓库、账号或本机条件不满足</td><td>按错误说明修复，在同一任务重试</td></tr><tr><td>已由另一任务或席位登记</td><td>同一 Jira 的中央归属冲突</td><td>找到已有任务并核对，不能重复抢占</td></tr></tbody></table>
+<p>接入过程中不会自动完成 Jira，也不会自动启动真实编码。已完成的 Jira 工单不能通过此入口重新开发；模拟演练使用独立流程。</p><a href="#top">返回目录 ↑</a></article>
+<article id="seats"><p class="category">研发接入</p><h2>多席位：多人、多电脑如何协作</h2><p>每台执行电脑使用独立身份、路径映射和连接通道。</p><aside><strong>什么时候使用</strong><ul><li>同一项目由多位研发并行开发</li><li>更换电脑</li><li>申请落在离线席位</li></ul></aside><h2>运行在哪里</h2>
+<ul>
+<li><strong>智研协同平台 管理台与服务端</strong>：部署在团队服务器。</li>
+<li><strong>本地接入桥、Claude Code 和 Harness</strong>：运行在所选研发电脑。</li>
+<li><strong>业务源码和工作树</strong>：保存在该电脑自己的目录中。</li>
+</ul>
+<p>网页选择席位后，只有那个席位的桥处理申请。其他电脑不会因为同属一个 Project 就代领工单。</p>
+<h2>新电脑接入步骤</h2>
+<ol>
+<li>管理员为该电脑创建独立 智研协同平台 Agent，并配置指向该电脑的运行通道。</li>
+<li>在电脑安装 Harness、Claude 和接入桥，准备业务仓库及基线。</li>
+<li>用 <code>harness seat init --name &quot;研发电脑名称&quot;</code> 生成本机席位配置。</li>
+<li>管理员合并输出的席位信息，签发此 Agent 独立凭证；本机按管理员说明安装凭证。</li>
+<li>用 <code>harness seat register</code> 登记本机 Claude 运行配置，然后 <code>harness repo bind</code> 绑定项目工作区到本机路径。</li>
+<li>在网页选中此席位提交工单。</li>
+</ol>
+<p>管理员配置不是仅填一个显示名称；每台电脑必须使用自己的 Agent、机器身份、凭证和连接通道，不能复制另一台电脑的配置来充当第二席位。</p>
+<h2>同一工单的执行归属</h2>
+<p>准备工作树前，服务端会为组织内的 Jira 工单建立独占登记。相同申请可以重试，另一任务或席位不能重复登记。实际运行还有原生运行锁和本机租约。</p>
+<p><strong>席位离线、运行超时、任务取消或完成，不会自动转移 Jira 归属。</strong> 当前没有网页换席位或自动接管功能。需要交接时，请先让管理员确认旧执行者和本地进程都已停止，再安排迁移。</p>
+<p>当前每台桥仍只允许一张启用工单。不同席位可以各自执行不同工单；旧人工 Claude 会话不在中央登记覆盖范围内，启动时仍需人工核对。</p>
+<h2>第一期：自动关联已登记席位</h2>
+<p>适用于已经在本机配置 Claude 和 Harness，希望网页直接复用本机执行者的研发人员。</p>
+<ol>
+<li>管理员先为这台电脑绑定独立 Agent、SSH 环境、机器身份和授权用户，安装本席位的 0600 Agent 凭证。登记不能替代初始通道授权。</li>
+<li>在自己的 Harness 目录执行登记，例如：</li>
+</ol>
+<pre><code class="language-sh">harness seat register --claude /usr/local/bin/claude --settings /Users/leo/work/fingard/base-harness-infrastructure-dsp7/.claude/settings.local.json
+harness seat info
+</code></pre>
+<p>以上路径是当前 Leo Mac 的示例，其他电脑换成自己的路径。默认自动查找 Claude，并使用上次登记的配置或 Harness 的 settings.local.json；用 <code>--use-default-settings</code> 显式选择 Claude 默认配置。</p>
+<ol start="3">
+<li>新建 Claude 的连接步骤上方选择 <strong>关联已登记的本机席位</strong>。页面会展示执行环境、Claude 版本与路径、设置文件、Harness 根目录和最近检查时间。</li>
+<li>点击 <strong>使用此席位，打开已有智能体</strong>。网页重新核对登记并打开原 Agent；这条入口不会为同一电脑再创建一个执行者。Project 接入 Jira 工单时也选择同一个席位。</li>
+<li>本机执行 <code>harness seat check</code> 可核验并刷新；配置、路径或 Claude 版本变更后执行 <code>harness seat register</code> 重新登记，再点网页 <strong>刷新席位</strong>。</li>
+</ol>
+<p>登记检查有效期为 <strong>24 小时</strong>，并不表示电脑当前在线。网页核对服务端登记；本机启动和交互包装器在调用 Claude 前再次检查机器、文件摘要、版本、环境和登记版本。登记不验证密钥或模型可用性。文件内容和 API 密钥不会上传。</p>
+<p>已登记的包装器使用登记的 Claude 路径，通过 <code>--settings</code> 读取本机设置；原有同会话审批续传继续保留。管理员改变执行通道或参数后，需要重新核对登记。存在活动任务时不得更新执行配置。</p>
+<p>若网页显示需刷新、配置不存在、登记版本不一致，请先在所属电脑处理，不要复制其他席位配置或重复创建 Agent。登记入口不自动发现电脑、不安装 SSH、不提供持续在线检测；下方手动配置向导用于创建独立智能体。</p>
+<h2>后续功能已接入</h2>
+<p>在线心跳、网页本机检查、启动请求、接入向导和主动推进见“席位管理”主题及侧栏“席位管理”入口。第一期中登记不代表在线的规则仍适用，现已提供独立心跳状态。</p>
+<h2>后续功能已接入</h2>
+<p>在线心跳、网页本机检查、启动请求、接入向导和主动推进见“席位管理”主题及侧栏“席位管理”入口。第一期中登记不代表在线的规则仍适用，现已提供独立心跳状态。</p><a href="#top">返回目录 ↑</a></article>
+<article id="terminal"><p class="category">研发接入</p><h2>本地 Claude 终端：启动、观察与续传</h2><p>在可见终端里执行，同时让网站记录运行与状态。</p><aside><strong>什么时候使用</strong><ul><li>研发希望观察 Claude 执行</li><li>终端断开后重新连接</li><li>执行中改进 Harness 知识</li></ul></aside><h2>启动正式登记工单</h2>
+<p>确认网页已显示接入完成，在所选电脑的终端执行：</p>
+<pre><code class="language-sh">harness start ATSES-XXXXX --confirm-no-other-executor
+</code></pre>
+<p><code>ATSES-XXXXX</code> 是已登记的工单号。<code>--confirm-no-other-executor</code> 表示你已核对没有旧人工会话或其他未纳入系统的执行者同时处理该工单；它不能绕过服务端独占登记、Jira 状态和 Harness 门禁。</p>
+<p>终端会请求 智研协同平台 创建实际运行，再连接可见的 Claude 会话。正式工单的 Claude 会切换到登记的业务源码目录；Harness 知识和领域状态仍从配置的 Harness 工程加载，不是凭你启动命令时的目录推测仓库。</p>
+<h2>观察和重新连接</h2>
+<pre><code class="language-sh">harness status
+harness attach ATSES-XXXXX
+</code></pre>
+<p>终端意外断开时，先查看状态，再尝试 attach。已有活动运行时不要反复 start，否则可能产生冲突或无效唤醒。</p>
+<h2>人如何参与</h2>
+<ul>
+<li>在终端观察 Claude 的推理输出、工具调用和权限请求。</li>
+<li>使用 Claude 自身的权限机制确认操作；网页审批不替代本地工具权限。</li>
+<li>修订 Harness 知识、约束或说明后，让当前任务按需要重新核验，不要假设所有修改会自动注入当前上下文。</li>
+<li>可用 <code>harness knowledge ATSES-XXXXX --summary &quot;知识改进说明&quot;</code> 记录与工单相关的知识改进。</li>
+</ul>
+<h2>会话什么时候退出</h2>
+<p>当前已接入的确认等待可在同一会话内恢复，不要求为了接收有效的模拟同意消息而先输入 <code>/exit</code>。任务完成且不再需要交互后再退出。运行超时、手工取消、连接失败等情况仍需看网页与终端的实际状态。</p>
+<p>这里不承诺网站能自动控制任意已经打开的普通 Claude 终端；可见性和续传适用于通过 <code>harness start</code> 接入的会话。</p><a href="#top">返回目录 ↑</a></article>
+<article id="seat-control"><p class="category">研发接入</p><h2>席位管理：运行概览、自动接单与通知</h2><p>默认使用 Jira 指派驱动自动执行；电脑接入和旧手工模式按需使用。</p><aside><strong>什么时候使用</strong><ul><li>组长 Jira 指派后自动执行</li><li>优先处理阻塞与业务决策</li><li>暂停新工单但继续当前任务</li><li>连接研发电脑并检查配置</li></ul></aside><h2>页面如何使用</h2>
+<ul>
+<li><strong>顶部待处理事项</strong>：优先呈现阻塞与超时提醒，点击“处理决策”进入对应工单。</li>
+<li><strong>席位列表</strong>：搜索电脑名称，切换我的/全部席位，按需要处理、在线、忙碌或离线筛选。连接、执行、接单分别展示，离线时不把旧执行状态当作实时状态。</li>
+<li><strong>运行概览</strong>：查看当前工单、已登记队列与最近心跳；操作记录默认收起，展开查看请求进度与取消尚未领取的请求。</li>
+<li><strong>接单设置</strong>：推荐一次配置 Jira 自动接单。只有一个项目仓库时自动选择；多个时自行选定；没有仓库时先配置项目。手工模式放在高级区。</li>
+<li><strong>通知</strong>：设置阻塞提醒与超时升级，按姓名选人。选择管理员登记的企业机器人，接收人需来自同企业的有效通讯录。</li>
+<li><strong>设备与诊断</strong>：检查本机配置或更新登记，失败与警告直接展开，通过项收起。</li>
+<li>已有席位时接入向导默认隐藏，需要新电脑时点击“接入新电脑”。切换标签与刷新心跳不会覆盖未保存的表单；切换到其他席位前请保存配置。</li>
+<li>HTTP IP 地址通常不支持浏览器系统通知，页面会显示不可用原因；钉钉与网页内提醒仍可使用。</li>
+</ul>
+<h2>推荐：Jira 指派后自动执行</h2>
+<p><strong>场景</strong>：组长在 Jira 指派编码、Bug 或设计子工单，研发电脑在线后自动接单，遇到业务决策再通知负责人。</p>
+<h3>一次性配置</h3>
+<ol>
+<li>进入“席位”，选择自己的电脑，进入 <strong>接单设置 → Jira 指派后自动执行</strong>。</li>
+<li>填写 Jira 网站地址及 PAT。PAT 加密保存在 智研协同平台 密钥存储中，页面只显示已配置；后续留空表示保留，输入新值可更新。本机通过自己的席位凭证获取这个席位的 PAT，值仅在内存中使用，不写入普通配置或日志。首次启用需配置 PAT。</li>
+<li>填写 <strong>Jira 经办人登录名</strong>（不是中文显示姓名）、Jira 项目代号，选择 智研协同平台 项目和共享仓库。该仓库须已在本机通过 <code>harness repo connect</code> 关联。</li>
+<li>点击 <strong>验证 Jira 连接并预览接单范围</strong> 读取真实 Jira 状态，再选择团队允许执行的状态和工单类型。补齐范围后再次预览，可查看匹配的未完成工单数量与前 10 个样例；预览只查询、不执行。状态需涵盖本次执行期间允许的状态；未完成但不在允许状态范围的工单不会开工。</li>
+<li>进入 <strong>通知</strong> 标签，按人员联邦通讯录的姓名选择钉钉接收人及管理员登记的发送机器人，以及提醒和升级间隔。这部分通常只配置一次；自动工单不需要填写下面旧模式的逐单授权列表。</li>
+<li>勾选自动执行授权并保存。<strong>启用后会发现当前已有的符合条件未完成工单，也会发现后续指派的工单</strong>。组长负责指派，你无需逐单登记或在本地输入 yes。</li>
+</ol>
+<h3>系统如何执行</h3>
+<p>本机后台接入桥默认每分钟查询一页 Jira（最多 50 张，并分页继续），按经办人、Jira 项目、工单类型和允许状态发现工作。它不依赖 Jira Webhook；离线期间没有执行，上线后查询补齐。智研协同平台 为发现的工单建立持久队列，同一组织同一 Jira 工单不重复建自动任务。</p>
+<p>席位空闲、配置正常时，接入桥核验 Jira 归属、领域门禁、源码映射、独占登记和本机执行者，准备独立 worktree，在可见终端直接启动真实 Claude Run。macOS 使用 Terminal；Linux 自动打开终端需要图形登录和已安装的桌面终端。只有网站授权的调度任务能免去逐单启动确认，旧人工工单的模式保持独立。</p>
+<p>需要业务决策时，网页出现待决策事项，并按配置发送通知。正式工程确认仍遵循 Jira 门禁；适用网页确认的事项在网页处理，有效决策交给同一 Claude 会话续传。</p>
+<p>Agent 完成 Harness 交付门禁、回写任务并生成完成证据后，自动会话发送 <code>/exit</code> 收尾。真实运行结束、进程及租约核验通过后释放席位，再接下一单，不需要人工每天结束每个已完成会话。</p>
+<h3>改派、暂停和异常</h3>
+<ul>
+<li>
+<p><strong>暂停接单</strong>：在运行概览点击暂停接单，只阻止新工单发现、准备与启动，已经运行的工单继续执行、决策续传与通知。恢复接单后继续查询和调度，不需要逐单重配。暂停状态保存在服务器，离线也可以设置；旧版桥以服务器启动门禁为准，升级桥后本机也会在发现和准备阶段等待。</p>
+</li>
+<li>
+<p><strong>停用规则</strong>与暂停不同：停用会撤销自动工单授权，影响当前自动任务；界面保存前会再次说明。</p>
+</li>
+<li>
+<p>停用自动执行规则、经办人变化、需求或附件变化、工单移出允许状态时，当前自动任务停止并保留领域状态与证据，通知原负责人处理。</p>
+</li>
+<li>
+<p>忙碌时保留队列，不把等待标为接入失败；网络失败会保留执行状态，避免因不确定结果重复启动。</p>
+</li>
+<li>
+<p>旧版登记或其他席位已取得该 Jira 执行权时，不自动抢占。跨席位改派后需管理员核对旧进程停止并处理交接，当前版本没有自动转移既有独占登记。</p>
+</li>
+<li>
+<p>本机在线还需 Claude 已完成登录、模型配置可用及操作系统允许打开终端。这些本机环境问题会回报检查或请求失败记录。</p>
+</li>
+</ul>
+<h2>推荐：接入我的电脑</h2>
+<p><strong>场景</strong>：组织研发人员希望连接自己的电脑，沿用本机 Claude 和 Harness 配置，不配置 SSH、不输入智能体或项目 UUID。</p>
+<ol>
+<li>使用本人网站账号登录，进入 <strong>席位 → 接入新电脑 → 接入我的电脑</strong>。</li>
+<li>填写席位名称，点击 <strong>生成接入命令</strong>，复制到这台电脑的终端执行。命令中的一次性接入码有效期 15 分钟，请勿转发。</li>
+<li>安装器检测本机 Claude、Harness 工程和 Jira 配置。检查目录后输入 <code>yes</code>。多个候选目录会让你选择；没有配置时会提示准备，安装器不会代替你安装 Claude 或克隆业务仓库。</li>
+<li>从列表选择组织项目及本机 Git 仓库。安装器核对 origin 和基线分支，不需要输入 UUID。回车可以暂时跳过，之后执行 <code>harness repo connect</code>。</li>
+<li>返回席位页面确认电脑在线。默认保持人工启动策略。后续在 Project 的“接入工单”登记 Jira 子工单，然后在本机运行 <code>harness start ATSES-XXXXX --confirm-no-other-executor</code>；macOS 也可以通过网页请求启动，由本机 Terminal 确认。</li>
+</ol>
+<h3>准备与权限</h3>
+<ul>
+<li>macOS / Linux，Python 3.9+、Git、可运行的 Claude Code、当前版本 Harness 工程，以及本机可访问网站的网络。Linux 后台服务使用当前用户 systemd；没有用户 systemd 时使用 <code>--no-service</code> 并手动启动安装器输出的 watcher 命令。Windows 原生安装尚未提供，可在 WSL 使用 Linux 路径。</li>
+<li>账号需要 <code>agents:create</code> 权限。组织要求新智能体审批时，快捷接入会停止，并要求管理员按原审批流程处理；它不会自动批准智能体。</li>
+<li>模型密钥和 Jira 凭证保留在电脑上。网站只登记配置来源、摘要及路径等信息。本机 Agent 使用其已经配置好的模型服务，包括第三方中转站。</li>
+<li>一台电脑在同一组织只保留一个席位。已经安装的电脑复用原席位，不会自动把旧 SSH 席位改成主动连接。</li>
+<li>项目共有仓库 URL 和基线分支；每台电脑分别选择自己的源码目录。Harness 根目录不是业务源码映射。</li>
+</ul>
+<h3>运行在哪里</h3>
+<table><thead><tr><th>位置</th><th>运行内容</th></tr></thead><tbody><tr><td>智研协同平台 服务器</td><td>账号、项目、工单、真实 Run、决策、日志和用量管理</td></tr><tr><td>研发电脑</td><td>后台接入桥、执行监督器、可见终端、Claude、Harness、业务源码</td></tr><tr><td>通信</td><td>本机主动向网站请求任务、续租、回传日志与用量，不需要服务器 SSH 登录电脑</td></tr></tbody></table>
+<p>本机主动启动会创建真实 智研协同平台 Run。只有匹配本机一次性启动意图的运行才能领取；网页评论不会启动第二个 Claude。公共技能按该智能体已分配的技能打包到本机临时目录，并与 Harness 技能一起加载；当前包限制 2 MiB / 1000 个文件，跳过符号链接。运行凭证仅用于该 Run，运行结束清理临时 MCP 凭证文件。</p>
+<h3>断线、取消和重新接入</h3>
+<p>本机监督器定期检查租约。网站取消运行或连接长期失败时停止对应 Claude；网络请求超时会延长实际停止时间。服务器重启后不会恢复派发旧执行包，本机收到旧租约失效后停止。<strong>网页运行结束不等于电脑进程已确认停止</strong>，重新启动前仍需核对本机状态。不要因为等待而在另一台电脑同时执行同一工单。</p>
+<p>安装过程中已写入本机配置但尚未完成登记时，可以重跑安装命令，复用配置并完成后续登记。已有配置不完整或后台服务指向其他版本时，请按提示核对。不要删除凭证后重复创建新席位。</p>
+<h2>高级接入与日常管理</h2>
+<h2>使用场景</h2>
+<ul>
+<li>研发负责人确认电脑是否在线、Claude 配置是否发生变化。</li>
+<li>从网页请求本机启动，研发人员在可见终端核对后执行。</li>
+<li>新电脑安装接入桥、获得独立凭证，并登记自己的本机路径。</li>
+<li>为指定工单开启主动推进，发现阻塞并按间隔提醒、超时升级。</li>
+</ul>
+<h2>席位管理</h2>
+<p>侧栏打开 <strong>席位管理</strong>。本机接入桥约每 20 秒向服务器发送心跳，90 秒无心跳显示离线。显示状态包括在线空闲、正在执行、等待人工决策、等待本机确认、配置异常。</p>
+<p><strong>在线仅证明接入桥通信正常。</strong> 网页不会根据 Agent 的 idle 状态猜测电脑在线。模型密钥可用性和 SSH 启动能力以实际运行为准。</p>
+<p>点击 <strong>检查本机配置</strong>，接入桥检查 Claude 可执行文件、版本、JSON 配置、Harness 和服务端登记。网页“操作记录”显示接收和结果，最近检查区域展示检查项。仅检查版本和文件，不调用模型，不上传密钥或文件内容。</p>
+<p>配置变化后先核对，再点 <strong>更新设备登记</strong>。存在活动运行时，不允许更新执行配置。后台每分钟检查配置，每小时在配置一致时续期登记；出现变化时提醒，不自动接受新配置。</p>
+<h2>网页请求本机启动</h2>
+<ol>
+<li>从 Project 接入 Jira，或在本机登记模拟任务。工单需要出现在席位管理的“工单队列”中。</li>
+<li>核对没有其他执行者，勾选确认，再点击 <strong>请求本机启动</strong>。</li>
+<li>请求发送到服务器，接入桥通过出站轮询获取；不需要给研发电脑开放入站端口。</li>
+<li>本机自动打开独立 Terminal 终端，输入 <code>yes</code> 同意；其他输入拒绝。也可执行 <code>harness seat pending</code> 查看请求，再运行 <code>harness seat accept &lt;请求UUID&gt;</code>。</li>
+<li>同意后沿用原有 Harness 启动、Jira 校验和 智研协同平台 SSH 调度，连接真实 Claude 会话。网页记录运行 ID，终端显示执行过程。</li>
+</ol>
+<p>请求等待有效期为 15 分钟。等待本机确认时网页可以取消；领取之后使用任务／运行页面处理，不把取消启动请求当作停止运行。重复请求不会启动第二个执行者。现阶段自动打开终端支持 macOS。</p>
+<h2>主动推进</h2>
+<p>在 <strong>接单设置 → 高级：手工登记工单的推进方式</strong> 中选择模式并填写明确的工单号，保存策略：</p>
+<table><thead><tr><th>模式</th><th>行为</th></tr></thead><tbody><tr><td>手动启动</td><td>仅处理人的启动请求</td></tr><tr><td>主动发现并请求确认</td><td>在本机已登记且就绪的授权工单中发现待执行工作，主动打开终端请求确认</td></tr><tr><td>限时授权后自动执行</td><td>在网站工单范围与本机有效授权同时满足时，自动打开可见终端并执行</td></tr></tbody></table>
+<p>自动执行需要在本机终端明确登记授权，例如：</p>
+<pre><code class="language-sh">harness seat allow-auto-start --jira ATSES-XXXXX --minutes 60 --confirm-no-other-executor
+harness seat revoke-auto-start
+</code></pre>
+<p>授权最长 480 分钟，只覆盖明确登记的工单。本机授权过期、网站取消策略、Jira 状态不符、已有执行者或领域门禁不满足时不能自动启动。没有有效本机授权时改为终端人工确认。</p>
+<p>只推进已经登记的工单，不自动创建 Jira 需求、不擅自领取其他研发的工单、不自动同意业务方案。一次主动请求不会在失败或结果不明确时无限重试，需要核对后手动恢复。</p>
+<h2>阻塞与多渠道提醒</h2>
+<p>待决策事项显示在席位管理；侧栏显示待处理数量。macOS 提交系统通知，按保存的间隔重复提醒，超过升级时间显示“超时升级”。通知是否实际弹出取决于系统通知权限和专注模式，窗口打开和网页提醒仍可查看。</p>
+<p>浏览器支持系统通知且满足权限条件时，可点击 <strong>启用浏览器提醒</strong>；在普通 HTTP IP 地址上浏览器可能不提供该能力。网页内提醒始终可用。</p>
+<p>钉钉使用网站保存的席位通知配置，旧 Harness 工单通知配置作为已授权的兼容路径。新接收人或群需要单独指定，系统不从席位登记中猜测收件人。真实工程确认仍通过 Jira；模拟确认只影响模拟 state。</p>
+<h2>新电脑接入向导</h2>
+<p>管理员点击 <strong>接入新电脑 → 高级 SSH 接入</strong>：先选择尚未绑定席位的独立 Agent 和已配置的 SSH 环境，填写那台电脑的 Harness、接入桥、Claude 与设置路径；可指定获授权的网站用户 ID，留空为当前管理员。</p>
+<p>生成邀请并下载接入桥。邀请有效 15 分钟、只能使用一次，不会复制现有席位的凭证。新电脑准备 Harness、Claude 和 Jira 凭证，然后运行：</p>
+<pre><code class="language-sh">chmod 600 /绝对路径/paperclip-seat-invitation.json
+/usr/bin/python3 onboard.py --invitation /绝对路径/paperclip-seat-invitation.json --jira-credential-file /绝对路径/jira-access.json --repository-root /本机业务源码根目录 --install-watcher
+</code></pre>
+<p>邀请中的桥安装位置必须与实际解压位置一致。成功后保存 0600 本机凭证，登记 Claude，配置 Harness 的桥路径并安装当前用户的后台监督进程。Jira 凭证不会从网站下发，需由研发电脑独立配置；本机仓库仍通过 <code>harness repo bind</code> 绑定。</p>
+<p>同一组织内一台机器不能重复绑定两个执行 Agent。已有本机接入配置时安装器拒绝覆盖，应复用原席位或由管理员核对迁移。SSH 通道本身仍在“执行环境”中配置。</p>
+<h3>钉钉机器人通知</h3>
+<p>管理员在席位管理页展开“钉钉通知机器人”，添加企业内部应用机器人的名称、CorpId、AppKey、AppSecret 和 RobotCode。应用需启用机器人、开通单聊消息发送权限，并发布到负责人的可见范围。AppSecret 加密保存于平台服务器，不下发研发电脑。</p>
+<p>席位负责人进入“通知”，先选择管理员登记的发送机器人，再打开接收人下拉框，输入姓名、部门、组织或钉钉 ID 关键词检索同企业人员。支持空格分隔多个关键词、上下键选择与回车确认；搜索无结果时检查关键词和人员联邦同步。设置提醒间隔和超时升级时间后，点击“保存通知设置”生效。由本机接入桥上报阻塞状态，平台服务器以机器人身份发送消息，本机无需登录个人 DWS。</p>
+<p>“最近机器人投递”区分发送中、钉钉已受理、发送失败和结果未知。已受理不代表已读；未知结果不自动重发同一条消息，后续提醒周期会产生新的提醒。停用机器人会停止所有引用它的席位的钉钉提醒，网站和本机系统提醒仍可使用。旧个人账号配置不会自动转换，需要选择机器人并保存。</p>
+<h3>接单范围：工单状态与工单类型</h3>
+<p><strong>工单状态</strong>决定什么时候允许接收及继续执行，例如“待编码”“编码中”；<strong>工单类型</strong>决定 Agent 接收哪类工作，例如“编码”“线上问题”“系统设计”。这两组条件与经办人、项目一起生效，必须全部满足。</p>
+<ol>
+<li>先验证 Jira 连接，获取真实状态。</li>
+<li>在“工单状态”中搜索关键词、勾选状态。列表可滚动，最多选择 20 个；上方展示全部已选状态，点击 × 可移除。搜索不会清除已选项。Jira 状态可能来自其他项目流程，请按团队实际工作流选取。</li>
+<li>在“工单类型”区域选择工作类别。状态和类型分别至少选择一项。</li>
+<li>查看“当前接单范围”摘要，补齐条件后重新预览匹配工单，再保存规则。预览只查询、不执行。</li>
+</ol>
+<p>例如经办人为 liw2386，类型为“编码”，状态为“待编码、编码中”：只接收该经办人的编码工单，且当前状态必须是待编码或编码中。工单未完成但不在所选状态内仍不会开工。高级手工填写状态名称与复选框同步，不用重复配置。仅保存配置不等于启用自动执行，还需勾选自动执行授权。</p><a href="#top">返回目录 ↑</a></article>
+<article id="decisions"><p class="category">日常管理</p><h2>阻塞与人工决策：知道该在哪里回复</h2><p>区分普通评论、业务确认、平台审批和工具权限。</p><aside><strong>什么时候使用</strong><ul><li>需求存在歧义</li><li>需要负责人决定实现方案</li><li>模拟工单等待同意</li></ul></aside><h2>先确认是哪一种等待</h2>
+<table><thead><tr><th>等待类型</th><th>常见位置</th><th>应怎样处理</th></tr></thead><tbody><tr><td>业务需求或工程确认</td><td>Jira、Harness 阻塞记录</td><td>阅读问题和方案，由授权负责人按正式 Jira 流程确认</td></tr><tr><td>当前模拟工单的 JCONF 确认</td><td>网页任务评论</td><td>回复准确确认编号和“同意”或“拒绝”</td></tr><tr><td>智研协同平台 平台审批</td><td>审批／待决策入口</td><td>查看申请内容、权限和影响，再使用对应操作</td></tr><tr><td>Claude 工具或文件权限</td><td>本地终端</td><td>通过 Claude 的原生权限提示处理</td></tr><tr><td>仓库、身份或执行锁校验失败</td><td>接入结果／运行详情</td><td>修复配置或协调已有执行者，不能用“同意”绕过</td></tr></tbody></table>
+<h2>模拟确认示例</h2>
+<p>当页面明确显示模拟确认编号时，在该任务回复：</p>
+<pre><code class="language-text">#JCONF-ATSES-XXXXX-XXXXXXXX 同意
+</code></pre>
+<p>拒绝则将末尾改为“拒绝”。请复制页面实际显示的编号，不能照抄上方占位符。仅输入“确认”、无编号的“同意”，或使用旧编号，都可能不是有效授权。</p>
+<p>桥会检查实际评论作者、确认编号、决策和时间等条件。页面接收状态可显示已提交、无效、已同意、等待终端、续传中或完成。当前已接入的 JCONF 模拟确认独立于普通消息队列处理，通常不需要点击 Interrupt。</p>
+<h2>正式确认与普通会话</h2>
+<ul>
+<li>正式工程确认仍以 Jira 的领域流程为准，普通网页评论不自动等同于正式确认。</li>
+<li>普通评论可能按 智研协同平台 会话机制排队或触发唤醒，与 JCONF 确认的专用处理不同。</li>
+<li>拒绝后应修改方案并创建新的确认，不要复用已经拒绝的编号。</li>
+<li>看到“等待终端”时检查对应的本地会话；不要连续重复发送多次同意。</li>
+</ul>
+<h2>提醒方式</h2>
+<p>网页可用收件箱、任务阻塞和待决策入口集中查看问题。钉钉等外部提醒是否可用，取决于通知配置及授权；当前接入不等于已自动开通所有提醒渠道。</p><a href="#top">返回目录 ↑</a></article>
+<article id="runs"><p class="category">日常管理</p><h2>运行记录、Token 与执行过程</h2><p>追踪何时执行、如何结束、发生了什么以及可获取的用量。</p><aside><strong>什么时候使用</strong><ul><li>研发过程需要透明化</li><li>分析失败原因</li><li>对比不同模型或工作方式</li></ul></aside><h2>进入运行记录</h2>
+<p>从任务详情中的运行记录、智能体详情或概览实时运行区域进入。通常可以查看运行状态、开始和结束时间、会话输出、工具调用、错误及关联任务，具体字段随适配器而异。</p>
+<h2>建议查看顺序</h2>
+<ol>
+<li>确认关联任务和智能体，避免把其他工单的运行当成当前执行。</li>
+<li>看开始时间、结束时间、耗时和结果。</li>
+<li>看错误摘要及最后阶段，区分业务阻塞、权限等待、连接故障和运行失败。</li>
+<li>结合任务评论、领域状态及交付证据判断是否真正完成。</li>
+</ol>
+<h2>Token 和费用有什么限制</h2>
+<p>当前交互式 Claude 接入可从 Claude 持久化记录中提取可用的用量，并按消息编号去重。没有来源时应该显示未知，而不是当作零。</p>
+<p>CLI／适配器报告或估算的费用不等同于服务提供方真实订阅账单。交互记录缺少权威费用账本时，美元费用可能未知。模型、缓存、订阅额度、请求费用是不同概念，不宜直接互相换算。</p>
+<h2>停止、取消与重试</h2>
+<p>停止和取消是执行控制操作，不是常规审批按钮。先查看任务和本地会话状态；服务端运行结束不总能证明本地进程已经消失。重试前确认旧执行者停止，并采用现有工单的正规续传入口。不要通过新建同一 Jira 的任务来规避锁。</p><a href="#top">返回目录 ↑</a></article>
+<article id="inbox"><p class="category">日常管理</p><h2>收件箱、搜索与活动审计</h2><p>快速定位任务、待处理事件及变化历史。</p><aside><strong>什么时候使用</strong><ul><li>每日处理待办</li><li>查找旧任务和决策</li><li>复盘配置变更或执行责任</li></ul></aside><h2>收件箱</h2>
+<p>集中查看需要关注的任务和事件。先读取通知，再进入任务或运行详情处理。已读、归档和隐藏用于整理视图，不等于问题已经解决，也不会替代任务完成或审批。</p>
+<h2>搜索</h2>
+<p>使用侧栏“搜索”查找任务、项目或智能体等对象；可结合任务编号、名称和关键字。找 Jira 工单时，先搜索 Jira 编号，再核对是否是正式登记任务或独立模拟任务。</p>
+<h2>活动／审计</h2>
+<p>查看任务、智能体和配置的变更记录。适合确认“谁在什么时候修改了状态、发布了评论、更新了配置”。审计记录与运行日志互补：前者说明管理动作，后者说明执行过程。</p>
+<p>遇到归属冲突时先查已有任务和历史记录，不要删除旧任务、修改隐藏标记或清理审计记录来解锁。</p><a href="#top">返回目录 ↑</a></article>
+<article id="approvals"><p class="category">日常管理</p><h2>平台审批与预算决策</h2><p>处理智能体聘用、策略申请和预算相关治理事项。</p><aside><strong>什么时候使用</strong><ul><li>新增智能体需要管理员批准</li><li>预算上限导致执行暂停</li><li>团队设置需要人类决定</li></ul></aside><h2>平台审批页面有什么用</h2>
+<p>智研协同平台 原生审批可用于智能体聘用、CEO 策略或平台申请；当前可见类型取决于运行版本、组织策略和已有申请。预算相关事项可能引导到预算操作，而不是普通“同意”按钮。</p>
+<h2>处理步骤</h2>
+<ol>
+<li>打开申请，确认申请人、申请内容、关联任务和影响范围。</li>
+<li>核对权限、预算或策略是否符合团队安排。</li>
+<li>使用页面实际提供的同意、拒绝或调整操作；必要时填写决策说明。</li>
+<li>返回任务或智能体详情，查看状态和后续运行是否符合预期。</li>
+</ol>
+<p>平台审批不自动覆盖 Jira 的正式工程确认，也不替代 Claude 本地工具权限。当前模拟 JCONF 确认主要在任务评论中处理，不能据此推断所有正式业务审批已迁移到平台审批页面。</p><a href="#top">返回目录 ↑</a></article>
+<article id="costs"><p class="category">日常管理</p><h2>费用与预算：管理上限、分析用量</h2><p>从运行用量到组织、项目和智能体预算管理。</p><aside><strong>什么时候使用</strong><ul><li>控制智能体费用</li><li>比较不同模型或研发项目</li><li>处理预算暂停</li></ul></aside><h2>费用页面怎么读</h2>
+<p>选择时间范围和统计维度，查看智能体、项目、模型或计费方的费用与用量。推理账本面向请求和运行；财务账本面向账号层面的收费、抵扣或账单记录。没有数据可能是未发生事件，也可能是适配器未报告，需结合运行详情判断。</p>
+<h2>预算怎么用</h2>
+<p>预算用于限制智能体、项目或组织的支出。触发硬上限时可能暂停执行。管理员应核对用量和业务优先级，再决定提高预算、调整范围或保持暂停。</p>
+<h2>使用场景示例</h2>
+<ul>
+<li>负责人比较同类任务的 Token 消耗和执行耗时，寻找 Harness 知识不足或重复尝试。</li>
+<li>管理员为试点设置费用上限，出现预算事件后先复核，再恢复执行。</li>
+<li>团队对账时分别核对 智研协同平台 记录与服务提供方实际账单，不将估算费用当成订阅扣款。</li>
+</ul>
+<p>费用页面不能证明本地电脑在线，也不能证明交付正确。当前交互式接入的权威美元费用可能未知，应避免把缺失费用显示解释成免费执行。</p><a href="#top">返回目录 ↑</a></article>
+<article id="agents"><p class="category">平台功能</p><h2>智能体与组织架构：执行身份和责任链</h2><p>管理 Agent 的配置、能力、运行和汇报关系。</p><aside><strong>什么时候使用</strong><ul><li>新增研发电脑执行身份</li><li>配置模型和指令</li><li>管理负责人和监督关系</li><li>新建 Claude 智能体使用第三方中转站密钥</li><li>复用研发电脑或 Harness 已配置的 Claude 密钥</li></ul></aside><h2>第一期：自动关联已登记席位</h2>
+<p>适用于已经在本机配置 Claude 和 Harness，希望网页直接复用本机执行者的研发人员。</p>
+<ol>
+<li>管理员先为这台电脑绑定独立 Agent、SSH 环境、机器身份和授权用户，安装本席位的 0600 Agent 凭证。登记不能替代初始通道授权。</li>
+<li>在自己的 Harness 目录执行登记，例如：</li>
+</ol>
+<pre><code class="language-sh">harness seat register --claude /usr/local/bin/claude --settings /Users/leo/work/fingard/base-harness-infrastructure-dsp7/.claude/settings.local.json
+harness seat info
+</code></pre>
+<p>以上路径是当前 Leo Mac 的示例，其他电脑换成自己的路径。默认自动查找 Claude，并使用上次登记的配置或 Harness 的 settings.local.json；用 <code>--use-default-settings</code> 显式选择 Claude 默认配置。</p>
+<ol start="3">
+<li>新建 Claude 的连接步骤上方选择 <strong>关联已登记的本机席位</strong>。页面会展示执行环境、Claude 版本与路径、设置文件、Harness 根目录和最近检查时间。</li>
+<li>点击 <strong>使用此席位，打开已有智能体</strong>。网页重新核对登记并打开原 Agent；这条入口不会为同一电脑再创建一个执行者。Project 接入 Jira 工单时也选择同一个席位。</li>
+<li>本机执行 <code>harness seat check</code> 可核验并刷新；配置、路径或 Claude 版本变更后执行 <code>harness seat register</code> 重新登记，再点网页 <strong>刷新席位</strong>。</li>
+</ol>
+<p>登记检查有效期为 <strong>24 小时</strong>，并不表示电脑当前在线。网页核对服务端登记；本机启动和交互包装器在调用 Claude 前再次检查机器、文件摘要、版本、环境和登记版本。登记不验证密钥或模型可用性。文件内容和 API 密钥不会上传。</p>
+<p>已登记的包装器使用登记的 Claude 路径，通过 <code>--settings</code> 读取本机设置；原有同会话审批续传继续保留。管理员改变执行通道或参数后，需要重新核对登记。存在活动任务时不得更新执行配置。</p>
+<p>若网页显示需刷新、配置不存在、登记版本不一致，请先在所属电脑处理，不要复制其他席位配置或重复创建 Agent。登记入口不自动发现电脑、不安装 SSH、不提供持续在线检测；下方手动配置向导用于创建独立智能体。</p>
+<h2>智能体详情常用区域</h2>
+<ul>
+<li><strong>概览和运行</strong>：查看任务、活动运行及历史结果。</li>
+<li><strong>配置</strong>：模型、适配器、运行环境、指令、并发、超时和唤醒策略。</li>
+<li><strong>技能</strong>：给智能体选择启用的公共技能；现有 SSH 执行环境在下次运行将文件传到本机，与 Harness 工程技能共同提供给 Claude。详见“技能与知识”主题。</li>
+<li><strong>预算和权限</strong>：控制支出、任务分派和创建智能体等能力。</li>
+<li><strong>汇报关系</strong>：确定上级和直属下级，形成责任链。</li>
+</ul>
+<p>模型名称和供应商名称保留原文，以免与实际配置标识不一致。修改指令或适配器配置通常影响下一次运行；当前活动运行继续使用启动时的配置，必要时会产生新会话。</p>
+<h2>当前本地席位需要特别注意</h2>
+<p>不要把“Agent 空闲”当成研发电脑在线。暂停 Agent 会阻止新的执行；配置了自动唤醒也不意味着当前 Harness 交互桥会自主开始编码。当前桥只接受明确的本地主动启动意图来启动交互 Claude，普通自动唤醒可能被跳过。</p>
+<p>组织架构适合表达团队责任和上报关系，不能自动替代 Jira 经办人或把某台电脑的权限分配给所有人。新增席位时应给每台电脑配置独立 Agent 和通道。</p>
+<h2>新建 Claude：使用第三方中转站</h2>
+<p>适用于已有中转站地址和密钥，希望由 智研协同平台 驱动本地 Claude Code 的场景。</p>
+<ol>
+<li>在“智能体”中新建 Claude 智能体，进入“连接模型”。</li>
+<li>点击 <strong>使用网站密钥或登录</strong>，切换到 <strong>API 密钥</strong>，勾选 <strong>使用第三方中转站</strong>。</li>
+<li>填写中转站提供的地址。按站点说明填写完整基础路径，系统不会自动追加 <code>/v1</code>；地址不能包含密码或密钥查询参数。</li>
+<li>根据站点要求选择 <strong>Bearer Token</strong> 或 <strong>API Key / x-api-key</strong>，输入中转站密钥。</li>
+<li>可填写中转站支持的模型标识；也可在下一步模型选择框输入自定义模型。</li>
+<li>连接检查通过后配置执行环境并创建智能体。模型和凭证使用所选环境进行检查，应选择实际运行 Claude 的电脑。</li>
+</ol>
+<p>此方式使用 Claude CLI 和 <code>ANTHROPIC_BASE_URL</code>，密钥按认证方式传入 <code>ANTHROPIC_AUTH_TOKEN</code> 或 <code>ANTHROPIC_API_KEY</code>。向导先进行临时连接探测，创建时将密钥保存到现有个人秘密存储，在智能体配置中只保存引用；不会修改本机的全局 Claude 设置，也不会覆盖已有智能体或官方连接的密钥。个人秘密的运行可用性仍受现有负责人和授权规则约束。</p>
+<p>中转站必须兼容 <strong>Anthropic Messages API</strong>；仅提供 OpenAI Chat Completions 接口的站点不能直接用于 Claude。使用其他供应商模型时需确认站点兼容 Claude 的消息、工具调用和流式输出。认证失败应核对认证方式、密钥和基础地址，模型不存在应核对站点提供的模型名。</p>
+<p>此入口位于“新建智能体”的连接步骤；组织首次引导和通用官方“连接”管理面板仍使用原有官方连接方式。已有智能体可通过配置中的环境变量和秘密引用维护中转站设置。</p>
+<h2>新建 Claude：复用本机已有配置</h2>
+<p>新建 Claude 智能体默认显示 <strong>使用本机已有配置</strong>，适用于研发人员已经在电脑上配置 Claude 或中转站的场景。</p>
+<ol>
+<li>在连接步骤上方的 <strong>Claude 执行环境</strong> 中，先选择实际运行 Claude 的研发电脑。<code>Local</code> 表示服务器本地环境；本机 Mac 应选择相应的 SSH 环境，例如 <code>Leo Mac Claude</code>。这里的“本机”指执行电脑，不是打开浏览器的电脑；选中服务器环境时读取的是服务器配置。</li>
+<li>用户级 Claude 设置或登录已可用时，工程配置文件留空。</li>
+<li>若密钥仅在 Harness 的 <code>.claude/settings.local.json</code> 中，填写该文件在执行电脑上的绝对路径，例如 <code>/Users/yourname/work/base-harness-infrastructure-dsp7/.claude/settings.local.json</code>。不需要粘贴文件内容或密钥。</li>
+<li>点击 <strong>检查并使用本机配置</strong>。连接检查通过后配置模型和执行环境，再创建智能体；创建前会对最终选择重新检查，并保存所检查的执行环境。</li>
+<li>如需让网站管理独立密钥，点击 <strong>使用网站密钥或登录</strong>，再选择官方连接或第三方中转站。</li>
+</ol>
+<table><thead><tr><th>来源模式</th><th>凭证与地址来自哪里</th><th>模型来自哪里</th></tr></thead><tbody><tr><td>本机已有配置</td><td>执行电脑的 Claude 配置、登录或环境变量；网站不注入凭证和地址</td><td>默认跟随本机配置；也可在网页显式选模型</td></tr><tr><td>网站第三方中转站</td><td>网页选择的站点地址和秘密引用，启动时显式注入</td><td>网页填写或选择的模型；留空时使用 Claude 默认设置</td></tr><tr><td>网站官方连接</td><td>网页绑定的官方账号或 API 密钥</td><td>当前智能体模型配置</td></tr></tbody></table>
+<p>本机模式使用 Claude CLI，不创建新的平台密钥秘密，不绑定网站官方账号，不修改本机全局设置。指定工程配置文件时通过 <code>--settings</code> 让执行电脑的 Claude 读取；文件不上传到网站。它包含的环境、权限等规则也会被 Claude 读取，填写的应是自己要沿用的配置文件。</p>
+<p><strong>启动目录不能单独决定配置来源。</strong> Claude 在源码 worktree 中运行时，不一定自动读取 Harness 目录里的工程设置；只有用户级配置已可用，或显式指定了工程配置文件，才能准确复用相应配置。指定 <code>settings.local.json</code> 只加载这一份额外文件，不等于自动合并 Harness 目录下的所有设置。</p>
+<p>切换执行电脑后，要在新电脑配置 Claude 并重新检查；本机密钥不会自动分发到其他席位。环境、配置文件不存在、未登录或模型不支持会导致检查失败，请根据检查结果处理。</p>
+<h3>提示 Command not found in PATH: &quot;claude&quot;</h3>
+<p>该错误发生在加载工程配置之前，与配置文件里的密钥是否有效无关。先核对连接步骤的执行环境：默认 <code>Local</code> 可能是没有安装 Claude 的服务器，应选择安装了 Claude 的研发电脑。</p>
+<p>若执行电脑已正确但 PATH 仍找不到命令，在 <strong>Claude 命令或可执行文件路径</strong> 中填写该电脑上 Claude 的绝对路径。当前 Leo Mac 的可执行文件为 <code>/usr/local/bin/claude</code>；其他电脑按自己的安装位置填写，不能共用某人的本机路径。只填写命令或路径，不附加参数。配置文件路径也必须属于同一执行电脑。</p><a href="#top">返回目录 ↑</a></article>
+<article id="skills"><p class="category">平台功能</p><h2>技能与知识：公共技能与 Harness 联合加载</h2><p>公共技能在 智研协同平台 集中管理，DSP7 领域技能在 Harness 维护，同一个本地 Claude 可加载两者。</p><aside><strong>什么时候使用</strong><ul><li>多个项目共用进度汇报、阻塞处理和交付总结规范</li><li>研发电脑同时使用公共协作技能与 DSP7 开发流程</li><li>为不同智能体分配公共技能</li><li>排查网页启用技能后本机是否实际加载</li><li>复盘误判并改善领域知识</li></ul></aside><h2>推荐模式：两处维护，同一会话使用</h2>
+<p><strong>公共技能放在 智研协同平台，项目领域技能保留在 Harness。</strong> 已配置的 SSH 执行环境会将 智研协同平台 管理的技能文件传到研发电脑，同一个本地 Claude Code 可以发现和使用这两类技能。</p>
+<table><thead><tr><th>内容</th><th>维护位置</th><th>适用场景</th><th>示例</th></tr></thead><tbody><tr><td>公共协作技能</td><td>智研协同平台 组织技能库</td><td>多个项目统一协作方式</td><td>进度汇报、阻塞描述、交付总结、通用代码评审</td></tr><tr><td>DSP7 领域技能</td><td>Harness 工程 <code>.claude/skills/</code></td><td>开发、设计、修复和验证 DSP7 工单</td><td><code>jira-feature-dev</code>、<code>jira-bug-fix</code>、<code>jira-design-doc</code>、<code>jira-resume</code></td></tr><tr><td>业务知识与门禁工具</td><td>Harness 工程 <code>harness/</code></td><td>查业务规则、接口规范和交付约束</td><td>知识库、开发规范、工作树检查、领域状态校验</td></tr></tbody></table>
+<p>例如处理一张 DSP7 编码工单：公共技能规范“如何汇报进度和解释阻塞”，Harness 的 <code>jira-feature-dev</code> 规范“如何分析需求、通过设计门禁、开发和验证”。公共技能涉及工程操作时，必须遵守 Harness 的领域门禁。</p>
+<p>技能提供的是可复用说明、参考资料和工具方法。它不会训练或更换底层模型，也不会自动授予 Jira、仓库或系统访问权限。</p>
+<h2>智研协同平台 公共技能的配置步骤</h2>
+<ol>
+<li>打开网站 <strong>技能</strong> 页面，创建或导入公共技能；在技能工作台编辑使用场景、操作步骤和必要资源。</li>
+<li>打开目标 <strong>智能体 → 技能</strong>，选择启用该技能。组织技能库中已有技能，不代表每个智能体都已启用。</li>
+<li>管理员确认该智能体绑定的是正确的执行环境，所选研发电脑可连接。本次已验证的是现有 Mac SSH 环境，不是任意电脑默认具备的能力。</li>
+<li>在下一次运行中使用该技能。当前 Jira / Harness 通道仍由研发人员通过 <code>harness start</code> 主动启动；启用技能不会自行开始工单。</li>
+<li>查看运行日志中的技能同步记录、Claude 的技能清单及实际调用结果，确认本机加载成功。</li>
+</ol>
+<p>菜单和编辑权限受组织设置、账号权限及版本控制。公共技能内不应保存密码、API Key 等秘密；需要外部系统访问时，单独配置相应凭证和授权。</p>
+<h2>两类技能怎样到达本地 Claude</h2>
+<pre><code class="language-text">智研协同平台 组织技能库
+  → 为智能体选择启用项
+  → 运行时生成技能提示包
+  → 通过已配置的 SSH 环境传到研发电脑
+  → 将本机提示包目录提供给 Claude
+                                      ┐
+                                      ├→ 同一个本地 Claude 会话
+                                      ┘
+Harness 工程 .claude/skills/
+  → 将 Harness 工程目录提供给 Claude
+  → 发现领域技能，按任务读取相应 SKILL.md
+</code></pre>
+<p>智研协同平台 原生 Claude 适配器通过 <code>--add-dir</code> 提供技能提示包；当前交互桥会保留这个参数，也会保留 Harness 目录参数和智能体指令文件参数。技能文件传输由现有 SSH 执行环境完成，这部分不需要另写同步程序。</p>
+<p>Harness 的 <code>CLAUDE.md</code> 定义领域规则和路由。技能名称、描述帮助 Claude 判断何时使用技能，调用时再读取正文和所需资料。当前正式工单可能在业务源码工作树中执行，接入上下文会提供 Harness 根目录和工作流要求；不能因为工作目录是源码仓库就忽略 Harness 引导。</p>
+<h2>哪些变化会生效</h2>
+<ul>
+<li><strong>智研协同平台 新增或启用技能</strong>：通常在下一次运行准备技能提示包时生效。当前会话不会自动热更新；技能或指令版本变化可能影响旧会话复用。</li>
+<li><strong>Harness 修改技能或知识</strong>：修改的是本机工程文件，按 Git 共享。下一次运行应使用更新后的工程；当前会话可能已有旧内容，不能假设会自动重新读取。</li>
+<li><strong>两处内容不会自动同步</strong>：修改网页技能不会修改 Harness 仓库，修改 Harness 技能也不会自动更新网页技能库。</li>
+<li><strong>发现不等于执行</strong>：进入技能清单只说明可用；任务还需要触发、路由或明确调用。已加载技能不等于通过领域验收。</li>
+</ul>
+<p>智研协同平台 的自定义技能运行名可能带消歧后缀，例如 <code>shared-skill-load-probe-20261006--8b6db90b1c</code>。需要明确调用时，以当前会话技能清单中的实际名称为准，不要假设名称始终等于网页 slug。</p>
+<h2>怎样判断“真的加载成功”</h2>
+<table><thead><tr><th>检查层次</th><th>查看什么</th><th>能说明什么</th></tr></thead><tbody><tr><td>网页配置</td><td>智能体技能页显示启用</td><td>配置已保存</td></tr><tr><td>文件传输</td><td>运行日志 <code>Syncing skills to ssh</code> 完成</td><td>技能提示包已传到执行电脑</td></tr><tr><td>本地发现</td><td>Claude 启动技能清单包含目标技能</td><td>当前会话可发现该技能</td></tr><tr><td>实际调用</td><td>Skill 工具成功调用，输出符合技能要求</td><td>技能已在当前会话使用</td></tr><tr><td>领域结果</td><td>Harness 门禁与交付证据</td><td>工单流程和结果是否合格</td></tr></tbody></table>
+<p>若网页已启用但 Claude 找不到技能，依次核对：选中的智能体与席位是否正确、是否启动了新运行、电脑连接是否正常、同步是否报错、源文件是否存在、实际运行名称是否带后缀，以及 Harness 工程目录是否可读。不要用手工复制用户级技能覆盖同步问题。</p>
+<h2>已验证的范围（2026-10-06）</h2>
+<p>独立只读验收由 智研协同平台 发起，经现有 SSH 环境在本机 Claude Code 执行，结果成功：</p>
+<ul>
+<li>公共演示技能文件已传到 Mac，并被 Claude 的 Skill 工具成功调用。</li>
+<li>同一会话的技能清单包含 Harness 的开发、修复、设计和恢复技能。</li>
+<li>公共演示技能要求读取 <code>jira-feature-dev/SKILL.md</code> 前 35 行，Read 工具成功返回内容。</li>
+<li>运行退出码为 0，没有权限拒绝；模型工具记录只有 Skill 和 Read。</li>
+<li>临时验收智能体已暂停，演示技能保留供查看；原研发智能体配置未修改。</li>
+</ul>
+<p>本次没有执行真实 Jira 工单或完整领域流程。可见终端交互桥只验证了参数保留，未额外执行完整交互开发验收；其他席位、会话更新和所有资源类型仍需各自验证。</p>
+<h2>避免重复维护与改善知识</h2>
+<p>不要把整套 Harness 流程复制到 智研协同平台 后单独修改。公共技能与领域技能应有明确职责，避免同名及冲突；如需统一管理同一套领域技能，应使用明确的 Git 来源和版本。</p>
+<p>遇到误判或低效时：</p>
+<ol>
+<li>记录缺失知识、错误判断和对应工单证据。</li>
+<li>公共协作问题修订 智研协同平台 技能；DSP7 领域问题修订 Harness 规则、示例或知识。</li>
+<li>使用 <code>harness knowledge</code> 记录与工单相关的领域知识改进。</li>
+<li>在后续合适任务或独立演练中观察改进效果。</li>
+</ol>
+<p>涉及需求或验收变化时，仍需回到 Jira 和正式确认流程。</p><a href="#top">返回目录 ↑</a></article>
+<article id="automation"><p class="category">平台功能</p><h2>目标、例行任务、流水线与业务案例</h2><p>按目标组织工作，用计划和步骤描述可重复执行。</p><aside><strong>什么时候使用</strong><ul><li>管理长期研发目标</li><li>安排周期性检查</li><li>标准化多阶段流程</li></ul></aside><h2>目标</h2>
+<p>目标用于将项目和任务关联到更长期的成果，例如某一产品阶段性建设。使用时先描述结果和验收方式，再关联实际工作，避免仅作为另一个任务列表。</p>
+<h2>例行任务</h2>
+<p>例行任务适合周期性检查、汇总或复盘：设置执行者、指令和触发计划，观察实际生成的执行任务及运行记录。启用计划前应核对 Agent、权限和预算。</p>
+<h2>流水线和业务案例</h2>
+<p>流水线用于定义阶段和步骤；业务案例用于跟踪一类工作通过不同阶段的过程。适用于固定的评审、处理或运营工作。相关页面可能受实验开关控制。</p>
+<h2>与当前 Jira／Harness 的边界</h2>
+<p>这些平台功能不会天然同步 Jira 的需求拆分和状态，也不会自动调用本地 Harness 工单流程。把“接入 → 开发 → 评审 → 交付”设计成全自动流水线，还需要具体集成和验收。当前已交付的是网页定向登记和本地主动执行，不是全部自动调度。</p><a href="#top">返回目录 ↑</a></article>
+<article id="artifacts"><p class="category">平台功能</p><h2>产物、文件与交付证据</h2><p>让成果能被查看和追溯，而不只存在于终端输出。</p><aside><strong>什么时候使用</strong><ul><li>评审设计文档</li><li>验收源码和执行记录</li><li>团队需要在线查看成果</li></ul></aside><h2>应保存哪些证据</h2>
+<p>根据工作流保存设计说明、实现摘要、变更清单、检查结果、交付文件及 Tracker 回执。文件或附件应有清楚名称，并能关联到任务、执行者和相关运行。</p>
+<h2>在线查看与本地路径</h2>
+<p>上传到 智研协同平台 的附件或产物可以在网页中查看或下载。任务说明中出现一个本地路径，不等于文件已上传，也不保证其他电脑能访问；本机工作树不是共享下载链接。</p>
+<p>当前 Harness 工单目录中的材料是否自动上传到网页，应以实际附件和产物列表为准。不要把终端“文件已生成”视为团队已经能在线查看。</p>
+<h2>完成时的核对</h2>
+<p>网页“已完成”状态之外，还应按 Harness 检查工单领域状态、交付证据和 Tracker 回执或允许的降级记录。缺少领域门禁时，不应仅靠修改网页状态结束真实工单。</p><a href="#top">返回目录 ↑</a></article>
+<article id="connections"><p class="category">平台功能</p><h2>连接器、密钥与运行环境</h2><p>管理外部工具、凭证及执行环境。</p><aside><strong>什么时候使用</strong><ul><li>Agent 需要访问外部系统</li><li>多个成员管理不同连接</li><li>管理员更换运行环境</li></ul></aside><h2>连接器</h2>
+<p>连接器用于配置外部应用、工具或消息系统。连接后是否能供某个 Agent 使用，取决于连接的权限、账号状态和分配方式。插件提供的连接能力以实际安装内容为准。</p>
+<h2>密钥与变量</h2>
+<p>密钥保存敏感凭证，变量用于一般运行配置。应明确允许哪些成员或智能体使用，核对凭证有效性、轮换和来源。不要把密钥粘贴在任务评论或帮助反馈中。</p>
+<h2>运行环境</h2>
+<p>运行环境描述任务在哪里执行以及如何连接。网站服务器、远程环境和研发电脑不是同一位置。当前本地 Claude 接入需要管理员配置对应电脑的运行通道；仅在网页填写本机路径不会自动建立连接。</p>
+<p>连接成功不等于权限和业务流程已经打通。正式 Jira／Harness 接入还需独立核验工单、仓库、经办人和席位归属。</p><a href="#top">返回目录 ↑</a></article>
+<article id="settings"><p class="category">平台功能</p><h2>组织、成员、个人资料与设置</h2><p>分清个人显示配置、组织管理和实例级配置。</p><aside><strong>什么时候使用</strong><ul><li>邀请团队成员</li><li>修改个人头像</li><li>管理员调整实验功能和组织策略</li></ul></aside><h2>个人资料</h2>
+<p>账号菜单可修改显示名称和头像，查看自己的活动和用量。邮箱通常由登录认证管理，不一定能在个人资料页直接修改。</p>
+<h2>组织与成员</h2>
+<p>组织设置管理名称、说明、成员、邀请和相关策略。邀请成员加入组织，不会自动为其电脑创建执行席位；还需要管理员配置独立 Agent、本机桥和仓库映射。</p>
+<h2>实例与实验设置</h2>
+<p>实例级设置影响整个部署，实验开关决定部分新功能是否显示。修改前应确认影响范围；某些操作仅管理员可用。中文界面只是显示层，不修改后台字段、协议或代码内容。</p>
+<h2>帮助入口</h2>
+<p>侧栏“帮助中心”可按主题搜索和阅读。账号菜单也有帮助入口；登录页提供无需登录的在线帮助。帮助页面不执行工单、审批或配置修改。</p><a href="#top">返回目录 ↑</a></article>
+<article id="troubleshooting"><p class="category">故障与边界</p><h2>常见问题与排查顺序</h2><p>按网页、接入桥、运行和本地会话逐层定位。</p><aside><strong>什么时候使用</strong><ul><li>申请长时间不处理</li><li>终端一直等待连接</li><li>同意消息没有继续执行</li></ul></aside><table><thead><tr><th>现象</th><th>先检查什么</th><th>建议处理</th></tr></thead><tbody><tr><td>申请一直等待</td><td>是否选对席位，该电脑接入桥是否运行</td><td>先检查本机服务，不要反复新建申请</td></tr><tr><td>接入被阻塞</td><td>接入结果中的具体原因</td><td>核对 Jira 类型／状态、经办人、账号授权、仓库映射、origin 和基线</td></tr><tr><td>同一 Jira 已被登记</td><td>已有任务及独占归属</td><td>在已有任务继续，或找管理员协调交接</td></tr><tr><td><code>start</code> 一直等待连接</td><td>对应运行、运行通道、桥和本机环境</td><td>保留运行编号及错误摘要，联系管理员；不要无休止重复 start</td></tr><tr><td>终端断开</td><td>网页运行是否仍活动、本地会话是否还在</td><td>优先用 <code>harness attach</code> 重新连接</td></tr><tr><td>模拟同意无效</td><td>是否含实际 JCONF 编号、准确决策、授权账号</td><td>按页面给出的编号重发一条有效消息</td></tr><tr><td>已同意但等待终端</td><td>是否存在对应的已连接会话</td><td>查看本地终端及运行，按状态处理</td></tr><tr><td>页面已完成却无法登记新工单</td><td>本机试点是否仍启用、旧会话是否已结束</td><td>核对后按桥提供的停用流程整理旧登记</td></tr><tr><td>Token／费用显示未知</td><td>适配器是否提供可靠用量来源</td><td>不将未知当成零，核对运行记录</td></tr><tr><td>英文仍出现</td><td>用户内容、日志、服务端错误或尚未汉化的提示</td><td>保留原文以便排查；中文资源更新后可强制刷新</td></tr></tbody></table>
+<h2>向管理员提供什么</h2>
+<p>提供网页任务编号、Jira 编号、席位名称、发生时间、运行编号和已脱敏错误摘要即可。不要发送 API 密钥、账号密码或完整凭证文件。</p>
+<h2>演练怎么做</h2>
+<p>已完成的 Jira 工单只能走独立模拟流程，不能在正式接入入口重新执行。当前新模拟轮次仍需使用桥的命令行登记：</p>
+<pre><code class="language-sh">python3 pilot.py register-replay --jira ATSES-XXXXX --new-attempt
+</code></pre>
+<p>此命令在接入桥目录执行。<code>--new-attempt</code> 创建新的模拟轮次；旧轮次需要按要求停用，且不能存在活动运行。模拟只使用本地模拟确认与回执，不代表重新开发真实工单或向 Jira／Tracker 上报正式结果。</p><a href="#top">返回目录 ↑</a></article>
+<article id="boundaries"><p class="category">故障与边界</p><h2>当前能力边界与可用性说明</h2><p>区分已经交付的接入功能、平台能力和后续扩展。</p><aside><strong>什么时候使用</strong><ul><li>避免把普通评论当正式审批</li><li>计划自动化调度</li><li>决定是否新增执行席位</li></ul></aside><table><thead><tr><th>能力</th><th>当前情况</th></tr></thead><tbody><tr><td>中文导航和主要管理页面</td><td>已上线；部分高级提示、插件或原始错误可能仍为英文</td></tr><tr><td>网页登记真实 Jira 子工单</td><td>已接入，需要共享 Project、本机仓库映射和席位授权</td></tr><tr><td>网页选择执行电脑</td><td>已接入，只由所选席位处理申请</td></tr><tr><td>多席位重复登记防护</td><td>已有中央 Jira 独占登记和实际运行锁</td></tr><tr><td>可见的本地 Claude 终端</td><td>通过 <code>harness start</code> 接入，当前运行通道面向已配置的 Mac</td></tr><tr><td>智研协同平台 公共技能与 Harness 技能联合加载</td><td>已在现有 Mac SSH 环境完成只读实机验收；公共技能可调用，领域技能可发现和读取；不等同于完整工单验收</td></tr><tr><td>技能修改即时更新当前会话</td><td>当前不提供自动热更新，通常在下一次运行生效</td></tr><tr><td>同会话模拟确认续传</td><td>已接入，需要有效 JCONF 评论和对应本地会话</td></tr><tr><td>正式工程确认</td><td>仍通过 Jira／Harness 领域流程；普通网页评论不能替代</td></tr><tr><td>任意已打开的 Claude 自动连接</td><td>不属于当前已交付范围</td></tr><tr><td>自主启动所有本地研发工单</td><td>当前仍以研发人员主动启动为准</td></tr><tr><td>离线自动接管／网页换席位</td><td>当前未提供；必须人工核对后迁移</td></tr><tr><td>钉钉等外部提醒</td><td>依赖实际通知配置与授权，不保证默认开启</td></tr><tr><td>真实 Token 与美元账单一致</td><td>用量以可获得来源为准；估算和订阅账单需分开核对</td></tr><tr><td>网页直接创建新模拟轮次</td><td>当前仍用接入桥命令行</td></tr></tbody></table>
+<h2>推荐的使用原则</h2>
+<ul>
+<li>在 Jira 管理需求和正式工程确认，在 Harness 执行领域门禁，在 智研协同平台 观察和协调执行。</li>
+<li>同一业务仓库复用 Project；同一电脑复用自己的映射；每张真实工单明确席位。</li>
+<li>依据任务、运行、领域状态和交付证据联合判断结果。</li>
+<li>遇到身份、配置或锁冲突时先核对，不删除审计记录或绕过门禁。</li>
+</ul>
+<p>帮助内容按当前集成整理。界面菜单与操作会随账号权限、配置、插件和版本变化；新增能力应以实际部署及接入验收为准。</p><a href="#top">返回目录 ↑</a></article>
+<article id="personnel-federation"><p class="category">管理与配置</p><h2>人员联邦与自动启用账号</h2><p>同步人员默认启用，使用初始密码登录后自行改密。</p><aside><strong>什么时候使用</strong><ul><li>从钉钉／企业微信同步人员</li><li>首次登录并修改初始密码</li><li>保留原网站账号与席位关系</li></ul></aside><h2>无需管理员激活</h2>
+<p>人员联邦从钉钉或企业微信同步的新账号默认启用，初始密码为 <strong>12345</strong>。现有已设置密码的账号保留原密码。</p>
+<ol>
+<li>打开登录页，输入企业邮箱与初始密码 12345；使用用户名时勾选“企业人员账号”。</li>
+<li>首次登录自动进入修改初始密码页面，旧密码填写 12345，新密码为 8–128 个字符。</li>
+<li>设置个人密码后进入工作台。未修改前，业务接口不可访问。</li>
+</ol>
+<p>管理员不再需要逐人生成激活链接。同步仅为尚未设置本地密码的联邦托管账号初始化密码，不覆盖已有密码，不改变管理员权限或席位关联。</p>
+<h2>同步与账号关联</h2>
+<p>管理员在人员联邦配置身份源、应用凭证和部门范围，可立即同步或开启定时同步。目录账号与原网站账号发生冲突时，仍需核对并明确关联，不根据邮箱自动授予原账号权限。目录缺失的人员标记待核对，不自动删除网站账号和席位。</p>
+<p>初始化密码只属于 智研协同平台，与钉钉、企业微信和企业邮箱密码独立。角色默认是普通成员，席位创建等权限仍由管理员授权。</p><a href="#top">返回目录 ↑</a></article>
+<article id="change-password"><p class="category">账号与权限</p><h2>修改个人登录密码</h2><p>在个人设置中验证旧密码并设置新密码。</p><aside><strong>什么时候使用</strong><ul><li>更换管理员初始密码</li><li>更换个人登录密码</li><li>退出其他设备的登录会话</li></ul></aside><h2>操作步骤</h2>
+<ol>
+<li>使用需要修改密码的账号登录。</li>
+<li>点击左下角头像，选择 <strong>编辑个人资料（个人设置）</strong>。</li>
+<li>找到 <strong>修改密码</strong>，填写旧密码、新密码、确认新密码。</li>
+<li>新密码为 8–128 个字符，与旧密码不同，两次输入必须一致。</li>
+<li>默认勾选 <strong>退出其他设备的登录会话</strong>，当前登录保留；需要保留其他设备登录时可以取消。</li>
+<li>点击 <strong>保存新密码</strong>，看到成功提示后，下次使用新密码登录。</li>
+</ol>
+<h2>适用范围</h2>
+<p>此功能只修改当前账号的本地登录密码，管理员不能通过此表单修改他人的密码。人员联邦导入后设置的 智研协同平台 密码也属于本地密码，与钉钉或企业微信密码独立。Cloud 外部管理账号请到其登录服务修改密码。</p>
+<p>旧密码错误时不会修改。登录失效时请退出并重新登录。忘记旧密码不属于本表单的自助修改流程。</p><a href="#top">返回目录 ↑</a></article>
+<article id="windows-seat"><p class="category">快速入门</p><h2>Windows 原生席位接入</h2><p>使用 Windows 本机 Claude 和 Harness，通过 PowerShell 接入，无需 WSL。</p><aside><strong>什么时候使用</strong><ul><li>研发使用 Windows 电脑接入席位</li><li>了解 Windows 环境准备、后台任务和终端操作</li></ul></aside><p>适用于研发已有 Windows Claude 环境，希望通过网页接收指派、查看执行与用量、处理阻塞决策的场景。</p>
+<ol>
+<li>准备 Windows 10 1809+ 或 Windows 11、Python 3.10+（含 pip）、Git for Windows（含 Git Bash）。支持原生 <code>claude.exe</code>；官方 npm 安装的 <code>claude.cmd</code> 会解析为 Node 与 CLI JS 入口，避免将任务提示交给 <code>cmd.exe</code> 解释。Node 版本遵循 Claude 自身要求。</li>
+<li>在 PowerShell 验证 <code>claude --version</code> 与 Git 可用，准备 Harness 和业务仓库。本机 <code>.claude/settings.local.json</code> 存在时沿用；否则使用 Claude 默认配置，不需要在网站重新填写模型 Key。</li>
+<li>网站“席位 → 接入我的电脑”选择 <strong>Windows（原生 PowerShell）</strong>，生成并执行接入命令。接入码有效期有限且仅能消费一次，不要转发。</li>
+<li>PowerShell 入口检测 Python，并在缺少时通过 pip 安装 <code>pywinpty&gt;=2.0.15,&lt;4</code> 的预编译 wheel；虚拟环境安装到当前环境，普通 Python 使用当前用户安装。企业网络需允许所配置 pip 源，或事先安装批准的 wheel。</li>
+<li>根据提示确认 Harness／Claude 路径与项目仓库。成功后在用户级 PATH 加入 <code>%LOCALAPPDATA%\ZhiyanSeat\bin</code>，重新打开 PowerShell 使用 <code>harness</code>。</li>
+<li>回网站确认心跳。可以先使用已授权的模拟工单验证，再启用正式 Jira 自动接单。</li>
+</ol>
+<p><code>harness start</code>、<code>attach</code>、<code>seat</code>、<code>repo</code>、<code>status</code> 和 <code>knowledge</code> 通过桥执行；其他子命令委托给登记的 Harness CLI。安装不修改 Harness 源码，不保证所有领域技能里的 Shell、Maven、MCP 都已适配 Windows；这些工具仍须在研发电脑准备好。</p>
+<h2>后台运行</h2>
+<p>安装当前用户的 <code>Zhiyan-Seat-Bridge-&lt;用户SID&gt;</code> 计划任务，使用交互登录身份、普通权限，登录时启动并立即启动本次接入，不保存 Windows 密码、不安装 SYSTEM 服务。使用 pythonw 启动监督进程并保存本机日志。</p>
+<ul>
+<li>必须保持该 Windows 用户已登录。退出登录、休眠和断网时会离线。</li>
+<li>网页请求或授权自动接单时可打开本机可见窗口。<code>Ctrl+]</code> 暂离后使用 <code>harness attach 工单号</code> 重连；<code>/exit</code> 结束 Claude 会话。</li>
+<li>使用 <code>-NoService</code> 时不创建任务，按安装器打印的命令手动运行 <code>pilot.py ... watch</code>。</li>
+<li>本机日志位于 <code>~/.config/paperclip-dsp7-bridge/watcher.log</code>，超过 5 MB 后在下一次启动保留一份 previous 日志。</li>
+<li>本机 Windows 气泡提醒为尽力投递，受系统通知设置影响；网页与管理员配置的钉钉机器人仍是独立通知通道。</li>
+</ul>
+<h2>当前验证范围</h2>
+<p>已完成本机静态检查。Windows 原生接入尚待实机验收，首次使用请先确认心跳并运行模拟工单，再启用正式自动执行。</p><a href="#top">返回目录 ↑</a></article><p id="empty" hidden>没有找到相关内容，请换一个关键词。</p></main></div></div><dialog id="topics-dialog" aria-labelledby="drawer-title"><div class="drawer-header"><h2 id="drawer-title">帮助主题</h2><button id="close-directory" type="button" aria-label="关闭帮助目录">关闭</button></div><label class="sr-only" for="drawer-search">搜索帮助内容</label><input id="drawer-search" type="search" placeholder="搜索帮助内容"><div id="drawer-body"></div></dialog><script src="/help.js?v=f1b0083cb45e" defer></script></body></html>

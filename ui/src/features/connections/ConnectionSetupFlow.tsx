@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AiConnectionCredentialStep } from "@/components/ai-connections/AiConnectionCredentialStep";
 import { ConnectionChoiceList } from "./ConnectionChoiceList";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode, type Ref } from "react";
@@ -744,7 +745,7 @@ export function ConnectionSetupFlow({
       if (target.kind === "reauthentication") {
         const destination = host === "dialog" ? oauthPopupRef.current : window;
         if (!destination || destination.closed || !start.handoff) {
-          throw new Error("Paperclip couldn’t preserve this sign-in while refreshing your account.");
+          throw new Error(uiText("Paperclip couldn’t preserve this sign-in while refreshing your account."));
         }
         savePendingCloudHandoff(start.handoff.session, destination.sessionStorage);
         setOAuthPhase("starting");
@@ -916,8 +917,8 @@ export function ConnectionSetupFlow({
   useEffect(() => {
     if (host !== "page") return;
     setBreadcrumbs([
-      { label: "Connectors", href: "/apps" },
-      { label: vercelConnectMode ? "Vercel Connect" : byoOnly ? "Connect your own tool" : "Connect an app" },
+      { label: uiText("Connectors"), href: "/apps" },
+      { label: vercelConnectMode ? "Vercel Connect" : byoOnly ? uiText("Connect your own tool") : uiText("Connect an app") },
     ]);
     return () => setBreadcrumbs([]);
   }, [byoOnly, host, setBreadcrumbs, vercelConnectMode]);
@@ -1378,8 +1379,8 @@ export function ConnectionSetupFlow({
         return;
       }
       pushToast({
-        title: "Couldn’t connect",
-        body: error instanceof Error ? error.message : "Please check your key and try again.",
+        title: uiText("Couldn’t connect"),
+        body: error instanceof Error ? error.message : uiText("Please check your key and try again."),
         tone: "error",
       });
     },
@@ -1690,15 +1691,15 @@ export function ConnectionSetupFlow({
       // stranding them on a half-made connection.
       setAppStep("access");
       pushToast({
-        title: "Couldn’t finish setup",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: uiText("Couldn’t finish setup"),
+        body: error instanceof Error ? error.message : uiText("Please try again."),
         tone: "error",
       });
     },
   });
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to connect apps.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization to connect apps.")}</div>;
   }
 
   if (
@@ -1707,10 +1708,8 @@ export function ConnectionSetupFlow({
   ) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">Couldn’t load connection setup</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Paperclip couldn’t check the retained connection. The retained connection was not changed.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("Couldn’t load connection setup")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("Paperclip couldn’t check the retained connection. The retained connection was not changed.")}{" "}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Button
             type="button"
@@ -1725,10 +1724,10 @@ export function ConnectionSetupFlow({
               }
             }}
           >
-            Try again
+            {uiText("Try again")}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate("/apps")}>
-            Back to apps
+            {uiText("Back to apps")}
           </Button>
         </div>
       </div>
@@ -1738,12 +1737,10 @@ export function ConnectionSetupFlow({
   if (resumeConnectionId && connectionsQuery.isFetchedAfterMount && !resumeConnection) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">This setup can’t be resumed</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The saved connection no longer exists or is not available to this organization.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("This setup can’t be resumed")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("The saved connection no longer exists or is not available to this organization.")}{" "}</p>
         <Button type="button" variant="outline" className="mt-5" onClick={() => navigate("/apps")}>
-          Back to apps
+          {uiText("Back to apps")}
         </Button>
       </div>
     );
@@ -1757,14 +1754,14 @@ export function ConnectionSetupFlow({
   ) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">This connection can’t be reconnected</h2>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("This connection can’t be reconnected")}</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {!reconnectConnection
-            ? "The retained connection no longer exists or is not available to this organization."
-            : "This reconnect link does not match the retained connection's provider."}
+            ? uiText("The retained connection no longer exists or is not available to this organization.")
+            : uiText("This reconnect link does not match the retained connection's provider.")}
         </p>
         <Button type="button" variant="outline" className="mt-5" onClick={() => navigate("/apps")}>
-          Back to apps
+          {uiText("Back to apps")}
         </Button>
       </div>
     );
@@ -1773,16 +1770,14 @@ export function ConnectionSetupFlow({
   if ((resumeConnectionId || reconnectConnectionId) && galleryQuery.isError) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">Couldn’t load connection setup</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Paperclip couldn’t load the provider details needed to restore this connection. The retained connection was not changed.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("Couldn’t load connection setup")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("Paperclip couldn’t load the provider details needed to restore this connection. The retained connection was not changed.")}{" "}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Button type="button" onClick={() => void galleryQuery.refetch()}>
-            Try again
+            {uiText("Try again")}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate("/apps")}>
-            Back to apps
+            {uiText("Back to apps")}
           </Button>
         </div>
       </div>
@@ -1792,12 +1787,10 @@ export function ConnectionSetupFlow({
   if (reconnectConnectionId && unavailableReconnectId === reconnectConnectionId) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">This connection can’t be reconnected</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Paperclip no longer has a supported setup method for this retained connection. The retained connection was not changed.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground">{uiText("This connection can’t be reconnected")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{uiText("Paperclip no longer has a supported setup method for this retained connection. The retained connection was not changed.")}{" "}</p>
         <Button type="button" variant="outline" className="mt-5" onClick={() => navigate("/apps")}>
-          Back to apps
+          {uiText("Back to apps")}
         </Button>
       </div>
     );
@@ -1810,7 +1803,7 @@ export function ConnectionSetupFlow({
     || hydratedResumeConnectionId !== resumeConnection?.id
   )) {
     return (
-      <div className="mx-auto max-w-xl space-y-4" aria-label="Loading saved connection setup">
+      <div className="mx-auto max-w-xl space-y-4" aria-label={uiText("Loading saved connection setup")}>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-40 w-full rounded-xl" />
       </div>
@@ -1824,7 +1817,7 @@ export function ConnectionSetupFlow({
     || Boolean(requestedAppKey && !entry)
   )) {
     return (
-      <div className="mx-auto max-w-xl space-y-4" aria-label="Loading retained connection setup">
+      <div className="mx-auto max-w-xl space-y-4" aria-label={uiText("Loading retained connection setup")}>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-40 w-full rounded-xl" />
       </div>
@@ -1835,12 +1828,9 @@ export function ConnectionSetupFlow({
     return (
       <div className="max-w-5xl" data-testid="connection-existing-choice">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Use an existing {requestedAppKey ? "connection" : "app connection"}
+          <h1 className="text-2xl font-bold tracking-tight">{uiText("Use an existing")}{" "}{requestedAppKey ? "connection" : uiText("app connection")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Reuse a connection without changing who already has access, or connect a new one.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("Reuse a connection without changing who already has access, or connect a new one.")}{" "}</p>
         </div>
         <ConnectionChoiceList
           choices={existingConnections.map((connection) => ({
@@ -1863,9 +1853,9 @@ export function ConnectionSetupFlow({
         ) : null}
         <div className="mt-5 flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={() => setShowConnectionChoice(false)}>
-            {configuredConnection ? "Review connection setup" : "Connect new"}
+            {configuredConnection ? uiText("Review connection setup") : uiText("Connect new")}
           </Button>
-          {onCancel ? <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button> : null}
+          {onCancel ? <Button type="button" variant="ghost" onClick={onCancel}>{uiText("Cancel")}</Button> : null}
         </div>
       </div>
     );
@@ -2108,9 +2098,9 @@ export function ConnectionSetupFlow({
             subtitle={
               step === "gallery"
                 ? vercelConnectMode
-                  ? "Choose a reviewed app to connect through Vercel."
-                  : "Pick the app you want your agents to use."
-                : `Step ${stepIndex + 1} of ${stepLabels.length}`
+                  ? uiText("Choose a reviewed app to connect through Vercel.")
+                  : uiText("Pick the app you want your agents to use.")
+                : uiTextFormat("Step __PCVAR0__ of __PCVAR1__", [stepIndex + 1, stepLabels.length])
             }
             step={step}
             activeIndex={stepIndex}
@@ -2160,15 +2150,13 @@ export function ConnectionSetupFlow({
 
       {managedConnectorUnavailable && entry ? (
         <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold text-foreground">{entry.name} sign-in is unavailable</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This instance is connected to Paperclip, but {entry.name} sign-in is not currently available. Try again shortly or contact your instance administrator.
-          </p>
+          <h2 className="text-lg font-semibold text-foreground">{entry.name}{" "}{uiText("sign-in is unavailable")}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{uiText("This instance is connected to Paperclip, but")}{" "}{entry.name}{" "}{uiText("sign-in is not currently available. Try again shortly or contact your instance administrator.")}{" "}</p>
           <div className="mt-6 flex items-center justify-between gap-3">
-            <Button type="button" variant="ghost" onClick={() => setAppStep("access")}>Back</Button>
+            <Button type="button" variant="ghost" onClick={() => setAppStep("access")}>{uiText("Back")}</Button>
             <Button type="button" disabled={galleryQuery.isFetching} onClick={() => void galleryQuery.refetch()}>
               {galleryQuery.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Try again
+              {uiText("Try again")}
             </Button>
           </div>
         </div>
@@ -2180,32 +2168,25 @@ export function ConnectionSetupFlow({
                 <Cloud className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Connect with Paperclip
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  You must connect this instance to Paperclip to connect to {entry.name} (you only need to do this once).
-                </p>
+                <h2 className="text-lg font-semibold text-foreground">{uiText("Connect with Paperclip")}{" "}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{uiText("You must connect this instance to Paperclip to connect to")}{" "}{entry.name}{" "}{uiText("(you only need to do this once).")}{" "}</p>
               </div>
             </div>
 
             {connectorEnrollmentQuery.isError || connectorEnrollmentError ? (
               <InlineBanner tone="danger" className="mt-4">
-                {connectorEnrollmentError ?? "Paperclip couldn’t check Cloud registration. Try again."}
+                {connectorEnrollmentError ?? uiText("Paperclip couldn’t check Cloud registration. Try again.")}
               </InlineBanner>
             ) : null}
 
             {enrollmentAuthorizationUrl ? (
-              <p className="mt-4 text-sm text-muted-foreground">
-                Finish authorization in the opened window.{' '}
-                <a className="underline" href={enrollmentAuthorizationUrl} target="_blank" rel="noopener noreferrer">
-                  Open authorization in a new tab
-                </a>
+              <p className="mt-4 text-sm text-muted-foreground">{uiText("Finish authorization in the opened window.")}{' '}
+                <a className="underline" href={enrollmentAuthorizationUrl} target="_blank" rel="noopener noreferrer">{uiText("Open authorization in a new tab")}{" "}</a>
               </p>
             ) : null}
             <div className="mt-6 flex items-center justify-between gap-3">
               <Button type="button" variant="ghost" onClick={() => setAppStep("access")}>
-                Back
+                {uiText("Back")}
               </Button>
               <Button
                 type="button"
@@ -2221,8 +2202,8 @@ export function ConnectionSetupFlow({
               >
                 {startConnectorEnrollment.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {connectorEnrollmentQuery.data?.status === "pending"
-                  ? "Continue"
-                  : "Connect with Paperclip"}
+                  ? uiText("Continue")
+                  : uiText("Connect with Paperclip")}
               </Button>
             </div>
           </div>
@@ -2468,14 +2449,14 @@ export function StepHeader({
           ) : null}
           <div>
             <h1 ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="text-2xl font-bold tracking-tight outline-none">
-              {title ?? (appIdentity ? `Connect ${appIdentity.name}` : "Connect your own MCP server")}
+              {title ?? (appIdentity ? uiTextFormat("Connect __PCVAR0__", [appIdentity.name]) : uiText("Connect your own MCP server"))}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
             {unverifiedHost ? <UnverifiedServerBadge host={unverifiedHost} className="mt-2" /> : null}
           </div>
         </div>
         {onCancel && <Button variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
+          {uiText("Cancel")}
         </Button>}
       </div>
       {step !== "gallery" && (
@@ -2483,7 +2464,7 @@ export function StepHeader({
         // guessing at Tailwind classes. The dots are decoration — the label
         // line below already says the same thing, so announcing both would
         // read every step name twice.
-        <nav className="mt-4" aria-label="Setup progress" data-testid="wizard-stepper">
+        <nav className="mt-4" aria-label={uiText("Setup progress")} data-testid="wizard-stepper">
           <ol className="flex gap-2" aria-hidden="true">
             {labels.map((label, i) => (
               <li
@@ -2559,25 +2540,25 @@ export function OAuthConnectStateScreen({
       }
     : phase === "starting"
       ? {
-          title: "Preparing secure sign-in",
-          body: `Paperclip is creating a secure ${serverName} connection.`,
+          title: uiText("Preparing secure sign-in"),
+          body: uiTextFormat("Paperclip is creating a secure __PCVAR0__ connection.", [serverName]),
         }
       : phase === "redirecting"
         ? {
-            title: `Opening ${serverName}`,
+            title: uiTextFormat("Opening __PCVAR0__", [serverName]),
             body: authorizationHost
               ? `Continue at ${authorizationHost} to choose a workspace and approve access. Only approve access if you recognize that address.`
               : `Continue in ${serverName} to choose a workspace and approve access.`,
           }
         : {
-            title: `${serverName} couldn’t connect`,
-            body: error ?? "Paperclip couldn’t start secure sign-in. Try again.",
+            title: uiTextFormat("__PCVAR0__ couldn’t connect", [serverName]),
+            body: error ?? uiText("Paperclip couldn’t start secure sign-in. Try again."),
           };
 
   return (
     <div className="max-w-5xl">
       <StepHeader
-        subtitle="Secure MCP sign-in"
+        subtitle={uiText("Secure MCP sign-in")}
         step="key"
         activeIndex={steps.activeIndex}
         labels={steps.labels}
@@ -2607,17 +2588,13 @@ export function OAuthConnectStateScreen({
           <div className="mt-4 flex flex-wrap gap-2">
             {recoveryActions.installationUrl ? (
               <Button type="button" variant="outline" asChild>
-                <a href={recoveryActions.installationUrl} target="_blank" rel="noreferrer">
-                  Install Paperclip on GitHub
-                  <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
+                <a href={recoveryActions.installationUrl} target="_blank" rel="noreferrer">{uiText("Install Paperclip on GitHub")}{" "}<ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
                 </a>
               </Button>
             ) : null}
             {recoveryActions.managementUrl ? (
               <Button type="button" variant="ghost" asChild>
-                <a href={recoveryActions.managementUrl} target="_blank" rel="noreferrer">
-                  Manage repositories on GitHub
-                </a>
+                <a href={recoveryActions.managementUrl} target="_blank" rel="noreferrer">{uiText("Manage repositories on GitHub")}{" "}</a>
               </Button>
             ) : null}
           </div>
@@ -2627,16 +2604,16 @@ export function OAuthConnectStateScreen({
           {phase === "error" || phase === "entry" ? (
             <Button type="button" onClick={onRetry}>
               {phase === "entry"
-                ? resuming ? `Finish with ${serverName}` : `Continue to ${serverName}`
-                : "Try again"}
+                ? resuming ? uiTextFormat("Finish with __PCVAR0__", [serverName]) : uiTextFormat("Continue to __PCVAR0__", [serverName])
+                : uiText("Try again")}
             </Button>
           ) : (
             <Button type="button" disabled>
-              {phase === "redirecting" ? `Opening ${serverName}…` : "Preparing…"}
+              {phase === "redirecting" ? uiTextFormat("Opening __PCVAR0__…", [serverName]) : uiText("Preparing…")}
             </Button>
           )}
-          {authorizationUrl ? <Button variant="outline" asChild><a href={authorizationUrl} target="_blank" rel="noopener noreferrer" onClick={onOpenAuthorization}>Open sign-in in a new tab</a></Button> : null}
-          <Button type="button" variant="ghost" onClick={onBack}>Back</Button>
+          {authorizationUrl ? <Button variant="outline" asChild><a href={authorizationUrl} target="_blank" rel="noopener noreferrer" onClick={onOpenAuthorization}>{uiText("Open sign-in in a new tab")}</a></Button> : null}
+          <Button type="button" variant="ghost" onClick={onBack}>{uiText("Back")}</Button>
         </div>
       </div>
     </div>
@@ -2678,17 +2655,17 @@ function ZapierConnectStep({
           autoFocus
         />
         {link.trim() && !isZapierLink && (
-          <p className="mt-2 text-xs text-destructive">Paste a valid Zapier URL to continue.</p>
+          <p className="mt-2 text-xs text-destructive">{uiText("Paste a valid Zapier URL to continue.")}</p>
         )}
       </div>
 
       <div className="mt-6 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
+          {uiText("Back")}
         </Button>
         <Button onClick={onConnect} disabled={submitting || !isZapierLink}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {submitting ? "Checking…" : "Check link"}
+          {submitting ? uiText("Checking…") : uiText("Check link")}
         </Button>
       </div>
     </div>
@@ -2779,23 +2756,19 @@ function GalleryStep({
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-bold tracking-tight">Connect through Vercel</h2>
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                Create and manage the provider connector in Vercel. Paperclip stores its reference and applies agent access, policy, approval, and audit controls here.
-              </p>
+              <h2 className="text-lg font-bold tracking-tight">{uiText("Connect through Vercel")}</h2>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{uiText("Create and manage the provider connector in Vercel. Paperclip stores its reference and applies agent access, policy, approval, and audit controls here.")}{" "}</p>
             </div>
             {vercelConnectAvailability ? (
               <Button asChild variant="outline" size="sm" className="shrink-0">
-                <a href={vercelConnectAvailability.manageUrl} target="_blank" rel="noreferrer">
-                  Open Vercel Connect
-                  <ArrowUpRight className="ml-2 h-3.5 w-3.5" />
+                <a href={vercelConnectAvailability.manageUrl} target="_blank" rel="noreferrer">{uiText("Open Vercel Connect")}{" "}<ArrowUpRight className="ml-2 h-3.5 w-3.5" />
                 </a>
               </Button>
             ) : null}
           </div>
           {vercelConnectAvailability?.available === false ? (
             <InlineBanner tone="danger" compact className="mt-4">
-              {vercelConnectAvailability.reason ?? "Vercel Connect is unavailable on this instance."}
+              {vercelConnectAvailability.reason ?? uiText("Vercel Connect is unavailable on this instance.")}
             </InlineBanner>
           ) : null}
         </div>
@@ -2808,7 +2781,7 @@ function GalleryStep({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search apps…"
+              placeholder={uiText("Search apps…")}
               className="h-11 pl-9"
             />
           </div>
@@ -2846,12 +2819,12 @@ function GalleryStep({
                   <div className="mt-3 text-xs font-semibold text-foreground">
                     {unavailable ? (
                       <span className="text-muted-foreground">
-                        {app.availability?.reason ?? vercelConnectAvailability?.reason ?? "Unavailable on this instance."}
+                        {app.availability?.reason ?? vercelConnectAvailability?.reason ?? uiText("Unavailable on this instance.")}
                       </span>
                     ) : oauthBlocked ? (
-                      <span className="text-muted-foreground">Unavailable</span>
+                      <span className="text-muted-foreground">{uiText("Unavailable")}</span>
                     ) : (
-                      <span>Connect →</span>
+                      <span>{uiText("Connect →")}</span>
                     )}
                   </div>
                 </button>
@@ -2860,7 +2833,7 @@ function GalleryStep({
           </div>
 
           {filtered.length === 0 && (
-            <div className="py-10 text-center text-sm text-muted-foreground">No apps match “{search}”.</div>
+            <div className="py-10 text-center text-sm text-muted-foreground">{uiText("No apps match “")}{search}”.</div>
           )}
         </>
       )}
@@ -2875,18 +2848,17 @@ function GalleryStep({
         <div>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Link2 className="h-4 w-4 text-muted-foreground" />
-            {zapierSource ? "Connect Zapier" : byo ? "Connect your own MCP server" : "Connect with a link"}
+            {zapierSource ? uiText("Connect Zapier") : byo ? uiText("Connect your own MCP server") : uiText("Connect with a link")}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {zapierSource
-              ? "Paste the complete MCP URL Zapier gives you, including its token."
+              ? uiText("Paste the complete MCP URL Zapier gives you, including its token.")
               : byo
-              ? "Paste your MCP server’s URL and every discovered tool will be available immediately."
-              : "Paste a setup link from an app that is not listed here."}
+              ? uiText("Paste your MCP server’s URL and every discovered tool will be available immediately.")
+              : uiText("Paste a setup link from an app that is not listed here.")}
           </p>
           {!zapierSource && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Any remote tool URL works here — including a local MCP server like{" "}
+            <p className="mt-1 text-xs text-muted-foreground">{uiText("Any remote tool URL works here — including a local MCP server like")}{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs">http://127.0.0.1:8848/mcp</code>.
             </p>
           )}
@@ -2894,7 +2866,7 @@ function GalleryStep({
             <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
               <div className="flex min-w-0 items-center gap-2 text-sm">
                 <AppLogo name={matchedEntry.name} logoUrl={matchedEntry.branding.logoUrl} darkLogoUrl={matchedEntry.branding.darkLogoUrl} size={24} />
-                <span className="truncate">This looks like {matchedEntry.name}.</span>
+                <span className="truncate">{uiText("This looks like")}{" "}{matchedEntry.name}.</span>
               </div>
               <Button
                 type="button"
@@ -2911,10 +2883,10 @@ function GalleryStep({
                 }}
               >
                 {matchedEntry.availability?.available === false
-                  ? "Not available"
+                  ? uiText("Not available")
                   : matchedEntry.slug === "zapier"
-                    ? "Continue"
-                    : `Use ${matchedEntry.name}`}
+                    ? uiText("Continue")
+                    : uiTextFormat("Use __PCVAR0__", [matchedEntry.name])}
               </Button>
             </div>
           )}
@@ -2926,7 +2898,7 @@ function GalleryStep({
               type={zapierSource || matchedEntry?.slug === "zapier" ? "password" : "url"}
               autoComplete="off"
               spellCheck={false}
-              aria-label="MCP server URL"
+              aria-label={uiText("MCP server URL")}
               value={linkInput}
               onChange={(e) => {
                 linkInputEdited.current = true;
@@ -2940,7 +2912,7 @@ function GalleryStep({
               className="h-10"
             />
             <Button type="button" variant="outline" onClick={continueWithLink}>
-              Continue
+              {uiText("Continue")}
             </Button>
           </div>
           {linkError && <div className="text-xs text-destructive">{linkError}</div>}
@@ -3053,10 +3025,10 @@ function LinkConnectStep({
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
           <div className="flex min-w-0 items-center gap-2 text-sm">
             <AppLogo name={matchedEntry.name} logoUrl={matchedEntry.branding.logoUrl} darkLogoUrl={matchedEntry.branding.darkLogoUrl} size={24} />
-            <span className="truncate">Paperclip has a guided setup for {matchedEntry.name}.</span>
+            <span className="truncate">{uiText("Paperclip has a guided setup for")}{" "}{matchedEntry.name}.</span>
           </div>
           <Button type="button" size="sm" variant="outline" onClick={onUseMatchedEntry}>
-            Use {matchedEntry.name}
+            {uiText("Use")} {matchedEntry.name}
           </Button>
         </div>
       ) : null}
@@ -3072,23 +3044,23 @@ function LinkConnectStep({
       <div className="mt-6 space-y-6">
         {showSimpleKeyQuestion && (
           <div>
-            <label className="mr-2 text-sm font-medium text-foreground">Does it need a key?</label>
+            <label className="mr-2 text-sm font-medium text-foreground">{uiText("Does it need a key?")}</label>
             <div className="mt-2 inline-flex rounded-lg border border-border bg-muted/50 p-1">
               <SegmentedOption
-                label="No"
+                label={uiText("No")}
                 selected={!needsKey}
                 onClick={() => onNeedsKeyChange(false)}
               />
               <SegmentedOption
-                label="Yes"
+                label={uiText("Yes")}
                 selected={needsKey}
                 onClick={() => onNeedsKeyChange(true)}
               />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               {needsKey
-                ? "Paste the key this app gave you."
-                : "Most servers just work from the address — pick Yes only if the server gave you a key, or if it asks you to sign in."}
+                ? uiText("Paste the key this app gave you.")
+                : uiText("Most servers just work from the address — pick Yes only if the server gave you a key, or if it asks you to sign in.")}
             </p>
           </div>
         )}
@@ -3096,7 +3068,7 @@ function LinkConnectStep({
         {(showSimpleKeyQuestion && needsKey) || authMode === "bearer" ? (
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-key">App key</label>
+              <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-key">{uiText("App key")}</label>
               <Input
                 id="generic-mcp-key"
                 type="password"
@@ -3111,14 +3083,10 @@ function LinkConnectStep({
         ) : null}
 
         <Collapsible open={advancedOpen} onOpenChange={onAdvancedOpenChange}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-accent/40">
-            Advanced authentication
-            <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", advancedOpen && "rotate-180")} />
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-accent/40">{uiText("Advanced authentication")}{" "}<ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", advancedOpen && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-5 pt-4">
-            <p className="text-xs text-muted-foreground">
-              Only needed when the server's docs are specific about how to authenticate.
-            </p>
+            <p className="text-xs text-muted-foreground">{uiText("Only needed when the server's docs are specific about how to authenticate.")}{" "}</p>
             <div className="flex flex-wrap gap-2">
               {GENERIC_AUTH_MODE_OPTIONS.map((option) => (
                 <SegmentedOption
@@ -3140,8 +3108,8 @@ function LinkConnectStep({
                     <Input
                       value={row.name}
                       onChange={(e) => updateHeader(row.id, { name: e.target.value })}
-                      placeholder="Header name"
-                      aria-label="Header name"
+                      placeholder={uiText("Header name")}
+                      aria-label={uiText("Header name")}
                       className="h-10 font-mono"
                     />
                     <Input
@@ -3149,8 +3117,8 @@ function LinkConnectStep({
                       autoComplete="off"
                       value={row.value}
                       onChange={(e) => updateHeader(row.id, { value: e.target.value })}
-                      placeholder="Value"
-                      aria-label={row.name.trim() ? `Value for ${row.name.trim()}` : "Header value"}
+                      placeholder={uiText("Value")}
+                      aria-label={row.name.trim() ? uiTextFormat("Value for __PCVAR0__", [row.name.trim()]) : uiText("Header value")}
                       className="h-10 font-mono"
                     />
                     <Button
@@ -3161,7 +3129,7 @@ function LinkConnectStep({
                       onClick={() => onHeadersChange(headers.filter((candidate) => candidate.id !== row.id))}
                       disabled={headers.length === 1}
                     >
-                      Remove
+                      {uiText("Remove")}
                     </Button>
                   </div>
                 ))}
@@ -3170,43 +3138,34 @@ function LinkConnectStep({
                   variant="outline"
                   size="sm"
                   onClick={() => onHeadersChange([...headers, newCustomHeaderRow()])}
-                >
-                  Add another header
-                </Button>
+                >{uiText("Add another header")}{" "}</Button>
                 {headerError ? <p className="text-xs text-destructive">{headerError}</p> : null}
               </div>
             ) : null}
 
             {authMode === "oauth" ? (
               <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Paperclip sets sign-in up on its own whenever the server allows it. Only fill these in when the
-                  server's docs tell you to register Paperclip yourself first.
-                </p>
+                <p className="text-xs text-muted-foreground">{uiText("Paperclip sets sign-in up on its own whenever the server allows it. Only fill these in when the server's docs tell you to register Paperclip yourself first.")}{" "}</p>
                 <div>
-                  <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-client-id">
-                    Client ID
-                  </label>
+                  <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-client-id">{uiText("Client ID")}{" "}</label>
                   <Input
                     id="generic-mcp-client-id"
                     value={oauthClientId}
                     onChange={(e) => onOAuthClientIdChange(e.target.value)}
                     autoComplete="off"
-                    placeholder="Optional"
+                    placeholder={uiText("Optional")}
                     className="mt-2 h-11 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-client-secret">
-                    Client secret
-                  </label>
+                  <label className="text-sm font-medium text-foreground" htmlFor="generic-mcp-client-secret">{uiText("Client secret")}{" "}</label>
                   <Input
                     id="generic-mcp-client-secret"
                     type="password"
                     autoComplete="off"
                     value={oauthClientSecret}
                     onChange={(e) => onOAuthClientSecretChange(e.target.value)}
-                    placeholder="Optional"
+                    placeholder={uiText("Optional")}
                     className="mt-2 h-11 font-mono"
                   />
                 </div>
@@ -3218,11 +3177,11 @@ function LinkConnectStep({
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
+          {uiText("Back")}
         </Button>
         <Button onClick={onConnect} disabled={submitting || !canSubmit || Boolean(headerError)}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {submitting ? "Checking…" : "Check link"}
+          {submitting ? uiText("Checking…") : uiText("Check link")}
         </Button>
       </div>
     </div>
@@ -3238,28 +3197,28 @@ function LinkConnectStep({
 const GENERIC_AUTH_MODE_OPTIONS: Array<{ mode: GenericMcpAuthMode; label: string; hint: string }> = [
   {
     mode: "auto",
-    label: "Let Paperclip check",
-    hint: "Paperclip asks the server what it needs and walks you through it. Start here.",
+    label: uiText("Let Paperclip check"),
+    hint: uiText("Paperclip asks the server what it needs and walks you through it. Start here."),
   },
   {
     mode: "none",
-    label: "No sign-in needed",
-    hint: "The server is open to anyone with the address.",
+    label: uiText("No sign-in needed"),
+    hint: uiText("The server is open to anyone with the address."),
   },
   {
     mode: "bearer",
-    label: "Key or token",
-    hint: "Paperclip sends your key as an Authorization header.",
+    label: uiText("Key or token"),
+    hint: uiText("Paperclip sends your key as an Authorization header."),
   },
   {
     mode: "custom_headers",
-    label: "Custom headers",
-    hint: "For servers that name their own headers. Values are stored as Paperclip secrets and can\u2019t be read back.",
+    label: uiText("Custom headers"),
+    hint: uiText("For servers that name their own headers. Values are stored as Paperclip secrets and can’t be read back."),
   },
   {
     mode: "oauth",
-    label: "Browser sign-in",
-    hint: "You\u2019ll sign in at the provider. Add a client ID and secret only if the provider requires you to register Paperclip first.",
+    label: uiText("Browser sign-in"),
+    hint: uiText("You’ll sign in at the provider. Add a client ID and secret only if the provider requires you to register Paperclip first."),
   },
 ];
 
@@ -3436,9 +3395,9 @@ function KeyStep({
   const hasAdvancedSettings = advancedConfigFields.length > 0 || optionalCustomerOAuthClient;
   const capabilitySelection = capabilityGroups.length > 1 ? (
     <div>
-      <label className="text-sm font-medium text-foreground">What should Paperclip be able to do?</label>
+      <label className="text-sm font-medium text-foreground">{uiText("What should Paperclip be able to do?")}</label>
       <RadioCardGroup
-        ariaLabel={`Access level for ${entry.name}`}
+        ariaLabel={uiTextFormat("Access level for __PCVAR0__", [entry.name])}
         className="mt-2"
         value={capabilityKey}
         onValueChange={(nextKey) => {
@@ -3453,7 +3412,7 @@ function KeyStep({
           description: group.description,
         }))}
       />
-      {!capabilityKey && <p className="mt-2 text-xs text-muted-foreground">Choose an access level to continue.</p>}
+      {!capabilityKey && <p className="mt-2 text-xs text-muted-foreground">{uiText("Choose an access level to continue.")}</p>}
     </div>
   ) : null;
   const managedGoogleMethod = capabilityMethods.find((candidate) =>
@@ -3476,13 +3435,13 @@ function KeyStep({
       disabled={submitting}
       onClick={() => onMethodChange(usingCustomGoogleOAuth ? managedGoogleMethod : customerGoogleMethod)}
     >
-      {usingCustomGoogleOAuth ? "Use Paperclip instead" : "Use your own Google OAuth app"}
+      {usingCustomGoogleOAuth ? uiText("Use Paperclip instead") : uiText("Use your own Google OAuth app")}
     </Button>
   ) : capabilityMethods.length > 1 ? (
     <div>
-      <label className="text-sm font-medium text-foreground">How do you want to connect?</label>
+      <label className="text-sm font-medium text-foreground">{uiText("How do you want to connect?")}</label>
       <RadioCardGroup
-        ariaLabel={`How to connect ${entry.name}`}
+        ariaLabel={uiTextFormat("How to connect __PCVAR0__", [entry.name])}
         className="mt-2"
         value={methodKey}
         onValueChange={(nextKey) => {
@@ -3494,7 +3453,7 @@ function KeyStep({
           title: candidate.label ?? (candidate.auth === "oauth" ? `Sign in with ${entry.name}` : "Use an API key"),
         }))}
       />
-      {!method && <p className="mt-2 text-xs text-muted-foreground">Choose a connection method to continue.</p>}
+      {!method && <p className="mt-2 text-xs text-muted-foreground">{uiText("Choose a connection method to continue.")}</p>}
     </div>
   ) : null;
 
@@ -3508,7 +3467,7 @@ function KeyStep({
 
           {robotEmail ? (
             <div>
-              <label className="text-sm font-medium text-foreground">Share each sheet with this email</label>
+              <label className="text-sm font-medium text-foreground">{uiText("Share each sheet with this email")}</label>
               <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row">
                 <div
                   title={robotEmail}
@@ -3516,20 +3475,16 @@ function KeyStep({
                 >
                   {robotEmail}
                 </div>
-                <CopyValueButton value={robotEmail} ariaLabel="Copy sharing email" />
+                <CopyValueButton value={robotEmail} ariaLabel={uiText("Copy sharing email")} />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                In Google Sheets, click Share and add this email as an Editor. Then paste the sheet links below.
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">{uiText("In Google Sheets, click Share and add this email as an Editor. Then paste the sheet links below.")}{" "}</p>
             </div>
           ) : (
-            <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-              Google Sheets is not available on this instance yet.
-            </div>
+            <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">{uiText("Google Sheets is not available on this instance yet.")}{" "}</div>
           )}
 
           <div>
-            <label className="text-sm font-medium text-foreground">Paste links to the sheets you shared</label>
+            <label className="text-sm font-medium text-foreground">{uiText("Paste links to the sheets you shared")}</label>
             <Textarea
               value={googleSheetsLinks}
               onChange={(e) => onGoogleSheetsLinksChange(e.target.value)}
@@ -3538,8 +3493,8 @@ function KeyStep({
             />
             <div className="mt-2 text-xs text-muted-foreground">
               {parsed.ids.length > 0
-                ? `${parsed.ids.length} ${parsed.ids.length === 1 ? "sheet" : "sheets"} ready to connect.`
-                : "Paste one link per line. Both .../edit and .../edit#gid=... links work."}
+                ? uiTextFormat("__PCVAR0__ __PCVAR1__ ready to connect.", [parsed.ids.length, parsed.ids.length === 1 ? "sheet" : "sheets"])
+                : uiText("Paste one link per line. Both .../edit and .../edit#gid=... links work.")}
             </div>
             {googleSheetsError && <div className="mt-2 text-xs text-destructive">{googleSheetsError}</div>}
           </div>
@@ -3547,11 +3502,11 @@ function KeyStep({
 
         <div className="mt-8 flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} disabled={submitting}>
-            Back
+            {uiText("Back")}
           </Button>
           <Button onClick={onConnect} disabled={submitting || !canConnect}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {submitting ? "Checking…" : "Connect"}
+            {submitting ? uiText("Checking…") : uiText("Connect")}
           </Button>
         </div>
       </div>
@@ -3569,9 +3524,7 @@ function KeyStep({
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
-          >
-            Review requirements
-            <ArrowUpRight className="h-3 w-3" />
+          >{uiText("Review requirements")}{" "}<ArrowUpRight className="h-3 w-3" />
           </a>
         </div>
       ) : null}
@@ -3583,35 +3536,27 @@ function KeyStep({
         {usingVercel && vercelReview && vercelConnectAvailability ? (
           <div className="space-y-4 rounded-lg border border-border p-4">
             <div>
-              <div className="text-sm font-medium text-foreground">Create or attach the connector in Vercel</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Paperclip does not copy Vercel’s setup forms. Finish connector setup there, then paste its UID below.
-              </p>
+              <div className="text-sm font-medium text-foreground">{uiText("Create or attach the connector in Vercel")}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{uiText("Paperclip does not copy Vercel’s setup forms. Finish connector setup there, then paste its UID below.")}{" "}</p>
               <a
                 href={vercelConnectAvailability.manageUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline underline-offset-2"
-              >
-                Open Vercel Connect
-                <ArrowUpRight className="h-3 w-3" />
+              >{uiText("Open Vercel Connect")}{" "}<ArrowUpRight className="h-3 w-3" />
               </a>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground" htmlFor="vercel-connect-connector">
-                Connector UID or ID
-              </label>
+              <label className="text-sm font-medium text-foreground" htmlFor="vercel-connect-connector">{uiText("Connector UID or ID")}{" "}</label>
               <Input
                 id="vercel-connect-connector"
                 value={vercelConnector}
                 onChange={(event) => onVercelConnectorChange(event.target.value)}
                 autoComplete="off"
-                placeholder="service/my-connector or scl_…"
+                placeholder={uiText("service/my-connector or scl_…")}
                 className="mt-2 h-11 font-mono"
               />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Paperclip validates the connector and stores only its reference and redacted verification metadata.
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">{uiText("Paperclip validates the connector and stores only its reference and redacted verification metadata.")}{" "}</p>
             </div>
           </div>
         ) : null}
@@ -3631,7 +3576,7 @@ function KeyStep({
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
               <ChevronDown className={cn("h-4 w-4 transition-transform", advancedOpen && "rotate-180")} />
-              Advanced
+              {uiText("Advanced")}
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-4">
               <div className="space-y-6">
@@ -3661,7 +3606,7 @@ function KeyStep({
         )}
 
         {!usingVercel && method?.auth === "oauth" && customerOAuthClientRequired ? (
-          <div id={googleOAuthFieldsId} role="region" aria-label="Your OAuth app">
+          <div id={googleOAuthFieldsId} role="region" aria-label={uiText("Your OAuth app")}>
             <OAuthClientFields
               entry={entry}
               method={method}
@@ -3696,9 +3641,7 @@ function KeyStep({
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline underline-offset-2"
-                >
-                  Where do I find this?
-                  <ArrowUpRight className="h-3 w-3" />
+                >{uiText("Where do I find this?")}{" "}<ArrowUpRight className="h-3 w-3" />
                 </a>
               )}
             </div>
@@ -3709,17 +3652,17 @@ function KeyStep({
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
+          {uiText("Back")}
         </Button>
         <Button onClick={onConnect} disabled={submitting || !hasMethodSelection || !allFilled || !oauthClientFilled || !vercelConnectorFilled || !configFilled || !configRequirementMet}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {submitting
-            ? "Checking…"
+            ? uiText("Checking…")
             : usingVercel
-              ? method?.auth === "oauth" ? "Validate and continue" : "Validate and connect"
+              ? method?.auth === "oauth" ? uiText("Validate and continue") : uiText("Validate and connect")
               : method?.auth === "oauth"
-                ? entry.slug === "github" ? "Continue to GitHub" : "Continue to sign in"
-                : "Connect"}
+                ? entry.slug === "github" ? uiText("Continue to GitHub") : uiText("Continue to sign in")
+                : uiText("Connect")}
         </Button>
       </div>
     </div>
@@ -3742,7 +3685,7 @@ function CopyValueButton({ value, ariaLabel }: { value: string; ariaLabel: strin
       onClick={() => void copy(value)}
     >
       {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-      {copied ? "Copied" : failed ? "Copy failed" : "Copy"}
+      {copied ? uiText("Copied") : failed ? uiText("Copy failed") : uiText("Copy")}
     </Button>
   );
 }
@@ -3770,11 +3713,9 @@ function OAuthClientFields({
     <div className="space-y-4 rounded-lg border border-border p-4">
       <div>
         <div className="text-sm font-medium text-foreground">
-          {required ? "Your OAuth app" : "Use your own OAuth app"}
+          {required ? uiText("Your OAuth app") : uiText("Use your own OAuth app")}
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Register Paperclip's callback URI in {entry.name}, then enter the customer-owned client details.
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{uiText("Register Paperclip's callback URI in")}{" "}{entry.name}{uiText(", then enter the customer-owned client details.")}{" "}</p>
         {method.consoleLinks?.register ? (
           <a
             href={method.consoleLinks.register}
@@ -3782,14 +3723,13 @@ function OAuthClientFields({
             rel="noreferrer"
             className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline underline-offset-2"
           >
-            Open {entry.name} app settings
-            <ArrowUpRight className="h-3 w-3" />
+            {uiText("Open")} {entry.name}{" "}{uiText("app settings")}{" "}<ArrowUpRight className="h-3 w-3" />
           </a>
         ) : null}
       </div>
       {callbackUrl ? (
         <div>
-          <label className="text-sm font-medium text-foreground">Paperclip callback URL</label>
+          <label className="text-sm font-medium text-foreground">{uiText("Paperclip callback URL")}</label>
           <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row">
             <div
               title={callbackUrl}
@@ -3797,37 +3737,31 @@ function OAuthClientFields({
             >
               {callbackUrl}
             </div>
-            <CopyValueButton value={callbackUrl} ariaLabel="Copy callback URL" />
+            <CopyValueButton value={callbackUrl} ariaLabel={uiText("Copy callback URL")} />
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Add this exact URL to {entry.name} before continuing. It must match the authorization request.
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{uiText("Add this exact URL to")}{" "}{entry.name}{" "}{uiText("before continuing. It must match the authorization request.")}{" "}</p>
         </div>
       ) : null}
       <div>
-        <label className="text-sm font-medium text-foreground" htmlFor="curated-oauth-client-id">
-          Client ID
-        </label>
+        <label className="text-sm font-medium text-foreground" htmlFor="curated-oauth-client-id">{uiText("Client ID")}{" "}</label>
         <Input
           id="curated-oauth-client-id"
           value={clientId}
           onChange={(event) => onClientIdChange(event.target.value)}
           autoComplete="off"
-          placeholder={required ? "Required" : "Optional"}
+          placeholder={required ? uiText("Required") : uiText("Optional")}
           className="mt-2 h-11 font-mono"
         />
       </div>
       <div>
-        <label className="text-sm font-medium text-foreground" htmlFor="curated-oauth-client-secret">
-          Client secret
-        </label>
+        <label className="text-sm font-medium text-foreground" htmlFor="curated-oauth-client-secret">{uiText("Client secret")}{" "}</label>
         <Input
           id="curated-oauth-client-secret"
           type="password"
           value={clientSecret}
           onChange={(event) => onClientSecretChange(event.target.value)}
           autoComplete="off"
-          placeholder="Optional for public clients"
+          placeholder={uiText("Optional for public clients")}
           className="mt-2 h-11 font-mono"
         />
       </div>
@@ -3871,7 +3805,7 @@ function MethodConfigField({
           onChange={(event) => onChange(event.target.value)}
           className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
         >
-          <option value="" disabled>Select an option</option>
+          <option value="" disabled>{uiText("Select an option")}</option>
           {(field.options ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       ) : (
@@ -4001,10 +3935,10 @@ export function AccessStepContent({
           <section className="p-6">
             <h2 className="text-sm font-semibold text-foreground">{identityHeading}</h2>
             {githubIdentity && grantKind === "agent" ? (
-              <p className="mt-2 text-sm text-muted-foreground">This agent uses this GitHub account for everyone’s work, instead of the person giving instructions.</p>
+              <p className="mt-2 text-sm text-muted-foreground">{uiText("This agent uses this GitHub account for everyone’s work, instead of the person giving instructions.")}</p>
             ) : null}
             {identityLoading ? (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2" aria-label="Loading connection identity">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2" aria-label={uiText("Loading connection identity")}>
                 <Skeleton className="h-20 w-full rounded-md" />
                 <Skeleton className="h-20 w-full rounded-md" />
               </div>
@@ -4020,25 +3954,25 @@ export function AccessStepContent({
                 <div>
                   <div className="text-sm font-medium text-foreground">
                     {allowedGrantKinds[0] === "user"
-                      ? githubIdentity ? "My GitHub account" : "Just me"
+                      ? githubIdentity ? uiText("My GitHub account") : uiText("Just me")
                       : allowedGrantKinds[0] === "agent"
-                        ? "A dedicated account for an agent"
-                        : githubIdentity ? "Shared organization GitHub account (advanced)" : "Any human in the organization"}
+                        ? uiText("A dedicated account for an agent")
+                        : githubIdentity ? uiText("Shared organization GitHub account (advanced)") : uiText("Any human in the organization")}
                   </div>
                   {githubIdentity ? (
                     <p className="mt-1 text-xs text-muted-foreground">
                       {allowedGrantKinds[0] === "user"
-                        ? "Agents use it only for runs where you are the responsible person."
+                        ? uiText("Agents use it only for runs where you are the responsible person.")
                         : allowedGrantKinds[0] === "agent"
-                          ? "That agent always uses this account, regardless of who starts the run."
-                          : "Eligible agents use one shared credential, regardless of who starts the run."}
+                          ? uiText("That agent always uses this account, regardless of who starts the run.")
+                          : uiText("Eligible agents use one shared credential, regardless of who starts the run.")}
                     </p>
                   ) : null}
                 </div>
               </div>
             ) : needsIdentityChoice ? (
               <RadioCardGroup
-                ariaLabel={githubIdentity ? identityHeading : "Which humans can use this credential?"}
+                ariaLabel={githubIdentity ? identityHeading : uiText("Which humans can use this credential?")}
                 className="mt-4 sm:grid-cols-2"
                 value={grantKind}
                 onValueChange={(next) => {
@@ -4088,7 +4022,7 @@ export function AccessStepContent({
             ) : (
               // A connection with no credential has no identity to choose, so
               // asking would be a meaningless decision.
-              <p className="mt-4 text-sm text-muted-foreground">No identity required</p>
+              <p className="mt-4 text-sm text-muted-foreground">{uiText("No identity required")}</p>
             )}
           </section>
 
@@ -4098,20 +4032,15 @@ export function AccessStepContent({
               <div className="mt-4 flex items-start gap-3 rounded-md border border-border bg-muted/40 p-4">
                 <UsersRound className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <div className="text-sm font-medium text-foreground">Existing agent access stays the same</div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Reconnecting replaces the credential without changing which agents can use it.
-                  </p>
+                  <div className="text-sm font-medium text-foreground">{uiText("Existing agent access stays the same")}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{uiText("Reconnecting replaces the credential without changing which agents can use it.")}{" "}</p>
                 </div>
               </div>
             ) : lockedAgentId ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                This task grants access only to <span className="font-medium text-foreground">{lockedAgentName}</span>.
-                Existing connection access is left unchanged.
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{uiText("This task grants access only to")}{" "}<span className="font-medium text-foreground">{lockedAgentName}</span>{uiText(". Existing connection access is left unchanged.")}{" "}</p>
             ) : (
               grantKind === "agent" ? (
-                <p className="mt-2 text-sm text-muted-foreground">Choose exactly one agent. This identity cannot be shared with other agents.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{uiText("Choose exactly one agent. This identity cannot be shared with other agents.")}</p>
               ) : <RadioCardGroup
                 ariaLabel={agentAccessLabel}
                 className="mt-4 sm:grid-cols-2"
@@ -4159,7 +4088,7 @@ export function AccessStepContent({
                     grantKind === "agent" && next.size > 1 ? new Set([[...next].at(-1)!]) : next,
                   )}
                   loading={agentsLoading}
-                  emptyMessage="You cannot edit any agents yet."
+                  emptyMessage={uiText("You cannot edit any agents yet.")}
                   showSelectionPreview={false}
                 />
               </div>
@@ -4172,7 +4101,7 @@ export function AccessStepContent({
           reading order; desktop keeps Back on the left. */}
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="ghost" className="w-full sm:w-auto" onClick={onBack} disabled={pending}>
-          Back
+          {uiText("Back")}
         </Button>
         <Button
           className="w-full sm:w-auto"
@@ -4219,10 +4148,10 @@ export function accessSummaryLines(input: {
     ? "Any agent"
     : `${input.installCount} selected ${input.installCount === 1 ? "agent" : "agents"}`;
   return [
-    { label: "Identity", value: identity },
-    { label: "Available to", value: availableTo },
+    { label: uiText("Identity"), value: identity },
+    { label: uiText("Available to"), value: availableTo },
     {
-      label: "Actions",
+      label: uiText("Actions"),
       value: `${input.enabledCount} ${input.enabledCount === 1 ? "action" : "actions"} on`,
     },
   ];
@@ -4262,7 +4191,7 @@ export function ConnectionSetupCompletionScreen({
       </div>
       <div className="mt-6 flex items-center justify-center gap-2">
         <AppLogo name={appName} logoUrl={logoUrl} darkLogoUrl={darkLogoUrl} size={28} />
-        <h2 className="text-2xl font-bold tracking-tight">{appName} is ready.</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{appName}{" "}{uiText("is ready.")}</h2>
       </div>
       <dl className="mx-auto mt-6 max-w-xs space-y-1 text-left">
         {summary.map((line) => (
@@ -4273,9 +4202,7 @@ export function ConnectionSetupCompletionScreen({
         ))}
       </dl>
       <div className="mt-8">
-        <Button size="lg" className="px-10" onClick={onDone}>
-          View connection
-        </Button>
+        <Button size="lg" className="px-10" onClick={onDone}>{uiText("View connection")}{" "}</Button>
       </div>
     </div>
   );

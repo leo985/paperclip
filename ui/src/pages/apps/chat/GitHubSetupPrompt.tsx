@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,14 +79,14 @@ export function GitHubSetupPrompt({ instanceUrl = window.location.origin }: { in
           <img src="/brands/claude-color.svg" alt="" className="size-4 rounded-full bg-background ring-2 ring-background" />
           <img src="/brands/codex-color.svg" alt="" className="size-4 rounded-full bg-background ring-2 ring-background" />
         </span>
-        {status === "copied" ? "Copied setup prompt" : "Copy setup prompt"}
+        {status === "copied" ? uiText("Copied setup prompt") : uiText("Copy setup prompt")}
         {status === "copied" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
       </Button>
-      <span className="sr-only" role="status">{status === "copied" ? "Setup prompt copied. Paste it into Codex or Claude with browser tools." : ""}</span>
+      <span className="sr-only" role="status">{status === "copied" ? uiText("Setup prompt copied. Paste it into Codex or Claude with browser tools.") : ""}</span>
       {status === "failed" && (
         <div className="space-y-2">
-          <p role="alert" className="text-sm text-muted-foreground">Could not copy automatically. Select and copy the setup prompt below.</p>
-          <Textarea aria-label="Setup prompt" readOnly value={prompt} onFocus={(event) => event.currentTarget.select()} rows={8} />
+          <p role="alert" className="text-sm text-muted-foreground">{uiText("Could not copy automatically. Select and copy the setup prompt below.")}</p>
+          <Textarea aria-label={uiText("Setup prompt")} readOnly value={prompt} onFocus={(event) => event.currentTarget.select()} rows={8} />
         </div>
       )}
     </div>

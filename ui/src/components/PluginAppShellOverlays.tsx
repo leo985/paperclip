@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useAccountIdentity } from "@/api/companies-query";
 import { useCompany } from "@/context/CompanyContext";
 import { useDialogState } from "@/context/DialogContext";
@@ -14,7 +15,7 @@ function AppShellEntries({ context }: { context: PluginSlotContext }) {
   // Optional extensions must not replace the application's normal error UI.
   if (errorMessage || slots.length === 0) return null;
   return (
-    <aside className="plugin-app-shell-overlays" aria-label="Application extensions">
+    <aside className="plugin-app-shell-overlays" aria-label={uiText("Application extensions")}>
       {slots.map((slot) => (
         <PluginSlotMount
           key={`${slot.pluginId}:${slot.pluginVersion}:${slot.id}`}

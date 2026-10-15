@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { REMOTE_MCP_CONNECTOR_METHODS, type ToolConnection } from "@paperclipai/shared";
@@ -72,7 +73,7 @@ export function RemoteMcpProductionSetup({ providerId, connection }: {
       if (state.auth === "headers" || state.auth === "bearer") {
         for (const header of state.headers) {
           if (!header.name.trim() && !header.value) continue;
-          if (!header.name.trim() || !header.value) throw new Error("Enter both a name and value for each header.");
+          if (!header.name.trim() || !header.value) throw new Error(uiText("Enter both a name and value for each header."));
           credentials[`headers.${header.name.trim()}`] = header.value;
         }
       }
@@ -128,6 +129,6 @@ export function RemoteMcpProductionSetup({ providerId, connection }: {
     resumeDraft: () => edit({ step: "connect" }), finish: () => { if (savedConnection.current) void finish(savedConnection.current.id); },
     refresh: () => {}, reconnect: () => edit({ step: "connect" }), disconnect: () => {},
   };
-  if (connection && !installs.data) return <div className="space-y-3 p-8"><p>{installs.isError ? "Could not load saved access. Retry before changing this connection." : "Loading saved access…"}</p>{installs.isError && <button type="button" className="text-primary underline" onClick={() => void installs.refetch()}>Try again</button>}</div>;
+  if (connection && !installs.data) return <div className="space-y-3 p-8"><p>{installs.isError ? uiText("Could not load saved access. Retry before changing this connection.") : uiText("Loading saved access…")}</p>{installs.isError && <button type="button" className="text-primary underline" onClick={() => void installs.refetch()}>{uiText("Try again")}</button>}</div>;
   return <RemoteMcpConnectionSetup provider={provider} connectionId={savedConnection.current?.id ?? ""} state={state} actions={actions} agents={agents.data ?? []} />;
 }

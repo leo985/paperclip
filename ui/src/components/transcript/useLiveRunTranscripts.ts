@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { usePageVisibility } from "../../lib/page-visibility";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readTranscriptRequest } from "./read-transcript-request";
@@ -349,7 +350,7 @@ export function useLiveRunTranscripts({
           setErrorsByRun((previous) => {
             if (previous.has(run.id)) return previous;
             const next = new Map(previous);
-            next.set(run.id, error instanceof Error ? error : new Error("Run history could not be loaded"));
+            next.set(run.id, error instanceof Error ? error : new Error(uiText("Run history could not be loaded")));
             return next;
           });
         }

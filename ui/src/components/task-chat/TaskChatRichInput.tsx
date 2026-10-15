@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import {
@@ -57,7 +58,7 @@ export function TaskChatRichInput({
   }
 
   async function uploadImage(file: File): Promise<string> {
-    if (!imageUploadHandler) throw new Error("Image uploads are unavailable.");
+    if (!imageUploadHandler) throw new Error(uiText("Image uploads are unavailable."));
     uploadCountRef.current += 1;
     updateUploading(true);
     setUploadError(null);
@@ -132,9 +133,9 @@ export function TaskChatRichInput({
             ) : (
               <ImagePlus aria-hidden className="h-3.5 w-3.5" />
             )}
-            Attach image
+            {uiText("Attach image")}
           </Button>
-          <span>or drop/paste an image into the note</span>
+          <span>{uiText("or drop/paste an image into the note")}</span>
         </div>
       ) : null}
       {uploadError ? (

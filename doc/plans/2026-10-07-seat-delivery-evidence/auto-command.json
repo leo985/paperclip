@@ -1,0 +1,14 @@
+{
+  "kind": "start",
+  "taskId": "ae989e36-f003-4aae-acd4-b214d276bb4c",
+  "agentId": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+  "revision": 1,
+  "commandId": "a91cb920-f89a-53e0-9c58-7fe4d59109e8",
+  "expiresAt": "2026-10-07T04:09:59.962Z",
+  "requestedBy": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+  "status": "running",
+  "message": "真实运行已建立，已连接本机可见终端",
+  "sequence": 3,
+  "runId": "56d91dbd-1868-4960-8b9b-e306717d7ff6",
+  "createdAt": "2026-10-07T03:54:59.959Z"
+}

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Synthetic fixtures for the Task Chat Redesign dev harness. No live agent is
  * required: every state in the inventory maps to a deterministic scenario the
@@ -66,7 +67,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             kind: "turn",
             settled: false,
             summary: { toolCount: 1, added: 0, removed: 0 },
-            liveStatus: { id: "st-thinking", kind: "status", status: "running", label: "Thinking", startedAtMs: Date.now() - 6100, tokens: { used: 18240, size: 200000 } },
+            liveStatus: { id: "st-thinking", kind: "status", status: "running", label: uiText("Thinking"), startedAtMs: Date.now() - 6100, tokens: { used: 18240, size: 200000 } },
             items: [
               { id: "th-grep", kind: "tool", name: "Grep", target: "rateLimit", toolKind: "search", status: "completed" },
             ],
@@ -186,7 +187,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             kind: "turn",
             settled: false,
             summary: { toolCount: 1, added: 0, removed: 0 },
-            liveStatus: { id: "st-running", kind: "status", status: "running", label: "Running", detail: "no output for 3s — still running", startedAtMs: Date.now() - 12000, tokens: { used: 18240, size: 200000 } },
+            liveStatus: { id: "st-running", kind: "status", status: "running", label: uiText("Running"), detail: "no output for 3s — still running", startedAtMs: Date.now() - 12000, tokens: { used: 18240, size: 200000 } },
             items: [
               { id: "r-grep", kind: "tool", name: "Grep", target: "rateLimit", toolKind: "search", status: "completed" },
             ],
@@ -234,8 +235,8 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
             approval: {
               toolName: "execute",
               options: [
-                { id: "reject", label: "Deny", kind: "reject_once" },
-                { id: "allow-always", label: "Always allow", kind: "allow_always" },
+                { id: "reject", label: uiText("Deny"), kind: "reject_once" },
+                { id: "allow-always", label: uiText("Always allow"), kind: "allow_always" },
                 { id: "allow", label: "Allow once", kind: "allow_once" },
               ],
             },
@@ -286,7 +287,7 @@ export function buildScenario(id: TaskChatStateId): TaskChatScenario {
         surface: "thread",
         items: [
           { id: "m-int", kind: "message", author: "agent", authorName: AGENT, text: "Starting the migration now…" },
-          { id: "mk-int", kind: "marker", variant: "interrupted", label: "Interrupted", detail: "stopped by you at 2:35 PM" },
+          { id: "mk-int", kind: "marker", variant: "interrupted", label: uiText("Interrupted"), detail: "stopped by you at 2:35 PM" },
         ],
       };
     case "refused":

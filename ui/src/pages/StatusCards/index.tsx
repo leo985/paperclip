@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical, Loader2, Plus } from "lucide-react";
@@ -33,7 +34,7 @@ export function StatusCards() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Status" }]);
+    setBreadcrumbs([{ label: uiText("Status") }]);
   }, [setBreadcrumbs]);
 
   const activeQuery = useQuery({
@@ -116,40 +117,36 @@ export function StatusCards() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Status</h1>
+          <h1 className="text-xl font-bold">{uiText("Status")}</h1>
           <Badge variant="secondary" className="gap-1">
             <FlaskConical className="h-3 w-3" />
-            Experimental
+            {uiText("Experimental")}
           </Badge>
         </div>
         <div className="flex items-center gap-4">
           {showCostMeter ? (
-            <span className="text-xs text-muted-foreground">
-              Today: {formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
+            <span className="text-xs text-muted-foreground">{uiText("Today:")}{" "}{formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
             </span>
           ) : null}
           <Button onClick={() => setCreateOpen(true)} disabled={!selectedCompanyId}>
-            <Plus className="h-4 w-4" />
-            New card
-          </Button>
+            <Plus className="h-4 w-4" />{uiText("New card")}{" "}</Button>
         </div>
       </div>
 
-      {actionError ? <InlineBanner tone="warning" title="Heads up">{actionError}</InlineBanner> : null}
+      {actionError ? <InlineBanner tone="warning" title={uiText("Heads up")}>{actionError}</InlineBanner> : null}
 
       {activeQuery.isLoading ? (
         <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading cards…
-        </div>
+          <Loader2 className="h-4 w-4 animate-spin" />{" "}{uiText("Loading cards…")}{" "}</div>
       ) : activeQuery.isError ? (
-        <InlineBanner tone="danger" title="Could not load status cards">
-          {activeQuery.error instanceof Error ? activeQuery.error.message : "Try again."}
+        <InlineBanner tone="danger" title={uiText("Could not load status cards")}>
+          {activeQuery.error instanceof Error ? activeQuery.error.message : uiText("Try again.")}
         </InlineBanner>
       ) : activeCards.length === 0 ? (
         <EmptyState
           icon={FlaskConical}
-          title="No status cards yet"
-          message="Create a card to keep a living summary of the issues you care about."
+          title={uiText("No status cards yet")}
+          message={uiText("Create a card to keep a living summary of the issues you care about.")}
           action={selectedCompanyId ? "New card" : undefined}
           onAction={() => setCreateOpen(true)}
         />
@@ -180,7 +177,7 @@ export function StatusCards() {
             onClick={() => setShowArchived((prev) => !prev)}
             className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            {showArchived ? "Hide archived" : `Show archived (${archivedCards.length})`}
+            {showArchived ? uiText("Hide archived") : uiTextFormat("Show archived (__PCVAR0__)", [archivedCards.length])}
           </button>
           {showArchived
             ? archivedCards.map((card) => (

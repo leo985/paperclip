@@ -1,3 +1,4 @@
+import { uiText, uiTextFormat } from "@/i18n/interface";
 import {
   authSessionSchema,
   currentUserProfileSchema,
@@ -151,6 +152,19 @@ async function authPatch<T>(path: string, body: Record<string, unknown>, parse: 
 }
 
 export const authApi = {
+  passwordStatus: async (): Promise<{required:boolean}> => {
+    const response=await fetch("/api/auth/personnel-password-status",{credentials:"include",cache:"no-store"});
+    const payload=await response.json().catch(()=>null);
+    if(!response.ok)throw extractAuthError(payload,response.status);
+    if(typeof payload?.required!=="boolean")throw new Error(uiText("Invalid password status"));
+    return {required:payload.required};
+  },
+  changePassword: async (input: { currentPassword: string; newPassword: string; revokeOtherSessions: boolean }): Promise<void> => {
+    // Better Auth updates the session cookie; its returned token is not retained.
+    await authPost("/change-password", input);
+  },
+  signInPersonnel: async (input: { username: string; password: string }) => { await authPost("/personnel-sign-in", input); },
+  activatePersonnel: async (token: string, password: string) => { await authPost("/personnel-activate", { token, credentials: { password } }); },
   getSession: async (): Promise<AuthSession | null> => {
     const res = await fetch("/api/auth/get-session", {
       credentials: "include",
@@ -161,7 +175,7 @@ export const authApi = {
       const recovery = tenantSessionRecovery.recoverIfNeeded(res.status, payload);
       if (recovery) return recovery;
       if (res.status === 401) return null;
-      throw new Error(`Failed to load session (${res.status})`);
+      throw new Error(uiTextFormat("Failed to load session (__PCVAR0__)", [res.status]));
     }
     const direct = toSession(payload);
     if (direct) return direct;

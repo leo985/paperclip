@@ -1,0 +1,48 @@
+{
+  "checks": [
+    {
+      "name": "actual_mac_online_before_disconnect",
+      "passed": true
+    },
+    {
+      "name": "stale_registration_rejected",
+      "passed": true
+    },
+    {
+      "name": "queued_request_persisted_during_short_disconnect",
+      "passed": true
+    },
+    {
+      "name": "same_request_is_idempotent",
+      "passed": true
+    },
+    {
+      "name": "second_pending_request_rejected",
+      "passed": true
+    },
+    {
+      "name": "cancellation_response_ok",
+      "passed": true
+    },
+    {
+      "name": "browser_cancellation_persisted",
+      "passed": true
+    },
+    {
+      "name": "actual_mac_goes_offline",
+      "passed": true
+    },
+    {
+      "name": "offline_requests_rejected",
+      "passed": true
+    },
+    {
+      "name": "heartbeat_recovers_after_restart",
+      "passed": true
+    },
+    {
+      "name": "tracker_stays_available",
+      "passed": true
+    }
+  ]
+}

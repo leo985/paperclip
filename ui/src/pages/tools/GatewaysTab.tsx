@@ -1,3 +1,4 @@
+import { localizedStatus,  uiTextFormat,  uiText } from "@/i18n/interface";
 import { type FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
@@ -72,7 +73,7 @@ function formatOwner(gateway: ToolMcpGatewayWithTokens, agentNames: Map<string, 
     return agentNames.get(gateway.createdByAgentId) ?? `Agent ${shortId(gateway.createdByAgentId)}`;
   }
   if (gateway.createdByUserId) return `Board user ${shortId(gateway.createdByUserId)}`;
-  return "Board";
+  return uiText("Board");
 }
 
 function formatScope(
@@ -92,7 +93,7 @@ function formatScope(
   if (gateway.projectId) return `Project ${projectNames.get(gateway.projectId) ?? shortId(gateway.projectId)}`;
   if (gateway.issueId) return `Issue ${shortId(gateway.issueId)}`;
   if (gateway.agentId) return `Agent ${agentNames.get(gateway.agentId) ?? shortId(gateway.agentId)}`;
-  return "Company";
+  return uiText("Company");
 }
 
 function formatAllowedTools(profile: ToolProfileWithDetails | undefined) {
@@ -171,11 +172,11 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
     onSuccess: async (gateway) => {
       setCreateDraft({ name: "", description: "", profileId: activeProfiles[0]?.id ?? "" });
       setCreating(false);
-      pushToast({ title: "Gateway created", body: gateway.name, tone: "success" });
+      pushToast({ title: uiText("Gateway created"), body: gateway.name, tone: "success" });
       await invalidateGateways();
     },
     onError: (error) => {
-      pushToast({ title: "Gateway was not created", body: error instanceof Error ? error.message : String(error), tone: "error" });
+      pushToast({ title: uiText("Gateway was not created"), body: error instanceof Error ? error.message : String(error), tone: "error" });
     },
   });
 
@@ -194,11 +195,11 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
       setCreatedTokens((current) => ({ ...current, [token.gatewayId]: token }));
       setIssuingGatewayId(null);
       setTokenDrafts((current) => ({ ...current, [token.gatewayId]: defaultTokenDraft() }));
-      pushToast({ title: "Token issued", body: `${token.name} was created. Copy it now; it will not be shown again.`, tone: "success" });
+      pushToast({ title: uiText("Token issued"), body: uiTextFormat("__PCVAR0__ was created. Copy it now; it will not be shown again.", [token.name]), tone: "success" });
       await invalidateGateways();
     },
     onError: (error) => {
-      pushToast({ title: "Token was not issued", body: error instanceof Error ? error.message : String(error), tone: "error" });
+      pushToast({ title: uiText("Token was not issued"), body: error instanceof Error ? error.message : String(error), tone: "error" });
     },
   });
 
@@ -206,20 +207,20 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
     mutationFn: (tokenId: string) => toolsApi.revokeGatewayToken(companyId, tokenId),
     onSuccess: async (token) => {
       setConfirmingRevokeTokenId(null);
-      pushToast({ title: "Token revoked", body: token.name, tone: "success" });
+      pushToast({ title: uiText("Token revoked"), body: token.name, tone: "success" });
       await invalidateGateways();
     },
     onError: (error) => {
-      pushToast({ title: "Token was not revoked", body: error instanceof Error ? error.message : String(error), tone: "error" });
+      pushToast({ title: uiText("Token was not revoked"), body: error instanceof Error ? error.message : String(error), tone: "error" });
     },
   });
 
   async function copyText(value: string, label: string) {
     try {
       await copyTextToClipboard(value);
-      pushToast({ title: "Copied to clipboard", body: label, tone: "success" });
+      pushToast({ title: uiText("Copied to clipboard"), body: label, tone: "success" });
     } catch (error) {
-      pushToast({ title: "Copy failed", body: error instanceof Error ? error.message : "Clipboard access is unavailable.", tone: "error" });
+      pushToast({ title: uiText("Copy failed"), body: error instanceof Error ? error.message : uiText("Clipboard access is unavailable."), tone: "error" });
     }
   }
 
@@ -236,7 +237,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
   function submitCreateGateway(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!createDraft.profileId) {
-      pushToast({ title: "Pick a profile", body: "A gateway needs an access profile before it can be created.", tone: "warn" });
+      pushToast({ title: uiText("Pick a profile"), body: uiText("A gateway needs an access profile before it can be created."), tone: "warn" });
       return;
     }
     createGatewayMutation.mutate();
@@ -246,13 +247,13 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
     event.preventDefault();
     const draft = tokenDrafts[gatewayId] ?? defaultTokenDraft();
     if (draft.allowedActions.length === 0) {
-      pushToast({ title: "Pick token actions", body: "Gateway tokens need at least one allowed MCP action.", tone: "warn" });
+      pushToast({ title: uiText("Pick token actions"), body: uiText("Gateway tokens need at least one allowed MCP action."), tone: "warn" });
       return;
     }
     createTokenMutation.mutate(gatewayId);
   }
 
-  if (gatewaysQuery.isLoading) return <LoadingState label="Loading gateways..." />;
+  if (gatewaysQuery.isLoading) return <LoadingState label={uiText("Loading gateways...")} />;
   if (gatewaysQuery.isError) return <ErrorState error={gatewaysQuery.error} />;
 
   const gateways = gatewaysQuery.data?.gateways ?? [];
@@ -263,8 +264,8 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <ToolsPageHeader
-          title="Named MCP gateways"
-          description="Stable endpoints for external clients that use the same profiles, rules, and audit trail as agent tool access."
+          title={uiText("Named MCP gateways")}
+          description={uiText("Stable endpoints for external clients that use the same profiles, rules, and audit trail as agent tool access.")}
         />
         <Button
           type="button"
@@ -275,26 +276,24 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
           }}
           disabled={profileLoading}
         >
-          <Plus className="mr-1.5 h-3.5 w-3.5" />
-          Create gateway
-        </Button>
+          <Plus className="mr-1.5 h-3.5 w-3.5" />{uiText("Create gateway")}{" "}</Button>
       </div>
 
       {creating ? (
         <form className="space-y-3 rounded-md border border-border p-4" onSubmit={submitCreateGateway}>
           <div className="grid gap-3 md:grid-cols-(--gtc-60)">
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Gateway name</span>
+              <span className="text-xs font-medium text-muted-foreground">{uiText("Gateway name")}</span>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={createDraft.name}
                 onChange={(event) => setCreateDraft((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Engineering laptops"
+                placeholder={uiText("Engineering laptops")}
                 required
               />
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Access profile</span>
+              <span className="text-xs font-medium text-muted-foreground">{uiText("Access profile")}</span>
               <select
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={createDraft.profileId}
@@ -303,7 +302,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                 disabled={activeProfiles.length === 0}
               >
                 <option value="" disabled>
-                  {profileLoading ? "Loading profiles..." : "Choose a profile"}
+                  {profileLoading ? uiText("Loading profiles...") : uiText("Choose a profile")}
                 </option>
                 {activeProfiles.map((profile) => (
                   <option key={profile.id} value={profile.id}>
@@ -314,32 +313,30 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
             </label>
           </div>
           <label className="space-y-1.5 text-sm">
-            <span className="text-xs font-medium text-muted-foreground">Description</span>
+            <span className="text-xs font-medium text-muted-foreground">{uiText("Description")}</span>
             <textarea
               className="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={createDraft.description}
               onChange={(event) => setCreateDraft((current) => ({ ...current, description: event.target.value }))}
-              placeholder="Who this endpoint is for and when it should be rotated."
+              placeholder={uiText("Who this endpoint is for and when it should be rotated.")}
             />
           </label>
           {activeProfiles.length === 0 && !profileLoading ? (
-            <p className="text-xs text-muted-foreground">Create an access profile before adding a gateway.</p>
+            <p className="text-xs text-muted-foreground">{uiText("Create an access profile before adding a gateway.")}</p>
           ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setCreating(false)}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button type="submit" size="sm" disabled={createDisabled || !createDraft.name.trim() || !createDraft.profileId}>
-              {createGatewayMutation.isPending ? "Creating..." : "Create gateway"}
+              {createGatewayMutation.isPending ? uiText("Creating...") : uiText("Create gateway")}
             </Button>
           </div>
         </form>
       ) : null}
 
       {gateways.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-          No named gateways yet. Create one here, then issue a token for the client that will connect to it.
-        </div>
+        <div className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">{uiText("No named gateways yet. Create one here, then issue a token for the client that will connect to it.")}{" "}</div>
       ) : (
         <div className="divide-y divide-border rounded-md border border-border">
           {gateways.map((gateway) => {
@@ -356,7 +353,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                     <div className="flex items-center gap-2">
                       <LinkIcon className="h-4 w-4 text-muted-foreground" />
                       <h3 className="truncate text-sm font-semibold text-foreground">{gateway.name}</h3>
-                      <span className="text-xs text-muted-foreground">{gateway.status}</span>
+                      <span className="text-xs text-muted-foreground">{localizedStatus(gateway.status)}</span>
                     </div>
                     {gateway.description ? (
                       <p className="mt-1 text-sm text-muted-foreground">{gateway.description}</p>
@@ -364,12 +361,10 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => void copyText(endpoint, "Gateway endpoint")}>
-                      <Copy className="mr-1.5 h-3.5 w-3.5" />
-                      Copy endpoint
-                    </Button>
+                      <Copy className="mr-1.5 h-3.5 w-3.5" />{uiText("Copy endpoint")}{" "}</Button>
                     <Button type="button" variant="outline" size="sm" onClick={() => startIssuing(gateway.id)}>
                       <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-                      Issue token
+                      {uiText("Issue token")}
                     </Button>
                   </div>
                 </div>
@@ -380,23 +375,23 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
 
                 <dl className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <dt className="text-xs font-medium text-muted-foreground">Owner</dt>
+                    <dt className="text-xs font-medium text-muted-foreground">{uiText("Owner")}</dt>
                     <dd className="mt-0.5 text-foreground">{formatOwner(gateway, agentNames)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium text-muted-foreground">Scope</dt>
+                    <dt className="text-xs font-medium text-muted-foreground">{uiText("Scope")}</dt>
                     <dd className="mt-0.5 text-foreground">{formatScope(gateway, projectNames, agentNames)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium text-muted-foreground">Allowed tools</dt>
+                    <dt className="text-xs font-medium text-muted-foreground">{uiText("Allowed tools")}</dt>
                     <dd className="mt-0.5 text-foreground">
-                      {profile ? `${formatAllowedTools(profile)} via ${profile.name}` : `Profile ${shortId(gateway.profileId)}`}
+                      {profile ? uiTextFormat("__PCVAR0__ via __PCVAR1__", [formatAllowedTools(profile), profile.name]) : uiTextFormat("Profile __PCVAR0__", [shortId(gateway.profileId)])}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium text-muted-foreground">Last activity</dt>
+                    <dt className="text-xs font-medium text-muted-foreground">{uiText("Last activity")}</dt>
                     <dd className="mt-0.5 text-foreground">
-                      {lastActivity ? <RelativeTime value={lastActivity} /> : "Never used"}
+                      {lastActivity ? <RelativeTime value={lastActivity} /> : uiText("Never used")}
                     </dd>
                   </div>
                 </dl>
@@ -405,7 +400,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   <form className="space-y-3 rounded-md border border-border p-3" onSubmit={(event) => submitCreateToken(event, gateway.id)}>
                     <div className="grid gap-3 md:grid-cols-2">
                       <label className="space-y-1.5 text-sm">
-                        <span className="text-xs font-medium text-muted-foreground">Token name</span>
+                        <span className="text-xs font-medium text-muted-foreground">{uiText("Token name")}</span>
                         <input
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           value={tokenDraft.name}
@@ -415,12 +410,12 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                               [gateway.id]: { ...tokenDraft, name: event.target.value },
                             }))
                           }
-                          placeholder="Dotta's MacBook"
+                          placeholder={uiText("Dotta's MacBook")}
                           required
                         />
                       </label>
                       <label className="space-y-1.5 text-sm">
-                        <span className="text-xs font-medium text-muted-foreground">Client label</span>
+                        <span className="text-xs font-medium text-muted-foreground">{uiText("Client label")}</span>
                         <input
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           value={tokenDraft.clientLabel}
@@ -430,14 +425,14 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                               [gateway.id]: { ...tokenDraft, clientLabel: event.target.value },
                             }))
                           }
-                          placeholder="Cursor on work laptop"
+                          placeholder={uiText("Cursor on work laptop")}
                           required
                         />
                       </label>
                     </div>
                     <div className="grid gap-3 md:grid-cols-[1fr_auto]">
                       <label className="space-y-1.5 text-sm">
-                        <span className="text-xs font-medium text-muted-foreground">Owner note</span>
+                        <span className="text-xs font-medium text-muted-foreground">{uiText("Owner note")}</span>
                         <input
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           value={tokenDraft.ownerNote}
@@ -447,12 +442,12 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                               [gateway.id]: { ...tokenDraft, ownerNote: event.target.value },
                             }))
                           }
-                          placeholder="Who owns this token and why it exists"
+                          placeholder={uiText("Who owns this token and why it exists")}
                           required
                         />
                       </label>
                       <label className="space-y-1.5 text-sm">
-                        <span className="text-xs font-medium text-muted-foreground">Expires</span>
+                        <span className="text-xs font-medium text-muted-foreground">{uiText("Expires")}</span>
                         <input
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           type="date"
@@ -486,7 +481,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                     </div>
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button type="button" variant="ghost" size="sm" onClick={() => setIssuingGatewayId(null)}>
-                        Cancel
+                        {uiText("Cancel")}
                       </Button>
                       <Button
                         type="submit"
@@ -499,7 +494,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                           !tokenDraft.expiresAt
                         }
                       >
-                        {createTokenMutation.isPending ? "Issuing..." : "Issue token"}
+                        {createTokenMutation.isPending ? uiText("Issuing...") : uiText("Issue token")}
                       </Button>
                     </div>
                   </form>
@@ -508,10 +503,10 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                 {createdToken ? (
                   <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="font-medium text-foreground">New token for {createdToken.name}</div>
+                      <div className="font-medium text-foreground">{uiText("New token for")}{" "}{createdToken.name}</div>
                       <Button type="button" variant="outline" size="sm" onClick={() => void copyText(createdToken.token, "Gateway bearer token")}>
                         <Copy className="mr-1.5 h-3.5 w-3.5" />
-                        Copy token
+                        {uiText("Copy token")}
                       </Button>
                     </div>
                     <div className="break-all rounded bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
@@ -524,11 +519,11 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   <div>
                     <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       <KeyRound className="h-3.5 w-3.5" />
-                      Tokens
+                      {uiText("Tokens")}
                     </div>
                     <div className="space-y-1 text-sm">
                       {gateway.tokens.length === 0 ? (
-                        <p className="text-muted-foreground">No tokens issued.</p>
+                        <p className="text-muted-foreground">{uiText("No tokens issued.")}</p>
                       ) : (
                         gateway.tokens.map((token) => {
                           const revoked = Boolean(token.revokedAt);
@@ -553,7 +548,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                         expires <RelativeTime value={token.expiresAt} />
                                       </>
                                     ) : (
-                                      "no expiry"
+                                      uiText("no expiry")
                                     )}
                                   </span>
                                   {!revoked ? (
@@ -563,17 +558,17 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                       size="sm"
                                       className="h-7 px-2 text-xs text-destructive hover:text-destructive"
                                       onClick={() => setConfirmingRevokeTokenId(token.id)}
-                                      aria-label={`Revoke ${token.name}`}
+                                      aria-label={uiTextFormat("Revoke __PCVAR0__", [token.name])}
                                     >
                                       <RotateCcw className="mr-1 h-3.5 w-3.5" />
-                                      Revoke
+                                      {uiText("Revoke")}
                                     </Button>
                                   ) : null}
                                 </div>
                               </div>
                               {confirming ? (
                                 <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground">
-                                  <span>Revoke this token now?</span>
+                                  <span>{uiText("Revoke this token now?")}</span>
                                   <Button
                                     type="button"
                                     variant="ghost"
@@ -582,7 +577,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                     onClick={() => setConfirmingRevokeTokenId(null)}
                                   >
                                     <X className="mr-1 h-3.5 w-3.5" />
-                                    Cancel
+                                    {uiText("Cancel")}
                                   </Button>
                                   <Button
                                     type="button"
@@ -593,7 +588,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                     disabled={revokeTokenMutation.isPending}
                                   >
                                     <Check className="mr-1 h-3.5 w-3.5" />
-                                    Confirm
+                                    {uiText("Confirm")}
                                   </Button>
                                 </div>
                               ) : null}
@@ -605,10 +600,10 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   </div>
 
                   <div>
-                    <div className="mb-1.5 text-xs font-medium text-muted-foreground">Client snippets</div>
+                    <div className="mb-1.5 text-xs font-medium text-muted-foreground">{uiText("Client snippets")}</div>
                     <div className="space-y-1 text-sm">
                       {snippets.length === 0 ? (
-                        <p className="text-muted-foreground">No snippets available.</p>
+                        <p className="text-muted-foreground">{uiText("No snippets available.")}</p>
                       ) : (
                         snippets.map((snippet) => (
                           <details key={snippet.client} className="rounded px-2 py-1 open:bg-muted/40">
@@ -628,7 +623,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                 }}
                               >
                                 <Copy className="mr-1 h-3.5 w-3.5" />
-                                Copy
+                                {uiText("Copy")}
                               </Button>
                             </summary>
                             <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words rounded bg-background p-3 text-xs text-muted-foreground">

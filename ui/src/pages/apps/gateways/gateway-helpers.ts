@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type {
   ToolApplication,
   ToolConnection,
@@ -38,10 +39,10 @@ export function tokenStatus(
 }
 
 export const TOKEN_STATUS_LABEL: Record<TokenStatus, string> = {
-  active: "Active",
+  active: uiText("Active"),
   expiring: "Expiring",
-  expired: "Expired",
-  revoked: "Revoked",
+  expired: uiText("Expired"),
+  revoked: uiText("Revoked"),
 };
 
 /** Count of tokens that can currently authenticate (not revoked, not expired). */
@@ -86,14 +87,14 @@ export function formatScope(
   }
   if (gateway.projectId) return `Project · ${projectNames.get(gateway.projectId) ?? shortId(gateway.projectId)}`;
   if (gateway.agentId) return `Agent · ${agentNames.get(gateway.agentId) ?? shortId(gateway.agentId)}`;
-  return "Organization";
+  return uiText("Organization");
 }
 
 export function formatOwner(gateway: ToolMcpGatewayWithTokens, agentNames: Map<string, string>): string {
   if (gateway.createdByAgentId) {
     return agentNames.get(gateway.createdByAgentId) ?? `Agent ${shortId(gateway.createdByAgentId)}`;
   }
-  return "Board";
+  return uiText("Board");
 }
 
 /** Whether the gateway is exposing tools to clients right now. */

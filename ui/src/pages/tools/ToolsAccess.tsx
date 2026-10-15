@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useEffect } from "react";
 import { Wrench } from "lucide-react";
 import { Link, Navigate, useParams } from "@/lib/router";
@@ -40,20 +41,20 @@ export function ToolsAccess() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
+      { label: selectedCompany?.name ?? uiText("Company"), href: "/dashboard" },
+      { label: uiText("Apps"), href: "/apps" },
       ...(advanced
-        ? [{ label: "Advanced setup" }]
+        ? [{ label: uiText("Advanced setup") }]
         : [
-            { label: "Advanced setup", href: advancedTabHref("paste-config") },
-            { label: tabLabel ?? "Developer tools" },
+            { label: uiText("Advanced setup"), href: advancedTabHref("paste-config") },
+            { label: tabLabel ?? uiText("Developer tools") },
           ]),
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name, advanced, tabLabel]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select an organization to open advanced setup.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{uiText("Select an organization to open advanced setup.")}</div>;
   }
 
   if (params.tab === "run-your-own") {
@@ -86,17 +87,13 @@ export function ToolsAccess() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-foreground">Advanced setup</h1>
+            <h1 className="text-xl font-bold text-foreground">{uiText("Advanced setup")}</h1>
             <span className="inline-flex items-center rounded-full bg-foreground px-2.5 py-0.5 text-(length:--text-micro) font-bold text-background">
-              Advanced
+              {uiText("Advanced")}
             </span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            For tools that aren't in the gallery. You'll need details from the tool's documentation.
-            Most people never need this — if the app you want is in the gallery,{" "}
-            <Link to="/apps" className="font-medium text-primary hover:underline">
-              connect it there instead
-            </Link>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("For tools that aren't in the gallery. You'll need details from the tool's documentation. Most people never need this — if the app you want is in the gallery,")}{" "}
+            <Link to="/apps" className="font-medium text-primary hover:underline">{uiText("connect it there instead")}{" "}</Link>
             .
           </p>
         </header>
@@ -121,11 +118,8 @@ export function ToolsAccess() {
         <div className="min-h-(--sz-300px)">{renderTab(activeTab, selectedCompanyId)}</div>
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Wrench className="h-3.5 w-3.5" />
-          Looking for the developer surface?{" "}
-          <Link to={advancedTabHref("profiles")} className="font-medium text-primary hover:underline">
-            Open developer tools
-          </Link>
+          <Wrench className="h-3.5 w-3.5" />{uiText("Looking for the developer surface?")}{" "}
+          <Link to={advancedTabHref("profiles")} className="font-medium text-primary hover:underline">{uiText("Open developer tools")}{" "}</Link>
         </p>
       </div>
     );

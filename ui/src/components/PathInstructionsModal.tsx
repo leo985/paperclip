@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useState } from "react";
 import { Apple, Monitor, Terminal } from "lucide-react";
 import {
@@ -69,12 +70,9 @@ export function PathInstructionsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base">How to get a full path</DialogTitle>
-          <DialogDescription>
-            Paste the absolute path (e.g.{" "}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">/Users/you/project</code>
-            ) into the input field.
-          </DialogDescription>
+          <DialogTitle className="text-base">{uiText("How to get a full path")}</DialogTitle>
+          <DialogDescription>{uiText("Paste the absolute path (e.g.")}{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">/Users/you/project</code>{uiText(") into the input field.")}{" "}</DialogDescription>
         </DialogHeader>
 
         {/* Platform tabs */}
@@ -135,7 +133,7 @@ export function ChoosePathButton({ className }: { className?: string }) {
         )}
         onClick={() => setOpen(true)}
       >
-        Choose
+        {uiText("Choose")}
       </button>
       <PathInstructionsModal open={open} onOpenChange={setOpen} />
     </>

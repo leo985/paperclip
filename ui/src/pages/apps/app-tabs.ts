@@ -1,8 +1,9 @@
+import { uiText } from "@/i18n/interface";
 import { Inbox, ShieldCheck } from "lucide-react";
 
 export const APP_TABS = [
-  { key: "permissions", label: "Permissions", icon: ShieldCheck },
-  { key: "review", label: "Review", icon: Inbox },
+  { key: "permissions", label: uiText("Permissions"), icon: ShieldCheck },
+  { key: "review", label: uiText("Review"), icon: Inbox },
 ] as const;
 
 export type AppTabKey = (typeof APP_TABS)[number]["key"];

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { healthApi } from "@/api/health";
 import { LocalProviderLoginInstructions } from "./AdapterLoginChrome";
 import { useLocalAiLogin } from "./ai-connections/useLocalAiLogin";
@@ -76,6 +77,8 @@ import {
   resolveManagedSandboxEnvironmentId,
 } from "../lib/adapter-test-environment";
 import { queryKeys } from "../lib/queryKeys";
+import { Dialog as DialogPrimitive } from "radix-ui";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import {
   Popover,
@@ -113,6 +116,7 @@ import {
   canGoBackFromOnboardingStep,
   canJumpToOnboardingStep,
   companyPrefixFromOnboardingPath,
+  isOnboardingPath,
   resolveRouteOnboardingOptions,
 } from "../lib/onboarding-route";
 import { useCloudInstance } from "../hooks/useCloudInstance";
@@ -481,7 +485,7 @@ function OnboardingWizardInner({
     onboardingRouteDismissed: routeDismissed,
     setOnboardingRouteDismissed: setRouteDismissed,
   } = useDialog();
-  const { companies, setSelectedCompanyId, loading: companiesLoading } = useCompany();
+  const { companies, selectedCompany, setSelectedCompanyId, loading: companiesLoading } = useCompany();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -525,6 +529,21 @@ function OnboardingWizardInner({
   const effectiveOnboardingOptions = onboardingOpen
     ? onboardingOptions
     : routeOnboardingOptions ?? {};
+
+  const exitDestination=useRef<string>("/companies");
+  const exitCompanyId=useRef<string|null>(null);
+  const wasOpen=useRef(false);
+  const isOpen=useRef(effectiveOnboardingOpen);isOpen.current=effectiveOnboardingOpen;
+  const [exitConfirmation,setExitConfirmation]=useState(false);
+  useEffect(()=>{
+    if(effectiveOnboardingOpen&&!wasOpen.current){
+      exitCompanyId.current=selectedCompany?.id??null;
+      const origin=(onboardingOpen?onboardingOptions.returnTo:undefined)??location.pathname+location.search+location.hash;
+      exitDestination.current=origin.startsWith("/")&&!origin.startsWith("//")&&!isOnboardingPath(origin.split(/[?#]/)[0]!)?origin:selectedCompany?`/${selectedCompany.issuePrefix}/companies`:"/onboarding";
+      setExitConfirmation(false);
+    }
+    wasOpen.current=effectiveOnboardingOpen;
+  },[effectiveOnboardingOpen,effectiveOnboardingOptions,location.pathname,location.search,location.hash,selectedCompany]);
 
   // Sync disabled adapter types only when the wizard is visible. The wizard is
   // mounted globally, including on /auth, where protected adapter routes are
@@ -1368,27 +1387,27 @@ function OnboardingWizardInner({
   const connectSourceLabel = CONNECT_SOURCE_NAMES[adapterType] ?? adapterType;
   const connectCta: { label: string; icon: FooterPrimaryIcon; disabled: boolean } =
     connectProgress
-      ? { label: adapterEnvLoading ? "Testing…" : connectProgress, icon: "spinner", disabled: true }
+      ? { label: adapterEnvLoading ? uiText("Testing…") : connectProgress, icon: "spinner", disabled: true }
       : connectPhase === "waiting"
-      ? { label: "Waiting for code", icon: "spinner", disabled: true }
+      ? { label: uiText("Waiting for code"), icon: "spinner", disabled: true }
       : connectPhase === "connecting"
-        ? { label: "Connecting", icon: "spinner", disabled: true }
+        ? { label: uiText("Connecting"), icon: "spinner", disabled: true }
         : connectPhase === "ready"
           ? connectStepNeedsLogin
             ? {
-                label: `Sign in to ${connectSourceLabel}`,
+                label: uiTextFormat("Sign in to __PCVAR0__", [connectSourceLabel]),
                 icon: "none",
                 disabled: !connectAuthUrl,
               }
             : {
-                label: "Connect",
+                label: uiText("Connect"),
                 icon: "arrow",
                 disabled:
                   !connectStepReady || (credentialMode === "api" && !apiKey.trim() && !selectedApiKey),
               }
           : // Nothing is chosen on arrival, and the row is what chooses. Until
             // it has been answered the button has nothing to do.
-            { label: "Next", icon: "arrow", disabled: true };
+            { label: uiText("Next"), icon: "arrow", disabled: true };
 
   /**
    * Back, on the connect step, unwinds the sign-in before it leaves the step.
@@ -1646,14 +1665,25 @@ function OnboardingWizardInner({
     setCreatedIssueRef(null);
   }
 
+  function requestClose() {
+    if(loading)return;
+    if(companyName.trim()||agentName.trim()||createdCompanyId)setExitConfirmation(true);
+    else handleClose();
+  }
+
   function handleClose() {
+    if(loading)return;
+    isOpen.current=false;
+    setExitConfirmation(false);
     reset();
+    if(exitCompanyId.current)setSelectedCompanyId(exitCompanyId.current,{source:"route_sync"});
     closeOnboarding();
     // On the /onboarding route the wizard is also kept open by the route
     // itself, so closing the dialog must mark the route dismissed — otherwise
     // effectiveOnboardingOpen stays true and the wizard re-renders instead of
     // handing off to the launcher card (PAP-52).
     setRouteDismissed(true);
+    if(location.pathname+location.search+location.hash!==exitDestination.current)navigate(exitDestination.current,{replace:true});
   }
 
   /**
@@ -1670,7 +1700,7 @@ function OnboardingWizardInner({
    * only to record it against a company it does not belong to.
    */
   function stillTheSameCompany(companyIdAtStart: string | null) {
-    return createdCompanyIdRef.current === companyIdAtStart;
+    return isOpen.current && createdCompanyIdRef.current === companyIdAtStart;
   }
 
   /**
@@ -1685,6 +1715,7 @@ function OnboardingWizardInner({
     companyIdAtStart: string | null,
     returnedCompanyId: string,
   ) {
+    if(!isOpen.current)return false;
     const companyIdNow = createdCompanyIdRef.current;
     if (companyIdNow === companyIdAtStart || companyIdNow === returnedCompanyId) {
       return true;
@@ -2381,7 +2412,7 @@ function OnboardingWizardInner({
       open={effectiveOnboardingOpen}
       onOpenChange={(open) => {
         if (!open) {
-          handleClose();
+          requestClose();
         }
       }}
     >
@@ -2398,6 +2429,7 @@ function OnboardingWizardInner({
             the button took the proof with it, and those tests would have gone on
             passing indefinitely if it had stayed. A named anchor says what they
             mean rather than depending on whatever happens to render. */}
+        <DialogPrimitive.Content asChild aria-describedby={undefined} onEscapeKeyDown={e=>{e.preventDefault();requestClose();}} onInteractOutside={e=>e.preventDefault()}>
         <div
           data-testid="onboarding-wizard"
           className="fixed inset-0 z-50 flex"
@@ -2407,6 +2439,10 @@ function OnboardingWizardInner({
               front-door choice ahead of it, and it fills the width on every
               step (the mission step's half-width split is gone). */}
           <div className="w-full flex flex-col overflow-y-auto">
+            <header className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 sm:px-6">
+              <div><DialogPrimitive.Title className="text-sm font-medium">{existingCompanyId?"组织初始化 / 添加智能体":"创建组织"}</DialogPrimitive.Title><p className="text-xs text-muted-foreground">{loading?"正在保存，请稍候…":createdCompanyId?"退出仅结束向导，已创建的组织与智能体将保留。":"可随时取消，返回进入向导前的页面。"}</p></div>
+              <Button type="button" variant="outline" disabled={loading} onClick={requestClose}><ArrowLeft className="size-4"/>返回并退出向导</Button>
+            </header>
             <div
               className={cn(
                 // my-auto, not items-center on the column: they look identical
@@ -2548,12 +2584,12 @@ function OnboardingWizardInner({
                       title={
                         <motion.span key={step} {...titleSwapMotion} className="inline-block">
                           {step === 1
-                            ? "What is the name of your organization?"
+                            ? uiText("What is the name of your organization?")
                             : step === 3
-                              ? "Create your first agent"
+                              ? uiText("Create your first agent")
                               : step === 4
-                                ? "Connect a model"
-                                : "Let's get started..."}
+                                ? uiText("Connect a model")
+                                : uiText("Let's get started...")}
                         </motion.span>
                       }
                     />
@@ -2575,8 +2611,8 @@ function OnboardingWizardInner({
                       <p className="pt-2 text-base leading-relaxed text-muted-foreground">
                         <motion.span key={step} {...titleSwapMotion} className="inline-block">
                           {step === 4
-                            ? "Paperclip works with your subscription or API keys."
-                            : `${agentName.trim() || "Your first agent"} is ready to work!`}
+                            ? uiText("Paperclip works with your subscription or API keys.")
+                            : uiTextFormat("__PCVAR0__ is ready to work!", [agentName.trim() || "Your first agent"])}
                         </motion.span>
                       </p>
                     </motion.div>
@@ -2602,11 +2638,11 @@ function OnboardingWizardInner({
               {step === 1 && (
                 <motion.div key="step-1" {...stepContentMotion} exit={stepHandoff ? stepContentMotion.exit : undefined} className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="onboarding-company-name">Name</Label>
+                    <Label htmlFor="onboarding-company-name">{uiText("Name")}</Label>
                     <Input
                       id="onboarding-company-name"
                       className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none dark:bg-muted"
-                      placeholder="e.g. Northwind Labs"
+                      placeholder={uiText("e.g. Northwind Labs")}
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       onKeyDown={(e) => {
@@ -2630,7 +2666,7 @@ function OnboardingWizardInner({
               {step === 3 && (
                 <motion.div key="step-3" {...stepContentMotion} exit={stepHandoff ? stepContentMotion.exit : undefined} className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="onboarding-agent-name">Agent name</Label>
+                    <Label htmlFor="onboarding-agent-name">{uiText("Agent name")}</Label>
                     {/*
                       Filled, not outlined, and the column's full width — the
                       same field the naming step before the hand-off draws.
@@ -2643,7 +2679,7 @@ function OnboardingWizardInner({
                     <Input
                       id="onboarding-agent-name"
                       className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none dark:bg-muted"
-                      placeholder="e.g. Chief of staff"
+                      placeholder={uiText("e.g. Chief of staff")}
                       value={agentName}
                       onChange={(e) => setAgentName(e.target.value)}
                       onKeyDown={(e) => {
@@ -2671,7 +2707,7 @@ function OnboardingWizardInner({
                         Picking one starts the sign-in now. The row is the
                         question, and answering it is what opens the card. */}
                     <ModelSourceTiles
-                      label="Model source"
+                      label={uiText("Model source")}
                       sources={recommendedAdapters.map((opt) => ({
                         id: opt.type,
                         label: CONNECT_SOURCE_NAMES[opt.type] ?? opt.label,
@@ -2721,8 +2757,8 @@ function OnboardingWizardInner({
                     >
                       <div className="-ml-3 mt-1">
                         <CredentialModeLink mode={credentialMode} onChange={setCredentialMode} />
-                        {savedKeys.options.length > 0 && <p className="px-3 text-sm text-muted-foreground">{savedKeys.options.length} saved API {savedKeys.options.length === 1 ? "key available" : "keys available"}.</p>}
-                        {credentialMode === "subscription" && authSignalStatus === "present" && <p className="px-3 text-sm text-muted-foreground">An existing provider connection is available.</p>}
+                        {savedKeys.options.length > 0 && <p className="px-3 text-sm text-muted-foreground">{savedKeys.options.length}{" "}{uiText("saved API")}{" "}{savedKeys.options.length === 1 ? uiText("key available") : uiText("keys available")}.</p>}
+                        {credentialMode === "subscription" && authSignalStatus === "present" && <p className="px-3 text-sm text-muted-foreground">{uiText("An existing provider connection is available.")}</p>}
                       </div>
                     </motion.div>
                   </div>
@@ -2779,8 +2815,8 @@ function OnboardingWizardInner({
                           setApiKey("");
                         }} />
                         {!selectedApiKey && <OnboardingCardField
-                          label="API key"
-                          placeholder="Enter API key here"
+                          label={uiText("API key")}
+                          placeholder={uiText("Enter API key here")}
                           masked
                           // The card is the answer to the tile just pressed, so
                           // the field is unambiguously the next thing. Carried
@@ -2891,7 +2927,7 @@ function OnboardingWizardInner({
                     ) : hasSavedSubscription || localLogin.status === "ready" ? null : connectStepHasNoSandbox ? (
                       canUseLocalLogin && managedProvider ? (
                         <LocalProviderLoginInstructions adapterType={adapterType} login={{ ...localLogin, retry: () => { autoConnectStartedRef.current = false; setError(null); localLogin.retry(); } }} />
-                      ) : <p className="text-xs text-muted-foreground">This environment does not support browser sign-in. Choose another sign-in environment or connect with an API key.</p>
+                      ) : <p className="text-xs text-muted-foreground">{uiText("This environment does not support browser sign-in. Choose another sign-in environment or connect with an API key.")}</p>
                     ) : null}
                   </motion.div>
 
@@ -2936,7 +2972,7 @@ function OnboardingWizardInner({
                             style={{ "--sc": "var(--status-task-done)" } as CSSProperties}
                           >
                             <Check className="size-3.5 shrink-0" />
-                            <span className="font-medium">Passed</span>
+                            <span className="font-medium">{uiText("Passed")}</span>
                           </div>
                           {/* Show the checks on a pass too, so the target and the
                               auth signals stay visible before the hire. */}
@@ -2948,12 +2984,8 @@ function OnboardingWizardInner({
 
                       {shouldSuggestUnsetAnthropicApiKey && (
                         <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-2.5 py-2 space-y-2">
-                          <p className="text-(length:--text-micro) text-amber-900/90 leading-relaxed">
-                            Claude failed while{" "}
-                            <span className="font-mono">ANTHROPIC_API_KEY</span>{" "}
-                            is set. You can clear it in this adapter config
-                            and retry the probe.
-                          </p>
+                          <p className="text-(length:--text-micro) text-amber-900/90 leading-relaxed">{uiText("Claude failed while")}{" "}
+                            <span className="font-mono">ANTHROPIC_API_KEY</span>{" "}{uiText("is set. You can clear it in this adapter config and retry the probe.")}{" "}</p>
                           <Button
                             size="sm"
                             variant="outline"
@@ -2964,39 +2996,37 @@ function OnboardingWizardInner({
                             onClick={() => void handleUnsetAnthropicApiKey()}
                           >
                             {unsetAnthropicLoading
-                              ? "Retrying..."
-                              : "Unset ANTHROPIC_API_KEY"}
+                              ? uiText("Retrying...")
+                              : uiText("Unset ANTHROPIC_API_KEY")}
                           </Button>
                         </div>
                       )}
 
                       {adapterEnvResult && adapterEnvResult.status === "fail" && (
                         <div className="rounded-md border border-border/70 bg-muted/20 px-2.5 py-2 text-(length:--text-micro) space-y-1.5">
-                          <p className="font-medium">Manual debug</p>
+                          <p className="font-medium">{uiText("Manual debug")}</p>
                           <p className="text-muted-foreground font-mono break-all">
                             {adapterType === "cursor"
-                              ? `${effectiveAdapterCommand} -p --mode ask --output-format json \"Respond with hello.\"`
+                              ? uiTextFormat("__PCVAR0__ -p --mode ask --output-format json \"Respond with hello.\"", [effectiveAdapterCommand])
                               : adapterType === "codex_local"
                               ? `${effectiveAdapterCommand} exec --json -`
                               : adapterType === "gemini_local"
-                                ? `${effectiveAdapterCommand} --output-format json "Respond with hello."`
+                                ? uiTextFormat("__PCVAR0__ --output-format json \"Respond with hello.\"", [effectiveAdapterCommand])
                               : adapterType === "kimi_local"
-                                ? `${effectiveAdapterCommand} -p "Respond with hello." --output-format stream-json`
+                                ? uiTextFormat("__PCVAR0__ -p \"Respond with hello.\" --output-format stream-json", [effectiveAdapterCommand])
                               : adapterType === "opencode_local"
-                                ? `${effectiveAdapterCommand} run --format json "Respond with hello."`
-                              : `${effectiveAdapterCommand} --print - --output-format stream-json --verbose`}
+                                ? uiTextFormat("__PCVAR0__ run --format json \"Respond with hello.\"", [effectiveAdapterCommand])
+                              : uiTextFormat("__PCVAR0__ --print - --output-format stream-json --verbose", [effectiveAdapterCommand])}
                           </p>
-                          <p className="text-muted-foreground">
-                            Prompt:{" "}
-                            <span className="font-mono">Respond with hello.</span>
+                          <p className="text-muted-foreground">{uiText("Prompt:")}{" "}
+                            <span className="font-mono">{uiText("Respond with hello.")}</span>
                           </p>
                           {adapterType === "cursor" ||
                           adapterType === "codex_local" ||
                           adapterType === "gemini_local" ||
                           adapterType === "kimi_local" ||
                           adapterType === "opencode_local" ? (
-                            <p className="text-muted-foreground">
-                              If auth fails, set{" "}
+                            <p className="text-muted-foreground">{uiText("If auth fails, set")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
                                   ? "CURSOR_API_KEY"
@@ -3005,27 +3035,23 @@ function OnboardingWizardInner({
                                     : adapterType === "kimi_local"
                                       ? "KIMI_MODEL_NAME + KIMI_MODEL_API_KEY"
                                     : "OPENAI_API_KEY"}
-                              </span>{" "}
-                              in env or run{" "}
+                              </span>{" "}{uiText("in env or run")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
-                                  ? "agent login"
+                                  ? uiText("agent login")
                                   : adapterType === "codex_local"
                                     ? "codex login"
                                     : adapterType === "gemini_local"
-                                      ? "gemini auth"
+                                      ? uiText("gemini auth")
                                       : adapterType === "kimi_local"
-                                        ? "kimi login"
-                                      : "opencode auth login"}
+                                        ? uiText("kimi login")
+                                      : uiText("opencode auth login")}
                               </span>
                               .
                             </p>
                           ) : (
-                            <p className="text-muted-foreground">
-                              If login is required, run{" "}
-                              <span className="font-mono">claude login</span>{" "}
-                              and retry.
-                            </p>
+                            <p className="text-muted-foreground">{uiText("If login is required, run")}{" "}
+                              <span className="font-mono">claude login</span>{" "}{uiText("and retry.")}{" "}</p>
                           )}
                         </div>
                       )}
@@ -3037,8 +3063,8 @@ function OnboardingWizardInner({
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">
                         {adapterType === "openclaw_gateway"
-                          ? "Gateway URL"
-                          : "Webhook URL"}
+                          ? uiText("Gateway URL")
+                          : uiText("Webhook URL")}
                       </label>
                       <input
                         className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
@@ -3082,8 +3108,9 @@ function OnboardingWizardInner({
                       ? unwindConnectStep
                       : canGoBackFromOnboardingStep({ currentStep: step, entryStep })
                         ? () => setStep(backStepFrom(step))
-                        : undefined
+                        : requestClose
                   }
+                  backLabel={step===4&&connectPhase!=="idle"||canGoBackFromOnboardingStep({currentStep:step,entryStep})?"上一步":"取消并返回"}
                   // The prototype's cloud flow hires on this step and calls the
                   // action "Create". Here the model step sits between, so this
                   // one advances — which is exactly the distinction the
@@ -3100,10 +3127,10 @@ function OnboardingWizardInner({
                   primaryIcon={step === 4 ? connectCta.icon : undefined}
                   loadingLabel={
                     step === 1
-                      ? "Creating..."
+                      ? uiText("Creating...")
                       : step === 4
-                        ? "Connecting"
-                        : "Launching..."
+                        ? uiText("Connecting")
+                        : uiText("Launching...")
                   }
                   // The browser-code login is finished on this screen, so the
                   // button is genuinely busy for its duration and shows it. The
@@ -3136,6 +3163,10 @@ function OnboardingWizardInner({
             </div>
           </div>
         </div>
+        </DialogPrimitive.Content>
+        <AlertDialog open={exitConfirmation} onOpenChange={setExitConfirmation}>
+          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>退出当前向导？</AlertDialogTitle><AlertDialogDescription>{createdCompanyId?"已创建的组织、智能体和任务会保留，可从组织列表继续配置。尚未保存的输入将丢弃。":"尚未保存的输入将丢弃，退出不会创建组织。"}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>继续配置</AlertDialogCancel><AlertDialogAction onClick={handleClose}>退出并返回</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        </AlertDialog>
       </DialogPortal>
     </Dialog>
   );
@@ -3185,7 +3216,7 @@ function AdapterEnvironmentResult({
             )}
             {check.hint && (
               <span className="block opacity-90 break-words">
-                Hint: {check.hint}
+                {uiText("Hint:")} {check.hint}
               </span>
             )}
           </div>

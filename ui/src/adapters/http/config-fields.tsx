@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { configFieldsForSection } from "../config-sections";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
@@ -19,7 +20,7 @@ export function HttpConfigFields({
   mark,
 }: AdapterConfigFieldsProps) {
   return configFieldsForSection(section, (
-    <Field label="Webhook URL" hint={help.webhookUrl}>
+    <Field label={uiText("Webhook URL")} hint={help.webhookUrl}>
       <DraftInput
         value={
           isCreate

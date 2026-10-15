@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useCallback } from "react";
 import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import type { IssueRetryNowOutcome, IssueRetryNowResponse } from "@paperclipai/shared";
@@ -38,7 +39,7 @@ export function useRetryNowMutation(
 
   const mutation = useMutation({
     mutationFn: () => {
-      if (!issueId) throw new Error("Missing issue id");
+      if (!issueId) throw new Error(uiText("Missing issue id"));
       return issuesApi.retryScheduledRetryNow(issueId);
     },
     onSuccess: (response) => {
@@ -65,7 +66,7 @@ export function useRetryNowMutation(
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn't retry now",
+        title: uiText("Couldn't retry now"),
         body: readErrorMessage(error),
         tone: "error",
       });

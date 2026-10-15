@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { HeartbeatRunEvent } from "@paperclipai/shared";
 import type { TranscriptEntry } from "@/adapters";
 
@@ -811,7 +812,7 @@ export function nativeRunEventsToTranscript(events: readonly HeartbeatRunEvent[]
         family: "provider_notice",
         eventType: event.eventType,
         status: payload.severity === "error" ? "failed" : "informational",
-        title: "Provider notice",
+        title: uiText("Provider notice"),
         summary: text(payload.summary)?.trim() || text(payload.message)?.trim() || "Provider notice",
         payload,
       });
@@ -1057,7 +1058,7 @@ export function nativeRunEventsToTranscript(events: readonly HeartbeatRunEvent[]
     entries.push({
       kind: "result",
       ...cumulativeUsageSummary,
-      text: "Provider-reported session-cumulative usage; a per-run delta was unavailable.",
+      text: uiText("Provider-reported session-cumulative usage; a per-run delta was unavailable."),
       subtype: "paperclip_runner_session_usage",
       isError: false,
       errors: [],

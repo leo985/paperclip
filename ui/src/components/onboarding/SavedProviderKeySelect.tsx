@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { aiConnectionsApi } from "@/api/ai-connections";
 import type { AiProvider } from "@paperclipai/shared";
 import { useQuery } from "@tanstack/react-query";
@@ -91,9 +92,9 @@ export function SavedProviderKeySelect({
     <div className="space-y-2">
       {options.length > 0 && (
         <label className="block space-y-2 text-sm">
-          <span>{kind === "api" ? "API key" : "Subscription"}</span>
+          <span>{kind === "api" ? uiText("API key") : uiText("Subscription")}</span>
           <select
-            aria-label={kind === "api" ? "Saved API key" : "Saved subscription"}
+            aria-label={kind === "api" ? uiText("Saved API key") : uiText("Saved subscription")}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={value}
             onChange={(event) => onChange(event.target.value)}
@@ -106,27 +107,20 @@ export function SavedProviderKeySelect({
             ))}
             <option value="">
               {kind === "api"
-                ? "Enter a new API key"
-                : "Sign in to another account"}
+                ? uiText("Enter a new API key")
+                : uiText("Sign in to another account")}
             </option>
           </select>
         </label>
       )}
       {loading && (
-        <p role="status" className="text-sm text-muted-foreground">
-          Checking saved API keys…
-        </p>
+        <p role="status" className="text-sm text-muted-foreground">{uiText("Checking saved API keys…")}{" "}</p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-destructive">
-          Some saved keys could not be loaded. You can still enter a new key.
-        </p>
+        <p role="alert" className="text-sm text-destructive">{uiText("Some saved keys could not be loaded. You can still enter a new key.")}{" "}</p>
       )}
       {value && (
-        <p className="text-sm text-muted-foreground">
-          Reuse this saved {kind === "api" ? "key" : "subscription"} for this
-          agent.
-        </p>
+        <p className="text-sm text-muted-foreground">{uiText("Reuse this saved")}{" "}{kind === "api" ? "key" : "subscription"}{" "}{uiText("for this agent.")}{" "}</p>
       )}
     </div>
   );

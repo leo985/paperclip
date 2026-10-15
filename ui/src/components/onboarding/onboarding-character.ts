@@ -1,3 +1,4 @@
+import { uiTextFormat } from "@/i18n/interface";
 import type { AgentAppearance, CharacterPaletteId } from "@paperclipai/shared";
 import { CAP_V1_COLORS } from "@paperclipai/shared/cliplab/palette-tokens";
 import type { Definition } from "@paperclipai/shared/cliplab/model";
@@ -26,7 +27,7 @@ export function resolveOnboardingSequences(definition: Pick<Definition, "animati
   const asleep = ids.includes(ASLEEP_ID) ? ASLEEP_ID : undefined;
   const awake = ids.includes(AWAKE_ID) ? AWAKE_ID : undefined;
   if (!wake || !asleep || !awake) {
-    throw new Error(`Onboarding character export needs a looping "${ASLEEP_ID}", a looping "${AWAKE_ID}" and one non-looping wake animation; found: ${ids.join(", ") || "none"}`);
+    throw new Error(uiTextFormat("Onboarding character export needs a looping \"__PCVAR0__\", a looping \"__PCVAR1__\" and one non-looping wake animation; found: __PCVAR2__", [ASLEEP_ID, AWAKE_ID, ids.join(", ") || "none"]));
   }
   return { asleep, wake, awake };
 }

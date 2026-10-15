@@ -1,3 +1,5 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { localizedRole,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
@@ -89,6 +91,7 @@ function scoreProjectMatch(name: string, description: string, q: string): number
 }
 
 export function CommandPalette() {
+  const { canManage } = useManagementAccess();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -223,7 +226,7 @@ export function CommandPalette() {
         if (v && isMobile) setSidebarOpen(false);
       }}>
       <CommandInput
-        placeholder="Search tasks, agents, projects..."
+        placeholder={uiText("Search tasks, agents, projects...")}
         value={query}
         onValueChange={setQuery}
         onKeyDown={(event) => {
@@ -241,13 +244,11 @@ export function CommandPalette() {
       <CommandList>
         <CommandEmpty>
           {showSearchAll ? (
-            <span>
-              No quick task matches. Press{" "}
+            <span>{uiText("No quick task matches. Press")}{" "}
               <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-(length:--text-nano)">↵</kbd>{" "}
-              to <span className="font-medium">search all</span> or keep typing to refine.
-            </span>
+              to <span className="font-medium">{uiText("search all")}</span>{" "}{uiText("or keep typing to refine.")}{" "}</span>
           ) : (
-            "No results found."
+            uiText("No results found.")
           )}
         </CommandEmpty>
 
@@ -260,11 +261,10 @@ export function CommandPalette() {
               data-testid="command-search-all"
             >
               <Search className="mr-2 h-4 w-4" />
-              <span className="flex-1 truncate">
-                Search all for <span className="font-semibold">&ldquo;{searchQuery}&rdquo;</span>
+              <span className="flex-1 truncate">{uiText("Search all for")}{" "}<span className="font-semibold">&ldquo;{searchQuery}&rdquo;</span>
               </span>
               <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <span>open full search</span>
+                <span>{uiText("open full search")}</span>
                 <kbd className="rounded border border-border bg-background px-1 py-0.5 text-(length:--text-nano)">↵</kbd>
               </span>
             </CommandItem>
@@ -317,11 +317,11 @@ export function CommandPalette() {
           <CommandItem
             onSelect={() => {
               setOpen(false);
-              openNewIssue();
+              navigate("/jira-intake");
             }}
           >
             <SquarePen className="mr-2 h-4 w-4" />
-            Create new task
+            接入 Jira 工单
             <span className="ml-auto text-xs text-muted-foreground">C</span>
           </CommandItem>
           {onIssueDetail && fileViewerEnabled && (
@@ -331,24 +331,22 @@ export function CommandPalette() {
                 window.dispatchEvent(new CustomEvent("paperclip:open-file-viewer"));
               }}
             >
-              <FileCode2 className="mr-2 h-4 w-4" />
-              Open file in this issue...
-              <span className="ml-auto text-xs text-muted-foreground">g f</span>
+              <FileCode2 className="mr-2 h-4 w-4" />{uiText("Open file in this issue...")}{" "}<span className="ml-auto text-xs text-muted-foreground">g f</span>
             </CommandItem>
           )}
-          <CommandItem
+          {canManage && <CommandItem
             onSelect={() => {
               setOpen(false);
               openNewAgent();
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create new agent
-          </CommandItem>
-          <CommandItem onSelect={() => go("/projects")}>
+            创建执行智能体
+          </CommandItem>}
+          {canManage && <CommandItem onSelect={() => go("/projects")}>
             <Plus className="mr-2 h-4 w-4" />
-            Create new project
-          </CommandItem>
+            创建项目
+          </CommandItem>}
         </CommandGroup>
 
         <CommandSeparator />
@@ -356,36 +354,36 @@ export function CommandPalette() {
         <CommandGroup heading="Pages">
           <CommandItem onSelect={() => go("/dashboard")}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
+            {uiText("Dashboard")}
           </CommandItem>
           <CommandItem onSelect={() => go("/inbox")}>
             <Inbox className="mr-2 h-4 w-4" />
-            Inbox
+            {uiText("Inbox")}
           </CommandItem>
           <CommandItem onSelect={() => go("/issues")}>
             <CircleDot className="mr-2 h-4 w-4" />
-            Tasks
+            {uiText("Tasks")}
           </CommandItem>
           <CommandItem onSelect={() => go("/projects")}>
             <Hexagon className="mr-2 h-4 w-4" />
-            Projects
+            {uiText("Projects")}
           </CommandItem>
-          <CommandItem onSelect={() => go("/goals")}>
+          {canManage && <CommandItem onSelect={() => go("/goals")}>
             <Target className="mr-2 h-4 w-4" />
-            Goals
-          </CommandItem>
-          <CommandItem onSelect={() => go("/agents")}>
+            {uiText("Goals")}
+          </CommandItem>}
+          {canManage && <CommandItem onSelect={() => go("/agents")}>
             <Bot className="mr-2 h-4 w-4" />
-            Agents
-          </CommandItem>
-          <CommandItem onSelect={() => go("/costs")}>
+            {uiText("Agents")}
+          </CommandItem>}
+          {canManage && <CommandItem onSelect={() => go("/costs")}>
             <DollarSign className="mr-2 h-4 w-4" />
-            Costs
-          </CommandItem>
-          <CommandItem onSelect={() => go("/activity")}>
+            {uiText("Costs")}
+          </CommandItem>}
+          {canManage && <CommandItem onSelect={() => go("/activity")}>
             <History className="mr-2 h-4 w-4" />
-            Activity
-          </CommandItem>
+            {uiText("Activity")}
+          </CommandItem>}
         </CommandGroup>
 
         {visibleIssues.length > 0 && (
@@ -417,7 +415,7 @@ export function CommandPalette() {
           </>
         )}
 
-        {agents.length > 0 && (
+        {canManage && agents.length > 0 && (
           <>
             <CommandSeparator />
             <CommandGroup heading="Agents">
@@ -425,7 +423,7 @@ export function CommandPalette() {
                 <CommandItem key={agent.id} onSelect={() => go(agentUrl(agent))}>
                   <Bot className="mr-2 h-4 w-4" />
                   {agent.name}
-                  <span className="text-xs text-muted-foreground ml-2">{agent.role}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{localizedRole(agent.role)}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useMemo, useState, type DragEvent, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { IssueAttachment } from "@paperclipai/shared";
@@ -39,7 +40,7 @@ async function fetchAttachmentText(attachment: IssueAttachment) {
     headers: { Accept: "text/markdown,text/plain;q=0.9,*/*;q=0.1" },
   });
   if (!response.ok) {
-    throw new Error(`Unable to load attachment preview (${response.status})`);
+    throw new Error(uiTextFormat("Unable to load attachment preview (__PCVAR0__)", [response.status]));
   }
   return response.text();
 }
@@ -62,20 +63,20 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Browse gallery"
-          aria-label={`Browse ${filename} in gallery`}
+          title={uiText("Browse gallery")}
+          aria-label={uiTextFormat("Browse __PCVAR0__ in gallery", [filename])}
           onClick={() => onPreview(attachment)}
         >
           <Maximize2 className="h-4 w-4" />
         </Button>
       ) : null}
-      <Button asChild variant="ghost" size="icon-sm" title="Open in new tab">
-        <a href={attachmentOpenPath(attachment)} target="_blank" rel="noreferrer" aria-label={`Open ${filename}`}>
+      <Button asChild variant="ghost" size="icon-sm" title={uiText("Open in new tab")}>
+        <a href={attachmentOpenPath(attachment)} target="_blank" rel="noreferrer" aria-label={uiTextFormat("Open __PCVAR0__", [filename])}>
           <ExternalLink className="h-4 w-4" />
         </a>
       </Button>
-      <Button asChild variant="ghost" size="icon-sm" title="Download">
-        <a href={attachmentDownloadPath(attachment)} aria-label={`Download ${filename}`}>
+      <Button asChild variant="ghost" size="icon-sm" title={uiText("Download")}>
+        <a href={attachmentDownloadPath(attachment)} aria-label={uiTextFormat("Download __PCVAR0__", [filename])}>
           <Download className="h-4 w-4" />
         </a>
       </Button>
@@ -83,7 +84,7 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Delete attachment"
+          title={uiText("Delete attachment")}
           className="text-muted-foreground hover:text-destructive"
           onClick={() => onDelete(attachment.id)}
           disabled={deletePending}
@@ -97,8 +98,7 @@ function AttachmentActions({
 
 function AttachmentMeta({ attachment }: { attachment: IssueAttachment }) {
   return (
-    <p className="mt-0.5 text-(length:--text-micro) text-muted-foreground">
-      Attachment · {attachment.contentType} · {formatBytes(attachment.byteSize)}
+    <p className="mt-0.5 text-(length:--text-micro) text-muted-foreground">{uiText("Attachment ·")}{" "}{attachment.contentType} · {formatBytes(attachment.byteSize)}
     </p>
   );
 }
@@ -132,9 +132,9 @@ function MarkdownAttachmentCard({
       </div>
       <div className="mt-3 rounded-md hover:bg-accent/10">
         {isLoading ? (
-          <p className="px-1 py-2 text-xs text-muted-foreground">Loading preview...</p>
+          <p className="px-1 py-2 text-xs text-muted-foreground">{uiText("Loading preview...")}</p>
         ) : error ? (
-          <p className="px-1 py-2 text-xs text-destructive">Could not load markdown preview.</p>
+          <p className="px-1 py-2 text-xs text-destructive">{uiText("Could not load markdown preview.")}</p>
         ) : (
           <FoldCurtain>
             <MarkdownBody className="paperclip-edit-in-place-content min-h-(--sz-220px) text-sm leading-7" softBreaks={false}>
@@ -201,8 +201,7 @@ function GenericAttachmentRow({
         >
           {filename}
         </a>
-        <p className="truncate text-(length:--text-micro) text-muted-foreground">
-          Attachment · {attachment.contentType} · {formatBytes(attachment.byteSize)}
+        <p className="truncate text-(length:--text-micro) text-muted-foreground">{uiText("Attachment ·")}{" "}{attachment.contentType} · {formatBytes(attachment.byteSize)}
         </p>
       </div>
       <AttachmentActions attachment={attachment} onDelete={onDelete} deletePending={deletePending} />
@@ -266,7 +265,7 @@ export function IssueAttachmentsSection({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Paperclip className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-          <h3 className="text-sm font-medium text-muted-foreground">Attachments</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">{uiText("Attachments")}</h3>
           <span className="text-xs text-muted-foreground">{attachments.length}</span>
         </div>
         {uploadButton}
@@ -297,7 +296,7 @@ export function IssueAttachmentsSection({
                   className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <p className="text-xs font-medium text-white">Delete?</p>
+                  <p className="text-xs font-medium text-white">{uiText("Delete?")}</p>
                   <div className="flex gap-1.5">
                     <button
                       type="button"
@@ -308,7 +307,7 @@ export function IssueAttachmentsSection({
                       }}
                       disabled={deletePending}
                     >
-                      Yes
+                      {uiText("Yes")}
                     </button>
                     <button
                       type="button"
@@ -318,7 +317,7 @@ export function IssueAttachmentsSection({
                         setConfirmDeleteId(null);
                       }}
                     >
-                      No
+                      {uiText("No")}
                     </button>
                   </div>
                 </div>
@@ -330,7 +329,7 @@ export function IssueAttachmentsSection({
                     event.stopPropagation();
                     requestDelete(attachment.id);
                   }}
-                  title="Delete attachment"
+                  title={uiText("Delete attachment")}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -382,13 +381,13 @@ export function IssueAttachmentsSection({
 
       {onDelete && confirmDeleteId && !imageAttachments.some((attachment) => attachment.id === confirmDeleteId) ? (
         <div className="flex items-center justify-between gap-3 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3">
-          <p className="text-sm font-medium text-destructive">Delete this attachment? This cannot be undone.</p>
+          <p className="text-sm font-medium text-destructive">{uiText("Delete this attachment? This cannot be undone.")}</p>
           <div className="flex shrink-0 items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} disabled={deletePending}>
-              Cancel
+              {uiText("Cancel")}
             </Button>
             <Button variant="destructive" size="sm" onClick={() => confirmDelete(confirmDeleteId)} disabled={deletePending}>
-              {deletePending ? "Deleting..." : "Delete"}
+              {deletePending ? uiText("Deleting...") : uiText("Delete")}
             </Button>
           </div>
         </div>

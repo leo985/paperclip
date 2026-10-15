@@ -1,3 +1,4 @@
+import { uiTextFormat,  localizedStatus, uiText } from "@/i18n/interface";
 import type { ExecutionProjection } from "@paperclipai/shared";
 import type {
   ReasoningMessagePart,
@@ -551,7 +552,7 @@ function authorNameForComment(
 }
 
 function formatStatusLabel(status: string) {
-  return status.replace(/_/g, " ");
+  return localizedStatus(status);
 }
 
 function createCommentMessage(args: {
@@ -821,7 +822,7 @@ function runDurationLabel(run: {
       }
       return durationText ? `Cancelled after ${durationText}` : "Run cancelled";
     case "queued":
-      return "Queued";
+      return uiText("Queued");
     case "running":
       return "Working...";
     default:
@@ -835,7 +836,7 @@ function createHistoricalRunMessage(run: IssueChatLinkedRun, agentMap?: Map<stri
     id: `run:${run.runId}`,
     role: "system",
     createdAt: toDate(runTimestamp(run)),
-    content: [{ type: "text", text: `${agentName} run ${run.runId.slice(0, 8)} ${formatStatusLabel(run.status)}` }],
+    content: [{ type: "text", text: uiTextFormat("__PCVAR0__ run __PCVAR1__ __PCVAR2__", [agentName, run.runId.slice(0, 8), formatStatusLabel(run.status)]) }],
     metadata: {
       custom: {
         kind: "run",
@@ -935,7 +936,7 @@ export function buildAssistantPartsFromTranscript(entries: readonly IssueChatTra
         family: entry.family ?? "provider_notice",
         eventType: entry.eventType ?? "provider.notice.recorded",
         status: entry.status ?? "informational",
-        title: entry.title ?? "Provider activity",
+        title: entry.title ?? uiText("Provider activity"),
         summary: entry.summary ?? "",
         payload: entry.payload ?? {},
       });
@@ -1009,7 +1010,7 @@ export function buildAssistantPartsFromTranscript(entries: readonly IssueChatTra
     if (entry.kind === "result") {
       if (entry.isError && entry.errors?.length) {
         for (const error of entry.errors) {
-          orderedParts.push({ type: "reasoning", text: `Run error: ${summarizeNotice(error)}` });
+          orderedParts.push({ type: "reasoning", text: uiTextFormat("Run error: __PCVAR0__", [summarizeNotice(error)]) });
         }
       } else if (entry.text) {
         orderedParts.push({

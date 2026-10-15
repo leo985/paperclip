@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { EmailMessageCard } from "./EmailMessageCard";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -81,35 +82,34 @@ function EmailDelivery({
     <div className="space-y-2 text-xs text-muted-foreground">
       {p.request && !p.providerMessageId && (
         <article
-          aria-label="Email send intent"
+          aria-label={uiText("Email send intent")}
           className="space-y-3 rounded-lg border border-border p-4"
         >
-          <p className="font-semibold">{p.request.subject ?? "Email reply"}</p>
-          {p.request.to && <p>To: {p.request.to.join(", ")}</p>}
+          <p className="font-semibold">{p.request.subject ?? uiText("Email reply")}</p>
+          {p.request.to && <p>{uiText("To:")} {p.request.to.join(", ")}</p>}
           <div className="whitespace-pre-wrap break-words text-sm text-foreground">
             {p.request.text}
           </div>
         </article>
       )}
       <p>
-        Email {p.outcome}
+        {uiText("Email")} {p.outcome}
         {p.error ? ` — ${p.error}` : ""}
       </p>
       {p.outcome === "uncertain" && (
         <details>
           <summary className="cursor-pointer">
-            Resolve delivery after checking AgentMail
+            {uiText("Resolve delivery after checking AgentMail")}
           </summary>
           <div className="space-y-2 py-2">
             <p>
-              Confirm the outcome in AgentMail before resolving. This action
-              does not resend.
+              {uiText("Confirm the outcome in AgentMail before resolving. This action does not resend.")}
             </p>
             <Input
-              aria-label="Provider message ID"
+              aria-label={uiText("Provider message ID")}
               value={messageId}
               onChange={(e) => setMessageId(e.target.value)}
-              placeholder="Provider message ID"
+              placeholder={uiText("Provider message ID")}
             />
             <div className="flex gap-2">
               <Button
@@ -118,7 +118,7 @@ function EmailDelivery({
                 disabled={!messageId || resolve.isPending}
                 onClick={() => resolve.mutate("sent")}
               >
-                Confirm sent
+                {uiText("Confirm sent")}
               </Button>
               <Button
                 size="sm"
@@ -126,7 +126,7 @@ function EmailDelivery({
                 disabled={resolve.isPending}
                 onClick={() => resolve.mutate("failed")}
               >
-                Confirm not sent
+                {uiText("Confirm not sent")}
               </Button>
             </div>
             {resolve.error && (

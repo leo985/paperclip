@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
@@ -37,7 +38,7 @@ const SAMPLE_CONFIG = `{
 /** Turn an env/header key (e.g. `GITHUB_TOKEN`) into a friendly field label. */
 function humanizeKey(raw: string): string {
   const cleaned = raw.replace(/[_-]+/g, " ").trim().toLowerCase();
-  if (!cleaned) return "Key";
+  if (!cleaned) return uiText("Key");
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
@@ -157,7 +158,7 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
   const connectMutation = useMutation({
     mutationFn: (draft: McpJsonImportDraft) => {
       const url = draftConnectUrl(draft);
-      if (!url) throw new Error("Only remote HTTP drafts can be checked and activated from pasted config.");
+      if (!url) throw new Error(uiText("Only remote HTTP drafts can be checked and activated from pasted config."));
       return toolsApi.connectApp(companyId, {
         link: url,
         name: connectionNames[draft.name]?.trim() || draft.name,
@@ -254,16 +255,11 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-5">
       <div className="flex max-w-2xl items-start gap-1.5">
-        <p className="text-sm text-muted-foreground">
-          Paste the MCP config snippet from the tool's README and we'll turn it into a friendly setup.
-        </p>
+        <p className="text-sm text-muted-foreground">{uiText("Paste the MCP config snippet from the tool's README and we'll turn it into a friendly setup.")}{" "}</p>
         <McpConfigHelpDialog />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Just a URL?{" "}
-        <Link to="/apps" className="text-primary hover:underline">
-          Browse planned app connections
-        </Link>{" "}
+      <p className="text-xs text-muted-foreground">{uiText("Just a URL?")}{" "}
+        <Link to="/apps" className="text-primary hover:underline">{uiText("Browse planned app connections")}{" "}</Link>{" "}
         instead.
       </p>
 
@@ -284,9 +280,7 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
         {localParseError ? (
           <p className="text-xs text-amber-600">{localParseError}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            Paste an MCP config — the snippet a README tells you to copy.
-          </p>
+          <p className="text-xs text-muted-foreground">{uiText("Paste an MCP config — the snippet a README tells you to copy.")}{" "}</p>
         )}
       </div>
 
@@ -295,26 +289,20 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
           onClick={() => importMutation.mutate(draftText)}
           disabled={!canSubmit || Boolean(localParseError)}
         >
-          {importMutation.isPending ? "Checking…" : "Check config"}
+          {importMutation.isPending ? uiText("Checking…") : uiText("Check config")}
         </Button>
-        <span className="text-xs text-muted-foreground">
-          We'll read it and show what we found before anything is saved.
-        </span>
+        <span className="text-xs text-muted-foreground">{uiText("We'll read it and show what we found before anything is saved.")}{" "}</span>
       </div>
 
       {importMutation.isError ? <ErrorState error={importMutation.error} /> : null}
 
       {preview ? (
         drafts.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-            We couldn't find an app in that config. Double-check you pasted the whole snippet.
-          </div>
+          <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">{uiText("We couldn't find an app in that config. Double-check you pasted the whole snippet.")}{" "}</div>
         ) : (
           <div className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              We found {drafts.length} {drafts.length === 1 ? "app" : "apps"} in that config
-            </h3>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />{uiText("We found")}{" "}{drafts.length} {drafts.length === 1 ? "app" : "apps"}{" "}{uiText("in that config")}{" "}</h3>
             {drafts.map((draft, index) => {
               const url = draftConnectUrl(draft);
               const missingFields = missingCredentialFields(draft, credentialValues);
@@ -337,15 +325,9 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
               );
             })}
             {drafts.some((d) => draftConnectUrl(d)) ? (
-              <p className="text-xs text-muted-foreground">
-                Checking a remote app creates a draft connection, stores any header replacements as Paperclip secrets,
-                and runs health/catalog discovery before activation.
-              </p>
+              <p className="text-xs text-muted-foreground">{uiText("Checking a remote app creates a draft connection, stores any header replacements as Paperclip secrets, and runs health/catalog discovery before activation.")}{" "}</p>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                We humanized the field names from the config. These run-in-your-workspace tools stay as drafts until an
-                admin maps them to an approved template.
-              </p>
+              <p className="text-xs text-muted-foreground">{uiText("We humanized the field names from the config. These run-in-your-workspace tools stay as drafts until an admin maps them to an approved template.")}{" "}</p>
             )}
           </div>
         )
@@ -402,15 +384,13 @@ function DraftCard({
         </div>
         {onCheck ? (
           <Button size="sm" className="shrink-0" onClick={onCheck} disabled={checking || !canCheck}>
-            {checking ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-            Check actions
-          </Button>
+            {checking ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}{uiText("Check actions")}{" "}</Button>
         ) : null}
       </div>
 
       {onCheck ? (
         <label className="mt-4 block max-w-sm space-y-1 text-xs font-medium text-foreground">
-          Connection name
+          {uiText("Connection name")}
           <Input
             value={connectionName}
             onChange={(event) => onConnectionNameChange(event.target.value)}
@@ -436,7 +416,7 @@ function DraftCard({
                   type="password"
                   value={credentialValues[credentialValueKey(draft, field.configPath)] ?? ""}
                   onChange={(event) => onCredentialChange(field.configPath, event.target.value)}
-                  placeholder="Paste replacement value"
+                  placeholder={uiText("Paste replacement value")}
                   className="h-8 max-w-sm text-xs"
                 />
               </div>
@@ -444,11 +424,9 @@ function DraftCard({
           ))}
         </div>
       ) : draft.credentialRefs.length > 0 ? (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Keys from this config stay draft-only until an admin maps them to an approved template.
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground">{uiText("Keys from this config stay draft-only until an admin maps them to an approved template.")}{" "}</p>
       ) : (
-        <p className="mt-3 text-xs text-muted-foreground">No keys needed for this one.</p>
+        <p className="mt-3 text-xs text-muted-foreground">{uiText("No keys needed for this one.")}</p>
       )}
 
       {draft.warnings.length > 0 ? (
@@ -489,20 +467,17 @@ function CatalogReview({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
-            Review actions for {result.application.name}
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />{uiText("Review actions for")}{" "}{result.application.name}
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Health and catalog checks passed. Every discovered action starts allowed; you can narrow access after activation.
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{uiText("Health and catalog checks passed. Every discovered action starts allowed; you can narrow access after activation.")}{" "}</p>
         </div>
         <Button size="sm" onClick={onFinish} disabled={finishing || enabledCount === 0 || Boolean(activatedName)}>
           {finishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-          Activate {enabledCount} of {total}
+          {uiText("Activate")} {enabledCount} of {total}
         </Button>
       </div>
       <ActionGroup
-        title="Read-only"
+        title={uiText("Read-only")}
         actions={result.actions.readOnly}
         enabled={enabled}
         onToggle={onToggle}
@@ -510,7 +485,7 @@ function CatalogReview({
         askFirstLevels={askFirstLevels}
       />
       <ActionGroup
-        title="Can make changes"
+        title={uiText("Can make changes")}
         actions={result.actions.canMakeChanges}
         enabled={enabled}
         onToggle={onToggle}
@@ -518,7 +493,7 @@ function CatalogReview({
         askFirstLevels={askFirstLevels}
       />
       {activatedName ? (
-        <p className="text-xs font-medium text-emerald-700">{activatedName} is active for all agents.</p>
+        <p className="text-xs font-medium text-emerald-700">{activatedName}{" "}{uiText("is active for all agents.")}</p>
       ) : null}
     </div>
   );
@@ -545,12 +520,8 @@ function ActionGroup({
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</div>
         <div className="flex gap-2">
-          <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onBulk(true)}>
-            Turn all on
-          </Button>
-          <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onBulk(false)}>
-            Turn all off
-          </Button>
+          <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onBulk(true)}>{uiText("Turn all on")}{" "}</Button>
+          <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onBulk(false)}>{uiText("Turn all off")}{" "}</Button>
         </div>
       </div>
       <div className="divide-y divide-border rounded-lg border border-border">
@@ -561,7 +532,7 @@ function ActionGroup({
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-foreground">{action.title || action.toolName}</div>
                 <div className="truncate text-xs text-muted-foreground">
-                  {askFirstLevels.includes(action.riskLevel) ? "Ask first when enabled" : action.riskLevel}
+                  {askFirstLevels.includes(action.riskLevel) ? uiText("Ask first when enabled") : action.riskLevel}
                 </div>
               </div>
               <ToggleSwitch checked={on} onCheckedChange={(next) => onToggle(action.catalogEntryId, next)} />

@@ -1,4 +1,9 @@
+import { FocusedSidebar } from "./FocusedSidebar";
+import { PlatformBrand } from "./PlatformBrand";
+import { SeatAttentionNav } from "./SeatAttentionNav";
+import { uiText } from "@/i18n/interface";
 import {
+  BookOpen,
   Inbox,
   ListChecks,
   CircleCheck,
@@ -51,6 +56,10 @@ import { SidebarCompanyMenu } from "./SidebarCompanyMenu";
 import { primarySidebarStyles } from "./primary-sidebar-styles";
 
 export function Sidebar({ children }: { children?: ReactNode }) {
+  return <FocusedSidebar />;
+}
+
+function LegacySidebar({ children }: { children?: ReactNode }) {
   const { openNewIssue } = useDialogActions();
   const { enabled: agentChatEnabled } = useAgentChatEnabled();
   // Every labeled section is collapsible (session-scoped, default open) —
@@ -119,18 +128,19 @@ export function Sidebar({ children }: { children?: ReactNode }) {
   return (
     <aside
       className={cn(
-        "w-full h-full min-h-0 flex flex-col",
+        "platform-sidebar w-full h-full min-h-0 flex flex-col",
         streamlinedUiEnabled
           ? primarySidebarStyles.surface
           : "border-r border-border bg-background",
       )}
     >
+      <PlatformBrand compact={rail} />
       {/* Top bar: company name, aligned with top sections and borderless.
           Search deliberately does NOT live here:
           the header's spare width goes to the workspace/organization name,
           which is the user's orientation anchor and truncates otherwise.
           Search is the first nav item below instead. */}
-      <div className="flex h-(--sz-60px) shrink-0 items-center gap-1 px-3">
+      <div className="flex h-(--sz-60px) shrink-0 items-center gap-1 px-3 border-y border-border/70">
         <SidebarCompanyMenu />
       </div>
 
@@ -142,19 +152,19 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               <button
                 onClick={() => openNewIssue()}
                 data-slot="icon-button"
-                aria-label={rail ? "New Task" : undefined}
+                aria-label={rail ? uiText("New Task") : undefined}
                 className={cn(
                   "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
                 <SquarePen className="h-4 w-4 shrink-0" />
-                <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>New Task</span>
+                <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>{uiText("New Task")}</span>
               </button>
             );
             return rail ? (
               <Tooltip>
                 <TooltipTrigger asChild>{newTaskButton}</TooltipTrigger>
-                <TooltipContent side="right">New Task</TooltipContent>
+                <TooltipContent side="right">{uiText("New Task")}</TooltipContent>
               </Tooltip>
             ) : (
               newTaskButton
@@ -164,52 +174,52 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               width; a nav row also keeps search reachable from the
               collapsed rail, where the old header icon was dropped entirely.
               Cmd/Ctrl+K remains the keyboard path (command palette). */}
-          <SidebarNavItem to="/search" label="Search" icon={Search} />
-          <SidebarNavItem to="/dashboard" label="Dashboard" icon={LayoutDashboard} liveCount={liveRunCount} />
+          <SidebarNavItem to="/search" label={uiText("Search")} icon={Search} />
+          <SidebarNavItem to="/dashboard" label={uiText("Dashboard")} icon={LayoutDashboard} liveCount={liveRunCount} />
           <SidebarNavItem
             to="/inbox"
-            label="Inbox"
+            label={uiText("Inbox")}
             icon={Inbox}
             badge={inboxBadge.inbox}
-            badgeLabel="unread"
+            badgeLabel={uiText("unread")}
             badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
             alert={inboxBadge.failedRuns > 0}
           />
           {showDecisions ? (
             <SidebarNavItem
               to="/decisions"
-              label="Decisions"
+              label={uiText("Decisions")}
               icon={ListChecks}
               badge={attentionCount}
-              badgeLabel="decisions"
+              badgeLabel={uiText("decisions")}
             />
           ) : null}
           {showStatusCards ? (
-            <SidebarNavItem to="/status" label="Status" icon={LayoutGrid} textBadge="beta" />
+            <SidebarNavItem to="/status" label={uiText("Status")} icon={LayoutGrid} textBadge={uiText("beta")} />
           ) : null}
           {conferenceRoomChatEnabled ? (
-            <SidebarNavItem to="/board-chat" label="Conference Room" icon={MessagesSquare} />
+            <SidebarNavItem to="/board-chat" label={uiText("Conference Room")} icon={MessagesSquare} />
           ) : null}
         </div>
 
-        <SidebarSection label="Work" collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}>
-          <SidebarNavItem to="/issues" label="Tasks" icon={CircleCheck} />
+        <SidebarSection label={uiText("Work")} collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}>
+          <SidebarNavItem to="/issues" label={uiText("Tasks")} icon={CircleCheck} />
           {streamlinedUiEnabled ? (
             <>
-              <SidebarNavItem to="/projects" label="Projects" icon={FolderOpen} />
+              <SidebarNavItem to="/projects" label={uiText("Projects")} icon={FolderOpen} />
               <SidebarStarredProjects />
             </>
           ) : null}
-          <SidebarNavItem to="/routines" label="Routines" icon={Repeat} />
-          <SidebarNavItem to="/artifacts" label="Artifacts" icon={Package} />
+          <SidebarNavItem to="/routines" label={uiText("Routines")} icon={Repeat} />
+          <SidebarNavItem to="/artifacts" label={uiText("Artifacts")} icon={Package} />
           {showCases ? (
-            <SidebarNavItem to="/cases" label="Cases" icon={Layers} textBadge="beta" />
+            <SidebarNavItem to="/cases" label={uiText("Cases")} icon={Layers} textBadge={uiText("beta")} />
           ) : null}
           {showPipelines ? (
-            <SidebarNavItem to="/pipelines" label="Pipelines" icon={GitBranch} />
+            <SidebarNavItem to="/pipelines" label={uiText("Pipelines")} icon={GitBranch} />
           ) : null}
           {showGoalsLink ? (
-            <SidebarNavItem to="/goals" label="Goals" icon={Target} />
+            <SidebarNavItem to="/goals" label={uiText("Goals")} icon={Target} />
           ) : goalsLinkPending ? (
             <div
               data-testid="sidebar-goals-placeholder"
@@ -218,7 +228,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             />
           ) : null}
           {showWorkspacesLink ? (
-            <SidebarNavItem to="/workspaces" label="Workspaces" icon={GitBranch} />
+            <SidebarNavItem to="/workspaces" label={uiText("Workspaces")} icon={GitBranch} />
           ) : null}
           <PluginSlotOutlet
             slotTypes={["sidebar"]}
@@ -237,13 +247,13 @@ export function Sidebar({ children }: { children?: ReactNode }) {
 
         {streamlinedUiEnabled ? (
           <SidebarSection
-            label="Org"
+            label={uiText("Org")}
             collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
           >
-            <SidebarNavItem to="/agents" label="Agents" icon={Users} />
-            <SidebarNavItem to="/skills" label="Skills" icon={Boxes} />
-            <SidebarNavItem to="/apps" label="Connectors" icon={Unplug} />
-            <SidebarNavItem to="/activity" label="Audit" icon={History} />
+            <SidebarNavItem to="/agents" label={uiText("Agents")} icon={Users} />
+            <SidebarNavItem to="/skills" label={uiText("Skills")} icon={Boxes} />
+            <SidebarNavItem to="/apps" label={uiText("Connectors")} icon={Unplug} />
+            <SidebarNavItem to="/activity" label={uiText("Audit")} icon={History} />
           </SidebarSection>
         ) : null}
 
@@ -257,19 +267,21 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             <SidebarProjects />
             <SidebarAgents />
             <SidebarSection
-              label="Organization"
+              label={uiText("Organization")}
               collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
             >
-              <SidebarNavItem to="/org" label="Org" icon={Network} />
-              <SidebarNavItem to="/apps" label="Connectors" icon={Unplug} />
-              <SidebarNavItem to="/timeline" label="Timeline" icon={GanttChartSquare} />
-              <SidebarNavItem to="/costs" label="Costs" icon={DollarSign} />
-              <SidebarNavItem to="/activity" label="Activity" icon={History} />
-              <SidebarNavItem to="/company/settings" label="Settings" icon={Settings} />
+              <SidebarNavItem to="/org" label={uiText("Org")} icon={Network} />
+              <SidebarNavItem to="/apps" label={uiText("Connectors")} icon={Unplug} />
+              <SidebarNavItem to="/timeline" label={uiText("Timeline")} icon={GanttChartSquare} />
+              <SidebarNavItem to="/costs" label={uiText("Costs")} icon={DollarSign} />
+              <SidebarNavItem to="/activity" label={uiText("Activity")} icon={History} />
+              <SidebarNavItem to="/company/settings" label={uiText("Settings")} icon={Settings} />
             </SidebarSection>
           </>
         )}
 
+        <SeatAttentionNav />
+        <SidebarNavItem to="/help" label="帮助中心" icon={BookOpen} />
         <PluginSlotOutlet
           slotTypes={["sidebarPanel"]}
           context={pluginContext}

@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 import type { IssueCommentPresentation } from "@paperclipai/shared";
 import type { SystemNoticeTone } from "../components/SystemNotice";
 
@@ -58,19 +59,19 @@ export function humanizeSystemNotice(input: {
 
   if (code === "claude_auth_required") {
     return {
-      title: "Task paused — Claude needs re-authentication",
+      title: uiText("Task paused — Claude needs re-authentication"),
       tone: presentationTone ?? "warning",
     };
   }
   if (code === "configuration_incomplete" || body.includes("secret/env bindings are missing")) {
     return {
-      title: "Task paused — a secret/config binding is missing",
+      title: uiText("Task paused — a secret/config binding is missing"),
       tone: presentationTone ?? "warning",
     };
   }
   if (code === "workspace_validation_failed" || body.includes("workspace failed validation")) {
     return {
-      title: "Task paused — workspace problem",
+      title: uiText("Task paused — workspace problem"),
       tone: presentationTone ?? "warning",
     };
   }
@@ -79,7 +80,7 @@ export function humanizeSystemNotice(input: {
     return {
       title: owner
         ? `Task paused — waiting on ${owner}`
-        : "Task paused — waiting on a recovery owner",
+        : uiText("Task paused — waiting on a recovery owner"),
       tone: presentationTone ?? "warning",
     };
   }

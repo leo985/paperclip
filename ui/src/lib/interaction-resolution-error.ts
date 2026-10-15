@@ -1,3 +1,4 @@
+import { uiText } from "@/i18n/interface";
 /**
  * Plain-language copy for a *failed* issue-thread interaction resolution
  * (PAP-17287).
@@ -143,14 +144,14 @@ export function describeInteractionResolutionFailure(
     return {
       kind: "settled",
       code,
-      message: reason ?? "This request is no longer waiting for a decision.",
+      message: reason ?? uiText("This request is no longer waiting for a decision."),
     };
   }
 
   return {
     kind: "transient",
     code,
-    message: reason ? `${reason} Try again.` : "Couldn't submit. Try again.",
+    message: reason ? `${reason} Try again.` : uiText("Couldn't submit. Try again."),
   };
 }
 

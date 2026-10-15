@@ -1,3 +1,4 @@
+import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { useEffect, useRef, useState } from "react";
 import {
   Check,
@@ -67,21 +68,21 @@ function formatServiceUrl(url: string | null | undefined) {
 function statusMeta(entry: WorkspaceServiceControlEntry): { label: string; unhealthy: boolean } {
   switch (entry.state) {
     case "provisioning":
-      return { label: "Provisioning…", unhealthy: false };
+      return { label: uiText("Provisioning…"), unhealthy: false };
     case "starting":
-      return { label: "Starting…", unhealthy: false };
+      return { label: uiText("Starting…"), unhealthy: false };
     case "stopping":
-      return { label: "Stopping…", unhealthy: false };
+      return { label: uiText("Stopping…"), unhealthy: false };
     case "restarting":
-      return { label: "Restarting…", unhealthy: false };
+      return { label: uiText("Restarting…"), unhealthy: false };
     case "failed":
-      return { label: "Failed", unhealthy: false };
+      return { label: uiText("Failed"), unhealthy: false };
     case "running":
       return entry.healthStatus === "unhealthy"
-        ? { label: "Unhealthy", unhealthy: true }
-        : { label: "Running", unhealthy: false };
+        ? { label: uiText("Unhealthy"), unhealthy: true }
+        : { label: uiText("Running"), unhealthy: false };
     default:
-      return { label: "Stopped", unhealthy: false };
+      return { label: uiText("Stopped"), unhealthy: false };
   }
 }
 
@@ -151,7 +152,7 @@ function UrlSegment({ entry, compact }: { entry: WorkspaceServiceControlEntry; c
   const live = entry.state === "running" && Boolean(entry.url);
 
   if (!displayUrl) {
-    return <span className="font-mono text-xs text-muted-foreground/70">no url</span>;
+    return <span className="font-mono text-xs text-muted-foreground/70">{uiText("no url")}</span>;
   }
   return (
     <>
@@ -181,10 +182,10 @@ function UrlSegment({ entry, compact }: { entry: WorkspaceServiceControlEntry; c
           size="icon-xs"
           disabled={!live}
           className="text-muted-foreground hover:text-foreground"
-          title="Open in new tab"
+          title={uiText("Open in new tab")}
         >
           {live ? (
-            <a href={entry.url ?? undefined} target="_blank" rel="noreferrer" aria-label="Open in new tab">
+            <a href={entry.url ?? undefined} target="_blank" rel="noreferrer" aria-label={uiText("Open in new tab")}>
               <ExternalLink className="size-3" />
             </a>
           ) : (
@@ -214,11 +215,11 @@ function ActionSlots({
         className="w-13 justify-center"
         disabled={!canStart}
         onClick={() => onAction("start")}
-        aria-label="Start"
-        title="Start"
+        aria-label={uiText("Start")}
+        title={uiText("Start")}
       >
         <Play className="size-3" />
-        Start
+        {uiText("Start")}
       </Button>
     );
   }
@@ -231,8 +232,8 @@ function ActionSlots({
           size="icon-xs"
           disabled={!canStart}
           onClick={() => onAction("start")}
-          aria-label="Start"
-          title="Start"
+          aria-label={uiText("Start")}
+          title={uiText("Start")}
         >
           <Play className="size-3" />
         </Button>
@@ -241,8 +242,8 @@ function ActionSlots({
           size="icon-xs"
           disabled={!canStart}
           onClick={() => onAction("restart")}
-          aria-label="Restart"
-          title="Restart"
+          aria-label={uiText("Restart")}
+          title={uiText("Restart")}
           className="border border-border text-foreground"
         >
           <RotateCcw className="size-3" />
@@ -258,8 +259,8 @@ function ActionSlots({
         size="icon-xs"
         disabled={transitional}
         onClick={() => onAction("stop")}
-        aria-label="Stop"
-        title="Stop"
+        aria-label={uiText("Stop")}
+        title={uiText("Stop")}
         className="border border-border text-foreground"
       >
         <Square className="size-3" />
@@ -269,8 +270,8 @@ function ActionSlots({
         size="icon-xs"
         disabled={transitional || !canStart}
         onClick={() => onAction("restart")}
-        aria-label="Restart"
-        title="Restart"
+        aria-label={uiText("Restart")}
+        title={uiText("Restart")}
         className="border border-border text-foreground"
       >
         <RotateCcw className="size-3" />
@@ -300,7 +301,7 @@ function ServiceDetail({
             onClick={onViewLogs}
             className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80"
           >
-            View logs
+            {uiText("View logs")}
           </button>
         </>
       ) : null}
@@ -454,7 +455,7 @@ function MultiServiceBar({
               <button
                 type="button"
                 className="flex h-full items-center gap-2 rounded-l-lg pr-1 text-xs font-medium text-foreground hover:bg-accent"
-                aria-label={`${runningCount} of ${services.length} services running — show services`}
+                aria-label={uiTextFormat("__PCVAR0__ of __PCVAR1__ services running — show services", [runningCount, services.length])}
               >
                 <StatusIndicator entry={aggregateEntry} />
                 <span className="whitespace-nowrap">{runningCount}/{services.length} running</span>
@@ -462,8 +463,7 @@ function MultiServiceBar({
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-96 p-0" onOpenAutoFocus={(event) => event.preventDefault()}>
-              <div className="px-4 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Services · {services.length}
+              <div className="px-4 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">{uiText("Services ·")}{" "}{services.length}
               </div>
               <div className="divide-y divide-border px-4">
                 {services.map((entry) => (
@@ -471,18 +471,16 @@ function MultiServiceBar({
                 ))}
               </div>
               <div className="flex items-center gap-1 border-t border-border px-4 py-2">
-                <Button variant="ghost" size="xs" onClick={() => onAction("start", null)}>Start all</Button>
-                <Button variant="ghost" size="xs" onClick={() => onAction("stop", null)}>Stop all</Button>
-                <Button variant="ghost" size="xs" onClick={() => onAction("restart", null)}>Restart all</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("start", null)}>{uiText("Start all")}</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("stop", null)}>{uiText("Stop all")}</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("restart", null)}>{uiText("Restart all")}</Button>
                 {onManageServices ? (
                   <Button
                     variant="link"
                     size="xs"
                     className="ml-auto text-muted-foreground"
                     onClick={onManageServices}
-                  >
-                    Manage in Services tab →
-                  </Button>
+                  >{uiText("Manage in Services tab →")}{" "}</Button>
                 ) : null}
               </div>
             </PopoverContent>
@@ -495,7 +493,7 @@ function MultiServiceBar({
                 <UrlSegment entry={primary} />
               </>
             ) : (
-              <span className="font-mono text-xs text-muted-foreground/70">no url</span>
+              <span className="font-mono text-xs text-muted-foreground/70">{uiText("no url")}</span>
             )}
           </div>
           <div className="mx-3 hidden h-5 w-px bg-border sm:block" />
