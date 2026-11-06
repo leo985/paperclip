@@ -1,0 +1,27 @@
+{
+  "release": "seat-client-upgrade",
+  "timestamp": "20261021T041134Z",
+  "backup": "/home/fg/paperclip/private/seat-upgrade-backup-20261021T041134Z",
+  "stage": "/home/fg/paperclip/private/seat-upgrade-stage-20261021T041134Z",
+  "archiveSha256": "2332f187e669aa5767ba0b9a6650502b4f785f1f7de032e5dfec0e36c28acc1d",
+  "filesVerified": 432,
+  "filesChanged": 18,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicesUnchanged": true,
+  "databaseMigration": false,
+  "installedClientsUpdated": false,
+  "bridgeSha256": "13cfbbdb9def2ea896f192e6bff29bd01f6ea359e842d27a94130fa036709086"
+}

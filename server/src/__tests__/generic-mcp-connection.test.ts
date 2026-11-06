@@ -540,7 +540,7 @@ describeEmbeddedPostgres("generic remote MCP connections", () => {
     await expect(db.select().from(toolApplications)).resolves.toHaveLength(0);
   });
 
-  it("emits DNS guidance for a real NXDOMAIN failure", async () => {
+  it("emits DNS guidance for an RFC-reserved nonexistent hostname", async () => {
     const company = await createCompany(db);
     const app = createRouteApp(db, {
       deploymentMode: "local_trusted",
@@ -555,7 +555,7 @@ describeEmbeddedPostgres("generic remote MCP connections", () => {
     // same failure from the health check as 502. The machine code is the stable
     // UI contract across both paths.
     expect([400, 502]).toContain(response.status);
-    expect(response.body).toMatchObject({
+    expect(response.body, JSON.stringify(response.body)).toMatchObject({
       details: { code: "remote_http_dns_failed" },
     });
     expect(response.body.error).not.toBe("fetch failed");

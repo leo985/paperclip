@@ -1,0 +1,28 @@
+{
+  "release": "windows-seat-claude-npm-native-entry",
+  "baseline": {
+    "dsp7-install.py": "c0bf3bb50b00c1654689f389236738683b7a5e9904b686cf3a9642d5467150f5",
+    "dsp7-bridge.zip": "45853dd7763f91a389cd5bf3264fe5491cd0f6aec5e9627708ac13e6cc83f4f1",
+    "dsp7-bridge-manifest.json": "fae73a2c4f8353d9cc8488e475ad281a4c7d6d2727bfee69b895776276a90fa1"
+  },
+  "files": {
+    "dsp7-install.py": "c0bf3bb50b00c1654689f389236738683b7a5e9904b686cf3a9642d5467150f5",
+    "dsp7-bridge.zip": "1a9af24e63bf7040a5b457a408f7311e8cb1a003e950a83fbfd5ef550aa6c59e",
+    "dsp7-bridge-manifest.json": "4ac2970b5eadfcd3cbf475b9802991b04376c6796fba591f878ad6cbba35d646"
+  },
+  "bridgeVersion": "1a9af24e63bf7040a5b457a408f7311e8cb1a003e950a83fbfd5ef550aa6c59e",
+  "changedBundleFiles": [
+    "platform_support.py"
+  ],
+  "testCasesPassed": 95,
+  "windowsNativeTestSkipped": true,
+  "userReportedVersion": "2.1.251",
+  "userReportedBin": "bin/claude.exe",
+  "state": "released",
+  "updatedAt": "2026-10-26T08:01:02.477274+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-claude-entry-20261026T080101Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

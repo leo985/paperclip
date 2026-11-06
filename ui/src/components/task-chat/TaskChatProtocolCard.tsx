@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { uiTextFormat,  localizedStatus, uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -619,7 +620,7 @@ function RuntimeQuestionHistory({
           <p className="text-xs text-muted-foreground">
             {item.status === "resolved"
               ? uiText("Answer details were not recorded by this older runtime.")
-              : uiTextFormat("No answers were submitted; this request was __PCVAR0__.", [localizedStatus(item.status)])}
+              : uiTextFormat("No answers were submitted; this request was __PCVAR0__.", [i18n.language.startsWith("en") ? localizedStatus(item.status).toLowerCase() : localizedStatus(item.status)])}
           </p>
         </div>
       )}

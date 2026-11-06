@@ -9783,6 +9783,11 @@ export function issueService(db: Db) {
         }
 
         const defaultCompanyGoal = await getDefaultCompanyGoal(tx, companyId);
+        // External executors can explicitly own their repositories/workspaces.
+        // Keep project attribution without inheriting or selecting an anchor.
+        const skipProjectWorkspaceDefaults =
+          issueData.projectWorkspaceId === null &&
+          issueData.assigneeAdapterOverrides?.useProjectWorkspace === false;
         let projectWorkspaceId = issueData.projectWorkspaceId ?? null;
         let executionWorkspaceId = issueData.executionWorkspaceId ?? null;
         let executionWorkspacePreference =
@@ -9790,7 +9795,7 @@ export function issueService(db: Db) {
         let executionWorkspaceSettings =
           (issueData.executionWorkspaceSettings as
             Record<string, unknown> | null | undefined) ?? null;
-        const workspaceInheritanceIssueId = skipExecutionWorkspaceInheritance
+        const workspaceInheritanceIssueId = skipExecutionWorkspaceInheritance || skipProjectWorkspaceDefaults
           ? null
           : (inheritExecutionWorkspaceFromIssueId ??
             issueData.parentId ??
@@ -9908,6 +9913,7 @@ export function issueService(db: Db) {
         };
 
         if (
+          !skipProjectWorkspaceDefaults &&
           executionWorkspaceSettings == null &&
           executionWorkspaceId == null &&
           issueData.projectId
@@ -9920,7 +9926,7 @@ export function issueService(db: Db) {
               ),
             ) as Record<string, unknown> | null;
         }
-        if (!projectWorkspaceId && issueData.projectId) {
+        if (!skipProjectWorkspaceDefaults && !projectWorkspaceId && issueData.projectId) {
           const project = await tx
             .select({
               executionWorkspacePolicy: projects.executionWorkspacePolicy,
@@ -10841,6 +10847,10 @@ export function issueService(db: Db) {
           .returning()
           .then((rows: Array<typeof issues.$inferSelect>) => rows[0] ?? null);
         if (!updated) return null;
+        if (updated.description?.includes("DSP7-PILOT:") && ["done", "cancelled"].includes(updated.status)) {
+          const { recordManagedTaskTransition } = await import("./managed-task-facts.js");
+          await recordManagedTaskTransition(tx as Db, updated, receiptExisting.status);
+        }
         if (updated.assigneeAgentId !== existing.assigneeAgentId || updated.assigneeUserId !== existing.assigneeUserId) {
           const { issueThreadInteractionService } = await import("./issue-thread-interactions.js");
           await issueThreadInteractionService(tx).expireConnectionIntentsForOwnershipChange(updated);

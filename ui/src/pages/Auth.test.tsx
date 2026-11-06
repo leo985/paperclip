@@ -12,7 +12,8 @@ const getSessionMock = vi.hoisted(() => vi.fn());
 const signInEmailMock = vi.hoisted(() => vi.fn());
 const signUpEmailMock = vi.hoisted(() => vi.fn());
 
-vi.mock("../api/auth", () => ({
+vi.mock("../api/auth", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../api/auth")>(),
   authApi: {
     getSession: () => getSessionMock(),
     signInEmail: (input: unknown) => signInEmailMock(input),
@@ -151,7 +152,7 @@ describe("AuthPage", () => {
     const { root } = await mount();
 
     const createOne = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Create one",
+      (button) => button.textContent?.trim() === "Create one",
     );
     expect(createOne).not.toBeNull();
 

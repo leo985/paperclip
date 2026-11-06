@@ -1044,24 +1044,39 @@ export function agentService(db: Db) {
       return getById(id);
     },
 
-    remove: async (id: string) => {
-      const existing = await getById(id);
-      if (!existing) return null;
-      const builtInMarker = readBuiltInAgentMarker(existing.metadata);
-      if (builtInMarker) {
-        throw conflict("Built-in agents cannot be deleted; pause them instead", {
-          code: "built_in_agent_undeletable",
-          key: builtInMarker.key,
-          featureKeys: builtInMarker.featureKeys,
-        });
-      }
-
+    remove: async (id: string, seatCompanyId?: string) => {
       return db.transaction(async (tx) => {
-        await tx
-          .select({ id: agents.id })
-          .from(agents)
-          .where(eq(agents.id, id))
+        // Serialize deletion with seat commands and lock before checking activity.
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${id + ":seat-commands"}, 0))`);
+        const [existing] = await tx.select().from(agents)
+          .where(and(eq(agents.id, id), seatCompanyId ? eq(agents.companyId, seatCompanyId) : undefined))
           .for("update");
+        if (!existing) return null;
+        if (seatCompanyId && !existing.adapterConfig.dsp7Seat) throw notFound("席位不存在");
+        const builtInMarker = readBuiltInAgentMarker(existing.metadata);
+        if (builtInMarker) {
+          throw conflict("Built-in agents cannot be deleted; pause them instead", {
+            code: "built_in_agent_undeletable",
+            key: builtInMarker.key,
+            featureKeys: builtInMarker.featureKeys,
+          });
+        }
+
+        if (existing.adapterConfig.dsp7Seat) {
+          const presence = existing.adapterConfig.dsp7SeatPresence as { lastSeenAt?: string } | undefined;
+          const seen = Date.parse(presence?.lastSeenAt ?? "");
+          if (Number.isFinite(seen) && Date.now() - seen < 90_000) {
+            throw conflict("席位仍在线，请先在对应电脑下线或卸载客户端，等待显示离线后再删除");
+          }
+          const [run] = await tx.select({ id: heartbeatRuns.id }).from(heartbeatRuns)
+            .where(and(eq(heartbeatRuns.agentId, id), eq(heartbeatRuns.companyId, existing.companyId),
+              inArray(heartbeatRuns.status, ["queued", "running", "scheduled_retry"]))).limit(1);
+          if (run || existing.status === "running") throw conflict("席位有执行中或排队的运行，请先结束运行后再删除");
+          const [task] = await tx.select({ id: issues.id }).from(issues)
+            .where(and(eq(issues.assigneeAgentId, id), eq(issues.companyId, existing.companyId),
+              sql`${issues.status} not in ('done','cancelled')`)).limit(1);
+          if (task) throw conflict("席位有未结束的任务，请先完成、取消或转派任务后再删除");
+        }
         await issueThreadInteractionService(tx as unknown as Db)
           .cancelPendingForDeletedAddressee(existing.companyId, id);
         await tx.update(agents).set({ reportsTo: null }).where(eq(agents.reportsTo, id));

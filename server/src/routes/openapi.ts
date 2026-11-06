@@ -1,3 +1,4 @@
+import { deliveryApiContracts } from "./generated-delivery-api-contracts.js";
 import { experimentalApiMetadata } from "./experimental-api-metadata.js";
 import {
   experimentalApiPaths,
@@ -1238,6 +1239,7 @@ function registerCurrentRoute(input: {
 
 type OpenApiAuthLevel =
   | "public"
+  | "seat_agent"
   | "agent_run"
   | "runtime_tools"
   | "authenticated"
@@ -1277,6 +1279,7 @@ const RUNTIME_TOOLS_OPERATIONS = new Set([
 ]);
 
 const PUBLIC_OPERATIONS = new Set([
+  "POST /api/dsp7-quick-enroll/inspect",
   "GET /api/agent-avatars/{version}/{palette}/{file}",
   "GET /api/health",
   "GET /api/openapi.json",
@@ -1621,6 +1624,8 @@ function resolveOperationAuthLevel(
   path: string,
 ): OpenApiAuthLevel {
   const key = operationKey(method, path);
+  const delivery = deliveryApiContracts.find(operation => operation.method.toUpperCase() === method.toUpperCase() && operation.path === path);
+  if (delivery) return delivery.auth;
   if (PUBLIC_OPERATIONS.has(key)) return "public";
   if (key === "POST /api/mcp/project-tools") return "agent_run";
   if (RUNTIME_TOOLS_OPERATIONS.has(key)) return "runtime_tools";
@@ -1691,6 +1696,8 @@ function applyDocumentFixups(document: any): any {
       const authLevel = resolveOperationAuthLevel(method, path);
       if (authLevel === "public") {
         operation.security = [];
+      } else if (authLevel === "seat_agent") {
+        operation.security = [securityRequirement(AGENT_BEARER_AUTH_SCHEME)];
       } else if (authLevel === "agent_run") {
         operation.security = [securityRequirement(AGENT_RUN_AUTH_SCHEME)];
       } else if (authLevel === "runtime_tools") {
@@ -1706,6 +1713,8 @@ function applyDocumentFixups(document: any): any {
           ? { actor: "board", instanceAdmin: true }
           : authLevel === "board"
             ? { actor: "board" }
+            : authLevel === "seat_agent"
+              ? { actor: "agent" }
             : authLevel === "agent_run"
               ? { actor: "agent", heartbeatBound: true, taskBound: true }
             : authLevel === "runtime_tools"
@@ -4370,9 +4379,9 @@ registry.registerPath({
   method: "get",
   path: "/api/companies/{companyId}/project-repositories",
   tags: ["projects"],
-  summary: "Discover GitHub repositories available to the current board user",
+  summary: "Discover existing seat checkouts and connected GitHub repositories",
   description:
-    "Deduplicates repositories across usable personal and company-shared GitHub connections. Failed connections are reported without discarding successful results.",
+    "Includes fresh, credential-free business repository reports from company seats the board user owns or manages, plus repositories across usable personal and company-shared GitHub connections. Seat checkout paths stay local. Failed connections are reported without discarding successful results.",
   request: { params: z.object({ companyId: z.string() }) },
   responses: {
     200: r.ok(
@@ -4383,6 +4392,8 @@ registry.registerPath({
             fullName: z.string(),
             url: z.string(),
             private: z.boolean().optional(),
+            source: z.literal("harness").optional(),
+            repoRef: z.string().optional(),
             connections: z.array(z.string()),
           }),
         ),
@@ -4399,7 +4410,7 @@ registry.registerPath({
   method: "put",
   path: "/api/projects/{id}/repositories",
   tags: ["projects"],
-  summary: "Replace selected GitHub source repositories",
+  summary: "Replace selected project source repositories",
   description:
     "Saves provider IDs transactionally, refreshes canonical names and URLs, and preserves legacy workspace URLs. Unavailable existing selections can remain; new selections must be available to the caller.",
   request: {
@@ -4433,7 +4444,7 @@ registry.registerPath({
   tags: ["projects"],
   summary: "Create a project",
   description:
-    "The optional repositoryIds field selects GitHub source repositories and requires a board caller. It cannot be combined with workspace. All selections are validated before the project and repository workspaces are created atomically.",
+    "The optional repositoryIds field selects connected GitHub or reported Harness source repositories and requires a board caller. It cannot be combined with workspace. All selections are validated before the project and repository workspaces are created atomically.",
   request: {
     params: z.object({ companyId: z.string() }),
     body: jsonBody(createProjectSchema),
@@ -11317,6 +11328,26 @@ for (const [method, path, body] of experimentalApiPaths) {
       400: responses.badRequest,
       403: responses.forbidden,
       404: responses.notFound,
+    },
+  });
+}
+
+for (const operation of deliveryApiContracts) {
+  registry.registerPath({
+    method: operation.method, path: operation.path, tags: ["Delivery and seats"],
+    summary: operation.method.toUpperCase() + " " + operation.path,
+    description: "Company-scoped delivery and enrolled-device API. Runtime membership, owner, device identity, lease, budget, version and approval gates remain authoritative. " +
+      (operation.auth === "seat_agent" ? "Requires the selected seat's agent credentials. Individual handlers additionally enforce API-key scope, machine identity, registration, and lease requirements where applicable. " : operation.auth === "public" ? "Enrollment requires a valid one-time, expiring enrollment credential in the request body. " : "") +
+      "Source: " + operation.source,
+    request: {
+      params: z.object(Object.fromEntries([...operation.path.matchAll(/\{([^}]+)\}/g)].map(match => [match[1], z.string()]))),
+      ...(operation.query ? {query: operation.query} : {}),
+      ...(operation.body ? {body: {required: true, content: {"application/json": {schema: operation.body}}}} : {}),
+    },
+    responses: {
+      ...Object.fromEntries(operation.statuses.map(status => [status, responses.ok()])),
+      400: responses.badRequest, 403: responses.forbidden, 404: responses.notFound,
+      409: {description: "Current source, lease, revision, reservation, budget or approval no longer permits the operation."},
     },
   });
 }

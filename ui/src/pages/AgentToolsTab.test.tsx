@@ -250,8 +250,8 @@ describe("AgentToolsTab", () => {
     expect(text).toContain("GitHub safe");
     expect(text).toContain("Access profiles");
     expect(text).toContain("Organization default");
-    expect(container.querySelector('a[href="/apps/advanced/profiles/prof-1"]')?.textContent).toBe("GitHub safe");
-    expect(container.querySelector('a[href="/apps/advanced/profiles?check=1"]')?.textContent).toBe("Check access");
+    expect(container.querySelector('a[href="/apps/advanced/profiles/prof-1"]')?.textContent?.trim()).toBe("GitHub safe");
+    expect(container.querySelector('a[href="/apps/advanced/profiles?check=1"]')?.textContent?.trim()).toBe("Check access");
     // Governing policy #1 is the company-wide require_approval rule.
     expect(text).toContain("#1 Require approval for writes");
     // The policy that targets a different agent must NOT appear.
@@ -279,7 +279,7 @@ describe("AgentToolsTab", () => {
     expect(text).toContain("No tools are allowed for this agent");
     expect(text).toContain("No active profile applies");
     expect(text).toContain("Use responsible person's GitHub");
-    expect(container.querySelector('a[href="/apps/connect?source=github"]')?.textContent).toBe("Connect my GitHub");
+    expect(container.querySelector('a[href="/apps/connect?source=github"]')?.textContent?.trim()).toBe("Connect my GitHub");
   });
 
   it("shows an active dedicated GitHub identity as the agent override", async () => {
@@ -336,7 +336,7 @@ describe("AgentToolsTab", () => {
     const text = container.textContent ?? "";
     expect(text).toContain("@dottabot");
     expect(text).toContain("takes precedence over the responsible person's GitHub");
-    expect(container.querySelector('a[href="/apps/conn-github/permissions"]')?.textContent).toBe("Manage GitHub identity");
+    expect(container.querySelector('a[href="/apps/conn-github/permissions"]')?.textContent?.trim()).toBe("Manage GitHub identity");
     expect(text).not.toContain("Connect my GitHub");
   });
 
@@ -405,7 +405,7 @@ describe("AgentToolsTab", () => {
     expect(text).toContain("Could not load GitHub identity");
     expect(text).toContain("Your existing setup was not changed");
     expect(text).not.toContain("Connect my GitHub");
-    expect(Array.from(container.querySelectorAll("button")).some((button) => button.textContent === "Retry")).toBe(true);
+    expect(Array.from(container.querySelectorAll("button")).some((button) => button.textContent?.trim() === "Retry")).toBe(true);
   });
 
   it("autosaves installed apps for the current agent", async () => {
@@ -430,7 +430,7 @@ describe("AgentToolsTab", () => {
     expect(container.textContent).toContain("Installed apps");
     expect(container.textContent).toContain("Permitted only");
     expect(container.textContent).toContain("Permitted but not installed — tools will not appear in runs.");
-    expect(container.querySelector('a[href="/apps/conn-1/permissions"]')?.textContent).toBe("Open permissions");
+    expect(container.querySelector('a[href="/apps/conn-1/permissions"]')?.textContent?.trim()).toBe("Open permissions");
     const installCheckbox = container.querySelector<HTMLElement>('[aria-label="Install Production GitHub on Coder"]');
     expect(installCheckbox).toBeTruthy();
     await act(async () => {

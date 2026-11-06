@@ -1,0 +1,41 @@
+{
+  "release": "windows-seat-elevated-install-directory-acl",
+  "baseline": {
+    "dsp7-install.py": "99d625e5b882981eb8aec258b0cf8512792f482972c884b906a51aff70b91189",
+    "dsp7-bridge.zip": "d8fc0ce2a21398bc314e75082d4e4ad34b513628e7f1257d26c679d8a298bfbb",
+    "dsp7-bridge-manifest.json": "d2d19fafdeb9d3b9de22631dd7473c23654a4470cc2535fa3095cf065a8bb125"
+  },
+  "files": {
+    "dsp7-install.py": "9a3677cf8fc9670369ae63e4b2fe84c58f051cccbe5f6bfde79f36630bed164f",
+    "dsp7-bridge.zip": "0ade2712e5662edcea896ade085ac43f1295ff8a3a6e06530e166427145ca89b",
+    "dsp7-bridge-manifest.json": "f4a450b0b6c22e06dff41d4aa84233b95806cb990c0426f93cb8fbb42e1b9a88"
+  },
+  "bridgeVersion": "0ade2712e5662edcea896ade085ac43f1295ff8a3a6e06530e166427145ca89b",
+  "changedBundleFiles": [
+    "quick_install.py",
+    "seat_upgrade.py",
+    "seat_control.py",
+    "jira_intake.py"
+  ],
+  "testCasesPassed": 121,
+  "testCasesTotal": 123,
+  "windowsNativeTestSkipped": false,
+  "windowsUpgradeRecoveryPending": false,
+  "verifiedExistingAgentId": "87ed3723-6fff-40b8-ab01-d0183580686d",
+  "releasePackageTestsPassed": 112,
+  "releasePackageTestsTotal": 114,
+  "localPlatformSkippedTests": 2,
+  "windowsNativeTestsPassed": 28,
+  "windowsLiveRecoveryVerified": true,
+  "rootCause": "Python 3.14 mode-0700 elevated-created package and state directories excluded the same user unelevated scheduled task",
+  "releasePackageExcludedTests": [
+    "test_delivery_execution.py (module not present in unchanged production baseline)"
+  ],
+  "state": "released",
+  "updatedAt": "2026-10-26T09:29:44.726623+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-elevated-acl-20261026T092942Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

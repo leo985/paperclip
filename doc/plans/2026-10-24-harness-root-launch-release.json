@@ -1,0 +1,44 @@
+{
+  "release": "harness-root-launch",
+  "state": "released",
+  "updatedAt": "2026-10-24T07:36:22.654449+00:00",
+  "stage": "/home/fg/paperclip/private/harness-root-launch-20261024T073507Z",
+  "backup": "/home/fg/paperclip/private/harness-root-launch-20261024T073507Z/backup",
+  "filesVerified": 174,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "backendChanged": false,
+  "clientUpgradeRequired": true,
+  "bridgeVersion": "2884023a44df958235b971fcde9389900275970f784e96f6167d07247476d1fd",
+  "checks": {
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "bridgeTestsPassed": 31,
+    "localMacHarnessPreflight": true,
+    "realClaudeTaskTested": false,
+    "nativeWindowsTested": false,
+    "installedSeatChanged": false,
+    "publicAssetHashes": {
+      "index.html": "matched",
+      "help.html": "matched",
+      "dsp7-bridge-manifest.json": "matched",
+      "dsp7-bridge.zip": "matched"
+    },
+    "publicHealth": "ok"
+  }
+}

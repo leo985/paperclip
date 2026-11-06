@@ -77,7 +77,7 @@ const DialogStateContext = createContext<DialogStateValue | null>(null);
 const DialogActionsContext = createContext<DialogActionsValue | null>(null);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
-  const { canManage } = useManagementAccess();
+  const { canManage, isInstanceAdmin } = useManagementAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const navigationType = useNavigationType();
@@ -133,10 +133,10 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openOnboarding = useCallback((options: OnboardingOptions = {}) => {
-    if (!canManage) { navigate("/seats"); return; }
+    if (!(options.companyId ? canManage : isInstanceAdmin)) { navigate("/seats"); return; }
     setOnboardingOptions({...options,returnTo:options.returnTo??location.pathname+location.search+location.hash});
     setOnboardingOpen(true);
-  }, [canManage, navigate, location.pathname, location.search, location.hash]);
+  }, [canManage, isInstanceAdmin, navigate, location.pathname, location.search, location.hash]);
 
   const closeOnboarding = useCallback(() => {
     setOnboardingOpen(false);

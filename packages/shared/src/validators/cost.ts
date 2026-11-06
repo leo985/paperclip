@@ -3,6 +3,7 @@ import { BILLING_TYPES, COST_STATUSES } from "../constants.js";
 
 export const createCostEventSchema = z.object({
   agentId: z.string().guid(),
+  idempotencyKey: z.string().regex(/^[A-Za-z0-9._-]{1,128}$/).refine(value => !value.startsWith("heartbeat-final-") && !value.startsWith("heartbeat-observed-"), "Reserved internal receipt key").optional(),
   issueId: z.string().guid().optional().nullable(),
   projectId: z.string().guid().optional().nullable(),
   goalId: z.string().guid().optional().nullable(),

@@ -1,0 +1,62 @@
+{
+  "release": "source-status-multiselect-and-static-assets-fix",
+  "timestamp": "20261026T055652Z",
+  "filesVerified": 174,
+  "completeBuildFilesVerified": 870,
+  "backup": "/home/fg/paperclip/private/entry-stages-backup-20261026T055652Z",
+  "health": "ok",
+  "serviceRestarted": false,
+  "clientSha256": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+  "existingSeatsForceUpdated": false,
+  "browser": "ego-browser isolated actual UI: multiselect, immediate filtering, URL persistence and tree/dispatch filters",
+  "databaseChanged": false,
+  "otherServicesUnchanged": true,
+  "automaticDeliveryBackendPublished": false,
+  "fullStaticVerification": {
+    "verified": 870,
+    "failures": []
+  },
+  "browserProduction": {
+    "modules": [
+      {
+        "path": "/assets/Layout-eLTzJ2MQ.js",
+        "ok": true
+      },
+      {
+        "path": "/assets/DeliveryEntries-ByQ-pxl-.js",
+        "ok": true
+      },
+      {
+        "path": "/assets/Layout-0DibL2Qj.js",
+        "ok": true
+      }
+    ],
+    "helpUpdated": true,
+    "localInteractionChecks": {
+      "monthlyMultiSelect": true,
+      "resetBatchOnAdditionalStatus": true,
+      "treeMultiSelect": true,
+      "dispatchMultiSelect": true,
+      "clearAll": true,
+      "mobileNoOverflow": true
+    },
+    "productionAuthenticatedBusinessFlow": false
+  },
+  "onlineVerification": {
+    "health": "ok",
+    "indexMatchesBuild": true,
+    "assets": [
+      "/assets/DeliveryEntries-ByQ-pxl-.js"
+    ],
+    "onlineHelp": true,
+    "clientUnchanged": true,
+    "entryResourcesAvailable": true
+  },
+  "tests": {
+    "vitestPassed": 29,
+    "nodeReleaseTestsPassed": 3,
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true
+  }
+}

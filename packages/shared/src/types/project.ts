@@ -119,6 +119,8 @@ export interface ProjectRepository {
   fullName: string;
   url: string;
   private?: boolean;
+  source?: "harness";
+  repoRef?: string;
   connections: string[];
 }
 

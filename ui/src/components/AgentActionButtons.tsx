@@ -35,6 +35,8 @@ import { agentsApi } from "../api/agents";
 import { ApiError } from "../api/client";
 import { queryKeys } from "../lib/queryKeys";
 import { agentRouteRef } from "../lib/utils";
+import { seatAgentLinks } from "../lib/agent-execution-mode";
+import { useSeatAgentIdentity } from "../hooks/useSeatAgentIdentity";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { useDialogActions } from "../context/DialogContext";
 import { useToastActions } from "../context/ToastContext";
@@ -217,6 +219,7 @@ export function AgentActionButtons({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { openNewIssue } = useDialogActions();
+  const seatIdentity = useSeatAgentIdentity(agent);
   const { pushToast } = useToastActions();
   const [moreOpen, setMoreOpen] = useState(false);
   const [pauseConfirmOpen, setPauseConfirmOpen] = useState(false);
@@ -379,6 +382,25 @@ export function AgentActionButtons({
       ? (runtimeConfig.debug as Record<string, unknown>)
       : null;
   const persistentProviderTrace = runtimeDebug?.providerTrace === "raw";
+
+  if (seatIdentity.pending || seatIdentity.failed) {
+    return <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+      {seatIdentity.pending ? "正在核对执行身份…" : <>无法核对执行身份<Button variant="outline" size={size} onClick={() => void seatIdentity.retry()}>重试</Button></>}
+    </div>;
+  }
+  if (seatIdentity.isSeat) {
+    const links = seatAgentLinks(agent.id);
+    const visit = (path: string) => {
+      if (pendingNavigationChangesRef.current && beforeNavigateRef.current && !beforeNavigateRef.current()) return;
+      navigate(path);
+    };
+    return <div className={className ?? "flex flex-wrap items-center gap-2"}>
+      {showStatus && <AgentStatusBadge status={agent.status} />}
+      <Button variant="outline" size={size} disabled={actionsDisabled} onClick={() => visit(links.dispatch)}>派发 Jira 工单</Button>
+      <Button variant="outline" size={size} onClick={() => visit(links.seat)}>查看关联席位</Button>
+      {children}
+    </div>;
+  }
 
   return (
     <div className={className ?? "flex items-center gap-1 sm:gap-2 shrink-0"}>

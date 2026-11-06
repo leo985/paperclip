@@ -34,7 +34,7 @@ describe("self-service Slack identity confirmation", () => {
   });
   afterEach(() => { flushSync(() => root.unmount()); client.clear(); container.remove(); });
   const render = () => flushSync(() => root.render(<QueryClientProvider client={client}><ChatIdentityConfirm /></QueryClientProvider>));
-  const button = (text: string) => Array.from(container.querySelectorAll("button")).find((node) => node.textContent === text)!;
+  const button = (text: string) => Array.from(container.querySelectorAll("button")).find((node) => node.textContent?.trim() === text)!;
 
   it("sends signed-out users to sign in with the confirmation route preserved", async () => {
     mocks.getSession.mockResolvedValue(null); render();
@@ -47,7 +47,7 @@ describe("self-service Slack identity confirmation", () => {
     button("Confirm identity").click();
     await vi.waitFor(() => expect(container.textContent).toContain("Identity linked"));
     expect(container.textContent).toContain("current Paperclip permissions");
-    expect(container.querySelector('a')?.textContent).toBe("Return to Slack");
+    expect(container.querySelector('a')?.textContent?.trim()).toBe("Return to Slack");
   });
   it("keeps other providers out of the Slack return flow", async () => {
     mocks.previewIdentityLink.mockResolvedValue({ ...identity, provider: "github", selfService: false });

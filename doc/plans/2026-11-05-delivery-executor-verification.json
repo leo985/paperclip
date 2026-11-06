@@ -1,0 +1,49 @@
+{
+  "featureRelease": {
+    "release": "20261105-delivery-executor",
+    "status": "deployed",
+    "filesVerified": 341,
+    "entry": "index-e3a4877f.js",
+    "health": "ok",
+    "databaseMigrations": [],
+    "backup": "/home/fg/paperclip/private/delivery-executor-20261105/backup",
+    "lostRunIds": [],
+    "timestamp": "2026-11-05T06:16:57.216289+00:00"
+  },
+  "humanReviewerDefaultFix": {
+    "release": "20261105-delivery-executor-human-default",
+    "status": "deployed",
+    "filesVerified": 1,
+    "entry": "index-e3a4877f.js",
+    "health": "ok",
+    "databaseMigrations": [],
+    "backup": "/home/fg/paperclip/private/delivery-executor-human-default-20261105/backup",
+    "lostRunIds": [],
+    "timestamp": "2026-11-05T06:21:10.067395+00:00"
+  },
+  "verification": {
+    "vitest": {
+      "files": 9,
+      "tests": 75,
+      "status": "passed"
+    },
+    "python": {
+      "tests": 27,
+      "status": "passed"
+    },
+    "finalPlannerAndRouteRegression": {
+      "tests": 15,
+      "status": "passed"
+    },
+    "sharedServerUiChecks": "passed",
+    "tokenGates": "passed",
+    "productionForm": "passed; switched work and review modes, checked executor selectors and capability notice, cancelled without publishing",
+    "fullRepoTypecheckAndBuild": "blocked by local Xcode license / Rust cc failure; not claimed passed"
+  },
+  "limitations": [
+    "Agent design/case reviews require corresponding native Harness review protocol and skills",
+    "Seat clients need delivery-executor-v1 and refreshed registration",
+    "Existing workflows retain pinned template version"
+  ],
+  "databaseMigrations": []
+}

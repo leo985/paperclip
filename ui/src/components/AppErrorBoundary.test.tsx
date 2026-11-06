@@ -53,7 +53,7 @@ describe("AppErrorBoundary", () => {
     expect(captureBrowserExceptionMock).toHaveBeenCalledWith(expect.any(Error));
     expect(
       Array.from(container.querySelectorAll("button")).some(
-        (button) => button.textContent === "Reload page",
+        (button) => button.textContent?.trim() === "Reload page",
       ),
     ).toBe(true);
 
@@ -72,11 +72,11 @@ describe("AppErrorBoundary", () => {
       );
     });
 
-    expect(container.textContent).toContain("Paperclip hit an error");
+    expect(container.textContent).toContain("智研协同平台遇到错误");
     expect(container.textContent).toContain("Maximum update depth exceeded");
     expect(
       Array.from(container.querySelectorAll("button")).some(
-        (button) => button.textContent === "Reload page",
+        (button) => button.textContent?.trim() === "Reload page",
       ),
     ).toBe(true);
 
@@ -95,7 +95,7 @@ describe("AppErrorBoundary", () => {
       );
     });
 
-    expect(container.textContent).toContain("Paperclip hit an error");
+    expect(container.textContent).toContain("智研协同平台遇到错误");
     expect(container.textContent).toContain("effect exploded");
 
     act(() => {

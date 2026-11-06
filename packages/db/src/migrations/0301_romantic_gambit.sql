@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS "personnel_people_user_idx" ON "personnel_people" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "personnel_sources_enterprise_idx" ON "personnel_sources" USING btree ("type","corp_id");

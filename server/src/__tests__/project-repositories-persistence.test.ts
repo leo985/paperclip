@@ -23,6 +23,21 @@ const support = await getEmbeddedPostgresTestSupport();
   afterAll(async () => { await temp?.cleanup(); });
   afterEach(() => vi.unstubAllGlobals());
 
+  it("supports repository-free QA projects and imports a seat checkout with its baseline", async () => {
+    const svc = projectService(db);
+    const qa = await svc.createWithRepositories(companyId, { name: "Environment-only QA" }, []);
+    expect(qa.workspaces).toHaveLength(0);
+    const imported = { id: "harness:" + "a".repeat(64), fullName: "team/app · dev", url: "https://git.example/team/app", repoRef: "dev", source: "harness" as const, connections: ["Seat"] };
+    const legacy = await svc.createWorkspace(qa.id, { repoUrl: imported.url + ".git", repoRef: "release", cwd: "/local/source" });
+    const updated = await svc.replaceRepositories(qa.id, [imported]);
+    expect(updated?.workspaces).toHaveLength(1);
+    expect(updated?.workspaces[0]).toMatchObject({ id: legacy!.id, cwd: "/local/source", repoRef: "release", metadata: { harnessRepositoryId: imported.id } });
+    const created = await svc.createWithRepositories(companyId, { name: "Imported source" }, [imported]);
+    expect(created.workspaces[0]).toMatchObject({ repoRef: "dev", metadata: { harnessRepositoryId: imported.id } });
+    expect((await svc.replaceRepositories(created.id, [imported]))?.workspaces).toHaveLength(1);
+    expect((await svc.replaceRepositories(created.id, []))?.workspaces).toHaveLength(0);
+  });
+
   it("creates multiple source repos atomically and persists them across reads", async () => {
     const svc = projectService(db);
     const created = await svc.createWithRepositories(companyId, { name: "Multi" }, [repo("1"), repo("2")]);

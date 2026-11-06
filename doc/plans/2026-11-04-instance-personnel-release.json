@@ -1,0 +1,109 @@
+{
+  "release": "20261104-instance-personnel",
+  "target": "http://10.60.43.53:3100",
+  "status": "deployed",
+  "timestamp": "20261104T023748Z",
+  "backup": "/home/fg/paperclip/private/personnel-release-20261104/code-backup-20261104T023748Z",
+  "databaseBackup": "/home/fg/paperclip/private/personnel-release-20261104/database-backup/before-personnel-20261104-021937.sql.gz",
+  "files": 348,
+  "serverRestarted": true,
+  "clientChanged": false,
+  "databaseIndexesApplied": [
+    {
+      "indexname": "personnel_people_user_idx"
+    },
+    {
+      "indexname": "personnel_sources_enterprise_idx"
+    }
+  ],
+  "drizzleJournalUnchanged": true,
+  "uiEntry": "index-3d302bb7.js",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "activeBefore": [],
+  "activeAfter": [],
+  "approvedInterruptedRunStates": [
+    {
+      "id": "840d3e74-9a42-4364-ba62-0735759fdbe4",
+      "status": "failed",
+      "error_code": "process_lost"
+    }
+  ],
+  "taskStates": [
+    {
+      "identifier": "CMP-1",
+      "status": "blocked"
+    }
+  ],
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-04T02:37:48.796Z",
+    "completedAt": "2026-11-04T02:38:23.936Z",
+    "drainRequired": true,
+    "drainReason": "requested",
+    "previousServerPid": 1807497,
+    "newServerPid": 1809516,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "durationSeconds": 38.9,
+  "initialAttemptReport": "/home/fg/paperclip/private/personnel-release-20261104/attempt-1-rolled-back.json",
+  "initialRestartReport": "/home/fg/paperclip/private/personnel-release-20261104/attempt-1-restart-report.json",
+  "interruptionAuthorizedByUser": true,
+  "verification": {
+    "publicUiFilesVerified": 337,
+    "uiHashMismatches": 0,
+    "uiEntry": "index-3d302bb7.js",
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "globalApiUnauthenticatedStatus": 403,
+    "globalApiContract": "instanceAdmin",
+    "sharedDirectoryPeople": 407,
+    "organizationMembershipCount": 431,
+    "sourceCount": 1,
+    "bridgeManifestSha256": "ac1a95d3e7dc946b1a5ca2f57b636e7424465dae8146fc50a30bece4edd675b4",
+    "finalRunStates": [
+      {
+        "id": "840d3e74-9a42-4364-ba62-0735759fdbe4",
+        "status": "failed",
+        "error_code": "process_lost"
+      }
+    ],
+    "finalTaskStates": [
+      {
+        "identifier": "CMP-1",
+        "status": "blocked"
+      }
+    ],
+    "realDingTalkMessageSent": false
+  }
+}

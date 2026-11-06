@@ -14,12 +14,19 @@ import { errorHandler } from "../middleware/index.js";
 import { aiConnectionService } from "../services/ai-connections.js";
 import { heartbeatService } from "../services/heartbeat.js";
 import { getServerAdapter, registerServerAdapter, unregisterServerAdapter } from "../adapters/index.js";
-import { prepareManagedAiRuntime } from "../services/ai-connection-runtime.js";
+import { prepareManagedAiRuntime as prepareManagedAiRuntimeActual } from "../services/ai-connection-runtime.js";
 import { secretService } from "../services/secrets.js";
 
 let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
 let db: ReturnType<typeof createDb>;
 let home: string;
+
+// Keep project-auth detection inside the isolated fixture workspace.
+const prepareManagedAiRuntime = (
+  database: Parameters<typeof prepareManagedAiRuntimeActual>[0],
+  input: Parameters<typeof prepareManagedAiRuntimeActual>[1],
+) => prepareManagedAiRuntimeActual(database, { ...input, config: { cwd: home, ...input.config } });
+
 
 beforeAll(async () => {
   home = await mkdtemp(path.join(os.tmpdir(), "paperclip-hire-ai-"));

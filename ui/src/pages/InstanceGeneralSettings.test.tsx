@@ -123,7 +123,7 @@ describe("InstanceGeneralSettings sign-out", () => {
     // Health describes the instance, so it is refreshed rather than dropped.
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.health });
     expect(queryClient.getQueryData(queryKeys.health)).toEqual(SELF_HOSTED_HEALTH);
-    expect(mockNavigateTopLevel).not.toHaveBeenCalled();
+    expect(mockNavigateTopLevel).toHaveBeenCalledWith("/auth");
   });
 
   it("shows a current sign-out failure instead of a stale settings error", async () => {

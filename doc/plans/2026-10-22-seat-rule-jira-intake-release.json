@@ -1,0 +1,29 @@
+{
+  "release": "seat-rule-jira-intake",
+  "backup": "/home/fg/paperclip/private/seat-rule-intake-backup-20261022T112540Z",
+  "stage": "/home/fg/paperclip/private/seat-rule-intake-stage-20261022T112536Z",
+  "filesChanged": 19,
+  "backendFiles": [
+    "dist/routes/dsp7-seats.js",
+    "dist/routes/dsp7-seats.js.map",
+    "dist/routes/dsp7-jira-dispatch.js",
+    "dist/routes/dsp7-jira-dispatch.js.map"
+  ],
+  "bridgeSha256": "cdc88d19409006572090e41781fae266834741a7ad3e5407d92ead17e19777a8",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicesUnchanged": true,
+  "databaseMigration": false
+}

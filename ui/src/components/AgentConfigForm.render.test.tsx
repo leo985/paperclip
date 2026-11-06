@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+vi.mock("../api/dsp7-seats", () => ({ dsp7SeatsApi: { list: async () => [] } }));
+
 import { useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -10,6 +12,9 @@ import { getEnvironmentCapabilities } from "@paperclipai/shared";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ToastProvider } from "../context/ToastContext";
 import { AgentConfigForm, AdapterLoginPanel, subtractPersistedOverlay, type AdapterLoginDescriptor } from "./AgentConfigForm";
+import { i18n } from "../i18n";
+beforeEach(async () => { await i18n.changeLanguage("en"); });
+
 import { defaultCreateValues } from "./agent-config-defaults";
 import { buildNewAgentHirePayload } from "../lib/new-agent-hire-payload";
 import { ApiError } from "../api/client";
@@ -649,6 +654,22 @@ async function flushUntil(check: () => boolean, timeoutMs = 4000) {
 describe("AgentConfigForm environment selector", () => {
   let roots: Root[] = [];
 
+  it("hides the agent reporting hierarchy for a registered personal seat", async () => {
+    const { container, root } = await renderForm([], { adapterConfig: { dsp7Seat: { name: "My Mac" } } });
+    roots.push(root);
+    expect(container.textContent).toContain("个人席位无需配置上级智能体");
+    expect(container.textContent).not.toContain("选择上级智能体（可选）");
+    expect(container.textContent).not.toContain("Choose manager");
+  });
+
+  it("keeps an explicitly named optional manager for independent agents", async () => {
+    const { container, root } = await renderForm([], { adapterConfig: { command: "claude" } });
+    roots.push(root);
+    expect(container.textContent).toContain("上级智能体");
+    expect(container.textContent).toContain("选择上级智能体（可选）");
+    expect(container.textContent).not.toContain("个人席位无需配置");
+  });
+
   beforeEach(() => {
     mockAgentsApi.adapterModels.mockResolvedValue([]);
     mockAgentsApi.detectModel.mockResolvedValue(null);
@@ -820,11 +841,11 @@ describe("AgentConfigForm environment selector", () => {
     });
     await flushReact();
 
-    const effortChoices = Array.from(document.body.querySelectorAll("button"))
-      .map((button) => button.textContent?.replace(/\s+/g, "").trim());
-    expect(effortChoices).toContain("Maxmax");
-    expect(effortChoices).toContain("Ultraultra");
-    expect(effortChoices).not.toContain("Minimalminimal");
+    const effortChoices = Array.from(document.body.querySelectorAll("button span.font-mono"))
+      .map((option) => option.textContent?.trim());
+    expect(effortChoices).toContain("max");
+    expect(effortChoices).toContain("ultra");
+    expect(effortChoices).not.toContain("minimal");
   });
 
   it("removes a legacy incompatible effort when the model changes to Astra", async () => {

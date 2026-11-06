@@ -1,0 +1,25 @@
+{
+  "release": "20261104-personnel-relink",
+  "status": "deployed",
+  "filesVerified": 330,
+  "entry": "index-9127c121.js",
+  "serverRestarted": true,
+  "health": "ok",
+  "backup": "/home/fg/paperclip/private/personnel-relink-20261104/backup",
+  "databaseChanged": false,
+  "accountsRelinked": false,
+  "timestamp": "2026-11-04T08:20:01.908833+00:00",
+  "verification": {
+    "targetedSuites": "personnel-federation server/UI, directory, seat bot/group notifications, personnel passwords",
+    "serverTypecheck": true,
+    "uiTypecheck": true,
+    "sharedBuild": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "liveRepairDialog": true,
+    "originalAccountSelectable": true,
+    "invalidRelinkStatus": 400,
+    "liveAccountChangesPerformed": false,
+    "initialAttempt": "Rolled back after 50-second startup timeout; module import preflight passed and retry with extended startup window succeeded."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "release": "seat-workbench-ui",
+  "state": "released",
+  "updatedAt": "2026-10-23T10:01:31.176141+00:00",
+  "stage": "/home/fg/paperclip/private/seat-workbench-ui-20261023T100041Z",
+  "backup": "/home/fg/paperclip/private/seat-workbench-ui-20261023T100041Z/backup",
+  "filesVerified": 13,
+  "archiveSha256": "6954a12a8bb69c280f436fb50e120966be1d92a4d98bfd25d5a678dbd1c16dbf",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "clientUpgradeRequired": false,
+  "backendChanged": false,
+  "previousBackendRelease": "waiting_for_idle",
+  "publicChecks": {
+    "indexMatches": true,
+    "/assets/index-C3ghX3bF.js": {
+      "matchesRelease": true
+    },
+    "newWorkspaceLabels": {
+      "运行工作台": true,
+      "统计分析": true,
+      "接入与管理": true,
+      "仅人机问答": true,
+      "未知时间": true
+    },
+    "/help.html": {
+      "matchesRelease": true
+    },
+    "pendingBackendState": "waiting_for_idle"
+  }
+}

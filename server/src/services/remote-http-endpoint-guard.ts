@@ -68,6 +68,11 @@ export async function resolveApprovedRemoteHttpAddresses(
     throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
   }
 
+  // RFC 6761 reserves .invalid as always nonexistent. Some local DNS proxies
+  // synthesize an address even for it; never connect to that synthetic answer.
+  if (hostname === "invalid" || hostname.endsWith(".invalid")) {
+    throw error("Remote MCP connection hostname could not be resolved", "remote_http_dns_failed");
+  }
   const literalVersion = isIP(hostname);
   if (literalVersion !== 0) {
     if (isAlwaysDeniedLinkLocalIp(hostname) || (!options.allowPrivateNetwork && isPrivateOrReservedIp(hostname))) {

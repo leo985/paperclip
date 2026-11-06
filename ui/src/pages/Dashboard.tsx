@@ -3,12 +3,6 @@ import { CollaborationWorkbench } from "../components/CollaborationWorkbench";
 import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "@/lib/router";
-import {
-  onboardingStepForCompany,
-  shouldRouteAgentlessCompanyToOnboarding,
-} from "../lib/onboarding-route";
-import { claimOnboardingOffer } from "../lib/onboarding-auto-open";
 import { Link } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { dashboardApi } from "../api/dashboard";
@@ -76,8 +70,7 @@ export function derivePausedAgentBanner(agents: Agent[] | undefined): PausedAgen
 export function Dashboard() {
   const { canManage } = useManagementAccess();
   const { selectedCompanyId, companies } = useCompany();
-  const { openOnboarding } = useDialogActions();
-  const location = useLocation();
+  const { openOnboarding, openNewAgent } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
   const seenActivityIdsRef = useRef<Set<string>>(new Set());
@@ -118,48 +111,10 @@ export function Dashboard() {
     },
   });
 
-  // A company with no agent cannot do anything — no runs, no tasks, nothing
-  // to show. The banner below already says so and offers a link; this takes
-  // the customer there instead of asking them to notice.
-  //
-  // It also closes the gap a Cloud-provisioned stack falls into. Cloud creates
-  // the company before the tenant boots, so the companyless redirect never
-  // fires and a seeded customer lands here, on an empty dashboard, straight
-  // out of signup.
-  //
-  // Opened as the dialog rather than navigated to: the wizard is already
-  // mounted globally, so there is no route to race and no redirect to loop.
-  // Placed with the other hooks — the early returns below mean anything
-  // further down would be called conditionally.
-  //
-  // The company and the step are both passed. Opening with empty options would
-  // start the wizard at the front door with no company, and the new-company
-  // path there would create a *second* company instead of giving this one an
-  // agent.
-  const shouldOpenOnboarding = shouldRouteAgentlessCompanyToOnboarding({
-    pathname: location.pathname,
-    agentsLoaded: agents !== undefined,
-    agentsRefreshing,
-    agentCount: agents?.length ?? 0,
-  });
-  // Auto-open once per company. Every input to the effect sits behind a query,
-  // so a refetch re-runs it, and the customer can also navigate away and come
-  // back — both would otherwise call `openOnboarding` again and reopen a
-  // wizard that was deliberately closed. `claimOnboardingOffer` holds the
-  // companies already offered; see it for why that outlives this component.
-  useEffect(() => {
-    if (!shouldOpenOnboarding || !selectedCompanyId) return;
-    if (!claimOnboardingOffer(selectedCompanyId)) return;
-    openOnboarding({
-      companyId: selectedCompanyId,
-      initialStep: onboardingStepForCompany(),
-    });
-    // No mission lookup to wait on any more: the step this opens is the same
-    // whatever the goals say, so waiting only delayed the open.
-  }, [shouldOpenOnboarding, selectedCompanyId, openOnboarding]);
+  // Organization setup remains available without forcing an agent wizard.
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "协同工作台" }]);
+    setBreadcrumbs([{ label: "我的工作台" }]);
   }, [setBreadcrumbs]);
 
   const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
@@ -196,7 +151,7 @@ export function Dashboard() {
     enabled: !!selectedCompanyId,
   });
 
-  const { data: projects } = useQuery({
+  const { data: projects, isError: projectsError } = useQuery({
     queryKey: queryKeys.projects.list(selectedCompanyId!, { includeArchived: true }),
     queryFn: () => projectsApi.list(selectedCompanyId!, { includeArchived: true }),
     enabled: !!selectedCompanyId,
@@ -301,8 +256,8 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message={uiText("Welcome to Paperclip. Set up your first organization and agent to get started.")}
-          action="Get Started"
+          message="欢迎使用智研协同平台，先创建组织，再接入人员、项目和研发电脑。"
+          action="创建组织"
           onAction={openOnboarding}
         />
       );
@@ -326,7 +281,7 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <CollaborationWorkbench companyId={selectedCompanyId} issues={issues} issuesError={issuesError} pendingApprovals={data ? data.pendingApprovals + data.budgets.pendingApprovals : undefined} />
+      <CollaborationWorkbench key={selectedCompanyId} projects={projects} projectsError={projectsError} companyId={selectedCompanyId} issues={issues} issuesError={issuesError} pendingApprovals={data ? data.pendingApprovals + data.budgets.pendingApprovals : undefined} />
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {pausedBanner?.kind === "imported" ? (
@@ -367,19 +322,19 @@ export function Dashboard() {
           <div className="flex items-center gap-2.5">
             <Bot className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-sm text-amber-900 dark:text-amber-100">
-              {uiText("You have no agents.")}
+              尚未接入研发执行席位，可到席位页接入电脑；通用智能体可按需添加。
             </p>
           </div>
           <button
-            onClick={() => openOnboarding({ initialStep: 3, companyId: selectedCompanyId! })}
+            onClick={() => openNewAgent()}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 underline underline-offset-2 shrink-0"
           >
-            {uiText("Create one here")}
+            高级：添加通用智能体
           </button>
         </div>
       )}
 
-      <ActiveAgentsPanel companyId={selectedCompanyId!} />
+      <details className="space-y-3"><summary className="cursor-pointer text-sm font-medium">智能体运行诊断</summary><ActiveAgentsPanel companyId={selectedCompanyId!} /></details>
 
       {data && (
         <>
@@ -402,7 +357,7 @@ export function Dashboard() {
             </div>
           ) : null}
 
-          <h2 className="text-base font-semibold">组织运行概况<span className="ml-2 text-xs font-normal text-muted-foreground">当前状态与本月用量</span></h2>
+          <h2 className="text-base font-semibold">组织运行概况<span className="ml-2 text-xs font-normal text-muted-foreground">当前组织全部项目 · 不随上方个人或项目筛选变化</span></h2>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
             <MetricCard
               icon={Bot}
@@ -418,7 +373,7 @@ export function Dashboard() {
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label={uiText("Tasks In Progress")}
+              label="业务处理中（非实际运行数）"
               to="/issues"
               description={
                 <span>
@@ -430,13 +385,13 @@ export function Dashboard() {
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label={uiText("Month Spend")}
+              label="本月已记录费用"
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
                     ? uiTextFormat("__PCVAR0__% of __PCVAR1__ budget", [data.costs.monthUtilizationPercent, formatCents(data.costs.monthBudgetCents)])
-                    : uiText("Unlimited budget")}
+                    : uiText("Unlimited budget")} · 未计价与未采集部分不包含
                 </span>
               }
             />
@@ -458,6 +413,7 @@ export function Dashboard() {
 
 
 
+          <details className="space-y-3"><summary className="cursor-pointer text-sm font-medium">运行趋势与任务状态分布</summary>
           <div className={cn("grid grid-cols-2 gap-4", SHOW_TASK_PRIORITY_UI ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
             <ChartCard title={uiText("Run Activity")} subtitle="最近 14 天">
               <RunActivityChart activity={data.runActivity} />
@@ -475,6 +431,7 @@ export function Dashboard() {
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
+          </details>
 
           <PluginSlotOutlet
             slotTypes={["dashboardWidget"]}
@@ -488,9 +445,7 @@ export function Dashboard() {
             {/* Recent Activity */}
             {canManage && recentActivity.length > 0 && (
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  {uiText("Recent Activity")}
-                </h3>
+                <details><summary className="mb-3 cursor-pointer text-sm font-semibold text-muted-foreground">最近操作与系统同步记录</summary>
                 <Card className="@container block py-0 divide-y divide-border overflow-hidden">
                   {recentActivity.map((event) => (
                     <ActivityRow
@@ -503,7 +458,7 @@ export function Dashboard() {
                       className={animatedActivityIds.has(event.id) ? "activity-row-enter" : undefined}
                     />
                   ))}
-                </Card>
+                </Card></details>
               </div>
             )}
 

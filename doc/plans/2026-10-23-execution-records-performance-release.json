@@ -1,0 +1,54 @@
+{
+  "release": "execution-records-performance",
+  "state": "released",
+  "updatedAt": "2026-10-23T10:29:20.352252+00:00",
+  "stage": "/home/fg/paperclip/private/execution-records-performance-20261023T102811Z",
+  "backup": "/home/fg/paperclip/private/execution-records-performance-20261023T102811Z/backup",
+  "filesVerified": 514,
+  "archiveSha256": "459b32b1e96be73b1bdc006161bdc5933cbf4fa76ea264908912832485d17568",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "clientUpgradeRequired": false,
+  "backendChanged": false,
+  "previousBackendRelease": "waiting_for_idle",
+  "checks": {
+    "mainScriptBytes": 730102,
+    "initialJavaScriptBytes": 3112592,
+    "initialJavaScriptFiles": 115,
+    "testsRun": false,
+    "uiTypecheck": true,
+    "productionBuild": true,
+    "tokenGates": true,
+    "publicAssets": [
+      {
+        "path": "ui-dist/index.html",
+        "sha256Matches": true,
+        "bytes": 11487
+      },
+      {
+        "path": "ui-dist/assets/index-rEdTan_w.js",
+        "sha256Matches": true,
+        "bytes": 730102
+      },
+      {
+        "path": "ui-dist/assets/ExecutionRecords-u1ufjbWL.js",
+        "sha256Matches": true,
+        "bytes": 4666
+      }
+    ]
+  }
+}

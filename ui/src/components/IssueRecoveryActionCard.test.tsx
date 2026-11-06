@@ -172,7 +172,7 @@ describe("IssueRecoveryActionCard", () => {
     const node = render(<IssueRecoveryActionCard action={buildAction({
       kind: "active_run_watchdog", cause: "uncertain_external_action", status, ownerType: "board",
     })} />);
-    expect(node.textContent).toBe("");
+    expect(node.textContent?.trim()).toBe("");
     expect(node.querySelector("section")).toBeNull();
   });
 
@@ -430,21 +430,21 @@ describe("IssueRecoveryActionCard workspace_validation divergence", () => {
 
   it("labels each ancestry verdict", () => {
     const diverged = render(<IssueRecoveryActionCard action={buildWorkspaceValidationAction()} />);
-    expect(diverged.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Diverged");
+    expect(diverged.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent?.trim()).toBe("Diverged");
 
     const ancestor = render(
       <IssueRecoveryActionCard
         action={buildWorkspaceValidationAction({ provenance: { ancestryVerdict: "ancestor" } })}
       />,
     );
-    expect(ancestor.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Forward-only");
+    expect(ancestor.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent?.trim()).toBe("Forward-only");
 
     const unknown = render(
       <IssueRecoveryActionCard
         action={buildWorkspaceValidationAction({ provenance: { ancestryVerdict: "unknown" } })}
       />,
     );
-    expect(unknown.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Ancestry unknown");
+    expect(unknown.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent?.trim()).toBe("Ancestry unknown");
   });
 
   it("does not render a divergence diagnosis for non-incoherence workspace failures", () => {
@@ -899,7 +899,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(progress?.getAttribute("data-recovery-attempt")).toBe("2");
     expect(progress?.getAttribute("data-recovery-max-attempts")).toBe("5");
     expect(progress?.textContent).toContain("Attempt 2 of 5");
-    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
+    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent?.trim()).toBe(
       "Next try in 3m",
     );
   });
@@ -966,7 +966,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(section?.getAttribute("data-recovery-state")).toBe("needed");
     expect(node.textContent).toContain("RECOVERY NEEDED");
     expect(node.textContent).toContain("has used every automatic repair attempt");
-    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
+    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent?.trim()).toBe(
       "Automatic retries used up",
     );
     // The follow-up line must not keep promising a retry that will never run, and the
@@ -1001,7 +1001,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(node.textContent).toContain("RECOVERY NEEDED");
     expect(node.textContent).not.toContain("RECOVERY IN PROGRESS");
     const retry = node.querySelector("[data-testid='recovery-next-retry']");
-    expect(retry?.textContent).toBe("Retry missed 5m ago");
+    expect(retry?.textContent?.trim()).toBe("Retry missed 5m ago");
     expect(retry?.getAttribute("data-recovery-retry-expired")).toBe("true");
     // Nothing may still read as an upcoming attempt or as needing no action.
     expect(node.textContent).not.toContain("Next try");
@@ -1043,7 +1043,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     );
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-state")).toBe("in_progress");
-    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
+    expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent?.trim()).toBe(
       "Attempt running now",
     );
     expect(node.textContent).not.toContain("Retry missed");

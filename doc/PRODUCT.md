@@ -39,6 +39,8 @@ Paperclip supports several ways to run an agent's heartbeat:
 3. **Fire and forget a request** — Paperclip sends a webhook/API call to an externally running agent. The heartbeat is "notify this agent to wake up." OpenClaw-style hooks work this way.
 4. **External adapter plugins** — Paperclip loads adapter packages through the plugin/adapter flow so self-hosted installs can add runtimes without hardcoding them in core.
 
+Project repositories are optional. QA Harness tasks may use suite-local test assets and a target environment without a separate business checkout. Boards can reuse existing business checkouts reported by their owned or managed seats while retaining the native project workspace model.
+
 Agent runs can use project and execution workspaces, managed runtime services such as preview/dev servers, adapter-specific session state, and HTTP/webhook-style execution. We provide sensible defaults, but the adapter is still the boundary: if a runtime can be invoked, observed, and authorized, Paperclip can coordinate it.
 
 ### Task Management
@@ -69,6 +71,10 @@ Core Paperclip owns the skill runtime, company-boundary enforcement, policy eval
 An explicit restricted policy may deny selected operations or switch to a default-deny preset with explicit allow rules. Core exposes a stable versioned policy API so EE and other administrative clients configure and simulate the same evaluator used by skill mutation routes. Core Skill Studio only needs to perform normal skill work, explain an explicit denial, and point administrators to EE when its richer policy UI is available; it must not recreate a partial enterprise permission editor.
 
 ## Principles
+
+席位接入服务安装包含当前用户、当前席位独立的每分钟巡检。服务停止或本机成功心跳证据超过 90 秒时，巡检通过既有 `harness online` 恢复连接，两次尝试至少间隔 5 分钟。手动下线和升级期间跳过；不强制终止任务或绕过网页暂停、派单及审批门禁。该机制依赖电脑运行和用户会话，不承诺睡眠、关机、退出登录或断网期间在线。
+
+客户端升级仅由管理员在网页对具体席位和目标版本明确下发，不因发布新版本自动推广。支持网页升级的客户端通过独立巡检领取有期限的请求，空闲后按既有升级流程执行；忙碌及离线等待，未领取可取消，失败由管理员核对后重试。原有任务、待确认和执行锁保护保持生效，目标版本新心跳确认后才显示成功。旧客户端须先在本机升级一次以获得网页升级能力。
 
 1. **Unopinionated about how you run your agents.** Your agents could be OpenClaw bots, Python scripts, Node scripts, Claude Code sessions, Codex instances — we don't care. Paperclip defines the control plane for communication and provides utility infrastructure for heartbeats. It does not mandate an agent runtime.
 
@@ -209,3 +215,80 @@ icon shares a column with stars and appears on hover or keyboard focus (always o
 touch). It opens a company-wide name/role search, independent of sidebar membership.
 Selecting an agent opens their persistent conversation; it does not reset history
 or create a task until the existing first-write flow requires one.
+
+
+## DSP7 集成更新（2026-10-22）：统一平台派单
+
+新增执行统一由智研平台项目页的“派单并执行”发起；Jira 指派只参与校验，不再扫描建单或触发执行。平台独立审计授权，客户端持久领取、排队并打开本机可见终端；仅登记仍等待本人启动。未明确派单的旧任务不自动开工。实现与兼容边界见 `doc/plans/2026-10-22-platform-dispatch.md`。
+
+明确恢复已中断的本机出站会话时，平台在同一事务中核对席位停止证明与旧运行身份、释放的执行环境，并同步旧运行的停止确认，再重新授权本机启动。旧操作结果仍保留为未知，不重放旧操作，也不跳过其他执行保护。
+
+
+## DSP7 席位时间统计（2026-10-22）
+
+席位统计保留工单、执行、人工等待、在线空闲和质量数据，移除“未知时长”和时间“覆盖率”的页面展示；仅增加“工作时段在线”辅助列，不设在线率、达标率或排名。在线以服务端收到的席位心跳为依据，有效期 90 秒，与执行状态、暂停接单无关；只累计 Asia/Shanghai 工作时段内截至当前的连接区间，席位创建前不计入，人员多电脑取并集。没有心跳证据的工作区间标记“统计不完整”，可展开查看，不推算成离线或人员工时。
+
+工作规则按组织持久保存，管理员通过统计区默认折叠的“工作时段设置”配置 ISO 工作日（周一为 1、周日为 7）及最多四个同日、不重叠的时间段。默认周一至周五 09:00–12:00、13:00–18:00；修改规则后历史查询也按新规则计算。本期不含法定节假日日历、请假审批或免考核模块。`PUT /api/companies/:companyId/managed-seat-report/work-schedule` 要求组织管理员权限、组织访问校验并在同一事务记录活动日志；报表返回实际规则与配置权限。旧 API 的时间缺口字段保留用于诊断兼容，界面不展示。
+
+
+## DSP7 明确停止与一次真实重试（2026-10-23）
+
+网页停止或 `harness stop <Jira 工单号>` 留下持久停止意图，先记录再取消／发信号；离线意图与下次席位心跳一起同步。Esc、Ctrl+C 和未知退出码不证明用户停止整个任务。明确停止后必须人工恢复；晚到的明确停止也会阻断尚未启动的自动重试。
+
+新版客户端发起的本机出站 Claude 运行在未知失败、超时或断连后，可在已有平台授权下自动重试一次。必须先核验最新运行的真实停止证明、席位空闲、环境已释放、组织与负责人归属及所有原有执行保护。原子记录新派单授权，交由本机重新核验 Jira、锁与预算门禁并打开可见终端；每次显式派单／恢复仅有一次机会。历史运行不追溯启动。通用唤醒不创建本机执行意图；缺少真实启动时返回失败，不能冒充成功。页面区分准备自动重试与运行中，审计保留未知操作结果。
+
+
+## 管理工作台与交付核验（2026-10-27）
+
+组织首页按工单给出互斥的管理结论：需要处理与核实、已确认执行、待安排与调度。业务状态 `in_progress` 本身不证明进程正在运行；停止记录、当前席位心跳、离线和读取失败分别展示。待处理中心按工单合并提醒，显示处理负责人、证据时间与下一步，并保留原审批和历史通知入口。通知已读或归档不表示问题解决。
+
+管理员默认组织概览，其他成员默认我的工作；个人范围包含直接指派及当前指派给本人席位的工单。范围偏好仅保存在当前浏览器，按账号与组织隔离，URL 显式范围优先；组织权限仍由原 API 执行。首页跳转保留项目与范围，工单列表沿用相同的管理结论。
+
+月度排期在整月结果上组合来源条件、风险筛选和排序，再分页。计划已过、本周到期按上海时区计算，责任人缺失、准入待核验和日期缺失独立标记；无效日期排在有效日期之后。这些信号不认定正式延期、准入通过或验收完成。
+
+项目准备区区分已保存配置与实际连接验证；席位接单准备缺项不授予逐单执行权限。执行记录用工单、席位、负责人和失败摘要提供上下文，仅搜索最近 50 次运行，关联元数据未完整时明确提示。列表不读取受管会话正文。
+
+条目材料按阶段索引产物路径与指纹、正式来源引用及核验入口。阶段回执必须匹配当前任务、运行、Jira 工单与输入版本，设计和测试用例还需匹配当前回执版本的正式评审；分析材料按独立修订按需读取。阶段交付与正式验收分别展示。费用、会话缺口与未分类任务保留数据质量说明，不以未知计零，不虚构延期率或人员绩效归因。
+
+### 管理协作跟进
+
+管理事项可记录独立的协调负责人和本地到期提醒。成员可认领未认领事项、释放自己的跟进；管理员可转交给组织内有效成员。此记录不改变工单唯一执行人、执行许可、预算或正式审批。提醒在管理事项中显示，不表示已经发送站外通知。并发更新按版本检查，冲突后刷新最新记录。
+条目交付的功能测试报告与测试通过分别记录。测试结果必须注明被测版本并与逐条执行记录对账；失败、阻塞、跳过和结果未知均不会自动进入验收。对于已有明确失败证据的测试，组织管理员可关联已有缺陷、独立评审及重测工单，配置不同的修复和评审席位，授权一轮串行修复链。系统保留每轮原失败报告及版本，最多三轮；评审未通过、原件变化、预算或执行治理门禁未通过时停留待处理，不自动创建重复缺陷或批准带缺陷上线。
+
+
+## Harness 执行边界（2026-11-03）
+
+平台向已授权席位派发工单并记录执行状态；仓库选择、本机目录及工作树由研发电脑上的 Harness 套件负责。接单设置与 Jira 工单接入不再要求选择单个共享仓库，一个工单可以按 Harness 技能涉及多个仓库。平台保留公司、项目、席位授权、独占执行、预算和交付证据规则。
+
+
+### Instance personnel federation (2026-11-04)
+
+Personnel identity sources, external people, departments and sync jobs are shared
+across the instance and managed only by instance administrators. Sync once per
+enterprise; organizations reuse that directory through explicit membership
+assignment. Synchronization and identity linking do not create organization
+memberships or grant roles. Existing accounts, passwords, memberships and seat
+ownership are preserved. Notification recipients use active shared DingTalk identities
+matching the bot CorpId, without requiring organization membership. Selecting a
+recipient does not grant organization access; notification configuration remains
+company-scoped.
+The system directory is an explicit exception to company-scoped domain storage;
+organization permissions and execution remain isolated.
+
+### Configurable delivery templates (2026-11-05)
+
+Organization managers configure delivery under the home navigation → 交付链 (`/delivery-chain`); the legacy Settings entry remains available. Projects inherit the organization template unless they publish an override; publishing a restore-inheritance version resumes following organization changes. With no published template, new deliveries automatically use design → responsible human design review → parallel coding → independent code review → test-case writing → responsible human case review → functional testing → human acceptance. Template defaults do not launch work on a page read. Starting a delivery explicitly binds real child issues and seats.
+
+Stage configuration exposes work-only or work-then-review ordering and previews the full sequence. Launching the latter binds real review tickets to specific work tickets; multiple coding branches may share a review. Human design/case reviews are assigned to the responsible user and require formal Jira review evidence. Code review uses a separate capable seat. Existing workflows keep their pinned template.
+
+交付链可分别指定每类工作单和评审单由人工或 Agent 执行。人工任务指定组织成员，登记正式交付版本及材料后衔接后续；Agent 任务匹配对应原生 Harness 能力，缺少能力时明确阻止派发。
+
+### 评审返工（2026-11-05）
+
+交付链支持配置评审退回后自动交原执行人修改并重新送审，或暂停后手动发起返工。每轮评审及材料保留历史，新版本通过后才进入后续阶段。
+
+本机客户端更新（2026-11-05）：由当前操作系统用户执行 `harness upgrade` 时，统一更新同一网站的各组织席位，保留独立身份与配置。先检查全部目标空闲，每个席位更新前再次检查；中途失败保留完成与剩余记录，由用户重试。网页管理员升级仍限已授权席位，不扩大到其他组织；发布新包不触发升级。
+
+### 席位并发执行
+
+每个席位可独立设置最大并发工单数（1–50，默认 1）。新版主动连接客户端支持多个工单同时执行；达到上限的授权任务排队，释放名额后继续。等待人工处理、已领取待启动和退出尚未核验的执行占用名额。降低上限不终止已有运行；旧客户端及 SSH 席位保持单任务。

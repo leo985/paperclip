@@ -1,0 +1,74 @@
+{
+  "format": 1,
+  "observedAt": "2026-11-02T03:59:21.981583+00:00",
+  "resumeAudit": 1,
+  "goalStatus": "active",
+  "online": {
+    "observedAt": "2026-11-02T03:59:21.981583+00:00",
+    "health": {
+      "status": "ok",
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047"
+    },
+    "database": {
+      "readOnly": true,
+      "seats": [
+        {
+          "id": "b202796e-689f-4883-908c-d1499ddb796e",
+          "last_seen_at": "2026-10-23T11:13:26.094Z",
+          "checked_at": "2026-10-23T11:12:56.927Z"
+        }
+      ],
+      "migrations": [
+        {
+          "created_at": "1792978854900"
+        }
+      ],
+      "moduleSha": "c32fbece1557f576e0d1d537e13430edcc066bccba79c74242da0342b3e54870"
+    }
+  },
+  "jira": {
+    "observedAt": "2026-10-31T07:52:20.377833+00:00",
+    "readOnly": true,
+    "key": "ATSES-515808",
+    "status": "待受理",
+    "updated": "2026-10-30T17:11:16.000+0800",
+    "description": "无法打开页面",
+    "parent": null,
+    "subtaskCount": 0,
+    "linkedIssueCount": 0,
+    "commentTotal": 0,
+    "attachmentCount": 0,
+    "demandReference": null
+  },
+  "usageAttributionFinding": {
+    "checkpointSemantics": "Per-run cumulative high-water snapshot converted to a delta since prior checkpoint; source records sequence and observedAt but not the phase interval represented.",
+    "phaseEvents": "Managed phase events are separate and may occur between usage checkpoints.",
+    "conclusion": "Exact phase-level token attribution cannot be reconstructed for intervals crossing phase boundaries. Keep those deltas unallocated; do not assign by duration or checkpoint endpoint. A protocol must provide phase-bounded cumulative baselines or per-phase deltas plus boundary identity.",
+    "sourceFiles": [
+      "integrations/dsp7-bridge/outbound.py",
+      "server/src/services/seat-usage-checkpoints.ts",
+      "packages/db/src/schema/run_usage_observations.ts",
+      "packages/db/src/schema/managed_sessions.ts"
+    ]
+  },
+  "remaining": {
+    "windowsRealAcceptance": "Last heartbeat 2026-10-23T11:13:26.094Z",
+    "demandChain": "Jira ATSES-515808 remains pending with no linked records or reproduction detail",
+    "formalAcceptance": "No authoritative field/rule or passed sample",
+    "phaseTokens": "No phase-bounded token evidence",
+    "onlineRecovery": "No production consistent full-component restore drill evidence",
+    "targetDeployment": "Health ok, but running commit remains 8f8a0ab7effbd6a0584107d8038736c134ee5047; only the separately recorded client-size hotfix is evidenced"
+  },
+  "localSeatRepositoryBinding": {
+    "observedAt": "2026-11-02T04:01:55.772123+00:00",
+    "readOnly": true,
+    "bindings": 1,
+    "repositoryOrigin": "http://gitlab.fingard.cn/QJ/dsp/dsp7.1_git.git",
+    "currentBranch": "pre-release",
+    "screenshotRepositoryOrigin": "http://gitlab.fingard.cn/QJ/ATSSAAS/ats-usercore.git",
+    "screenshotBaseRef": "dev",
+    "screenshotRepositoryBoundToThisLocalSeat": "not evidenced",
+    "devRefPresentInLocalCheckout": false,
+    "note": "Configured Harness roots are tool directories. The local repository binding maps a separate project/workspace to an existing checkout; source URL configuration alone does not clone or bind the checkout. No binding or branch was changed."
+  }
+}

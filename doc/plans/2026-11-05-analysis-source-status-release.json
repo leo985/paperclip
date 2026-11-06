@@ -1,0 +1,86 @@
+{
+  "release": "20261105-analysis-source-status",
+  "target": "http://10.60.43.53:3100",
+  "status": "deployed",
+  "timestamp": "20261105T003540Z",
+  "backup": "/home/fg/paperclip/private/analysis-status-20261105/backup-20261105T003540Z",
+  "files": 333,
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "uiEntry": "index-006a94cf.js",
+  "uiModule": "DeliveryEntries-7b017441.js",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "activeBefore": [],
+  "activeAfter": [],
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-05T00:35:41.920Z",
+    "completedAt": "2026-11-05T00:36:45.929Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 2033081,
+    "newServerPid": 2589709,
+    "previousServerVersion": "2026.1001.0",
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "bridgeManifestSha256": "d997bc3fcd3dd8500bf75e3e5d2559fdc06be49341b86a74c1abe33c771fd165",
+  "durationSeconds": 66.4,
+  "verification": {
+    "verified": 328,
+    "failures": [],
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "unauthenticatedCompaniesStatus": 403,
+    "targetedTests": 39,
+    "serverTypecheck": true,
+    "uiTypecheck": true,
+    "tokenGates": true,
+    "linkedUiModules": 673,
+    "publishedRendererLegacySnapshot": "passed",
+    "publishedRendererSourceReview": "passed",
+    "liveQingzhouRead": {
+      "demandNo": "XLTZ-00008",
+      "sourceStatus": "待开发",
+      "analysisSaved": true,
+      "analysisProcessed": true,
+      "reviewProcessed": true,
+      "platformDataMutated": false
+    }
+  },
+  "limitations": [
+    "Existing snapshots require re-sync; no saved snapshot or upstream business state changed.",
+    "Authenticated browser interaction not performed.",
+    "Repo-wide build and test suite not rerun; scoped runtime modules and published UI were verified."
+  ]
+}

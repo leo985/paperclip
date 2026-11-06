@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@/lib/router";
@@ -50,7 +51,7 @@ function revisionLabel(revision: SummarySlotRevision) {
 }
 
 function formatRevisionTimestamp(date: Date | string) {
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(i18n.language, {
     month: "short",
     day: "numeric",
     hour: "2-digit",

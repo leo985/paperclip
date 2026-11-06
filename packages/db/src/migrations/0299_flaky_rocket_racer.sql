@@ -1,0 +1,1 @@
+CREATE INDEX "dsp7_ms_retention_idx" ON "dsp7_managed_sessions" USING btree ("started_at","id") WHERE "dsp7_managed_sessions"."deleted_at" is null;

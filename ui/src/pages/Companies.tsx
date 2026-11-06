@@ -1,3 +1,4 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
 import { localizedStatus,  uiText } from "@/i18n/interface";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ export function Companies() {
     loading,
     error,
   } = useCompany();
+  const { isInstanceAdmin } = useManagementAccess();
   const { openOnboarding } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -111,7 +113,7 @@ export function Companies() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
-        {isCloud ? null : (
+        {isCloud || !isInstanceAdmin ? null : (
           <Button size="sm" onClick={() => openOnboarding()}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             {uiText("New Organization")}

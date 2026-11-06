@@ -1,0 +1,448 @@
+import { randomUUID, createHash } from "node:crypto";
+import express from "express";
+import request from "supertest";
+import { afterAll, beforeAll, describe, it, expect, vi } from "vitest";
+import { eq } from "drizzle-orm";
+import {
+  createDb,
+  companies,
+  projects,
+  agents,
+  analysisExecutions,
+  heartbeatRuns,
+  seatExecutionPermits,
+  type Db,
+} from "@paperclipai/db";
+import {
+  getEmbeddedPostgresTestSupport,
+  startEmbeddedPostgresTestDatabase,
+} from "../__tests__/helpers/embedded-postgres.js";
+const wakes = vi.hoisted(() => ({ call: vi.fn(), cancel: vi.fn() }));
+vi.mock("../services/heartbeat.js", () => ({
+  heartbeatService: () => ({ wakeup: wakes.call, cancelRun: wakes.cancel }),
+}));
+import { analysisWaitScope } from "../services/analysis-executions.js";
+import { analysisExecutionRoutes } from "./analysis-executions.js";
+import { seatPermitService } from "../services/seat-execution-permits.js";
+const support = await getEmbeddedPostgresTestSupport();
+(support.supported ? describe : describe.skip)(
+  "independent analysis authorized lifecycle",
+  () => {
+    let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>,
+      db: Db;
+    const cid = randomUUID(),
+      pid = randomUUID(),
+      sid = randomUUID(),
+      mid = randomUUID(),
+      fingerprint = "f".repeat(64),
+      capid = "c".repeat(64),
+      cap = {
+        id: capid,
+        kind: "analysis",
+        root: "/isolated/analysis",
+        repository: "git.example.com/analysis",
+        profile: "dsp",
+        commit: "a".repeat(40),
+        manifestDigest: "b".repeat(64),
+        roles: ["requirements-analysis"],
+        protocolVersion: 1,
+        validation: "local-files",
+        executionReady: false,
+        checkedAt: new Date().toISOString(),
+      };
+    const machine = {
+        seat_id: sid,
+        machine_id: mid,
+        machine_fingerprint: fingerprint,
+      },
+      lease = randomUUID();
+    function app(user = "local-board", role = "admin", agent = false) {
+      const a = express();
+      a.use(express.json());
+      a.use((req, _res, next) => {
+        req.actor = agent
+          ? {
+              type: "agent",
+              source: "agent_key",
+              agentId: sid,
+              companyId: cid,
+              companyIds: [cid],
+            }
+          : {
+              type: "board",
+              source: "session",
+              userId: user,
+              companyIds: [cid],
+              memberships: [
+                { companyId: cid, membershipRole: role, status: "active" },
+              ],
+            };
+        next();
+      });
+      a.use(analysisExecutionRoutes(db));
+      a.use((e: any, _req: any, res: any, _next: any) =>
+        res.status(e.status ?? 500).json({ error: e.message }),
+      );
+      return a;
+    }
+    const url = `/companies/${cid}/analysis-executions`;
+    beforeAll(async () => {
+      vi.stubEnv("PAPERCLIP_DEPLOYMENT_MODE", "local_trusted");
+      database = await startEmbeddedPostgresTestDatabase(
+        "analysis-executions-",
+      );
+      db = createDb(database.connectionString);
+      await db.insert(companies).values({
+        id: cid,
+        name: "Analysis Test",
+        issuePrefix: "A" + cid.slice(0, 6),
+      });
+      await db
+        .insert(projects)
+        .values({ id: pid, companyId: cid, name: "Project" });
+      await db.insert(agents).values({
+        id: sid,
+        companyId: cid,
+        name: "Seat",
+        role: "engineer",
+        status: "idle",
+        adapterType: "claude_local",
+        adapterConfig: {
+          dsp7Transport: "outbound",
+          dsp7WebJiraIntake: true,
+          dsp7Seat: {
+            machineId: mid,
+            machineFingerprint: fingerprint,
+            ownerUserId: "local-board",
+          },
+          dsp7HarnessCapabilities: { version: 1, revision: 1, items: [cap] },
+          dsp7SeatPresence: {
+            lastSeenAt: new Date().toISOString(),
+            state: "idle",
+            acceptingWork: true,
+            capabilities: ["analysis-execution-v1"],
+          },
+        },
+      });
+      wakes.call.mockImplementation(async (agentId, opts) => {
+        const [r] = await db
+          .insert(heartbeatRuns)
+          .values({
+            companyId: cid,
+            agentId,
+            status: "running",
+            contextSnapshot: opts.contextSnapshot,
+          })
+          .returning();
+        return r;
+      });
+    }, 30000);
+    afterAll(async () => {
+      await database?.cleanup();
+      vi.unstubAllEnvs();
+    });
+    async function create() {
+      const input = {
+        requestId: randomUUID(),
+        projectId: pid,
+        seatId: sid,
+        title: "Independent analysis",
+        brief: "Analyze an isolated test requirement without Jira.",
+      };
+      const r = await request(app()).post(url).send(input);
+      expect(r.status).toBe(201);
+      return { execution: r.body, input };
+    }
+    it("creates a non-running record idempotently and restricts management and project boundaries", async () => {
+      const { execution, input } = await create();
+      expect(execution.state).toBe("draft");
+      expect(wakes.call).not.toHaveBeenCalled();
+      expect((await request(app()).post(url).send(input)).body.id).toBe(
+        execution.id,
+      );
+      expect(
+        (
+          await request(app())
+            .post(url)
+            .send({ ...input, title: "Different" })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await request(app("member", "member"))
+            .post(url)
+            .send({ ...input, requestId: randomUUID() })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await request(app())
+            .post(url)
+            .send({
+              ...input,
+              requestId: randomUUID(),
+              projectId: randomUUID(),
+            })
+        ).status,
+      ).toBe(400);
+    });
+    it("runs questions, exact-version review delivery and explicit manual publication without Jira identity", async () => {
+      const { execution: e } = await create();
+      const dispatchId = randomUUID();
+      const dispatch = await request(app())
+        .post(url + `/${e.id}/dispatch`)
+        .send({ requestId: dispatchId });
+      expect(dispatch.status).toBe(200);
+      const runId = dispatch.body.runId;
+      expect(runId).toBeTruthy();
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/dispatch`)
+            .send({ requestId: randomUUID() })
+        ).status,
+      ).toBe(409);
+      const [grant] = await db
+        .select()
+        .from(analysisExecutions)
+        .where(eq(analysisExecutions.id, e.id));
+      expect(grant.activeRunId).toBe(runId);
+      await seatPermitService(db).issue(
+        { companyId: cid, agentId: sid, runId, machineId: mid, lease },
+        { kind: "analysis", supervisionProtocol: 2 },
+      );
+      const cb = `/agents/${sid}/analysis-runs/${runId}`,
+        body = { ...machine, lease };
+      const snapshot = {
+        protocolVersion: 1,
+        binding: {
+          protocolVersion: 1,
+          companyId: cid,
+          taskId: e.id,
+          revision: 1,
+          nativeId: `pc-${e.id}-r1`,
+          profile: "dsp",
+          repository: cap.repository,
+        },
+        phase: "P2",
+        nativeStatus: "in-progress",
+        completedPhases: ["P0", "P1"],
+        gateErrors: ["waiting for real decision"],
+        localCompleted: false,
+        formalPublication: "unverified",
+      };
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/observe")
+            .send({ ...body, snapshot, waiting: true })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/observe")
+            .send({ ...body, snapshot: { ...snapshot, localCompleted: true } })
+        ).status,
+      ).toBe(409);
+      const q = {
+        key: "Q1",
+        kind: "question",
+        text: "Which authorized test behavior?",
+        inputDigest: "1".repeat(64),
+        contentDigest: "2".repeat(64),
+      };
+      const questions = await request(app("", "", true))
+        .post(cb + "/questions")
+        .send({ ...body, questions: [q] });
+      expect(questions.status).toBe(200);
+      const d = questions.body.decisions[0];
+      expect(
+        await analysisWaitScope(
+          db,
+          cid,
+          sid,
+          e.id,
+          `analysis:${runId}:fixture`,
+        ),
+      ).not.toBeNull();
+      expect(
+        await analysisWaitScope(db, cid, sid, e.id, "analysis:old-run:fixture"),
+      ).toBeNull();
+      expect(
+        (await request(app("stranger", "member")).get(url + `/${e.id}`)).status,
+      ).toBe(404);
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/decisions/${d.id}/answer`)
+            .send({
+              answer: "Allowed only in isolation",
+              contentDigest: "3".repeat(64),
+            })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/decisions/${d.id}/answer`)
+            .send({
+              answer: "Allowed only in isolation",
+              contentDigest: d.contentDigest,
+            })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/ack")
+            .send({
+              ...body,
+              decisionId: d.id,
+              contentDigest: d.contentDigest,
+              inputDigest: d.inputDigest,
+            })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/ack")
+            .send({
+              ...body,
+              decisionId: d.id,
+              contentDigest: d.contentDigest,
+              inputDigest: d.inputDigest,
+            })
+        ).status,
+      ).toBe(200);
+      const delivery = {
+        ...snapshot,
+        phase: "P4",
+        nativeStatus: "completed",
+        completedPhases: ["P0", "P1", "P2", "P3", "P4"],
+        gateErrors: [],
+        localCompleted: true,
+        inputDigest: "a".repeat(64),
+        handoffDigest: "b".repeat(64),
+        artifacts: [
+          "intake.md",
+          "evidence.json",
+          "requirements.json",
+          "analysis.md",
+          "review.json",
+          "handoff.md",
+          "state.json",
+        ].map((path) => ({
+          path,
+          sha256: path === "handoff.md" ? "b".repeat(64) : "a".repeat(64),
+        })),
+      };
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/delivery")
+            .send({ ...body, delivery })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/observe")
+            .send({
+              ...body,
+              snapshot: {
+                ...snapshot,
+                phase: "P3",
+                completedPhases: ["P0", "P1", "P2"],
+              },
+              waiting: true,
+            })
+        ).status,
+      ).toBe(200);
+      const rq = {
+        key: "P3-review",
+        kind: "review",
+        text: "Review exact input",
+        inputDigest: delivery.inputDigest,
+        contentDigest: "4".repeat(64),
+      };
+      const rqs = await request(app("", "", true))
+        .post(cb + "/questions")
+        .send({ ...body, questions: [rq] });
+      const rd = rqs.body.decisions[0];
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/decisions/${rd.id}/answer`)
+            .send({ answer: "approve", contentDigest: rd.contentDigest })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/ack")
+            .send({
+              ...body,
+              decisionId: rd.id,
+              contentDigest: rd.contentDigest,
+              inputDigest: rd.inputDigest,
+            })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/delivery")
+            .send({
+              ...body,
+              delivery: { ...delivery, gateErrors: ["P3 stale"] },
+            })
+        ).status,
+      ).toBe(409);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/delivery")
+            .send({ ...body, delivery })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await request(app("", "", true))
+            .post(cb + "/questions")
+            .send({ ...body, questions: [] })
+        ).status,
+      ).toBe(409);
+      const detail = await request(app()).get(url + `/${e.id}`);
+      expect(detail.body.execution.state).toBe("local_completed");
+      expect(detail.body.execution.publication).toBeNull();
+      expect(detail.body.decisions[0].status).toBe("delivered");
+      const pub = {
+        inputDigest: delivery.inputDigest,
+        handoffDigest: delivery.handoffDigest,
+        url: "http://jira.fingard.com:6001/browse/TEST-1",
+        note: "Isolated fixture of an explicit human verification, no external write.",
+        attest: true,
+      };
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/publication`)
+            .send({ ...pub, url: "https://evil.invalid/" })
+        ).status,
+      ).toBe(400);
+      expect(
+        (
+          await request(app())
+            .post(url + `/${e.id}/publication`)
+            .send(pub)
+        ).body.automaticReadback,
+      ).toBe(false);
+      expect(
+        (await request(app()).get(url + `/${e.id}`)).body.execution.publication
+          .method,
+      ).toBe("manual-attestation");
+    });
+  },
+);

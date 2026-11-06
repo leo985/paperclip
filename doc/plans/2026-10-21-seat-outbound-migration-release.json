@@ -1,0 +1,27 @@
+{
+  "release": "seat-outbound-migration",
+  "timestamp": "20261021T073714Z",
+  "backup": "/home/fg/paperclip/private/seat-migration-backup-20261021T073714Z",
+  "stage": "/home/fg/paperclip/private/seat-migration-stage-20261021T073714Z",
+  "archiveSha256": "6999a9a373f33b8f25e818dfd36604074c254de8f9fe73af7f8b917697ae5d66",
+  "filesVerified": 433,
+  "filesChanged": 18,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicesUnchanged": true,
+  "databaseMigration": false,
+  "installedClientsUpdated": false,
+  "bridgeSha256": "cd6591e96cea043749380dee76cd3134b0ae7e66187e83aea5ccd61378dbc31a"
+}

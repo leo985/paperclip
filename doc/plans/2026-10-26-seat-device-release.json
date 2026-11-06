@@ -1,0 +1,45 @@
+{
+  "release": {
+    "release": "seat-device-progressive-disclosure",
+    "timestamp": "20261025T170649Z",
+    "filesVerified": 173,
+    "backup": "/home/fg/paperclip/private/seat-device-backup-20261025T170649Z",
+    "health": "ok",
+    "serviceRestarted": false,
+    "clientSha256": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+    "existingSeatsForceUpdated": false,
+    "browser": "Microsoft Edge; isolated interaction tests passed",
+    "databaseChanged": false
+  },
+  "edge": {
+    "browser": "Microsoft Edge",
+    "mockedRegistry": true,
+    "collapsedPanelHeight": 1045,
+    "checks": [
+      "Compact default device view",
+      "Full Harness and Claude details remain available",
+      "Directory enrollment and client update controls work",
+      "Tab switching retains expanded content",
+      "Capability polling pauses outside device tab",
+      "Mobile width without horizontal overflow",
+      "No page errors"
+    ],
+    "pageErrors": []
+  },
+  "exceptionScenario": {
+    "browser": "Microsoft Edge",
+    "mockedRegistry": true,
+    "collapsedPanelHeight": 1127,
+    "checks": [
+      "Compact default device view",
+      "Full Harness and Claude details remain available",
+      "Directory enrollment and client update controls work",
+      "Tab switching retains expanded content",
+      "Capability polling pauses outside device tab",
+      "Mobile width without horizontal overflow",
+      "No page errors"
+    ],
+    "pageErrors": []
+  },
+  "onlineHealth": "ok"
+}

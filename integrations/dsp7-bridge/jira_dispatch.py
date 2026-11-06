@@ -1,4 +1,4 @@
-"""Jira assignee discovery using local credentials; website rules authorize execution."""
+"""Website dispatch authorizes execution; Jira assignees are informational."""
 from platform_support import fcntl
 import json
 import time
@@ -24,7 +24,7 @@ def rule_for(b):
 
 
 def authorized(b,p,rule):
-    return bool(rule and rule.get('enabled') and p['details'].get('jira_dispatch') and p['details'].get('assignee')==rule['jiraAssignee'] and p['details'].get('project_id')==rule['projectId'] and p['details'].get('source_workspace_id')==rule['workspaceId'])
+    return bool(rule and rule.get('enabled') and p['details'].get('platform_dispatch') and p['task_id'] in b.cfg.get('_platform_dispatches',{}) and p['details'].get('project_id')==rule['projectId'])
 
 
 def verify(b,task_id,start=False):
@@ -32,34 +32,21 @@ def verify(b,task_id,start=False):
 
 
 def tick(b):
-    folder=Path(b.cfg['database']).parent/'jira-dispatch';folder.mkdir(mode=0o700,exist_ok=True)
-    path=folder/'scan.json';state=read_json(path) if path.is_file() else {}
-    if time.time()-state.get('lastScan',0)<60:return
-    rule=rule_for(b)
-    if not rule or not rule.get('enabled') or rule.get('intakePaused'):return
-    if state.get('revision')!=rule['revision']:state={}
-    quote=lambda value:json.dumps(value,ensure_ascii=False)
-    jql='project = '+quote(rule['jiraProjectKey'])+' AND assignee = '+quote(rule['jiraAssignee'])+' AND status in ('+','.join(map(quote,rule['readyStatuses']))+') AND issuetype in ('+','.join(map(quote,rule['issueTypes']))+') AND statusCategory != Done ORDER BY created ASC'
-    result=b.jira().request('GET','/rest/api/2/search?'+urllib.parse.urlencode({'jql':jql,'startAt':state.get('cursor',0),'maxResults':50,'fields':'summary,status,assignee,issuetype,updated'}))
-    api=seat_api(b)
-    for issue in result.get('issues',[]):
-        f=issue['fields'];account=(f.get('assignee') or {}).get('name') or (f.get('assignee') or {}).get('accountId')
-        if account!=rule['jiraAssignee'] or (f['status'].get('statusCategory') or {}).get('key')=='done' or f['issuetype']['name'] not in TYPE_WORKFLOW:continue
-        try:
-            reply=api.request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-jira-dispatch/discover',{**identity(b),'revision':rule['revision'],'jiraKey':issue['key'],'assignee':account,'status':f['status']['name'],'issueType':f['issuetype']['name'],'summary':f['summary']})
-        except BridgeError as error:
-            if 'HTTP 409' not in str(error):raise
-            # One conflicting legacy/other-seat ticket must not starve the page.
-            if not b.db.execute('SELECT 1 FROM events WHERE jira_key=? AND kind=?',(issue['key'],'jira_dispatch_conflict')).fetchone():
-                b.event(issue['key'],'jira_dispatch_conflict',{'message':'已有工单登记或执行归属冲突，请在网页核对，保留旧执行权'})
-            continue
-        if not b.db.execute('SELECT 1 FROM events WHERE jira_key=? AND kind=?',(issue['key'],'jira_assignment_discovered')).fetchone():b.event(issue['key'],'jira_assignment_discovered',{'task_id':reply['taskId'],'rule_revision':rule['revision']})
-    cursor=int(result.get('startAt',0))+len(result.get('issues',[]))
-    atomic_json(path,{'revision':rule['revision'],'lastScan':time.time(),'cursor':cursor if cursor<int(result.get('total',0)) else 0})
+    # Jira assignment is data only. Durable website authorization is the queue.
+    rule_for(b)
+    response=seat_api(b).request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-platform-dispatches',identity(b))
+    queue={x['taskId']:x['authorizationId'] for x in response.get('tasks',[])}
+    b.cfg['_platform_dispatches']=queue
+    for row in b.db.execute('SELECT jira_key,task_id,config FROM pilots').fetchall():
+        if row['task_id'] not in queue:continue
+        details=json.loads(row['config']);authorization=queue[row['task_id']]
+        if details.get('platform_authorization_id')==authorization:continue
+        details.update(platform_dispatch=True,jira_dispatch=True,platform_authorization_id=authorization)
+        with b.db:b.db.execute('UPDATE pilots SET config=?,last_error=NULL WHERE jira_key=?',(json.dumps(details,ensure_ascii=False),row['jira_key']))
 
 
 def monitor(b,p):
-    """Stop a started dispatched job when Jira assignment/requirements no longer match."""
+    """Stop when platform authorization or Jira requirements no longer match."""
     if not p['details'].get('jira_dispatch'):return
     completion=Path(p['details']['state_path']).parent/'paperclip-completion.json'
     if completion.is_file() and b.state(p,required=False).get('状态')=='completed':
@@ -85,8 +72,8 @@ def monitor(b,p):
     b.update(p['jira_key'],enabled=0,last_error=message,status='blocked')
     task=b.pc.request('GET','/issues/'+p['task_id'])
     if task.get('status') not in ('done','cancelled'):
-        b.pc.request('PATCH','/issues/'+p['task_id'],{'status':'blocked'})
-        b.pc.request('POST','/issues/'+p['task_id']+'/comments',{'body':'自动执行已停止，等待负责人处理：'+message+'。请核对改派、需求或调度规则变化；不会转交未确认停止的执行权。'})
+        b.pc.request('PATCH','/issues/'+p['task_id'],{'status':'blocked','unblockDescriptor':{'owner':'board','action':'核对平台派单授权、Jira 变更及执行进程后处理：'+message[:1000]}})
+        b.pc.request('POST','/issues/'+p['task_id']+'/comments',{'body':'自动执行已停止，等待负责人处理：'+message+'。请核对平台授权、需求或调度规则变化；不会转交未确认停止的执行权。'})
     b.event(p['jira_key'],'jira_dispatch_stopped',{'reason':message,'at':now()})
     from seat_control import once_notice,dingtalk_notice
     saved=Path(b.cfg['database']).parent/'seat-control/state.json'
@@ -103,7 +90,7 @@ def check_other_executor(b,key):
     if __import__('sys').platform=='win32':
         from platform_support import process_table,matches_claude
         for pid,p in process_table().items():
-            if executable and matches_claude(p['command'],executable) and re.search(r'(?<![A-Z0-9_-])'+re.escape(key)+r'(?![A-Z0-9_-])',p['command']):
+            if executable and matches_claude(p['command'],executable,p.get('image')) and re.search(r'(?<![A-Z0-9_-])'+re.escape(key)+r'(?![A-Z0-9_-])',p['command']):
                 raise BridgeError('发现本机另一个 Claude 已涉及此工单（PID '+str(pid)+'），请核对；不会停止无关会话')
         return
     result=subprocess.run(['/bin/ps','-axo','pid=,command='],capture_output=True,text=True,check=True)

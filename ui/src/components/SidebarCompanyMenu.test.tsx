@@ -31,6 +31,9 @@ const mockCloudApi = vi.hoisted(() => ({
 }));
 const mockNavigateTopLevel = vi.hoisted(() => vi.fn());
 
+const management = vi.hoisted(() => ({ canManage: true, isInstanceAdmin: true }));
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => management }));
+
 vi.mock("@/api/auth", () => ({
   authApi: mockAuthApi,
 }));
@@ -366,7 +369,7 @@ describe("SidebarCompanyMenu", () => {
     await flushReact();
 
     expect(mockAuthApi.signOut).toHaveBeenCalledTimes(1);
-    expect(mockNavigateTopLevel).not.toHaveBeenCalled();
+    expect(mockNavigateTopLevel).toHaveBeenCalledWith("/auth");
     expect(queryClient.getQueryState(queryKeys.health)?.isInvalidated).toBe(true);
     expect(document.body.textContent).not.toContain("Organizations");
 

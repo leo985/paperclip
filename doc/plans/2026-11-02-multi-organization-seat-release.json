@@ -1,0 +1,90 @@
+{
+  "release": "20261102-multi-organization-seat",
+  "timestamp": "20261102T090442Z",
+  "backup": "/home/fg/paperclip/private/multi-organization-backup-20261102T090442Z",
+  "files": 5,
+  "databaseChanged": false,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "durationSeconds": 88.4,
+  "uiEntry": "index-7aa32f53.js",
+  "target": "http://10.60.43.53:3100",
+  "verification": {
+    "allFilesVerified": 5,
+    "health": "ok",
+    "openApiPublicBearerInvitationInspection": true,
+    "bridgeSha256": "cd6bdf54297c04f4e45fca3f80b1f0069341ed78596b01a7f667f910ca011d3a",
+    "documentationCorrection": {
+      "release": "20261102-multi-organization-api-docs",
+      "timestamp": "20261102T091510Z",
+      "backup": "/home/fg/paperclip/private/multi-organization-backup-20261102T091510Z",
+      "files": 1,
+      "databaseChanged": false,
+      "health": {
+        "status": "ok",
+        "deploymentMode": "authenticated",
+        "deploymentExposure": "private",
+        "localAiLoginSupported": true,
+        "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+        "bootstrapStatus": "ready",
+        "bootstrapInviteActive": false,
+        "databaseBackup": {
+          "enabled": true,
+          "status": "ok",
+          "warnings": []
+        }
+      },
+      "durationSeconds": 31.4,
+      "uiEntry": "index-7aa32f53.js"
+    }
+  },
+  "onlineVerification": {
+    "basicPlatformTestSeatRemoved": true,
+    "originalDsp7SeatPreserved": true,
+    "originalDsp7SeatOnline": true,
+    "invalidInvitationRejected": true
+  },
+  "originalSeatFinal": {
+    "originalDsp7SeatUnchanged": true,
+    "harnessRootUnchanged": true,
+    "lastSeenAt": "2026-11-02T09:16:42.663Z",
+    "state": "idle"
+  },
+  "scope": "macOS and Linux independent organization profiles, credentials, databases, worktrees, services and commands; bearer invitation target inspection; per-seat upgrade routing",
+  "localVerification": {
+    "pythonRun": 158,
+    "pythonPassed": 156,
+    "pythonSkipped": 2,
+    "vitestPassed": 16,
+    "stagedPackageScopedTestsPassed": 21,
+    "serverTypecheck": "passed",
+    "serverBuild": "passed",
+    "stagedPackageFullSuite": "Seven unrelated newer delivery tests do not match the preserved production delivery module. Changed-module tests pass."
+  },
+  "operatorDecision": "User will enroll seats in the page; no further account or seat creation",
+  "testEnrollment": {
+    "personnelAccountsCreated": 0,
+    "membershipChanges": 0,
+    "temporarySeatCreated": true,
+    "temporarySeatWithdrawn": true,
+    "temporaryLocalServiceStopped": true,
+    "temporaryConfigurationArchived": true,
+    "businessTasksStarted": false
+  },
+  "limitations": [
+    "Same Windows user multi-organization login service is explicitly rejected without changing the original seat",
+    "No real business execution acceptance"
+  ]
+}

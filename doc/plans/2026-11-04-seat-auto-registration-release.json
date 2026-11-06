@@ -1,0 +1,28 @@
+{
+  "release": "seat-auto-registration",
+  "previousSha256": "6d40ea8ecb5213abacd2896ae09fb96b029e9c4905542023f59cb270257f4819",
+  "sha256": "abdd97df7a5250957315ec91bec37948eee1f768b1d50189140ad579f5eb450e",
+  "changedClientModules": [
+    "README.md",
+    "seat_control.py",
+    "seats.py"
+  ],
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/seat-auto-registration-20261104/backup-20261104T071655Z",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "health": "ok",
+  "verification": {
+    "newAutoRegistrationTests": 14,
+    "bridgeSuiteTests": 235,
+    "skipped": 2,
+    "packagedClientTests": 14,
+    "pythonCompile": "passed"
+  },
+  "seatUpgrade": {
+    "seatId": "a8d57a91-cfcc-4642-a2d1-964bdf3c9e9b",
+    "status": "deferred_active_session",
+    "activeRunId": "1a75d3fb-823b-4a24-85a2-ea61c13a668d",
+    "interrupted": false
+  }
+}

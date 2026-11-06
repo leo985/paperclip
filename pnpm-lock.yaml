@@ -55,6 +55,12 @@ importers:
 
   .:
     devDependencies:
+      '@babel/generator':
+        specifier: 7.29.8
+        version: 7.29.8
+      '@babel/parser':
+        specifier: 7.29.8
+        version: 7.29.8
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1

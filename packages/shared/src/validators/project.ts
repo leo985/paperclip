@@ -120,7 +120,7 @@ export const createProjectSchema = z.object({
   idempotencyKey: z.string().trim().min(1).max(255).optional(),
   ...projectFields,
   workspace: createProjectWorkspaceSchema.optional(),
-  repositoryIds: z.array(z.string().regex(/^\d+$/)).optional(),
+  repositoryIds: z.array(z.string().regex(/^(?:\d+|harness:[a-f0-9]{64})$/)).optional(),
   repositoryUrls: z.array(z.string().url().max(2000)).max(100).optional(),
 });
 

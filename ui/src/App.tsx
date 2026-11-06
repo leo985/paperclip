@@ -1,17 +1,13 @@
+import { useManagementAccess } from "@/hooks/useManagementAccess";
+import { canEnterAppsConnect } from "./pages/apps/app-connect-policy";
+import { AGENT_FILTER_TABS } from "./lib/agent-filter-tabs";
 import { uiText } from "@/i18n/interface";
-import { FocusedInbox } from "./components/FocusedInbox";
-import { ManagementCenter } from "./pages/ManagementCenter";
-import { JiraIntake } from "./pages/JiraIntake";
-import { ExecutionRecords } from "./pages/ExecutionRecords";
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, type ReactNode, type ComponentType } from "react";
 import type { ToolConnectionCredentialSource } from "@paperclipai/shared";
 import { Link, Navigate, Outlet, Route, Routes, useActiveCompanyPrefix, useLocation, useParams } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n";
-import { Layout } from "./components/Layout";
-import { Layout as ProductionLayout } from "./components/Layout.production";
 import { ConferenceRoomChatGate } from "./components/ConferenceRoomChatGate";
-import { TaskChatLab } from "./pages/TaskChatLab";
 import { PipelinesExperimentalGate } from "./components/PipelinesExperimentalGate";
 import { CasesExperimentalGate } from "./components/CasesExperimentalGate";
 import { StatusCardsExperimentalGate } from "./components/StatusCardsExperimentalGate";
@@ -23,97 +19,18 @@ import {
   UnprefixedExecutionWorkspaceRedirect,
 } from "./components/UnprefixedExecutionWorkspaceRedirect";
 import { useHiddenSettings } from "./hooks/useHiddenSettings";
-import { Cases } from "./pages/Cases";
-import { CaseDetail } from "./pages/CaseDetail";
 import { OnboardingWizardVariant } from "./components/OnboardingWizardVariant";
 import { CloudAccessGate } from "./components/CloudAccessGate";
 import { PaperclipLoading } from "./components/AnimatedPaperclipIcon";
-import { Seats } from "./pages/Seats";
-import { Help } from "./pages/Help";
-import { Dashboard } from "./pages/Dashboard";
-import { DashboardLive } from "./pages/DashboardLive";
-import { Timeline } from "./pages/Timeline";
-import { Companies } from "./pages/Companies";
-import { AGENT_FILTER_TABS, Agents } from "./pages/Agents";
-import { AgentDetail } from "./pages/AgentDetail";
-import { Projects } from "./pages/Projects";
-import { ProjectDetail } from "./pages/ProjectDetail";
-import { ProjectWorkspaceDetail } from "./pages/ProjectWorkspaceDetail";
-import { Workspaces } from "./pages/Workspaces";
-import { Issues } from "./pages/Issues";
-import { Search } from "./pages/Search";
-import { IssueDetail } from "./pages/IssueDetail";
-import { AgentChat } from "./pages/AgentChat";
-import { IssueChatLongThreadPerf } from "./pages/IssueChatLongThreadPerf";
-import { Routines } from "./pages/Routines";
-import { Learnings, PipelineItemDetail, PipelineItemLegacyRedirect, Pipelines, ReviewQueue } from "./pages/Pipelines";
-import { PipelineSettings } from "./pages/PipelineSettings";
-import { StatusCards } from "./pages/StatusCards";
-import { RoutineDetail } from "./pages/RoutineDetail";
-import { UserProfile } from "./pages/UserProfile";
-import { ExecutionWorkspaceDetail } from "./pages/ExecutionWorkspaceDetail";
-import { Goals } from "./pages/Goals";
-import { Artifacts } from "./pages/Artifacts";
-import { GoalDetail } from "./pages/GoalDetail";
-import { Approvals } from "./pages/Approvals";
-import { ApprovalDetail } from "./pages/ApprovalDetail";
-import { CompanyActivity } from "./pages/audit/CompanyActivity";
-import { AuditHub } from "./pages/audit/AuditHub";
-import { Inbox } from "./pages/Inbox";
-import { WhatNeedsMe } from "./pages/WhatNeedsMe";
-import { DecisionQueuePage } from "./pages/DecisionQueuePage";
-import { BoardChat } from "./pages/BoardChat";
-import { CompanySettings } from "./pages/CompanySettings";
-import { CompanyEnvironments } from "./pages/CompanyEnvironments";
-import { BootstrapSetupUxLab } from "./pages/BootstrapSetupUxLab";
-import { ResponsibleUserDenialUxLab } from "./pages/ResponsibleUserDenialUxLab";
-import { CrossIssueCollaborationUxLab } from "./pages/CrossIssueCollaborationUxLab";
-import { CompanySettingsPluginPage } from "./pages/CompanySettingsPluginPage";
-import { CompanyAccess, CompanyAccessLegacyRoute } from "./pages/CompanyAccess";
-import { PersonnelFederation } from "./pages/PersonnelFederation";
-import { AdvancedToolsRoute } from "./pages/tools/AdvancedToolsRoute";
-import { ProfileWizardRoute } from "./pages/tools/profiles/ProfileWizardRoute";
-import { ProfileDetailRoute } from "./pages/tools/profiles/ProfileDetailRoute";
-import { Browse } from "./pages/apps/Browse";
-import { AppsConnect } from "./pages/apps/AppsConnect";
-import { ChatEndpointSetup } from "./pages/apps/chat/ChatEndpointSetup";
-import { ChatEndpointDetail } from "./pages/apps/chat/ChatEndpointDetail";
-import { ChatIdentityConfirm } from "./pages/apps/chat/ChatIdentityConfirm";
 import { ChatConnectorsExperimentalGate } from "./components/ChatConnectorsExperimentalGate";
 import { useChatConnectorsEnabled } from "./hooks/useChatConnectorsEnabled";
-import { canEnterAppsConnect } from "./pages/apps/app-connect-policy";
-import { AppsReview } from "./pages/apps/AppsReview";
-import { AppDetail } from "./pages/apps/AppDetail";
-import { AppNotConnected } from "./pages/apps/AppNotConnected";
-import { PaperclipCloudOAuthHandoffPage } from "./pages/apps/PaperclipCloudOAuthHandoff";
-import { GatewaysList } from "./pages/apps/gateways/GatewaysList";
-import { GatewayDetail } from "./pages/apps/gateways/GatewayDetail";
-import { CompanySkills } from "./pages/CompanySkills";
-import { SkillStudio } from "./pages/SkillStudio";
-import { Secrets } from "./pages/Secrets";
-import { CompanyImport } from "./pages/CompanyImport";
-import { DesignGuide } from "./pages/DesignGuide";
-import { InstanceExperimentalSettings } from "./pages/InstanceExperimentalSettings";
-import { InstanceAccess } from "./pages/InstanceAccess";
 import { InitialPasswordChange } from "./pages/InitialPasswordChange";
-import { ProfileSettings } from "./pages/ProfileSettings";
-import { PluginManager } from "./pages/PluginManager";
-import { PluginSettings } from "./pages/PluginSettings";
-import { AdapterManager } from "./pages/AdapterManager";
-import { PluginPage } from "./pages/PluginPage";
-import { NewAgent } from "./pages/NewAgent";
 import { AuthPage } from "./pages/Auth";
-import { BoardClaimPage } from "./pages/BoardClaim";
-import { CliAuthPage } from "./pages/CliAuth";
-import { InviteLandingPage } from "./pages/InviteLanding";
-import { JoinRequestQueue } from "./pages/JoinRequestQueue";
 import { NotFoundPage } from "./pages/NotFound";
 import { useCompany } from "./context/CompanyContext";
 import { useDialogActions, useDialogState } from "./context/DialogContext";
 import { loadLastInboxTab } from "./lib/inbox";
 import {
-  isOnboardingWizardActive,
-  onboardingStepForCompany,
   shouldRedirectCompanylessRouteToOnboarding,
 } from "./lib/onboarding-route";
 import { filterHiddenInstanceSettingsPath, normalizeRememberedInstanceSettingsPath } from "./lib/instance-settings";
@@ -121,6 +38,109 @@ import { useCloudInstance } from "./hooks/useCloudInstance";
 import { useStreamlinedUiEnabled } from "./hooks/useStreamlinedUiEnabled";
 import { cloudStackCreateUrl } from "./lib/cloudLinks";
 import { navigateTopLevel } from "@/lib/browserNavigation";
+
+// Keep heavyweight detail, configuration and lab surfaces out of the entry bundle.
+// Each boundary retains the surrounding layout while its route loads.
+function routeWithSuspense<Props extends object>(Page: ComponentType<Props>) {
+  return function DeferredRoute(props: Props) {
+    return <Suspense fallback={<PaperclipLoading />}><Page {...props} /></Suspense>;
+  };
+}
+
+const IssueDetail = routeWithSuspense(lazy(() => import("./pages/IssueDetail").then(m => ({ default: m.IssueDetail }))));
+const AgentChat = routeWithSuspense(lazy(() => import("./pages/AgentChat").then(m => ({ default: m.AgentChat }))));
+const AgentDetail = routeWithSuspense(lazy(() => import("./pages/AgentDetail").then(m => ({ default: m.AgentDetail }))));
+const DesignGuide = routeWithSuspense(lazy(() => import("./pages/DesignGuide").then(m => ({ default: m.DesignGuide }))));
+const SkillStudio = routeWithSuspense(lazy(() => import("./pages/SkillStudio").then(m => ({ default: m.SkillStudio }))));
+const TaskChatLab = routeWithSuspense(lazy(() => import("./pages/TaskChatLab").then(m => ({ default: m.TaskChatLab }))));
+const IssueChatLongThreadPerf = routeWithSuspense(lazy(() => import("./pages/IssueChatLongThreadPerf").then(m => ({ default: m.IssueChatLongThreadPerf }))));
+const BootstrapSetupUxLab = routeWithSuspense(lazy(() => import("./pages/BootstrapSetupUxLab").then(m => ({ default: m.BootstrapSetupUxLab }))));
+const ResponsibleUserDenialUxLab = routeWithSuspense(lazy(() => import("./pages/ResponsibleUserDenialUxLab").then(m => ({ default: m.ResponsibleUserDenialUxLab }))));
+const CrossIssueCollaborationUxLab = routeWithSuspense(lazy(() => import("./pages/CrossIssueCollaborationUxLab").then(m => ({ default: m.CrossIssueCollaborationUxLab }))));
+const CompanyImport = routeWithSuspense(lazy(() => import("./pages/CompanyImport").then(m => ({ default: m.CompanyImport }))));
+const CompanySettings = routeWithSuspense(lazy(() => import("./pages/CompanySettings").then(m => ({ default: m.CompanySettings }))));
+const CompanyEnvironments = routeWithSuspense(lazy(() => import("./pages/CompanyEnvironments").then(m => ({ default: m.CompanyEnvironments }))));
+const CompanySettingsPluginPage = routeWithSuspense(lazy(() => import("./pages/CompanySettingsPluginPage").then(m => ({ default: m.CompanySettingsPluginPage }))));
+const NewAgent = routeWithSuspense(lazy(() => import("./pages/NewAgent").then(m => ({ default: m.NewAgent }))));
+const ProjectDetail = routeWithSuspense(lazy(() => import("./pages/ProjectDetail").then(m => ({ default: m.ProjectDetail }))));
+const ProjectWorkspaceDetail = routeWithSuspense(lazy(() => import("./pages/ProjectWorkspaceDetail").then(m => ({ default: m.ProjectWorkspaceDetail }))));
+const ExecutionWorkspaceDetail = routeWithSuspense(lazy(() => import("./pages/ExecutionWorkspaceDetail").then(m => ({ default: m.ExecutionWorkspaceDetail }))));
+const ProfileWizardRoute = routeWithSuspense(lazy(() => import("./pages/tools/profiles/ProfileWizardRoute").then(m => ({ default: m.ProfileWizardRoute }))));
+const ProfileDetailRoute = routeWithSuspense(lazy(() => import("./pages/tools/profiles/ProfileDetailRoute").then(m => ({ default: m.ProfileDetailRoute }))));
+const CompanySkills = routeWithSuspense(lazy(() => import("./pages/CompanySkills").then(m => ({ default: m.CompanySkills }))));
+const Secrets = routeWithSuspense(lazy(() => import("./pages/Secrets").then(m => ({ default: m.Secrets }))));
+const AppDetail = routeWithSuspense(lazy(() => import("./pages/apps/AppDetail").then(m => ({ default: m.AppDetail }))));
+const GatewaysList = routeWithSuspense(lazy(() => import("./pages/apps/gateways/GatewaysList").then(m => ({ default: m.GatewaysList }))));
+const GatewayDetail = routeWithSuspense(lazy(() => import("./pages/apps/gateways/GatewayDetail").then(m => ({ default: m.GatewayDetail }))));
+const ChatEndpointSetup = routeWithSuspense(lazy(() => import("./pages/apps/chat/ChatEndpointSetup").then(m => ({ default: m.ChatEndpointSetup }))));
+const ChatEndpointDetail = routeWithSuspense(lazy(() => import("./pages/apps/chat/ChatEndpointDetail").then(m => ({ default: m.ChatEndpointDetail }))));
+
+const ManagementCenter = routeWithSuspense(lazy(() => import("./pages/ManagementCenter").then(m => ({ default: m.ManagementCenter }))));
+const AnalysisExecutions = routeWithSuspense(lazy(() => import("./pages/AnalysisExecutions").then(m => ({ default: m.AnalysisExecutions }))));
+const DeliveryIntake = routeWithSuspense(lazy(() => import("./pages/DeliveryEntries").then(m => ({ default: m.DeliveryEntries }))));
+const DeliveryWorkbench = routeWithSuspense(lazy(() => import("./pages/DeliveryWorkbench").then(m => ({ default: m.DeliveryWorkbench }))));
+const JiraIntake = routeWithSuspense(lazy(() => import("./pages/JiraIntake").then(m => ({ default: m.JiraIntake }))));
+const ExecutionRecords = routeWithSuspense(lazy(() => import("./pages/ExecutionRecords").then(m => ({ default: m.ExecutionRecords }))));
+const Cases = routeWithSuspense(lazy(() => import("./pages/Cases").then(m => ({ default: m.Cases }))));
+const CaseDetail = routeWithSuspense(lazy(() => import("./pages/CaseDetail").then(m => ({ default: m.CaseDetail }))));
+const Seats = routeWithSuspense(lazy(() => import("./pages/Seats").then(m => ({ default: m.Seats }))));
+const Help = routeWithSuspense(lazy(() => import("./pages/Help").then(m => ({ default: m.Help }))));
+const Dashboard = routeWithSuspense(lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard }))));
+const DashboardLive = routeWithSuspense(lazy(() => import("./pages/DashboardLive").then(m => ({ default: m.DashboardLive }))));
+const Timeline = routeWithSuspense(lazy(() => import("./pages/Timeline").then(m => ({ default: m.Timeline }))));
+const Companies = routeWithSuspense(lazy(() => import("./pages/Companies").then(m => ({ default: m.Companies }))));
+const Agents = routeWithSuspense(lazy(() => import("./pages/Agents").then(m => ({ default: m.Agents }))));
+const Projects = routeWithSuspense(lazy(() => import("./pages/Projects").then(m => ({ default: m.Projects }))));
+const Workspaces = routeWithSuspense(lazy(() => import("./pages/Workspaces").then(m => ({ default: m.Workspaces }))));
+const Issues = routeWithSuspense(lazy(() => import("./pages/Issues").then(m => ({ default: m.Issues }))));
+const Search = routeWithSuspense(lazy(() => import("./pages/Search").then(m => ({ default: m.Search }))));
+const Routines = routeWithSuspense(lazy(() => import("./pages/Routines").then(m => ({ default: m.Routines }))));
+const Learnings = routeWithSuspense(lazy(() => import("./pages/Pipelines").then(m => ({ default: m.Learnings }))));
+const PipelineItemDetail = routeWithSuspense(lazy(() => import("./pages/Pipelines").then(m => ({ default: m.PipelineItemDetail }))));
+const PipelineItemLegacyRedirect = routeWithSuspense(lazy(() => import("./pages/Pipelines").then(m => ({ default: m.PipelineItemLegacyRedirect }))));
+const Pipelines = routeWithSuspense(lazy(() => import("./pages/Pipelines").then(m => ({ default: m.Pipelines }))));
+const ReviewQueue = routeWithSuspense(lazy(() => import("./pages/Pipelines").then(m => ({ default: m.ReviewQueue }))));
+const PipelineSettings = routeWithSuspense(lazy(() => import("./pages/PipelineSettings").then(m => ({ default: m.PipelineSettings }))));
+const StatusCards = routeWithSuspense(lazy(() => import("./pages/StatusCards").then(m => ({ default: m.StatusCards }))));
+const RoutineDetail = routeWithSuspense(lazy(() => import("./pages/RoutineDetail").then(m => ({ default: m.RoutineDetail }))));
+const UserProfile = routeWithSuspense(lazy(() => import("./pages/UserProfile").then(m => ({ default: m.UserProfile }))));
+const Goals = routeWithSuspense(lazy(() => import("./pages/Goals").then(m => ({ default: m.Goals }))));
+const Artifacts = routeWithSuspense(lazy(() => import("./pages/Artifacts").then(m => ({ default: m.Artifacts }))));
+const GoalDetail = routeWithSuspense(lazy(() => import("./pages/GoalDetail").then(m => ({ default: m.GoalDetail }))));
+const Approvals = routeWithSuspense(lazy(() => import("./pages/Approvals").then(m => ({ default: m.Approvals }))));
+const ApprovalDetail = routeWithSuspense(lazy(() => import("./pages/ApprovalDetail").then(m => ({ default: m.ApprovalDetail }))));
+const CompanyActivity = routeWithSuspense(lazy(() => import("./pages/audit/CompanyActivity").then(m => ({ default: m.CompanyActivity }))));
+const AuditHub = routeWithSuspense(lazy(() => import("./pages/audit/AuditHub").then(m => ({ default: m.AuditHub }))));
+const Inbox = routeWithSuspense(lazy(() => import("./pages/Inbox").then(m => ({ default: m.Inbox }))));
+const WhatNeedsMe = routeWithSuspense(lazy(() => import("./pages/WhatNeedsMe").then(m => ({ default: m.WhatNeedsMe }))));
+const DecisionQueuePage = routeWithSuspense(lazy(() => import("./pages/DecisionQueuePage").then(m => ({ default: m.DecisionQueuePage }))));
+const BoardChat = routeWithSuspense(lazy(() => import("./pages/BoardChat").then(m => ({ default: m.BoardChat }))));
+const CompanyAccess = routeWithSuspense(lazy(() => import("./pages/CompanyAccess").then(m => ({ default: m.CompanyAccess }))));
+const CompanyAccessLegacyRoute = routeWithSuspense(lazy(() => import("./pages/CompanyAccess").then(m => ({ default: m.CompanyAccessLegacyRoute }))));
+const DeliveryTemplates = routeWithSuspense(lazy(() => import("./pages/DeliveryTemplates").then(m => ({ default: m.DeliveryTemplates }))));
+const PersonnelFederation = routeWithSuspense(lazy(() => import("./pages/PersonnelFederation").then(m => ({ default: m.PersonnelFederation }))));
+const AdvancedToolsRoute = routeWithSuspense(lazy(() => import("./pages/tools/AdvancedToolsRoute").then(m => ({ default: m.AdvancedToolsRoute }))));
+const Browse = routeWithSuspense(lazy(() => import("./pages/apps/Browse").then(m => ({ default: m.Browse }))));
+const AppsConnect = routeWithSuspense<NonNullable<Parameters<typeof import("./pages/apps/AppsConnect").AppsConnect>[0]>>(lazy(() => import("./pages/apps/AppsConnect").then(m => ({ default: m.AppsConnect }))));
+const ChatIdentityConfirm = routeWithSuspense(lazy(() => import("./pages/apps/chat/ChatIdentityConfirm").then(m => ({ default: m.ChatIdentityConfirm }))));
+
+const AppsReview = routeWithSuspense(lazy(() => import("./pages/apps/AppsReview").then(m => ({ default: m.AppsReview }))));
+const AppNotConnected = routeWithSuspense(lazy(() => import("./pages/apps/AppNotConnected").then(m => ({ default: m.AppNotConnected }))));
+const PaperclipCloudOAuthHandoffPage = routeWithSuspense(lazy(() => import("./pages/apps/PaperclipCloudOAuthHandoff").then(m => ({ default: m.PaperclipCloudOAuthHandoffPage }))));
+const InstanceExperimentalSettings = routeWithSuspense(lazy(() => import("./pages/InstanceExperimentalSettings").then(m => ({ default: m.InstanceExperimentalSettings }))));
+const InstanceAccess = routeWithSuspense(lazy(() => import("./pages/InstanceAccess").then(m => ({ default: m.InstanceAccess }))));
+const ProfileSettings = routeWithSuspense(lazy(() => import("./pages/ProfileSettings").then(m => ({ default: m.ProfileSettings }))));
+const PluginManager = routeWithSuspense(lazy(() => import("./pages/PluginManager").then(m => ({ default: m.PluginManager }))));
+const PluginSettings = routeWithSuspense(lazy(() => import("./pages/PluginSettings").then(m => ({ default: m.PluginSettings }))));
+const AdapterManager = routeWithSuspense(lazy(() => import("./pages/AdapterManager").then(m => ({ default: m.AdapterManager }))));
+const PluginPage = routeWithSuspense(lazy(() => import("./pages/PluginPage").then(m => ({ default: m.PluginPage }))));
+const BoardClaimPage = routeWithSuspense(lazy(() => import("./pages/BoardClaim").then(m => ({ default: m.BoardClaimPage }))));
+const CliAuthPage = routeWithSuspense(lazy(() => import("./pages/CliAuth").then(m => ({ default: m.CliAuthPage }))));
+const InviteLandingPage = routeWithSuspense(lazy(() => import("./pages/InviteLanding").then(m => ({ default: m.InviteLandingPage }))));
+const JoinRequestQueue = routeWithSuspense(lazy(() => import("./pages/JoinRequestQueue").then(m => ({ default: m.JoinRequestQueue }))));
+const Layout = routeWithSuspense(lazy(() => import("./components/Layout").then(m => ({ default: m.Layout }))));
+const ProductionLayout = routeWithSuspense(lazy(() => import("./components/Layout.production").then(m => ({ default: m.Layout }))));
+const FocusedInbox = routeWithSuspense(lazy(() => import("./components/FocusedInbox").then(m => ({ default: m.FocusedInbox }))));
 
 const CompanyExport = lazy(() =>
   import("./pages/CompanyExport").then((module) => ({ default: module.CompanyExport })),
@@ -152,12 +172,19 @@ function ProductionSurface({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PaperclipLoading />}>{children}</Suspense>;
 }
 
+const OrganizationSetup = routeWithSuspense(lazy(() => import("./pages/OrganizationSetup").then(m => ({ default: m.OrganizationSetup }))));
+
 function boardRoutes(streamlinedUiEnabled: boolean) {
   return (
     <>
       <Route index element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="management" element={<ManagementCenter />} />
+      <Route path="setup" element={<OrganizationSetup />} />
+      <Route path="delivery" element={<DeliveryIntake />} />
+      <Route path="delivery-chain" element={<DeliveryTemplates />} />
+      <Route path="analysis-executions" element={<AnalysisExecutions />} />
+      <Route path="delivery-workbench" element={<DeliveryWorkbench />} />
       <Route path="jira-intake" element={<JiraIntake />} />
       <Route path="runs" element={<ExecutionRecords />} />
       <Route path="help" element={<Help />} />
@@ -170,7 +197,9 @@ function boardRoutes(streamlinedUiEnabled: boolean) {
       <Route path="onboarding" element={<OnboardingRoutePage />} />
       <Route path="companies" element={<Companies />} />
       <Route path="company/settings" element={<CompanySettings />} />
-      <Route path="company/settings/personnel" element={<PersonnelFederation />} />
+      <Route path="company/settings/personnel" element={<Navigate to="/company/settings/instance/personnel" replace />} />
+      <Route path="company/settings/delivery" element={<DeliveryTemplates />} />
+      <Route path="company/settings/instance/personnel" element={<PersonnelFederation />} />
       <Route path="company/settings/environments" element={<Navigate to="/company/settings/instance/environments" replace />} />
       <Route path="company/settings/cloud-upstream" element={<Navigate to="/company/export" replace />} />
       <Route element={<HiddenSettingsPageGate pageKey="company.members" />}>
@@ -560,80 +589,24 @@ function legacyToolsRedirectTarget(tab?: string) {
 }
 
 export function OnboardingRoutePage() {
-  const { companies, selectedCompany } = useCompany();
+  const { companies, selectedCompany, loading } = useCompany();
   const { openOnboarding } = useDialogActions();
-  const { t } = useTranslation();
+  const { onboardingOpen } = useDialogState();
+  const { isInstanceAdmin, loading: accessLoading } = useManagementAccess();
   const cloudInstance = useCloudInstance();
   const createStackUrl = cloudStackCreateUrl(cloudInstance?.cloudBaseUrl ?? null);
-  const { onboardingOpen, onboardingRouteDismissed } = useDialogState();
   const { companyPrefix } = useParams<{ companyPrefix?: string }>();
-  const matchedCompany = companyPrefix
-    ? companies.find((company) => company.issuePrefix.toUpperCase() === companyPrefix.toUpperCase()) ?? null
-    : null;
-  // The OnboardingWizard auto-opens on this route (and can also be opened
-  // explicitly). While it is showing it covers the whole screen, so the
-  // launcher card below must not stay interactive behind it — otherwise users
-  // can tab/click through to the form behind the modal (PAP-52). The launcher
-  // only needs to render as a re-entry point once the wizard is dismissed.
-  if (isOnboardingWizardActive({ onboardingOpen, routeDismissed: onboardingRouteDismissed })) {
-    return null;
-  }
-
-  const title = matchedCompany
-    ? `Add another agent to ${matchedCompany.name}`
-    : companies.length > 0
-      ? "Create another organization"
-      : "Create your first organization";
-  const description = matchedCompany
-    ? "Run onboarding again to add an agent and a starter task for this organization."
-    : companies.length > 0
-      ? "Run onboarding again to create another organization and seed its first agent."
-      : "Get started by creating an organization and your first agent.";
-
-  return (
-    <div className="mx-auto max-w-xl py-10">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {companies.length>0&&<Button asChild variant="outline"><Link to={`/${(matchedCompany??selectedCompany??companies[0]!).issuePrefix}/companies`}>返回组织列表</Link></Button>}
-          {/* On a managed stack whose Cloud origin is unknown there is nowhere
-              to send this click: creation lives on Cloud, and in-app creation
-              is a 403 floor. A button that does nothing is worse than none, so
-              say why instead of rendering an inert control. */}
-          {!matchedCompany && cloudInstance && !createStackUrl ? (
-            <p className="text-sm text-muted-foreground">
-              {t("app.cloudCreateUnavailable", {
-                defaultValue:
-                  "Organizations are created in Paperclip Cloud. This instance can't reach it right now — try again from your Cloud portfolio.",
-              })}
-            </p>
-          ) : (
-            <Button
-              onClick={() =>
-                matchedCompany
-                  ? openOnboarding({
-                      // "Add another agent" to a company that already has its
-                      // mission must not stop to ask for the mission again. An
-                      // unsettled or failed lookup reads as "no mission" and
-                      // costs the step, which the customer can pass - and the
-                      // mission step now updates the existing goal rather than
-                      // adding a second one.
-                      initialStep: onboardingStepForCompany(),
-                      companyId: matchedCompany.id,
-                    })
-                  : cloudInstance && createStackUrl
-                    ? navigateTopLevel(createStackUrl)
-                    : openOnboarding()
-              }
-            >
-              {matchedCompany ? uiText("Add Agent") : uiText("Start Onboarding")}
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  const matchedCompany = companyPrefix ? companies.find(company => company.issuePrefix.toUpperCase() === companyPrefix.toUpperCase()) : null;
+  if (loading || accessLoading) return <PaperclipLoading />;
+  if (onboardingOpen) return null;
+  if (matchedCompany) return <Navigate to={`/${matchedCompany.issuePrefix}/setup`} replace />;
+  return <div className="mx-auto max-w-xl py-10"><div className="space-y-4 rounded-lg border border-border bg-card p-6">
+    <h1 className="text-xl font-semibold">{companies.length ? "创建新组织" : "创建第一个组织"}</h1>
+    <p className="text-sm text-muted-foreground">先建立组织，再按清单配置人员、项目仓库和研发电脑席位。无需先填写模型密钥或创建通用智能体。</p>
+    <div className="flex flex-wrap gap-3">{companies.length > 0 && <Button asChild variant="outline"><Link to={`/${(selectedCompany ?? companies[0]!).issuePrefix}/companies`}>返回组织列表</Link></Button>}
+    {cloudInstance ? createStackUrl ? <Button onClick={() => navigateTopLevel(createStackUrl)}>前往 Cloud 创建组织</Button> : <p className="text-sm text-muted-foreground">此实例的组织由 Cloud 管理，请从 Cloud 工作区创建。</p>
+      : isInstanceAdmin ? <Button onClick={() => openOnboarding()}>创建组织</Button> : <p className="text-sm text-muted-foreground">创建组织需要实例管理员权限，请联系平台管理员。</p>}</div>
+  </div></div>;
 }
 
 function CompanyRootRedirect() {
@@ -712,43 +685,20 @@ function UnprefixedBoardRedirect() {
 
 function NoCompaniesStartPage() {
   const { openOnboarding } = useDialogActions();
-  const { t } = useTranslation();
-  // A managed stack with no visible companies is a loading or error state, not
-  // an invitation to create one in-app — creation lives on Cloud (403 floor).
+  const { isInstanceAdmin, loading } = useManagementAccess();
   const cloudInstance = useCloudInstance();
   const createStackUrl = cloudStackCreateUrl(cloudInstance?.cloudBaseUrl ?? null);
-
   return (
     <div className="mx-auto max-w-xl py-10">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">
-          {t("app.noCompanies.title", { defaultValue: "Create your first organization" })}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t("app.noCompanies.description", { defaultValue: "Get started by creating an organization." })}
-        </p>
-        <div className="mt-4">
-          {/* Same as the onboarding route: no Cloud origin means nowhere to
-              send the click, and in-app creation is a 403 floor here. */}
-          {cloudInstance && !createStackUrl ? (
-            <p className="text-sm text-muted-foreground">
-              {t("app.cloudCreateUnavailable", {
-                defaultValue:
-                  "Organizations are created in Paperclip Cloud. This instance can't reach it right now — try again from your Cloud portfolio.",
-              })}
-            </p>
-          ) : (
-            <Button
-              onClick={() =>
-                cloudInstance && createStackUrl
-                  ? navigateTopLevel(createStackUrl)
-                  : openOnboarding()
-              }
-            >
-              {t("app.noCompanies.newCompany", { defaultValue: "New Organization" })}
-            </Button>
-          )}
-        </div>
+      <div className="space-y-4 rounded-lg border border-border bg-card p-6">
+        <h1 className="text-xl font-semibold">开始使用智研协同平台</h1>
+        <p className="text-sm text-muted-foreground">先建立组织，再配置人员、项目仓库和研发电脑席位。创建组织无需模型密钥。</p>
+        {loading ? <p className="text-sm text-muted-foreground">正在核验权限…</p>
+          : cloudInstance ? createStackUrl
+            ? <Button onClick={() => navigateTopLevel(createStackUrl)}>前往 Cloud 创建组织</Button>
+            : <p className="text-sm text-muted-foreground">此实例的组织由 Cloud 管理，请从 Cloud 工作区创建。</p>
+          : isInstanceAdmin ? <Button onClick={() => openOnboarding()}>创建组织</Button>
+          : <p className="text-sm text-muted-foreground">当前没有可访问的组织，请联系平台管理员添加组织成员权限。</p>}
       </div>
     </div>
   );
@@ -784,9 +734,11 @@ export function App() {
           <Route path="instance/settings/*" element={<LegacySettingsRedirect />} />
           <Route path="help" element={<UnprefixedBoardRedirect />} />
           <Route path="management" element={<UnprefixedBoardRedirect />} />
+          <Route path="delivery" element={<UnprefixedBoardRedirect />} />
           <Route path="jira-intake" element={<UnprefixedBoardRedirect />} />
           <Route path="runs" element={<UnprefixedBoardRedirect />} />
           <Route path="seats" element={<UnprefixedBoardRedirect />} />
+          <Route path="setup" element={<UnprefixedBoardRedirect />} />
           <Route path="companies" element={<UnprefixedBoardRedirect />} />
           <Route path="issues" element={<UnprefixedBoardRedirect />} />
           <Route path="tasks" element={<UnprefixedBoardRedirect />} />

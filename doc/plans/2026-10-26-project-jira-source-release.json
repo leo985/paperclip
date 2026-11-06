@@ -1,0 +1,41 @@
+{
+  "release": "project-owned-jira-source",
+  "timestamp": "20261026T014819Z",
+  "backup": "/home/fg/paperclip/private/project-jira-backup-20261026T014819Z",
+  "filesVerified": 179,
+  "databaseMigration": {
+    "status": "upToDate",
+    "applied": [],
+    "retained": [
+      "0297_loose_paladin.sql"
+    ]
+  },
+  "databaseCheck": {
+    "projectJiraColumns": [
+      {
+        "column_name": "jira_agent_id",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "jira_secret_id",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "jira_base_url",
+        "is_nullable": "YES"
+      }
+    ],
+    "connections": 0
+  },
+  "healthStatus": "ok",
+  "otherServicesUnchanged": true,
+  "clientChanged": false,
+  "existingSeatsForceUpdated": false,
+  "checks": {
+    "/": 200,
+    "/delivery-help.html": 200,
+    "/dsp7-bridge-manifest.json": 200
+  },
+  "url": "http://10.60.43.53:3100",
+  "browserValidation": "ego-browser isolated real routes: project Jira save, monthly read, no PAT echo, retain PAT on edit passed"
+}

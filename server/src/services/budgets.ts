@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -234,7 +234,10 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
           pausedAt: now,
           updatedAt: now,
         })
-        .where(eq(projects.id, policy.scopeId));
+        .where(and(eq(projects.id, policy.scopeId), or(
+          eq(projects.pauseReason, "budget"),
+          and(isNull(projects.pauseReason), isNull(projects.pausedAt)),
+        )));
       return;
     }
 
@@ -246,7 +249,10 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         pausedAt: now,
         updatedAt: now,
       })
-      .where(eq(companies.id, policy.scopeId));
+      .where(and(eq(companies.id, policy.scopeId), or(
+        eq(companies.pauseReason, "budget"),
+        and(eq(companies.status, "active"), isNull(companies.pauseReason), isNull(companies.pausedAt)),
+      )));
   }
 
   async function pauseAndCancelScopeForBudget(policy: PolicyRow) {
@@ -259,6 +265,19 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
   }
 
   async function resumeScopeFromBudget(policy: PolicyRow) {
+    // A resolution changes one policy only. Another window may still prohibit
+    // execution; use persisted policy values after the update, not this stale row.
+    const policies = await db.select().from(budgetPolicies).where(and(
+      eq(budgetPolicies.companyId, policy.companyId),
+      eq(budgetPolicies.scopeType, policy.scopeType),
+      eq(budgetPolicies.scopeId, policy.scopeId),
+      eq(budgetPolicies.metric, "billed_cents"),
+      eq(budgetPolicies.isActive, true),
+    ));
+    for (const current of policies) {
+      if (current.hardStopEnabled && current.amount > 0 &&
+          await computeObservedAmount(db, current) >= current.amount) return;
+    }
     const now = new Date();
     if (policy.scopeType === "agent") {
       await db
@@ -754,7 +773,7 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         };
       }
 
-      const companyPolicy = await db
+      const companyPolicies = await db
         .select()
         .from(budgetPolicies)
         .where(
@@ -766,8 +785,9 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
             eq(budgetPolicies.metric, "billed_cents"),
           ),
         )
-        .then((rows) => rows[0] ?? null);
-      if (companyPolicy && companyPolicy.hardStopEnabled && companyPolicy.amount > 0) {
+        ;
+      for (const companyPolicy of companyPolicies) {
+        if (!companyPolicy.hardStopEnabled || companyPolicy.amount <= 0) continue;
         const observed = await computeObservedAmount(db, companyPolicy);
         if (observed >= companyPolicy.amount) {
           return {
@@ -779,16 +799,16 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         }
       }
 
-      if (agent.status === "paused" && agent.pauseReason === "budget") {
+      if (agent.status === "paused") {
         return {
           scopeType: "agent" as const,
           scopeId: agentId,
           scopeName: agent.name,
-          reason: "Agent is paused because its budget hard-stop was reached.",
+          reason: agent.pauseReason === "budget" ? "Agent is paused because its budget hard-stop was reached." : "Agent is paused and cannot start new work.",
         };
       }
 
-      const agentPolicy = await db
+      const agentPolicies = await db
         .select()
         .from(budgetPolicies)
         .where(
@@ -800,8 +820,9 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
             eq(budgetPolicies.metric, "billed_cents"),
           ),
         )
-        .then((rows) => rows[0] ?? null);
-      if (agentPolicy && agentPolicy.hardStopEnabled && agentPolicy.amount > 0) {
+        ;
+      for (const agentPolicy of agentPolicies) {
+        if (!agentPolicy.hardStopEnabled || agentPolicy.amount <= 0) continue;
         const observed = await computeObservedAmount(db, agentPolicy);
         if (observed >= agentPolicy.amount) {
           return {
@@ -828,8 +849,8 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         .where(eq(projects.id, candidateProjectId))
         .then((rows) => rows[0] ?? null);
 
-      if (!project || project.companyId !== companyId) return null;
-      const projectPolicy = await db
+      if (!project || project.companyId !== companyId) throw notFound("Project not found");
+      const projectPolicies = await db
         .select()
         .from(budgetPolicies)
         .where(
@@ -841,8 +862,9 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
             eq(budgetPolicies.metric, "billed_cents"),
           ),
         )
-        .then((rows) => rows[0] ?? null);
-      if (projectPolicy && projectPolicy.hardStopEnabled && projectPolicy.amount > 0) {
+        ;
+      for (const projectPolicy of projectPolicies) {
+        if (!projectPolicy.hardStopEnabled || projectPolicy.amount <= 0) continue;
         const observed = await computeObservedAmount(db, projectPolicy);
         if (observed >= projectPolicy.amount) {
           return {
@@ -854,12 +876,12 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         }
       }
 
-      if (!project.pausedAt || project.pauseReason !== "budget") return null;
+      if (!project.pausedAt) return null;
       return {
         scopeType: "project" as const,
         scopeId: project.id,
         scopeName: project.name,
-        reason: "Project is paused because its budget hard-stop was reached.",
+        reason: project.pauseReason === "budget" ? "Project is paused because its budget hard-stop was reached." : "Project is paused and cannot start new work.",
       };
     },
 

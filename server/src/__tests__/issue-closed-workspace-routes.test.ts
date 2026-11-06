@@ -227,7 +227,10 @@ describe.sequential("closed isolated workspace issue routes", () => {
       };
       next();
     });
-    app.use("/api", issueRoutes({} as any, {} as any));
+    // This fixture has no DSP7 intake registration. Its checkout preflight must
+    // still be able to perform the real route's database lookup.
+    const db = { select: () => ({ from: () => ({ where: async () => [] }) }) };
+    app.use("/api", issueRoutes(db as any, {} as any));
     app.use(errorHandler);
     return app;
   }

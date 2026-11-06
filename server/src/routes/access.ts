@@ -1247,7 +1247,7 @@ async function loadCompanyMemberRecords(
       : Promise.resolve([]),
   ]);
 
-  const federatedPeople = userIds.length > 0 ? await db.select({ userId: personnelPeople.userId, email: personnelPeople.email, username: personnelPeople.username }).from(personnelPeople).where(and(eq(personnelPeople.companyId, companyId), eq(personnelPeople.active, true), inArray(personnelPeople.userId, userIds))).orderBy(desc(personnelPeople.lastSyncedAt)) : [];
+  const federatedPeople = userIds.length > 0 ? await db.select({ userId: personnelPeople.userId, email: personnelPeople.email, username: personnelPeople.username }).from(personnelPeople).where(and(eq(personnelPeople.active, true), inArray(personnelPeople.userId, userIds))).orderBy(desc(personnelPeople.lastSyncedAt)) : [];
   const federationByUser = new Map<string, { email: string | null; username: string | null }>();
   for (const person of federatedPeople) if (person.userId && !federationByUser.has(person.userId)) federationByUser.set(person.userId, { email: person.email, username: person.username });
 

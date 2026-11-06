@@ -1,0 +1,62 @@
+{
+  "release": "seat-status-select-all",
+  "state": "ui_released_backend_waiting_for_idle",
+  "updatedAt": "2026-10-23T08:34:29.653333+00:00",
+  "stage": "/home/fg/paperclip/private/seat-status-select-all-20261023T083341Z",
+  "active": {
+    "runs": 1,
+    "busySeats": 1,
+    "pendingCommands": 0
+  },
+  "bridgeVersion": "0bc5051e843dfcd220e5e050467a36bf42a6011b63982d281779a6a67a8d2556",
+  "unit": "paperclip-status-select-all-release-20261023t083341z",
+  "checks": {
+    "serverTypeScript": true,
+    "uiTypeScript": true,
+    "uiBuild": true,
+    "pythonCompilation": true,
+    "tokenGates": true,
+    "testsRun": false,
+    "realResumeLatencyMeasured": false
+  },
+  "installedLocalClientUpdated": false,
+  "/": {
+    "matchesRelease": true
+  },
+  "/assets/index-Bv7nELwQ.js": {
+    "matchesRelease": true
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "backendRelease": {
+    "release": "seat-status-select-all",
+    "state": "waiting_for_idle",
+    "updatedAt": "2026-10-23T08:37:10.233942+00:00",
+    "stage": "/home/fg/paperclip/private/seat-status-select-all-20261023T083341Z",
+    "active": {
+      "runs": 1,
+      "busySeats": 1,
+      "pendingCommands": 0
+    },
+    "bridgeVersion": "0bc5051e843dfcd220e5e050467a36bf42a6011b63982d281779a6a67a8d2556"
+  },
+  "uiRelease": {
+    "state": "ui_released_backend_waiting_for_idle",
+    "staticFilesVerified": 13,
+    "updatedAt": "2026-10-23T08:37:09.397741+00:00",
+    "serviceRestarted": false,
+    "existingSessionPreserved": true
+  }
+}

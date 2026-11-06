@@ -1,0 +1,49 @@
+{
+  "release": "seat-login-autoonline",
+  "state": "released",
+  "updatedAt": "2026-10-23T16:29:41.201401+00:00",
+  "stage": "/home/fg/paperclip/private/seat-login-autoonline-20261023T162936Z",
+  "backup": "/home/fg/paperclip/private/seat-login-autoonline-20261023T162936Z/backup",
+  "filesVerified": 172,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "backendChanged": false,
+  "clientUpgradeRequired": true,
+  "bridgeVersion": "a84fd1d2f0db66a1fb28b4f69b0fafb57d793674a8400b0878d7b61c14373bf6",
+  "checks": {
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "pythonSyntax": true,
+    "tokenGates": true,
+    "testsRun": false,
+    "crossPlatformLoginTested": false,
+    "publicDownloads": [
+      {
+        "path": "dsp7-install.py",
+        "sha256Matches": true
+      },
+      {
+        "path": "dsp7-bridge-manifest.json",
+        "sha256Matches": true
+      },
+      {
+        "path": "dsp7-bridge.zip",
+        "sha256Matches": true
+      }
+    ]
+  }
+}

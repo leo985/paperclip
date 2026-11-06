@@ -1,0 +1,27 @@
+{
+  "release": "windows-seat-acl-standard-user",
+  "baseline": {
+    "dsp7-install.py": "11b36a80089dd16cd664706ee03d8c21a1a55fabe61b09f72152617f2dcf48fb",
+    "dsp7-bridge.zip": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+    "dsp7-bridge-manifest.json": "33939e3a721aab2f7b9c7cbaa24bb781bec4b85fbed3a4616659844bf302692b"
+  },
+  "files": {
+    "dsp7-install.py": "c0bf3bb50b00c1654689f389236738683b7a5e9904b686cf3a9642d5467150f5",
+    "dsp7-bridge.zip": "a56156747332faa1eccf3afa2fe51af87c9571c81302e97b68455dce6ca7bf51",
+    "dsp7-bridge-manifest.json": "12a9f3d2fa4967f28fab5e374a8f8a30fdf08a9bd06036228dfbc16ef4795526"
+  },
+  "bridgeVersion": "a56156747332faa1eccf3afa2fe51af87c9571c81302e97b68455dce6ca7bf51",
+  "changedBundleFiles": [
+    "platform_support.py",
+    "quick_install.py"
+  ],
+  "testCasesPassed": 84,
+  "windowsNativeTestSkipped": true,
+  "state": "released",
+  "updatedAt": "2026-10-26T07:33:46.394924+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-acl-20261026T073343Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

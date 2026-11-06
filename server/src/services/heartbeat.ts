@@ -1,3 +1,7 @@
+import { seatOccupancy } from "./seat-concurrency.js";
+import { seatConcurrencyLimit } from "@paperclipai/shared";
+import { accountFinalRunUsage } from "./run-usage-accounting.js";
+import { recordBudgetSeatStopIntent } from "./seat-execution-stop.js";
 import { publicChatTaskUrl } from "./chat-task-url.js";
 import { toolActionDeliveryService } from "./tool-action-delivery.js";
 import { githubBotConnectionIdsForRun } from "./chat-github-tools.js";
@@ -7121,6 +7125,12 @@ function enrichWakeContextSnapshot(input: {
     contextSnapshot.wakeTriggerDetail = triggerDetail;
   }
   normalizeInteractionContinuationWakeContext(contextSnapshot, payload);
+  // New local starts opt into the seat-owned retry handshake. Payload fields
+  // are otherwise deliberately not copied into the durable run context.
+  if (reason?.startsWith("本地研发人员主动启动交互会话；") &&
+      payload?.dsp7SeatAutoRetryV1 === true) {
+    contextSnapshot.dsp7SeatAutoRetryV1 = true;
+  }
 
   return {
     contextSnapshot,
@@ -15188,6 +15198,11 @@ export function heartbeatService(
       delayMs?: number;
     },
   ) {
+    // A personal seat needs a new, verified local start intent. Generic retries
+    // cannot manufacture that intent or report a skipped invocation as success.
+    if (agent.adapterConfig.dsp7Transport === "outbound" && agent.adapterConfig.dsp7Seat) {
+      return { outcome: "not_scheduled" as const, reason: "等待本机确认旧进程停止；由席位握手决定一次真实重试。", errorCode: "dsp7_seat_retry_managed" as const, issueId: readNonEmptyString(run.contextSnapshot?.issueId) };
+    }
     const now = opts?.now ?? new Date();
     const retryReason =
       opts?.retryReason ?? BOUNDED_TRANSIENT_HEARTBEAT_RETRY_REASON;
@@ -16551,9 +16566,7 @@ export function heartbeatService(
       enabled: asBoolean(heartbeat.enabled, false),
       intervalSec: Math.max(0, asNumber(heartbeat.intervalSec, 0)),
       wakeOnDemand: isHeartbeatWakeOnDemandEnabled(agent),
-      maxConcurrentRuns: normalizeMaxConcurrentRuns(
-        heartbeat.maxConcurrentRuns,
-      ),
+      maxConcurrentRuns: agent.adapterConfig.dsp7Seat ? seatConcurrencyLimit(agent) : normalizeMaxConcurrentRuns(heartbeat.maxConcurrentRuns),
       skipTimerWhenNoActionableWork: asBoolean(
         heartbeat.skipTimerWhenNoActionableWork ??
           heartbeat.requireActionableTimerWork ??
@@ -19667,17 +19680,12 @@ export function heartbeatService(
         lastRunId: run.id,
         lastRunStatus: run.status,
         lastError: run.error ?? null,
-        totalInputTokens: sql`${agentRuntimeState.totalInputTokens} + ${inputTokens}`,
-        totalOutputTokens: sql`${agentRuntimeState.totalOutputTokens} + ${outputTokens}`,
-        totalCachedInputTokens: sql`${agentRuntimeState.totalCachedInputTokens} + ${cachedInputTokens}`,
-        totalCostCents: sql`${agentRuntimeState.totalCostCents} + ${additionalCostCents}`,
         updatedAt: new Date(),
       })
       .where(eq(agentRuntimeState.agentId, agent.id));
 
     if (additionalCostCents > 0 || hasTokenUsage) {
-      const costs = costService(db, budgetHooks);
-      await costs.createEvent(agent.companyId, {
+      await accountFinalRunUsage(db, agent.companyId, {
         heartbeatRunId: run.id,
         agentId: agent.id,
         issueId: ledgerScope.issueId,
@@ -19692,8 +19700,8 @@ export function heartbeatService(
         cachedInputTokens,
         outputTokens,
         costCents: additionalCostCents,
-        occurredAt: new Date(),
-      });
+        occurredAt: run.finishedAt ?? run.startedAt ?? run.createdAt,
+      }, budgetHooks);
     }
   }
 
@@ -19715,7 +19723,9 @@ export function heartbeatService(
         return [];
       }
       const policy = parseHeartbeatPolicy(agent);
-      const runningCount = await countRunningRunsForAgent(agentId);
+      const runningCount = agent.adapterConfig.dsp7Seat
+        ? (await seatOccupancy(db, agent)).occupied
+        : await countRunningRunsForAgent(agentId);
       const availableSlots = Math.max(
         0,
         policy.maxConcurrentRuns - runningCount,
@@ -21186,7 +21196,7 @@ export function heartbeatService(
         });
       if (aiBinding) {
         try {
-          managedAiRuntime = await prepareManagedAiRuntime(db, { companyId: agent.companyId, agentId: agent.id, responsibleUserId, adapterType: agent.adapterType, binding: aiBinding, config: resolvedConfig });
+          managedAiRuntime = await prepareManagedAiRuntime(db, { companyId: agent.companyId, agentId: agent.id, responsibleUserId, adapterType: agent.adapterType, binding: aiBinding, config: resolvedConfig, deferProjectAuthCheck: true });
         } catch (error) {
           // Only fresh executions can receive a pre-provider wait receipt. A
           // persisted native input may already have provider effects to recover.
@@ -22806,7 +22816,10 @@ export function heartbeatService(
           const logEntry = formatRuntimeWorkspaceWarningLog(warning);
           await onLog(logEntry.stream, logEntry.chunk);
         }
-        await assertGitSensitiveAdapterWorkspaceValid({
+        // Outbound seats execute on their registered computer. The bridge
+        // validates its bound repository before starting and claiming the run;
+        // server fallback paths are not the cwd used by that executor.
+        if (!(agent.adapterType === "claude_local" && resolvedConfig.dsp7Transport === "outbound" && resolvedConfig.dsp7WebJiraIntake === true)) await assertGitSensitiveAdapterWorkspaceValid({
           adapterType: agent.adapterType,
           agentId: agent.id,
           issue: issueRef
@@ -29098,7 +29111,13 @@ export function heartbeatService(
   }
 
   async function cancelBudgetScopeWork(scope: BudgetEnforcementScope) {
+    async function recordStop(runId: string) {
+      const [run] = await db.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id, runId), eq(heartbeatRuns.companyId, scope.companyId)));
+      if (run) await recordBudgetSeatStopIntent(db, run);
+    }
     if (scope.scopeType === "agent") {
+      const runs = await db.select({id:heartbeatRuns.id}).from(heartbeatRuns).where(and(eq(heartbeatRuns.companyId,scope.companyId),eq(heartbeatRuns.agentId,scope.scopeId),inArray(heartbeatRuns.status,[...CANCELLABLE_HEARTBEAT_RUN_STATUSES])));
+      for (const run of runs) await recordStop(run.id);
       await cancelActiveForAgentInternal(
         scope.scopeId,
         "Cancelled due to budget pause",
@@ -29124,6 +29143,7 @@ export function heartbeatService(
         : await listProjectScopedRunIds(scope.companyId, scope.scopeId);
 
     for (const runId of runIds) {
+      await recordStop(runId);
       await cancelRunInternal(runId, "Cancelled due to budget pause");
     }
 

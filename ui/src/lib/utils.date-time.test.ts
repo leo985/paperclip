@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { i18n } from "@/i18n";
 import { formatDateTime } from "./utils";
 
 describe("formatDateTime", () => {
@@ -16,6 +17,14 @@ describe("formatDateTime", () => {
     expect(
       formatDateTime(new Date(2026, 8, 7, 13, 2, 55), { includeSeconds: true }),
     ).toBe("Sep 7, 2026, 1:02:55 PM");
+  });
+
+  it("uses Chinese date formatting when the interface language is Chinese", async () => {
+    await i18n.changeLanguage("zh-CN");
+    expect(formatDateTime(timestamp)).toBe(timestamp.toLocaleString("zh-CN", {
+      month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+    }));
+    expect(formatDateTime(timestamp, { includeSeconds: true })).toContain("54");
   });
 
   it("formats serialized server timestamps identically to Date values", () => {

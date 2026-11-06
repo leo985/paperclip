@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { deliveryRouteFiles, discoverDeliveryRoutes } from "../../../scripts/delivery-api-contracts.mjs";
 import express from "express";
 import fs from "node:fs";
 import path from "node:path";
@@ -12,6 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROUTES_DIR = path.resolve(__dirname, "../routes");
 
 const apiPrefixes: Record<string, string> = {
+  ...Object.fromEntries(deliveryRouteFiles.map(name => [name + ".ts", "/api"])),
   "pipelines.ts": "/api",
   "cases.ts": "/api",
   "smoke-lab.ts": "/api",
@@ -171,6 +174,13 @@ function loadActualRoutes() {
     if (!prefix) {
       if (ROUTER_METHOD_PATTERN.test(source)) {
         unknownRouteFiles.push(file);
+      }
+      continue;
+    }
+
+    if (deliveryRouteFiles.includes(file.replace(/\.ts$/, ""))) {
+      for (const route of discoverDeliveryRoutes(source, path.join(ROUTES_DIR, file))) {
+        routes.add(route.method.toUpperCase() + " " + normalizeExpressPath(resolveMountedPath(file, prefix, route.path)));
       }
       continue;
     }
@@ -707,6 +717,22 @@ describe("openapi routes", () => {
     expect(
       spec.paths["/api/chat-webhooks/{publicId}/{provider}"],
     ).toBeUndefined();
+  });
+
+  it("keeps generated delivery contracts synchronized with runtime validators", () => {
+    const root = path.resolve(ROUTES_DIR, "../../..");
+    execFileSync(process.execPath, [path.join(root, "scripts/generate-delivery-api-contracts.mjs"), "--check"], {cwd: root, stdio: "pipe"});
+    const spec = buildOpenApiSpec();
+    expect(spec.paths["/api/companies/{companyId}/delivery-connections/test"].post).toBeDefined();
+    expect(spec.paths["/api/companies/{companyId}/delivery-connections/sync"].post).toBeDefined();
+    expect(spec.paths["/api/companies/{companyId}/delivery-workflows/{workflowId}/repair"].post.requestBody.required).toBe(true);
+    expect(spec.paths["/api/agents/{id}/delivery-runs/{runId}/delivery"].post.security).toEqual([{AgentBearerAuth: []}]);
+    expect(spec.paths["/api/companies/{companyId}/management-follow-ups/{issueId}"].put.security).toEqual([{BoardSessionAuth: []}, {BoardApiKeyAuth: []}]);
+    expect(spec.paths["/api/dsp7-quick-enroll"].post.security).toEqual([]);
+    expect(spec.paths["/api/dsp7-quick-enroll/inspect"].post.security).toEqual([]);
+    expect(spec.paths["/api/companies/{companyId}/management-follow-ups"].get.parameters).toEqual(expect.arrayContaining([expect.objectContaining({name:"issueIds",in:"query",required:false})]));
+    expect(spec.paths["/api/agents/{id}/dsp7-seat-registration"].get["x-paperclip-authorization"]).toEqual({actor:"agent"});
+    expect(spec.paths["/api/companies/{companyId}/personnel-federation"].get["x-paperclip-authorization"]).toEqual({actor:"board",instanceAdmin:true});
   });
 
   it("covers the mounted server routes exactly", () => {

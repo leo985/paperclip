@@ -1,0 +1,23 @@
+{
+  "release": "monthly-response-size",
+  "timestamp": "20261030T101401Z",
+  "backup": "/home/fg/paperclip/private/monthly-size-backup-20261030T101401Z",
+  "previousSha256": "ae30fc3e5127d1d6cf7dc456ef4dd4296dfce5f37f99555f3d2cd197ef43447d",
+  "sha256": "c32fbece1557f576e0d1d537e13430edcc066bccba79c74242da0342b3e54870",
+  "health": "ok",
+  "filesChanged": 1,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "monthlyParserChanged": false,
+  "liveCandidateEntries": 62,
+  "regressionTests": 30,
+  "browserValidation": {
+    "url": "http://10.60.43.53:3100/CMP/delivery",
+    "month": "2026-10",
+    "summary": "2026-10 · 显示 62 / 62 个条目 · 读取于 2026/10/30 18:15:23",
+    "visibleRows": 20,
+    "alerts": []
+  },
+  "firstAttempt": "Health wait of 45 seconds expired; previous module restored. Platform recovered before retry.",
+  "retryHealthWaitSeconds": 180
+}

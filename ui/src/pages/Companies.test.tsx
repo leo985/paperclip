@@ -14,6 +14,7 @@ const mockCompaniesApi = vi.hoisted(() => ({
 }));
 const mockOpenOnboarding = vi.hoisted(() => vi.fn());
 
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => ({ canManage: true, isInstanceAdmin: true }) }));
 vi.mock("../api/companies", () => ({
   companiesApi: mockCompaniesApi,
 }));

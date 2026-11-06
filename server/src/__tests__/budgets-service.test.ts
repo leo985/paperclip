@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agents,
@@ -208,6 +209,24 @@ describe("budgetService", () => {
     });
   });
 
+  it.each(["company", "agent", "project"])("checks the second active policy for %s instead of ignoring its window", async (scopeType) => {
+    const policy = (windowKind: string, amount: number) => ({companyId:"company-1",scopeType,scopeId:scopeType+"-1",metric:"billed_cents",windowKind,amount,hardStopEnabled:true});
+    const results: SelectResult[] = [
+      [{status:"idle",companyId:"company-1",name:"Agent"}],
+      [{status:"active",name:"Company"}],
+    ];
+    if(scopeType!=="company") results.push([]);
+    if(scopeType==="project") results.push([], [{id:"project-1",companyId:"company-1",name:"Project"}]);
+    results.push([policy("calendar_month_utc",100),policy("lifetime",50)],[{total:10}],[{total:60}]);
+    const service=budgetService(createDbStub(results).db as any);
+    expect(await service.getInvocationBlock("company-1","agent-1",{projectId:"project-1"})).toMatchObject({scopeType,scopeId:scopeType+"-1"});
+  });
+
+  it("does not treat zero amount or warn-only policies as execution caps", async () => {
+    const stub=createDbStub([[{status:"idle",companyId:"company-1",name:"Agent"}],[{status:"active",name:"Company"}],[{amount:0,hardStopEnabled:true},{amount:1,hardStopEnabled:false}],[]]);
+    expect(await budgetService(stub.db as any).getInvocationBlock("company-1","agent-1")).toBeNull();
+  });
+
   it("surfaces a budget-owned company pause distinctly from a manual pause", async () => {
     const dbStub = createDbStub([
       [{
@@ -298,6 +317,7 @@ describe("budgetService", () => {
         amount: 100,
       }],
       [{ total: 120 }],
+      [], // No other hard policy prevents resuming this scope.
       [{ id: "approval-1", status: "approved" }],
       [{
         companyId: "company-1",
@@ -411,6 +431,46 @@ describeEmbeddedPostgres("budgetService release gate enforcement", () => {
 
     return event!;
   }
+
+  it.each(["company", "agent", "project"] as const)("keeps %s paused until every hard policy is resolved", async scopeType => {
+    const f = await createBudgetFixture();
+    const scopeId = scopeType === "company" ? f.companyId : scopeType === "agent" ? f.agentId : f.projectId;
+    const service = budgetService(db);
+    const policies = await db.insert(budgetPolicies).values(
+      (["calendar_month_utc", "lifetime"] as const).map(windowKind => ({
+        companyId: f.companyId, scopeType, scopeId, windowKind,
+        metric: "billed_cents" as const, amount: 100, hardStopEnabled: true, isActive: true,
+      })),
+    ).returning();
+    const event = await insertCostEvent({ companyId: f.companyId, agentId: f.agentId, projectId: f.projectId, costCents: 120 });
+    await service.evaluateCostEvent(event);
+    const incidents = await db.select().from(budgetIncidents);
+    const table = scopeType === "company" ? companies : scopeType === "agent" ? agents : projects;
+    const readScope = async () => (await db.select().from(table))[0]!;
+    expect((await readScope()).pauseReason).toBe("budget");
+    for (let i = 0; i < policies.length; i++) {
+      const incident = incidents.find(row => row.policyId === policies[i]!.id && row.thresholdType === "hard")!;
+      await service.resolveIncident(f.companyId, incident.id, { action: "raise_budget_and_resume", amount: 175 }, "operator");
+      expect((await readScope()).pauseReason).toBe(i === 0 ? "budget" : null);
+    }
+  });
+
+  it.each(["company", "agent", "project"] as const)("preserves manual %s pauses through hard-stop evaluation and budget resolution", async scopeType => {
+    const f = await createBudgetFixture();
+    const scopeId = scopeType === "company" ? f.companyId : scopeType === "agent" ? f.agentId : f.projectId;
+    const table = scopeType === "company" ? companies : scopeType === "agent" ? agents : projects;
+    await db.update(table).set({ pauseReason: "manual", pausedAt: new Date(), ...(scopeType !== "project" ? { status: "paused" } : {}) }).where(eq(table.id, scopeId));
+    const service = budgetService(db);
+    await db.insert(budgetPolicies).values({ companyId: f.companyId, scopeType, scopeId, windowKind: "lifetime", metric: "billed_cents", amount: 100, hardStopEnabled: true });
+    const event = await insertCostEvent({ companyId: f.companyId, agentId: f.agentId, projectId: f.projectId, costCents: 120 });
+    await service.evaluateCostEvent(event);
+    const incidents = await db.select().from(budgetIncidents);
+    const hard = incidents.find(row => row.thresholdType === "hard")!;
+    await service.resolveIncident(f.companyId, hard.id, { action: "raise_budget_and_resume", amount: 175 }, "operator");
+    const [scope] = await db.select().from(table);
+    expect(scope!.pauseReason).toBe("manual");
+    expect(scope!.pausedAt).toBeInstanceOf(Date);
+  });
 
   it("raises one soft incident per window before hard-stopping and safely logging agent telemetry", async () => {
     const { companyId, agentId } = await createBudgetFixture();

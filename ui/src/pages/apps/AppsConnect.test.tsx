@@ -914,7 +914,7 @@ describe("AppsConnect — Connect with a link (M4 frame)", () => {
       expect(popup.location.assign).toHaveBeenCalledWith("https://my-staging.paperclip.app/connections/enroll?id=enroll-test");
     }
     const fallback = container.querySelector<HTMLAnchorElement>('a[target="_blank"]');
-    expect(fallback?.textContent).toBe("Open authorization in a new tab");
+    expect(fallback?.textContent?.trim()).toBe("Open authorization in a new tab");
     expect(fallback?.href).toBe("https://my-staging.paperclip.app/connections/enroll?id=enroll-test");
     expect(navigateTopLevelMock).not.toHaveBeenCalled();
     expect(startCloudConnectorEnrollmentMock).toHaveBeenCalledWith("company-1", "Paperclip", "/apps/connect?source=gmail&stage=setup&intent=intent-1&enrollment_host=dialog");
@@ -1801,7 +1801,7 @@ describe("AppsConnect — Connect with a link (M4 frame)", () => {
     expect(container.textContent).toContain("Try again");
     expect(onPhaseChange).toHaveBeenCalledWith("needs_retry");
     const fallback = container.querySelector<HTMLAnchorElement>('a[target="_blank"]');
-    expect(fallback?.textContent).toBe("Open sign-in in a new tab");
+    expect(fallback?.textContent?.trim()).toBe("Open sign-in in a new tab");
     expect(fallback?.href).toContain("https://mcp.notion.com/authorize");
     expect(fallback?.rel).toBe("noopener noreferrer");
 
@@ -2017,7 +2017,7 @@ describe("AppsConnect — Connect with a link (M4 frame)", () => {
     await render();
     await flushReact();
     expect(container.textContent).toContain("Install Paperclip and grant at least one repository");
-    expect(container.querySelector('a[href="https://github.com/apps/paperclip-for-github/installations/new"]')?.textContent).toBe("Install Paperclip on GitHub");
+    expect(container.querySelector('a[href="https://github.com/apps/paperclip-for-github/installations/new"]')?.textContent?.trim()).toBe("Install Paperclip on GitHub");
     expect(container.textContent).not.toContain("Your GitHub key");
     await act(async () => buttonByText("Try again")!.click());
     await flushReact();

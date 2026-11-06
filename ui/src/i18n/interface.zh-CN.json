@@ -9670,5 +9670,12 @@
   "your value.": "你的价值。",
   "Zapier, Arcade, Composio and Executor each own a connection. Their controlled setup views share Access → Connect. Tool discovery completes setup. Saved connections reuse the standard Permissions action list and per-action Test dialog. Storybook’s Apps / Connections groups use in-memory provider fixtures.": "Zapier、Arcade、Composio 和 Executor 各自拥有一个连接。他们的受控设置视图共享访问 → 连接。工具发现完成设置。保存的连接重用标准权限操作列表和每个操作测试对话框。 Storybook 的应用程序/连接组使用内存中提供程序固定装置。",
   "Zoom in": "放大",
-  "Zoom out": "缩小"
+  "Zoom out": "缩小",
+  "Add GitLab / other Git repository": "添加 GitLab / 其他 Git 仓库",
+  "Baseline branch or tag": "基线分支或标签",
+  "For example: main or develop (optional)": "例如：main 或 develop（可选）",
+  "Supports GitLab and other Git servers over HTTP, HTTPS, or SSH. Repository access uses Git credentials on the execution computer.": "支持通过 HTTP、HTTPS 或 SSH 接入 GitLab 等 Git 服务。仓库访问使用执行电脑上的 Git 凭据。",
+  "Enter an HTTP, HTTPS, or SSH repository URL.": "请输入 HTTP、HTTPS 或 SSH 仓库地址。",
+  "Enter a repository URL without passwords, tokens, query parameters, or fragments.": "仓库地址不能包含密码、令牌、查询参数或片段。",
+  "Enter a branch or tag on a single line.": "分支或标签必须填写在同一行。"
 }

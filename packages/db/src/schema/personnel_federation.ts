@@ -1,6 +1,8 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, boolean, integer, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { companies } from "./companies.js";
 import { authUsers } from "./auth.js";
+// System directory. companyId is immutable legacy provenance and vault/audit context,
+// never a directory visibility or organization-membership boundary.
 export const personnelSources = pgTable("personnel_sources", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").notNull().references(() => companies.id),
@@ -14,7 +16,7 @@ export const personnelSources = pgTable("personnel_sources", {
   lastResult: jsonb("last_result").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, t => ({ identity: uniqueIndex("personnel_sources_identity").on(t.companyId,t.type,t.corpId) }));
+}, t => ({ identity: uniqueIndex("personnel_sources_identity").on(t.companyId,t.type,t.corpId), enterprise: index("personnel_sources_enterprise_idx").on(t.type,t.corpId) }));
 export const personnelPeople = pgTable("personnel_people", {
   id: uuid("id").primaryKey().defaultRandom(),
   sourceId: uuid("source_id").notNull().references(() => personnelSources.id),
@@ -28,7 +30,7 @@ export const personnelPeople = pgTable("personnel_people", {
   active: boolean("active").notNull().default(true),
   activationHash: text("activation_hash"), activationExpires: timestamp("activation_expires", { withTimezone: true }),
   lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }).notNull().defaultNow(),
-}, t => ({ identity: uniqueIndex("personnel_people_identity").on(t.sourceId,t.externalId) }));
+}, t => ({ identity: uniqueIndex("personnel_people_identity").on(t.sourceId,t.externalId), account: index("personnel_people_user_idx").on(t.userId) }));
 export const personnelDepartments = pgTable("personnel_departments", {
   id: uuid("id").primaryKey().defaultRandom(),
   sourceId: uuid("source_id").notNull().references(() => personnelSources.id),

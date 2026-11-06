@@ -1,0 +1,52 @@
+{
+  "release": "20261104-shared-dingtalk-recipients",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "files": {
+    "@paperclipai/server/dist/routes/dsp7-seat-control.js": "05c58b82cc3136f539bfd7a4f12da6ca037697a24fc0df786c3405c05c2a3f87",
+    "@paperclipai/server/dist/routes/dsp7-seat-bots.js": "3a02eab0121ff416f1d324d4e574df6b786bec9e61ec3e1cbda8dd94b4bf8b55"
+  },
+  "backup": "/home/fg/paperclip/private/personnel-recipients-fix-20261104/backup-20261104T032003Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "verification": {
+    "company": "\u57fa\u7840\u5e73\u53f0",
+    "sameEnterpriseContacts": 400,
+    "nonmemberRecipientValidation": "passed",
+    "invalidRecipientRejected": true,
+    "unauthorizedStatus": 403,
+    "productionDataMutated": false
+  },
+  "activeBefore": [],
+  "activeAfter": [],
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-04T03:20:04.195Z",
+    "completedAt": "2026-11-04T03:20:41.984Z",
+    "drainRequired": true,
+    "drainReason": "requested",
+    "previousServerPid": 1809516,
+    "newServerPid": 1855027,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "databaseChanged": false,
+  "uiChanged": false
+}

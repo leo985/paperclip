@@ -1,12 +1,26 @@
 import { Router, type Request } from "express";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { activityLog, agentApiKeys, agents, authUsers, companyMemberships, heartbeatRuns, type Db } from "@paperclipai/db";
+import { activityLog, agentApiKeys, agents, authUsers, companyMemberships, heartbeatRuns, instanceUserRoles, type Db } from "@paperclipai/db";
 import { z } from "zod";
 import { assertBoard, assertCompanyAccess } from "./authz.js";
 import { badRequest, conflict, forbidden, notFound } from "../errors.js";
+import { agentService } from "../services/agents.js";
 
 export function isSeatManager(req: Request, companyId: string) {
   return req.actor.type === "board" && (req.actor.isInstanceAdmin || req.actor.source === "local_implicit" || Boolean(req.actor.memberships?.some(m => m.companyId === companyId && m.status === "active" && ["owner", "admin"].includes(m.membershipRole ?? ""))));
+}
+/** Recheck persisted human roles when a machine consumes a dispatch grant. */
+export async function isSeatManagerUser(db: Db, companyId: string, userId: string | null | undefined) {
+  if (!userId) return false;
+  const [instanceRole] = await db.select({ id: instanceUserRoles.id }).from(instanceUserRoles).where(and(eq(instanceUserRoles.userId, userId), eq(instanceUserRoles.role, "instance_admin"))).limit(1);
+  if (instanceRole) return true;
+  const [membership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(eq(companyMemberships.companyId, companyId), eq(companyMemberships.principalType, "user"), eq(companyMemberships.principalId, userId), eq(companyMemberships.status, "active"), inArray(companyMemberships.membershipRole, ["owner", "admin"]))).limit(1);
+  return Boolean(membership);
+}
+export async function canCreateSeatIntake(db: Db, agent: typeof agents.$inferSelect, userId: string | null | undefined) {
+  if (!userId) return false;
+  const seat = agent.adapterConfig.dsp7Seat as { intakeUserIds?: string[] } | undefined;
+  return Boolean(seat?.intakeUserIds?.includes(userId)) || await isSeatManagerUser(db, agent.companyId, userId);
 }
 export function seatOwnerId(seat: Record<string, unknown> | undefined): string | null {
   return typeof seat?.ownerUserId === "string" ? seat.ownerUserId : Array.isArray(seat?.intakeUserIds) && typeof seat.intakeUserIds[0] === "string" ? seat.intakeUserIds[0] : null;
@@ -21,6 +35,16 @@ export async function requireSeatOwner(db: Db, companyId: string, userId: string
 }
 export function dsp7SeatOwnerRoutes(db: Db) {
   const router = Router();
+  router.delete("/companies/:companyId/dsp7-seats/:id", async (req, res) => {
+    const companyId=String(req.params.companyId);assertBoard(req);assertCompanyAccess(req,companyId);
+    if(!isSeatManager(req,companyId)) throw forbidden("只有管理员可以删除席位");
+    await db.transaction(async tx=>{
+      const agent=await agentService(tx as unknown as Db).remove(String(req.params.id),companyId);
+      if(!agent) throw notFound("席位不存在");
+      await tx.insert(activityLog).values({companyId,actorType:"user",actorId:req.actor.userId??"local-board",action:"dsp7.seat.deleted",entityType:"agent",entityId:agent.id,details:{name:agent.name}});
+    });
+    res.json({ok:true});
+  });
   router.get("/companies/:companyId/dsp7-seat-owner-candidates", async (req, res) => {
     const companyId = String(req.params.companyId); assertBoard(req); assertCompanyAccess(req, companyId);
     if (!isSeatManager(req, companyId)) throw forbidden("指定席位负责人需要管理员权限");

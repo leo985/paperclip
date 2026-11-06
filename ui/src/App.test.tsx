@@ -14,6 +14,7 @@ const mockHealthApi = vi.hoisted(() => ({
 
 const mockAuthApi = vi.hoisted(() => ({
   getSession: vi.fn(),
+  passwordStatus: vi.fn(async () => ({ required: false })),
 }));
 
 const mockAccessApi = vi.hoisted(() => ({
@@ -191,9 +192,9 @@ describe("CloudAccessGate", () => {
     mockAuthApi.getSession.mockResolvedValue(null);
 
     const root = renderGate(container);
-    await waitForText(container, "Finish setting up this Paperclip");
+    await waitForText(container, "Finish setting up this 智研协同平台");
 
-    expect(container.textContent).toContain("Finish setting up this Paperclip");
+    expect(container.textContent).toContain("Finish setting up this 智研协同平台");
     expect(container.textContent).toContain("Sign in / Create account");
     expect(container.textContent).toContain("npx paperclipai auth bootstrap-ceo");
     expect(mockAccessApi.getCurrentBoardAccess).not.toHaveBeenCalled();

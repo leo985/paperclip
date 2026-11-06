@@ -1,0 +1,34 @@
+{
+  "runId": "c4dd307f-33be-4827-b507-02a220372579",
+  "exitCode": 0,
+  "durationSeconds": 2.78,
+  "watchdogExpired": false,
+  "jsonlStatus": "observed",
+  "jsonlUsage": {
+    "inputTokens": 1382,
+    "outputTokens": 21,
+    "cachedInputTokens": 0
+  },
+  "finalUsage": {
+    "inputTokens": 1382,
+    "outputTokens": 21,
+    "cachedInputTokens": 0
+  },
+  "treeProof": {
+    "protocolVersion": 1,
+    "runId": "c4dd307f-33be-4827-b507-02a220372579",
+    "isolation": "posix-sessions",
+    "firstObservedAt": "2026-10-25T07:48:26.624172+00:00",
+    "observedAt": "2026-10-25T07:48:26.993546+00:00",
+    "observations": 2,
+    "remaining": 0
+  },
+  "businessTaskStarted": false,
+  "costStatus": "unpriced",
+  "scope": "isolated local Claude smoke, not a business issue or production execution",
+  "serverUiTargetedTests": 98,
+  "pythonTests": 59,
+  "windowsMachineVerified": false,
+  "browserInteractionVerified": false,
+  "productionDeployed": false
+}

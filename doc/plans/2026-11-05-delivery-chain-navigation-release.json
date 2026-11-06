@@ -1,0 +1,18 @@
+{
+  "release": "20261105-delivery-chain-nav",
+  "status": "deployed",
+  "filesVerified": 351,
+  "entry": "index-a635b3e8.js",
+  "health": "ok",
+  "serviceRestarted": false,
+  "backup": "/home/fg/paperclip/private/delivery-chain-nav-20261105/backup",
+  "timestamp": "2026-11-05T05:35:35.858551+00:00",
+  "verification": {
+    "uiTests": 39,
+    "routePrefixRegression": "passed",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "browser": "Homepage navigation → 交付链 opens /DSP/delivery-chain with main navigation retained; heading and sequence preview verified. No configuration published."
+  }
+}

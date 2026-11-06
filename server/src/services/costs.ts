@@ -2,8 +2,8 @@ import { agentAvatarUrl, resolveAgentAppearance } from "@paperclipai/shared";
 import { and, desc, eq, gte, isNotNull, isNull, lt, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "@paperclipai/db";
-import { activityLog, agents, companies, costEvents, heartbeatRuns, issues, projects } from "@paperclipai/db";
-import { notFound, unprocessable } from "../errors.js";
+import { activityLog, agents, companies, costEvents, goals, heartbeatRuns, issues, projects } from "@paperclipai/db";
+import { conflict, notFound, unprocessable } from "../errors.js";
 import { budgetService, type BudgetServiceHooks } from "./budgets.js";
 import { visibleIssueCondition } from "./issue-visibility.js";
 
@@ -65,17 +65,61 @@ export function costService(db: Db, budgetHooks: BudgetServiceHooks = {}) {
         throw unprocessable("Agent does not belong to company");
       }
 
-      const event = await db
-        .insert(costEvents)
-        .values({
-          ...data,
-          companyId,
-          biller: data.biller ?? data.provider,
-          billingType: data.billingType ?? "unknown",
-          cachedInputTokens: data.cachedInputTokens ?? 0,
-        })
-        .returning()
-        .then((rows) => rows[0]);
+      // Never let a valid agent key attach its ledger entry to another tenant
+      // or another agent's run. Historical attribution uses the run's identity.
+      if (data.heartbeatRunId) {
+        const [run] = await db.select().from(heartbeatRuns).where(and(
+          eq(heartbeatRuns.id, data.heartbeatRunId), eq(heartbeatRuns.companyId, companyId),
+          eq(heartbeatRuns.agentId, data.agentId),
+        ));
+        if (!run) throw unprocessable("Cost run does not belong to agent and company");
+      }
+      for (const [table, id] of [[issues, data.issueId], [projects, data.projectId], [goals, data.goalId]] as const) {
+        if (!id) continue;
+        const [linked] = await db.select({ id: table.id }).from(table).where(and(eq(table.id, id), eq(table.companyId, companyId)));
+        if (!linked) throw unprocessable("Cost attribution does not belong to company");
+      }
+
+      const values = {
+        ...data,
+        companyId,
+        biller: data.biller ?? data.provider,
+        billingType: data.billingType ?? "unknown",
+        costStatus: data.costStatus ?? "reported",
+        inputTokens: data.inputTokens ?? 0,
+        cachedInputTokens: data.cachedInputTokens ?? 0,
+        outputTokens: data.outputTokens ?? 0,
+      };
+      // The nullable key keeps legacy producers compatible. New producers use
+      // immutable, per-agent event IDs; cumulative snapshots require their own
+      // delta protocol and must never be submitted as independent events here.
+      let event: typeof costEvents.$inferSelect | undefined;
+      if (data.idempotencyKey != null) {
+        if (!/^[A-Za-z0-9._-]{1,128}$/.test(data.idempotencyKey)) {
+          throw unprocessable("Invalid cost event idempotency key");
+        }
+        [event] = await db.insert(costEvents).values(values).onConflictDoNothing({
+          target: [costEvents.companyId, costEvents.agentId, costEvents.idempotencyKey],
+        }).returning();
+        if (!event) {
+          [event] = await db.select().from(costEvents).where(and(
+            eq(costEvents.companyId, companyId), eq(costEvents.agentId, data.agentId),
+            eq(costEvents.idempotencyKey, data.idempotencyKey),
+          ));
+          const fields = ["issueId", "projectId", "goalId", "heartbeatRunId", "billingCode",
+            "provider", "biller", "billingType", "costStatus", "model", "inputTokens",
+            "cachedInputTokens", "outputTokens", "costCents"] as const;
+          if (!event || fields.some(key => (event![key] ?? null) !== (values[key] ?? null)) ||
+              event.occurredAt.getTime() !== data.occurredAt.getTime()) {
+            throw conflict("Cost event key already exists with different content");
+          }
+        }
+      } else {
+        [event] = await db.insert(costEvents).values(values).returning();
+      }
+      if (!event) throw new Error("Cost event was not persisted");
+      // Re-run derived accounting and enforcement after a replay as well. This
+      // repairs a previous failure after insertion without charging twice.
 
       const [agentMonthSpend, companyMonthSpend] = await Promise.all([
         getMonthlySpendTotal(db, { companyId, agentId: event.agentId }),

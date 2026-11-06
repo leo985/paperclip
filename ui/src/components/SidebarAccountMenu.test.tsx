@@ -267,7 +267,7 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
 
     expect(mockAuthApi.signOut).toHaveBeenCalledOnce();
-    expect(mockNavigateTopLevel).not.toHaveBeenCalled();
+    expect(mockNavigateTopLevel).toHaveBeenCalledWith("/auth");
     expect(queryClient.getQueryState(queryKeys.health)?.isInvalidated).toBe(true);
 
     await act(async () => {

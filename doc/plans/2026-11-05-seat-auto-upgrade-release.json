@@ -1,0 +1,60 @@
+{
+  "release": "seat-auto-upgrade-20261105T085616Z",
+  "target": "http://10.60.43.53:3100",
+  "remoteStage": "/home/fg/paperclip/private/seat-auto-upgrade-20261105T085616Z",
+  "targetDirectory": "/home/fg/paperclip/runtime/node_modules/@paperclipai/server/ui-dist",
+  "expectedBefore": {
+    "dsp7-install.py": "692c14f1a70b9cbe7df81b99bd24fad11a8b162b651f739d823c87d4d78da6eb",
+    "dsp7-bridge.zip": "9f3ad1a716abd42e72056dda2b72c2e01a63d5ae767490f811e56b98e6a63f71",
+    "dsp7-bridge-manifest.json": "371506a2f22ee5d7fe0e05d302d8cd2e3694ebaef36423a293515774a4de4e13"
+  },
+  "expectedAfter": {
+    "dsp7-install.py": "68dbe314fcaae191157f7a52b381216261b093e71154dc1a00ef090b519148f5",
+    "dsp7-bridge.zip": "0c63103d38789ac1fd9f89f8364095c583ff3eeba18ef4f2d42ca567f28d81b7",
+    "dsp7-bridge-manifest.json": "f8c76cc9615ae0481229c145c7ddcc7629d7775053b0299787c51ddbb8511f72"
+  },
+  "changedClientModules": [
+    "README.md",
+    "pilot.py",
+    "seat_control.py",
+    "seat_watchdog.py",
+    "install_watchdog.py",
+    "seat_auto_upgrade.py",
+    "quick_install.py"
+  ],
+  "verification": {
+    "sourceTests": 277,
+    "packagedClientTests": 277,
+    "skipped": 2
+  },
+  "state": "deployed",
+  "backup": "/home/fg/paperclip/private/seat-auto-upgrade-20261105T085616Z/backup",
+  "serviceBefore": {
+    "MainPID": "2925284",
+    "ExecMainStartTimestamp": "Thu 2026-11-05 08:32:22 UTC",
+    "ActiveState": "active"
+  },
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "uiIndexSha256": "907532d019e64f40929ccb8af284596b2c8e46241db746be91076cfc3ec25199",
+  "serviceAfter": {
+    "MainPID": "2925284",
+    "ExecMainStartTimestamp": "Thu 2026-11-05 08:32:22 UTC",
+    "ActiveState": "active"
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "finishedAt": "2026-11-05T08:57:15Z"
+}

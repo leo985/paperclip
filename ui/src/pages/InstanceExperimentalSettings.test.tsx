@@ -946,7 +946,7 @@ describe("InstanceExperimentalSettings — card ordering and headings (PAP-393)"
     await renderPage(defaultExperimentalSettings());
 
     const headings = [...container.querySelectorAll("section > div > h2")].map(
-      (heading) => heading.textContent ?? "",
+      (heading) => heading.textContent?.trim() ?? "",
     );
     expect(headings).toEqual([
       "Experimental features",

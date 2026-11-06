@@ -1121,7 +1121,7 @@ describe("IssueChatThread", () => {
     });
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1185,7 +1185,7 @@ describe("IssueChatThread", () => {
     });
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1257,7 +1257,7 @@ describe("IssueChatThread", () => {
     });
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1405,7 +1405,7 @@ describe("IssueChatThread", () => {
     expect(scrollIntoViewMock).not.toHaveBeenCalled();
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1571,7 +1571,7 @@ describe("IssueChatThread", () => {
     elementScrollToMock.mockClear();
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1629,7 +1629,7 @@ describe("IssueChatThread", () => {
     });
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -1706,7 +1706,7 @@ describe("IssueChatThread", () => {
     });
 
     const jump = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Jump to latest",
+      (button) => button.textContent?.trim() === "Jump to latest",
     ) as HTMLButtonElement | undefined;
     expect(jump).toBeDefined();
 
@@ -2110,7 +2110,7 @@ describe("IssueChatThread", () => {
     expect(document.body.textContent).toContain("Delete comment?");
     const confirmButton = Array.from(
       document.body.querySelectorAll("button"),
-    ).find((button) => button.textContent === "Delete comment");
+    ).find((button) => button.textContent?.trim() === "Delete comment");
     expect(confirmButton).toBeTruthy();
 
     await act(async () => {
@@ -3161,7 +3161,7 @@ describe("IssueChatThread", () => {
       onAdd={async () => {}} onInterruptQueued={onInterruptQueued} showComposer={false}
       enableLiveTranscriptPolling={false}
     /></MemoryRouter>));
-    const interrupt = [...container.querySelectorAll("button")].find(button => button.textContent === "Interrupt");
+    const interrupt = [...container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Interrupt");
     expect(interrupt).toBeDefined();
     act(() => interrupt!.click());
     expect(onInterruptQueued).toHaveBeenCalledWith(null);
@@ -3631,7 +3631,7 @@ describe("IssueChatThread", () => {
       });
       await act(async () =>
         Array.from(container.querySelectorAll("button"))
-          .find((button) => button.textContent === "Send")!
+          .find((button) => button.textContent?.trim() === "Send")!
           .click(),
       );
       const newer = {
@@ -3692,7 +3692,7 @@ describe("IssueChatThread", () => {
       });
       await act(async () => root.render(element()));
       type("Earlier message");
-      await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Send")!.click());
+      await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent?.trim() === "Send")!.click());
       const requestId = onAdd.mock.calls[0]![4] as string;
       type("Newer unsent draft");
       await act(async () => container.querySelector('[data-testid="issue-chat-composer"]')!
@@ -3756,7 +3756,7 @@ describe("IssueChatThread", () => {
     });
     await act(async () =>
       Array.from(container.querySelectorAll("button"))
-        .find((button) => button.textContent === "Send")!
+        .find((button) => button.textContent?.trim() === "Send")!
         .click(),
     );
     expect(onAdd).toHaveBeenCalledWith("Please review the result", undefined, {

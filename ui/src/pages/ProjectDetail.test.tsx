@@ -44,6 +44,7 @@ const mockCompanyContext = vi.hoisted(() => ({
 const mockUsePluginSlots = vi.hoisted(() => vi.fn(() => ({ slots: [] as unknown[], isLoading: false })));
 const mockPluginSlotMount = vi.hoisted(() => vi.fn());
 
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => ({ canManage: true }) }));
 vi.mock("../api/projects", () => ({ projectsApi: mockProjectsApi }));
 vi.mock("../api/issues", () => ({ issuesApi: mockIssuesApi }));
 vi.mock("../api/agents", () => ({ agentsApi: mockAgentsApi }));
@@ -236,7 +237,7 @@ describe("ProjectDetail", () => {
       scopeId: "project-1",
       title: "Project summary",
     }));
-    const titleEditor = Array.from(container.querySelectorAll("span")).find((node) => node.textContent === "Managed Project");
+    const titleEditor = Array.from(container.querySelectorAll("span")).find((node) => node.textContent?.trim() === "Managed Project");
     const summaryCard = container.querySelector('[data-testid="summary-slot-card"]');
     expect(titleEditor && summaryCard ? Boolean(titleEditor.compareDocumentPosition(summaryCard) & Node.DOCUMENT_POSITION_FOLLOWING) : false).toBe(true);
     expect(container.textContent).toContain("Plugin operations");

@@ -1,0 +1,2 @@
+ALTER TABLE "cost_events" ADD COLUMN "idempotency_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "cost_events_receipt_identity_idx" ON "cost_events" USING btree ("company_id","agent_id","idempotency_key");

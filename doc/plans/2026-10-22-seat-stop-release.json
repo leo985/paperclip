@@ -1,0 +1,21 @@
+{
+  "release": "seat-resume-stop-ack",
+  "backup": "/home/fg/paperclip/private/seat-stop-backup-20261022T152513Z",
+  "filesVerified": 8,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "regressionCases": 9,
+  "databaseMigration": false
+}

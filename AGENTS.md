@@ -79,6 +79,14 @@ keyed by user and announcement so they persist across companies. Their audit
 context must still validate company membership. The announcement publication-ID
 registry is instance-level feed metadata; it contains no company or user data.
 
+Explicit exception: personnel federation is an instance-level shared directory,
+managed only by instance administrators. Its legacy `company_id` columns retain
+provenance and encrypted-vault/audit context, not directory visibility. Organization
+memberships, roles, seats and notification configuration remain company-scoped;
+notification recipients may use active shared identities matching the bot CorpId
+without organization membership. Directory sync and recipient selection never grant
+organization access.
+
 2. Keep contracts synchronized.
 If you change schema/API behavior, update all impacted layers:
 - `packages/db` schema and exports

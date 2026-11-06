@@ -1,0 +1,63 @@
+{
+  "release": "20261106-analysis-people-status",
+  "status": "deployed",
+  "timestamp": "2026-11-06T05:42:26.076846+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-f33c6748.js",
+  "uiModule": "DeliveryEntries-6674aa4a.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/analysis-people-status-20261106/backup-20261106T054059Z",
+  "serverRestarted": false,
+  "service": "MainPID=3731207\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/lib/delivery-entry-stages.ts": "2cb28e7f40dcfaea5bc8e74fed6e99d6a9ed20cb94601a9a7ebe5689b01d5375",
+    "ui/src/components/DeliveryEntryStages.tsx": "8f7dd9b01f3915bfc57247d2bbadba5424580485eaa9e8aaba7c9c8f0547880c"
+  },
+  "verification": {
+    "focusedVitest": {
+      "files": 1,
+      "passed": 19
+    },
+    "uiTypecheck": "passed",
+    "tokenGates": "passed",
+    "artifact": {
+      "node": "v24.11.0",
+      "linkedModules": 676,
+      "artifactRender": "passed",
+      "sourceReviewTones": "passed",
+      "testingCompletion": "passed",
+      "formalVerificationPreserved": true
+    },
+    "productionBrowser": {
+      "url": "http://10.60.43.53:3100/DSP/delivery?view=saved&q=XLTZ-00008&snapshotId=fe8824b6-0889-4bed-b9c1-6813ebbd75b0",
+      "entry": "http://10.60.43.53:3100/assets/index-f33c6748.js",
+      "analysisResponsiblesVisible": true,
+      "sourceApprovalBadgeGreen": true,
+      "noPlatformTaskRequired": true
+    },
+    "fullRepositoryChecks": "Not run; release scoped to two UI source files and the live static dependency graph."
+  },
+  "sourceSnapshot": "/home/fg/paperclip/private/analysis-people-status-20261106/sources.tar.gz",
+  "sourceSnapshotSha256": "9a5beb0e105f2a0aab8b4f70e2d7bbcde7dc23509e96b7de5cf017cf7983ad4a"
+}

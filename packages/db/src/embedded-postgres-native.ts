@@ -5,6 +5,9 @@ import path from "node:path";
 const require = createRequire(import.meta.url);
 
 function resolveNativePackageName(): string | null {
+  if (process.platform === "darwin" && ["arm64", "x64"].includes(process.arch)) {
+    return `darwin-${process.arch}`;
+  }
   if (process.platform !== "linux") return null;
 
   switch (process.arch) {
@@ -49,15 +52,26 @@ function prependPathEnv(name: string, value: string): void {
 }
 
 export async function ensureLinuxSharedLibraryAliases(libDir: string): Promise<string[]> {
+  return ensureSharedLibraryAliases(libDir, /^(lib.+\.so\.\d+)\.\d+(?:\.\d+)?$/);
+}
+
+/** npm archives may omit dylib symlinks referenced by the bundled Mach-O files. */
+export async function ensureDarwinSharedLibraryAliases(libDir: string): Promise<string[]> {
+  const major = await ensureSharedLibraryAliases(libDir, /^(lib.+?\.\d+)\.\d+(?:\.\d+)?\.dylib$/, ".dylib");
+  const unversioned = await ensureSharedLibraryAliases(libDir, /^(lib.+?)\.\d+(?:\.\d+)*\.dylib$/, ".dylib");
+  return [...major, ...unversioned];
+}
+
+async function ensureSharedLibraryAliases(libDir: string, pattern: RegExp, suffix = ""): Promise<string[]> {
   const entries = await fs.readdir(libDir, { withFileTypes: true });
   const created: string[] = [];
 
   for (const entry of entries) {
     if (!entry.isFile()) continue;
-    const match = entry.name.match(/^(lib.+\.so\.\d+)\.\d+(?:\.\d+)?$/);
+    const match = entry.name.match(pattern);
     if (!match) continue;
 
-    const aliasName = match[1];
+    const aliasName = match[1] + suffix;
     const aliasPath = path.join(libDir, aliasName);
     try {
       await fs.symlink(entry.name, aliasPath);
@@ -80,6 +94,10 @@ export async function prepareEmbeddedPostgresNativeRuntime(): Promise<void> {
   const libDir = path.join(nativeRoot, "native", "lib");
   if (!(await pathExists(libDir))) return;
 
-  prependPathEnv("LD_LIBRARY_PATH", libDir);
-  await ensureLinuxSharedLibraryAliases(libDir);
+  if (process.platform === "darwin") {
+    await ensureDarwinSharedLibraryAliases(libDir);
+  } else {
+    prependPathEnv("LD_LIBRARY_PATH", libDir);
+    await ensureLinuxSharedLibraryAliases(libDir);
+  }
 }

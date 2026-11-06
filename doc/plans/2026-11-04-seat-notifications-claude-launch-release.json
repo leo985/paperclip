@@ -1,0 +1,83 @@
+{
+  "release": "20261104-seat-notifications-and-claude-launch",
+  "status": "deployed",
+  "timestamp": "2026-11-04T06:07:31.344265+00:00",
+  "backup": "/home/fg/paperclip/private/seat-notifications-launch-20261104/backup-20261104T042449Z",
+  "filesVerified": 359,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "uiEntry": "index-1d2ac4d2.js",
+  "bridgeSha256": "6d40ea8ecb5213abacd2896ae09fb96b029e9c4905542023f59cb270257f4819",
+  "smoke": {
+    "moduleLoad": "passed",
+    "routeRegistration": "passed",
+    "configured": false
+  },
+  "activeBefore": [],
+  "activeAfter": [],
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-04T06:06:37.828Z",
+    "completedAt": "2026-11-04T06:07:21.768Z",
+    "drainRequired": true,
+    "drainReason": "requested",
+    "previousServerPid": 1948365,
+    "newServerPid": 1949752,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "databaseChanged": false,
+  "existingSeatClientsForceUpdated": false,
+  "durationSeconds": 53.7,
+  "finalStaticRelease": {
+    "release": "20261104-seat-notifications-launch-ui2",
+    "status": "deployed",
+    "filesVerified": 347,
+    "entry": "index-5c25756c.js",
+    "serverRestarted": false,
+    "health": "ok",
+    "backup": "/home/fg/paperclip/private/seat-notifications-launch-ui2/backup"
+  },
+  "browserVerification": {
+    "authenticatedProductionPage": true,
+    "claudeLaunchSettingsVisible": true,
+    "groupNotificationSettingsVisible": true,
+    "groupRecipientIsSeatOwner": true,
+    "groupsApiStatus": 200,
+    "seatsApiStatus": 200,
+    "configuredGroups": 0,
+    "seatClientsUpgraded": false
+  },
+  "interruptedPreviousRun": {
+    "runId": "eb8982a1-e647-4830-ba73-e0a042b3c846",
+    "status": "failed",
+    "errorCode": "process_lost",
+    "issueId": "26b1c8bc-2056-4671-8587-47ae50211bba",
+    "issueStatus": "blocked",
+    "automaticallyRestarted": false,
+    "userAuthorizedImmediateRelease": true
+  },
+  "notes": [
+    "Initial cutover automatically rolled back on legacy live-run continuity report; the old run stopped. A second cutover with no active runs succeeded.",
+    "Static overlay revision 2 corrected an old entrypoint reference without another server restart.",
+    "Deployed backend/shared/client overlays preserve existing production modules; unrelated local delivery workflow routes were excluded.",
+    "Existing computers must update their bridge before launch options can be saved. No group credentials were configured and no test group messages were sent."
+  ]
+}

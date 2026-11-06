@@ -1,0 +1,76 @@
+{
+  "release": "seat-explicit-stop-real-retry",
+  "date": "2026-10-23",
+  "initialRelease": {
+    "release": "seat-explicit-stop-real-retry",
+    "backup": "/home/fg/paperclip/private/seat-retry-backup-20261022T163942Z",
+    "filesVerified": 41,
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "mainPid": "1426123",
+    "bridgeVersion": "bff50b492bc1db37fa3deac33354c85284fc3487e4a4460fbeebeb1396177c73",
+    "databaseMigration": false,
+    "historicalTaskResumed": false
+  },
+  "finalBackendPatch": {
+    "release": "seat-explicit-stop-real-retry",
+    "backup": "/home/fg/paperclip/private/seat-retry-backup-20261023T010508Z",
+    "filesVerified": 3,
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "mainPid": "1588479",
+    "bridgeVersion": "bff50b492bc1db37fa3deac33354c85284fc3487e4a4460fbeebeb1396177c73",
+    "databaseMigration": false,
+    "historicalTaskResumed": false
+  },
+  "localBridge": {
+    "installedBridge": "/Users/leo/.local/share/paperclip/bridge/bff50b492bc1db37",
+    "bridgeVersion": "bff50b492bc1db37fa3deac33354c85284fc3487e4a4460fbeebeb1396177c73",
+    "bundleFilesVerified": 28,
+    "cliStopAvailable": true,
+    "taskStatusAfterUpgrade": "blocked",
+    "activeRunsAfterUpgrade": 0,
+    "automaticRetryCapabilityReported": true
+  },
+  "verification": {
+    "serverPostgresRegressionPassed": 21,
+    "bridgePythonRegressionPassed": 15,
+    "serverTypeScriptCompilation": true,
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "productionImportCheck": true,
+    "localDoctor": true,
+    "fullRepoChecksRun": false,
+    "realClaudeRestartExercise": false,
+    "historicalTaskStatus": "blocked",
+    "historicalTaskAutomaticallyResumed": false,
+    "activeRuns": 0,
+    "seatState": "idle",
+    "lastSeenAt": "2026-10-23T01:06:59.998Z"
+  }
+}

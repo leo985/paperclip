@@ -1,0 +1,54 @@
+{
+  "release": "20261104-jira-pat-mask",
+  "files": 165,
+  "backup": "/home/fg/paperclip/private/jira-pat-mask-20261104/backup-20261103T174554Z",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "uiEntry": "index-827c8bb0.js",
+  "target": "http://10.60.43.53:3100",
+  "behavior": "Configured Jira PAT shows fixed masked value; focus clears display for replacement; empty input preserves stored credential; display mask is never submitted",
+  "verification": {
+    "publicFilesVerified": 165,
+    "publicHashMismatches": 0,
+    "bridgeSha256": "643cd8733a94bde4f9839f5eec4c2979fa963ed36656db50be6b7fc822bf69c2",
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  },
+  "tests": {
+    "sourceUi": "passed",
+    "publishedUi": "passed; mask shown, focus clears, blur restores, save omits credentials",
+    "uiTypecheck": "passed",
+    "tokenGates": "passed",
+    "moduleLinking": "passed"
+  },
+  "limitations": [
+    "Authenticated browser interaction not performed; no Jira credentials read or changed"
+  ]
+}

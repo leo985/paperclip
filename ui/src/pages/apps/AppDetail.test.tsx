@@ -464,13 +464,13 @@ describe("AppDetail", () => {
     expect(container.textContent).toContain("Remove each obsolete connection separately");
     expect(container.textContent).not.toContain("Paused");
     expect(container.textContent).not.toContain("Refresh actions");
-    const replacement = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Add Composio MCP connection")!;
+    const replacement = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.trim() === "Add Composio MCP connection")!;
     await act(async () => replacement.click());
     expect(mockNavigate).toHaveBeenCalledWith("/apps/connect?source=composio");
     const danger = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Danger zone"))!;
     await act(async () => danger.click());
     expect(container.textContent).toContain("Remove app");
-    expect(Array.from(container.querySelectorAll("button")).some((b) => b.textContent === "Reconnect")).toBe(false);
+    expect(Array.from(container.querySelectorAll("button")).some((b) => b.textContent?.trim() === "Reconnect")).toBe(false);
   });
 
   it("uses Permissions as the primary connection page and has no Setup tab", () => {
@@ -1095,7 +1095,7 @@ describe("AppDetail", () => {
 
     await renderAppDetail();
 
-    expect(container.textContent).toBe("");
+    expect(container.textContent?.trim()).toBe("");
     expect(navigateComponentMock).toHaveBeenCalledWith({
       to: "/activity?action=tool_",
       replace: true,
@@ -1211,7 +1211,7 @@ describe("AppDetail", () => {
     expect(findButton("Reconnect")).toBeUndefined();
     expect(container.textContent).toContain("Connection no longer supported");
     expect(container.textContent).toContain("then remove this connection");
-    expect(container.querySelector('a[href="/apps/connect?source=anthropic"]')?.textContent)
+    expect(container.querySelector('a[href="/apps/connect?source=anthropic"]')?.textContent?.trim())
       .toBe("Add supported connection");
   });
 
@@ -1544,7 +1544,7 @@ describe("AppDetail", () => {
     expect(container.textContent).toContain("paperclipai/second");
     expect(container.querySelector('a[href="https://github.com/paperclipai/first"] [aria-label="Private repository"]')).toBeTruthy();
     expect(container.querySelector('a[href="https://github.com/paperclipai/second"] [aria-label="Private repository"]')).toBeNull();
-    const configureHint = [...container.querySelectorAll("p a")].find((link) => link.textContent === "Configure access on GitHub");
+    const configureHint = [...container.querySelectorAll("p a")].find((link) => link.textContent?.trim() === "Configure access on GitHub");
     expect(configureHint?.getAttribute("href")).toBe("https://github.com/apps/paperclip-test/installations/new");
   });
 
@@ -1570,7 +1570,7 @@ describe("AppDetail", () => {
     await act(async () => { findButton("Load GitHub configuration")!.click(); });
     await flushReact();
     expect(checkConnectionHealthMock).toHaveBeenCalledWith("conn-1");
-    expect(container.querySelector('a[href="https://github.com/apps/paperclip-staging/installations/new"]')?.textContent).toBe("Add More Repos on GitHub");
+    expect(container.querySelector('a[href="https://github.com/apps/paperclip-staging/installations/new"]')?.textContent?.trim()).toBe("Add More Repos on GitHub");
     expect(findButton("Load GitHub configuration")).toBeUndefined();
   });
 
@@ -1599,7 +1599,7 @@ describe("AppDetail", () => {
     }
     expect(container.querySelector('[aria-label="Filter repositories by account or organization"]')).toBeNull();
     expect(container.querySelector('input[aria-label="Search GitHub repositories"]')).toBeNull();
-    expect(container.querySelector('a[href="https://github.com/apps/paperclip-test/installations/new"]')?.textContent).toBe("Add More Repos on GitHub");
+    expect(container.querySelector('a[href="https://github.com/apps/paperclip-test/installations/new"]')?.textContent?.trim()).toBe("Add More Repos on GitHub");
     expect(updateConnectionMock).not.toHaveBeenCalled();
   });
 
@@ -1622,11 +1622,11 @@ describe("AppDetail", () => {
     expect(container.querySelector('a[href="/agents/coder"]')?.textContent).toContain("Used only by Coder");
     expect(container.textContent).toContain("Repositories");
     expect(container.textContent).toContain("1 selected repository");
-    expect(container.querySelector('a[href="https://github.com/dottabot"]')?.textContent).toBe("@dottabot");
-    expect(container.querySelector('a[href="https://github.com/paperclipai/test-repo"]')?.textContent).toBe("paperclipai/test-repo");
+    expect(container.querySelector('a[href="https://github.com/dottabot"]')?.textContent?.trim()).toBe("@dottabot");
+    expect(container.querySelector('a[href="https://github.com/paperclipai/test-repo"]')?.textContent?.trim()).toBe("paperclipai/test-repo");
     expect(container.querySelector(
       'a[href="https://github.com/apps/paperclip-test/installations/new"]',
-    )?.textContent).toBe("Add More Repos on GitHub");
+    )?.textContent?.trim()).toBe("Add More Repos on GitHub");
     expect(container.querySelector('button[aria-label="Refresh access"]')).toBeTruthy();
     expect(container.textContent).not.toContain("Installation");
     expect(container.textContent).not.toContain("Token continuity");

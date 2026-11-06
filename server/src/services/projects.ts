@@ -816,7 +816,7 @@ export function projectService(db: Db) {
         const service = projectService(tx as unknown as Db);
         const project = await service.create(companyId, data);
         for (const repo of repositories) {
-          await service.createWorkspace(project.id, { name: repo.fullName, repoUrl: repo.url, metadata: { githubRepositoryId: repo.id } });
+          await service.createWorkspace(project.id, { name: repo.fullName, repoUrl: repo.url, repoRef: repo.repoRef, metadata: { [repo.source === "harness" ? "harnessRepositoryId" : "githubRepositoryId"]: repo.id } });
         }
         return (await service.getById(project.id))!;
       });
@@ -830,27 +830,27 @@ export function projectService(db: Db) {
         const existing = await service.listWorkspaces(projectId);
         const ids = new Set(repositories.map((repo) => repo.id));
         for (const workspace of existing) {
-          const repoId = workspace.metadata?.githubRepositoryId;
+          const repoId = workspace.metadata?.harnessRepositoryId ?? workspace.metadata?.githubRepositoryId;
           if (typeof repoId === "string" && !ids.has(repoId)) {
             // Keep local/runtime workspace configuration when detaching source.
             if (workspace.cwd || workspace.remoteWorkspaceRef) {
-              const { githubRepositoryId: _id, ...metadata } = workspace.metadata!;
+              const { githubRepositoryId: _id, harnessRepositoryId: _harnessId, ...metadata } = workspace.metadata!;
               await service.updateWorkspace(projectId, workspace.id, { repoUrl: null, metadata });
             } else await service.removeWorkspace(projectId, workspace.id);
           }
         }
         for (const repo of repositories) {
-          const retained = existing.find((workspace) => workspace.metadata?.githubRepositoryId === repo.id);
+          const retained = existing.find((workspace) => (workspace.metadata?.harnessRepositoryId ?? workspace.metadata?.githubRepositoryId) === repo.id);
           if (retained) {
             if (retained.repoUrl !== repo.url || retained.name !== repo.fullName) {
               await service.updateWorkspace(projectId, retained.id, { name: repo.fullName, repoUrl: repo.url });
             }
             continue;
           }
-          const legacy = existing.find((workspace) => !workspace.metadata?.githubRepositoryId && workspace.repoUrl?.replace(/\.git$/, "").replace(/\/$/, "").toLowerCase() === repo.url.toLowerCase());
+          const legacy = existing.find((workspace) => !workspace.metadata?.githubRepositoryId && !workspace.metadata?.harnessRepositoryId && workspace.repoUrl?.replace(/\.git$/, "").replace(/\/$/, "").toLowerCase() === repo.url.toLowerCase());
           if (legacy) {
-            await service.updateWorkspace(projectId, legacy.id, { metadata: { ...legacy.metadata, githubRepositoryId: repo.id } });
-          } else await service.createWorkspace(projectId, { name: repo.fullName, repoUrl: repo.url, metadata: { githubRepositoryId: repo.id } });
+            await service.updateWorkspace(projectId, legacy.id, { repoRef: legacy.repoRef ?? repo.repoRef, metadata: { ...legacy.metadata, [repo.source === "harness" ? "harnessRepositoryId" : "githubRepositoryId"]: repo.id } });
+          } else await service.createWorkspace(projectId, { name: repo.fullName, repoUrl: repo.url, repoRef: repo.repoRef, metadata: { [repo.source === "harness" ? "harnessRepositoryId" : "githubRepositoryId"]: repo.id } });
         }
         await tx.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
         return service.getById(projectId);

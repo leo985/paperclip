@@ -228,6 +228,20 @@ owns committed updates.
 
 ## Hot-Restart Deploys
 
+Before a coordinated server/UI/seat-client release, generate a local component
+inventory with `node scripts/release-component-manifest.mjs [ui/dist]`.
+It records the exact commit and dirty state, source hashes for each component,
+expected migration, client archive/installer consistency, and optional UI build
+hash. A mismatched client manifest or installer exits nonzero. It never claims
+that migrations were applied, devices upgraded, or checks passed: record those
+separate receipts alongside the inventory after actual verification. Static-only
+UI publication must retain the existing server/client versions in that matrix.
+
+On macOS, embedded PostgreSQL startup repairs missing major-version and
+unversioned aliases for bundled dylibs, without replacing existing library files.
+This is the Darwin equivalent of the existing Linux soname preparation; it does
+not change the system linker configuration or system libraries.
+
 Primary-instance rebuilds that restart `paperclip.service` can request one-shot live-run adoption instead of using the normal graceful shutdown drain. Before restarting the service, write the marker from the newly staged app with the current service PID:
 
 ```sh
@@ -1584,3 +1598,73 @@ disconnected, visible active queries refresh every 15 seconds. This fallback
 stops when the socket opens, the tab is hidden, or the provider unmounts. A
 reconnected socket also refreshes visible queries to recover missed events.
 Run log views retain their existing HTTP polling fallback.
+
+### Delivery API contract generation
+
+The delivery, DSP7 seat, managed-session, and management-follow-up routes have
+checked-in structural OpenAPI contracts generated from their runtime Zod validators.
+After changing these handlers, run `node scripts/generate-delivery-api-contracts.mjs`
+and review `server/src/routes/generated-delivery-api-contracts.ts`. The OpenAPI
+route suite checks generation drift and mounted-route coverage, including composed
+paths and finite registration loops. Run `node --test scripts/delivery-api-contracts.test.mjs`
+when changing the generator. Unresolved or ambiguous bindings fail generation.
+Semantic refinements, authorization, leases, and version checks remain runtime
+requirements; generated structural schemas do not replace them.
+### DSP7 Harness 席位仓库责任（2026-11-03）
+
+版本 4 Jira 接入申请由 Harness 管理业务仓库与工作树，不依赖平台项目工作区或本机 `harness repo bind`。本机从 Harness 根目录启动，所需仓库、分支和隔离由 Harness 技能处理。旧已登记任务保留原路径。同步发布服务端、UI 和 `python3 scripts/build-dsp7-bridge.py` 生成的客户端包；客户端更新并上报 `harness-repository-management-v1` 后才允许新协议派单。
+
+运行 `python3 -m unittest discover -s integrations/dsp7-bridge/tests` 验证客户端；相关服务端回归位于 `server/src/routes/harness-managed-intake.test.ts`、`jira-intake-sync.test.ts` 和 `jira-requirements.test.ts`。
+
+已保存完整席位身份和运行登记、但登录服务安装未完成时，可在原注册用户下执行 `harness service install` 补装并启动；macOS 使用用户 LaunchAgent，Windows 使用用户登录计划任务。已有匹配服务复用。此命令不能补办尚未完成的首次席位身份登记。
+
+
+
+### Managing the shared personnel directory
+
+Open Management Center → System personnel federation (系统人员联邦), as an instance
+administrator. Existing DSP directory rows appear immediately. Configure/sync an
+enterprise once, select a target organization and use 加入组织 to reuse a person.
+Sync does not grant organization access. For DingTalk seat notifications, the person
+must have an active identity in an enabled shared DingTalk source matching the bot
+CorpId. No organization membership or repeated sync is needed to receive a reminder;
+selecting a recipient does not grant organization access.
+When historical duplicate enterprise sources are flagged, review their app scopes
+and account links before pausing any source; pausing affects directory login and
+notifications for its people. The old personnel settings URL redirects to the
+instance settings page. Run the personnel-federation and seat-bot regression suites
+when changing these boundaries.
+
+For an initialized generated duplicate account, use **重新关联账号** on the personnel
+row. An instance administrator must select the original website account, supply
+a verification reason and confirm that both identities belong to the same person.
+`POST /api/instance/personnel-federation/people/:id/relink` accepts `userId`,
+`expectedUserId`, `reason` (5–500 characters) and `confirm: true`. Stale bindings,
+paused/syncing sources, active sessions on the generated account and an existing
+active enterprise identity on the target account are rejected. The repair disables
+the generated account's password login and clears activation tokens, but preserves
+both users' history, organization memberships, permissions and seat ownership.
+It does not merge accounts or grant organization access. The change is audited as
+`personnel.account.relinked`, including the previous/target IDs and verification
+reason. Refresh the seat page and save its group notification settings afterward.
+
+
+### 需求分析来源详情同步（2026-11-04）
+
+在线条目同步新增只读 `UC_PROJ2_DEMAND_DETAIL`（表单 `demandId`），验证返回的 `demandDto.urid` 和 `demandNo` 与条目一致；列表和详情状态冲突时要求重试。详情查询失败会显式报错，不作为空分析数据保存。规范化快照的可选 `sourceAnalysis` 仅保存来源状态、分析内容存在性及评审角色/状态，不存分析 HTML，也不改变准入与验收门禁。实际详情使用 `demandStateTranslate` 及嵌套 `demandAnalysisDetailsDTO.demandAnalysisDto.analysisResult`，同时兼容技能文档中的平铺字段。经 avatar-proj `DemandServiceImpl.detail` 源码及线上只读响应核对，评审流的 1/0 是已处理/未处理标志；仅“需求评审人员”的已处理记录可展示来源评审通过，0 不推定驳回。创建、入池审核、拆分、项目验收环节不参与需求分析状态汇总，未知编码不推断结论。
+
+手工快照格式继续兼容既有封装，可选增加 `detailJson` 字符串，内容为完整详情接口原始响应。旧快照不回填推断状态；需要重新同步或导入带详情的版本。页面“平台分析”单独展示本平台任务状态，各轻舟评审环节记录不等同于最终有效审批结论。详情变化参与版本指纹及版本比较，无数据库列或迁移变化。
+
+2026-11-05 线上只读核验：`XLTZ-00008` 的详情使用上述嵌套分析字段和 `demandStateTranslate`，需求分析人员、需求评审人员的处理标志均为 1。页面将其展示为来源评审通过；未修改轻舟业务数据或平台已有快照，旧快照仍需重新同步。
+
+### Delivery template development (2026-11-05)
+
+Template forms live at `/company/settings/delivery`; delivery snapshots resolve the effective template automatically. Schema migration `0302_parallel_silk_fever.sql` adds publication history. To verify configuration and fork/join scheduling, run `pnpm exec vitest run server/src/services/delivery-graph.test.ts server/src/services/delivery-workflows.test.ts server/src/routes/delivery-workflows.test.ts ui/src/pages/DeliveryTemplates.test.tsx`. The route suite uses isolated embedded Postgres and exercises actual persistence, review/confirmation gates and concurrent seat dispatch. It never calls DingTalk or starts a real Harness.
+
+交付阶段内顺序验证覆盖 `delivery-work-plan`、`delivery-workflows` 服务与路由、模板和流程面板测试。人工设计／用例评审不唤醒设备，代码评审须独立席位；部署后客户端需更新登记 `delivery-work-review-v1`。
+
+交付执行方式回归覆盖全人工无席位链、人工→人工／Agent 依赖证据、组织成员执行权限、交付材料必填和人工测试失败不放行；原生设计／用例评审须测试独立角色、目录及报告证据。
+
+### 评审返工（2026-11-05）
+
+交付评审退回测试覆盖多轮版本绑定、旧结论失效、并行依赖闭包和旧进程停止。新增 `/companies/:companyId/delivery-workflows/:workflowId/rework` 仅接受当前退回 taskId/digest，限原评审人或组织管理员；无数据库迁移。

@@ -168,7 +168,7 @@ describe("SystemNotice", () => {
     expect(node.textContent).toContain("PAP-3440");
     expect(node.textContent).toContain("Disposition recovery");
     expect(node.textContent).toContain("CTO");
-    expect(node.textContent).toContain("succeeded");
+    expect(node.textContent).toContain("Succeeded");
   });
 
   it("renders metadata link rows as plain text when href is missing", () => {

@@ -338,7 +338,7 @@ describe("InviteLandingPage", () => {
     const inputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent?.trim() === "I already have an account",
     );
     await act(async () => {
       existingAccountButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -414,7 +414,7 @@ describe("InviteLandingPage", () => {
     expect(inputValueSetter).toBeTypeOf("function");
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent?.trim() === "I already have an account",
     );
     expect(existingAccountButton).not.toBeNull();
 
@@ -603,7 +603,7 @@ describe("InviteLandingPage", () => {
     // permission to view, which renders a misleading "No company access"
     // panel and makes the invite flow look broken. See #6784.
     const approvalAnchors = Array.from(container.querySelectorAll("a")).filter(
-      (link) => link.textContent === "Settings → Members",
+      (link) => link.textContent?.trim() === "Settings → Members",
     );
     expect(approvalAnchors).toHaveLength(0);
     const approvalMentions =
@@ -761,7 +761,7 @@ describe("InviteLandingPage", () => {
     expect(inputValueSetter).toBeTypeOf("function");
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent?.trim() === "I already have an account",
     );
     expect(existingAccountButton).not.toBeNull();
 
@@ -872,7 +872,7 @@ describe("InviteLandingPage", () => {
 
       const inputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
       const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-        (button) => button.textContent === "I already have an account",
+        (button) => button.textContent?.trim() === "I already have an account",
       );
       await act(async () => {
         existingAccountButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -1070,7 +1070,7 @@ describe("InviteLandingPage", () => {
     expect(acceptInviteMock).not.toHaveBeenCalled();
 
     const openButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Open organization",
+      (button) => button.textContent?.trim() === "Open organization",
     );
     expect(openButton).not.toBeNull();
 

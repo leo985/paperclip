@@ -13,6 +13,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
 import time
 from platform_support import private_directory, terminate_tree
 
@@ -48,13 +49,13 @@ def accept(listener,token):
 
 
 class ConPtyChild:
-    def __init__(self,command,cwd,env):
+    def __init__(self,command,cwd,env,dimensions=(32,120)):
         from winpty import PtyProcess
         from platform_support import windows_git_bash
         if len(subprocess.list2cmdline(command))>=32760:raise RuntimeError('Claude startup context exceeds the Windows command-line limit; reduce the task startup context')
         env=dict(env);env.setdefault('CLAUDE_CODE_GIT_BASH_PATH',windows_git_bash())
         # ConPTY is the Windows 10 1809+ native pseudoconsole backend.
-        self.pty=PtyProcess.spawn(command,cwd=cwd,env=env,dimensions=(32,120),backend=1)
+        self.pty=PtyProcess.spawn(command,cwd=cwd,env=env,dimensions=dimensions,backend=1)
         self.pid=self.pty.pid
     @property
     def returncode(self):return None if self.pty.isalive() else self.pty.exitstatus
@@ -69,23 +70,37 @@ class ConPtyChild:
 
 
 class ConPtyMaster:
-    def __init__(self,child):self.child=child;self.decoder=codecs.getincrementaldecoder('utf-8')()
-    def fileno(self):return self.child.pty.fileno()
-    def read(self,size):
+    def __init__(self,child):
+        self.child=child;self.decoder=codecs.getincrementaldecoder('utf-8')()
+        # Windows select accepts sockets only, not ConPTY/pipe handles. Drain
+        # the blocking PTY reader into a socket with bounded backpressure.
+        self.reader,self.writer=socket.socketpair()
+        self.thread=threading.Thread(target=self._pump,daemon=True);self.thread.start()
+    def _pump(self):
         try:
-            data=self.child.pty.read(size)
-            return data.encode('utf-8') if data else None
-        except EOFError:return b''
+            while True:
+                data=self.child.pty.read(65536)
+                if data:self.writer.sendall(data.encode('utf-8'))
+                elif not self.child.pty.isalive():break
+        except (EOFError,OSError):pass
+        finally:
+            try:self.writer.shutdown(socket.SHUT_WR)
+            except OSError:pass
+    def fileno(self):return self.reader.fileno()
+    def read(self,size):return self.reader.recv(size)
     def write(self,data):
         text=self.decoder.decode(bytes(data))
         if text:self.child.pty.write(text)
         return len(data)
     def resize(self,rows,cols):self.child.pty.setwinsize(rows,cols)
-    def close(self):self.child.pty.close(force=True)
+    def close(self):
+        self.child.pty.close(force=True)
+        self.reader.close();self.writer.close()
 
 
 def attach(run_id):
     from pilot import read_json
+    from terminal_display import CLEANUP, size_frame
     import msvcrt
     endpoint=read_json(endpoint_path(run_id))
     port=endpoint.get('port')
@@ -109,7 +124,7 @@ def attach(run_id):
         if not kernel.SetConsoleMode(stdin,(in_mode.value & ~(0x0001|0x0002|0x0004|0x0040))|0x0080):raise OSError('Cannot enable terminal input')
         while True:
             size=shutil.get_terminal_size()
-            if size!=last_size:send({'op':'resize','rows':size.lines,'cols':size.columns});last_size=size
+            if size!=last_size:send(size_frame(size.lines,size.columns));last_size=size
             ready,_,_=select.select([conn],[],[],.03)
             if ready:
                 data=conn.recv(65536)
@@ -123,5 +138,8 @@ def attach(run_id):
                     pair=char+msvcrt.getwch();char=pair.encode('utf-16','surrogatepass').decode('utf-16')
                 if char:send({'op':'input','data':base64.b64encode(char.encode('utf-8')).decode()})
     finally:
-        kernel.SetConsoleMode(stdin,in_mode.value);kernel.SetConsoleMode(stdout,out_mode.value);conn.close()
+        try:
+            sys.stdout.write(CLEANUP.decode('ascii'));sys.stdout.flush()
+        finally:
+            kernel.SetConsoleMode(stdin,in_mode.value);kernel.SetConsoleMode(stdout,out_mode.value);conn.close()
         print('\nTerminal detached. Check harness status for the task result.')

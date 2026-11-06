@@ -1,0 +1,36 @@
+{
+  "release": "delivery-readonly-intake",
+  "timestamp": "20261025T051915Z",
+  "backup": "/home/fg/paperclip/private/delivery-readonly-intake-backup-20261025T051915Z",
+  "stage": "/home/fg/paperclip/private/delivery-readonly-intake-stage-20261025T051915Z",
+  "archiveSha256": "ed3efade181c1b5c406ad2f786ec974e9f41626f390d65499ec0438e6323be4c",
+  "filesVerified": 506,
+  "databaseMigration": {
+    "status": "upToDate",
+    "applied": [
+      "0288_keen_penance.sql"
+    ]
+  },
+  "databaseCheck": {
+    "settingsRows": 0,
+    "activeRuns": []
+  },
+  "otherServicesUnchanged": true,
+  "clientChanged": false,
+  "url": "http://10.60.43.53:3100/delivery",
+  "healthStatus": "ok",
+  "browserLocalValidation": {
+    "taskSpaceId": 79,
+    "sample": "ATS3-00156",
+    "mainIssues": 3,
+    "childIssues": 20,
+    "scheduleSteps": 18,
+    "duplicateImport": "existing version reused",
+    "invalidFile": "rejected"
+  },
+  "browserProductionValidation": {
+    "helpPage": "passed",
+    "authenticatedPage": "pending user login; saved deployment credentials expired"
+  },
+  "scope": "I1 manual snapshot intake and structural differences only; remaining execution packages not released"
+}

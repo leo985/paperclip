@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { uiText } from "@/i18n/interface";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -35,11 +36,11 @@ export function asFiniteNumber(value: unknown, fallback: number) {
 }
 
 export function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${(cents / 100).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatNumber(n: number): string {
-  return n.toLocaleString("zh-CN");
+  return n.toLocaleString(i18n.language);
 }
 
 /**
@@ -48,11 +49,11 @@ export function formatNumber(n: number): string {
  */
 export function formatProjectBudget(budget: { amountCents: number; windowKind: string }): string {
   const amount = formatCents(budget.amountCents);
-  return budget.windowKind === "calendar_month_utc" ? `${amount}/月` : amount;
+  return budget.windowKind === "calendar_month_utc" ? `${amount}/${i18n.language.startsWith("zh") ? "月" : "mo"}` : amount;
 }
 
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("zh-CN", {
+  return new Date(date).toLocaleDateString(i18n.language, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -63,7 +64,7 @@ export function formatDateTime(
   date: Date | string,
   options: { includeSeconds?: boolean } = {},
 ): string {
-  return new Date(date).toLocaleString("zh-CN", {
+  return new Date(date).toLocaleString(i18n.language, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -74,7 +75,7 @@ export function formatDateTime(
 }
 
 export function formatShortDate(date: Date | string): string {
-  return new Date(date).toLocaleString("zh-CN", {
+  return new Date(date).toLocaleString(i18n.language, {
     month: "short",
     day: "numeric",
   });
@@ -84,13 +85,14 @@ export function relativeTime(date: Date | string): string {
   const now = Date.now();
   const then = new Date(date).getTime();
   const diffSec = Math.round((now - then) / 1000);
-  if (diffSec < 60) return "刚刚";
+  const chinese = i18n.language.startsWith("zh");
+  if (diffSec < 60) return chinese ? "刚刚" : "just now";
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} 分钟前`;
+  if (diffMin < 60) return chinese ? `${diffMin} 分钟前` : `${diffMin}m ago`;
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} 小时前`;
+  if (diffHr < 24) return chinese ? `${diffHr} 小时前` : `${diffHr}h ago`;
   const diffDay = Math.round(diffHr / 24);
-  if (diffDay < 30) return `${diffDay} 天前`;
+  if (diffDay < 30) return chinese ? `${diffDay} 天前` : `${diffDay}d ago`;
   return formatDate(date);
 }
 

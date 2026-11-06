@@ -9670,5 +9670,12 @@
   "your value.": "your value.",
   "Zapier, Arcade, Composio and Executor each own a connection. Their controlled setup views share Access → Connect. Tool discovery completes setup. Saved connections reuse the standard Permissions action list and per-action Test dialog. Storybook’s Apps / Connections groups use in-memory provider fixtures.": "Zapier, Arcade, Composio and Executor each own a connection. Their controlled setup views share Access → Connect. Tool discovery completes setup. Saved connections reuse the standard Permissions action list and per-action Test dialog. Storybook’s Apps / Connections groups use in-memory provider fixtures.",
   "Zoom in": "Zoom in",
-  "Zoom out": "Zoom out"
+  "Zoom out": "Zoom out",
+  "Add GitLab / other Git repository": "Add GitLab / other Git repository",
+  "Baseline branch or tag": "Baseline branch or tag",
+  "For example: main or develop (optional)": "For example: main or develop (optional)",
+  "Supports GitLab and other Git servers over HTTP, HTTPS, or SSH. Repository access uses Git credentials on the execution computer.": "Supports GitLab and other Git servers over HTTP, HTTPS, or SSH. Repository access uses Git credentials on the execution computer.",
+  "Enter an HTTP, HTTPS, or SSH repository URL.": "Enter an HTTP, HTTPS, or SSH repository URL.",
+  "Enter a repository URL without passwords, tokens, query parameters, or fragments.": "Enter a repository URL without passwords, tokens, query parameters, or fragments.",
+  "Enter a branch or tag on a single line.": "Enter a branch or tag on a single line."
 }

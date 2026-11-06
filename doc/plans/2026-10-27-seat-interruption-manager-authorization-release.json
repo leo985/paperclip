@@ -1,0 +1,105 @@
+{
+  "release": "seat-interruption-and-manager-intake-fixes",
+  "timestamp": "20261026T172723Z",
+  "backup": "/home/fg/paperclip/private/seat-fixes-backup-20261026T172723Z",
+  "filesVerified": 4,
+  "healthStatus": "ok",
+  "databaseChanged": false,
+  "otherServicesUnchanged": true,
+  "clientSha256": "a5a4cb9d7fdbfdffc5e6d4a9d6c4e94a8958a70cd02b85f249a03ff8d54eca29",
+  "clientModulesChanged": [
+    "README.md",
+    "seat_control.py"
+  ],
+  "existingSeatsForceUpdated": false,
+  "checks": {
+    "/": 200,
+    "/api/health": 200,
+    "/dsp7-bridge.zip": 200,
+    "/dsp7-bridge-manifest.json": 200
+  },
+  "url": "http://10.60.43.53:3100",
+  "activeRunsBefore": [
+    {
+      "id": "2716c486-f7f1-48e8-94c7-3ff968cf8c92",
+      "status": "running",
+      "agent_id": "87ed3723-6fff-40b8-ab01-d0183580686d"
+    }
+  ],
+  "activeRunsAfter": [],
+  "seatClientVerification": {
+    "checkedAt": "2026-10-26T17:35:35.517Z",
+    "seat": {
+      "id": "87ed3723-6fff-40b8-ab01-d0183580686d",
+      "name": "张志林",
+      "lastSeenAt": "2026-10-26T17:34:54.109Z",
+      "state": "idle",
+      "bridgeVersion": "a5a4cb9d7fdbfdffc5e6d4a9d6c4e94a8958a70cd02b85f249a03ff8d54eca29",
+      "checks": [
+        {
+          "id": "claude",
+          "status": "pass"
+        },
+        {
+          "id": "settings",
+          "status": "pass"
+        },
+        {
+          "id": "harness",
+          "status": "pass"
+        },
+        {
+          "id": "registration",
+          "status": "pass"
+        },
+        {
+          "id": "transport",
+          "status": "pass"
+        },
+        {
+          "id": "jira",
+          "status": "pass"
+        },
+        {
+          "id": "harness_launch",
+          "status": "pass"
+        },
+        {
+          "id": "autostart",
+          "status": "pass"
+        }
+      ],
+      "alerts": [
+        {
+          "id": "ATSES-513404:interruption_receipt",
+          "level": "warning",
+          "taskId": "37f4f46e-de05-4164-9e14-39d2abe4eb48",
+          "jiraKey": "ATSES-513404",
+          "message": "ATSES-513404 的中断回执尚未同步，后台将重试；请查看任务与本机日志。",
+          "elapsedMinutes": 0
+        },
+        {
+          "id": "ATSES-513404:blocked",
+          "level": "warning",
+          "taskId": "37f4f46e-de05-4164-9e14-39d2abe4eb48",
+          "jiraKey": "ATSES-513404",
+          "message": "ATSES-513404 执行已阻塞，请查看任务与本机日志",
+          "elapsedMinutes": 0
+        }
+      ]
+    },
+    "task": {
+      "identifier": "ATS-1",
+      "status": "blocked",
+      "unblock_descriptor": null
+    }
+  },
+  "seatClientUpgrade": "completed; original identity and configuration retained",
+  "validation": {
+    "pythonTests": 130,
+    "pythonSkipped": 2,
+    "serverTests": 53,
+    "serverTypecheck": "passed",
+    "serverCompile": "passed"
+  }
+}

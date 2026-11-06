@@ -1,6 +1,8 @@
+import { canConfigureSeat } from "./dsp7-seat-owners.js";
+import { seatProjectRepositories } from "../services/harness-project-repositories.js";
 import { createHash } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
-import { activityLog } from "@paperclipai/db";
+import { activityLog, agents } from "@paperclipai/db";
 import { projectToolContext } from "../services/project-tool-context.js";
 import { persistActivity, publishActivity } from "../services/activity-log.js";
 import { z } from "zod";
@@ -59,10 +61,18 @@ export function projectRoutes(db: Db) {
     return context;
   }
 
-  async function selectedRepositories(req: Request, companyId: string, ids: string[], existing: import("@paperclipai/shared").ProjectWorkspace[] = []) {
+  async function repositoryOptions(req: Request, companyId: string) {
     const viewer = await repositoryViewer(req);
+    const options = await toolAccessService(db).listProjectRepositories(companyId, viewer.userId, viewer.localTrusted);
+    if (req.actor.type !== "board") return options;
+    const seats = await db.select().from(agents).where(eq(agents.companyId, companyId));
+    const repositories = seatProjectRepositories(seats.filter(agent => agent.adapterConfig.dsp7Seat && canConfigureSeat(req, companyId, agent.adapterConfig.dsp7Seat as Record<string, unknown>)));
+    return { ...options, repositories: [...repositories, ...options.repositories] };
+  }
+
+  async function selectedRepositories(req: Request, companyId: string, ids: string[], existing: import("@paperclipai/shared").ProjectWorkspace[] = []) {
     if (!ids.length) return [];
-    const available = await toolAccessService(db).listProjectRepositories(companyId, viewer.userId, viewer.localTrusted);
+    const available = await repositoryOptions(req, companyId);
     return resolveProjectRepositorySelection(ids, available.repositories, existing);
   }
   const access = accessService(db);
@@ -187,11 +197,11 @@ export function projectRoutes(db: Db) {
   router.get("/companies/:companyId/project-repositories", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
-    const viewer = await repositoryViewer(req);
-    res.json(await toolAccessService(db).listProjectRepositories(companyId, viewer.userId, viewer.localTrusted));
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await repositoryOptions(req, companyId));
   });
 
-  router.put("/projects/:id/repositories", validate(z.object({ repositoryIds: z.array(z.string().regex(/^\d+$/)) })), async (req, res) => {
+  router.put("/projects/:id/repositories", validate(z.object({ repositoryIds: z.array(z.string().regex(/^(?:\d+|harness:[a-f0-9]{64})$/)) })), async (req, res) => {
     assertBoard(req);
     const project = await getAccessibleResource(req, res, svc.getById(req.params.id as string), "Project not found");
     if (!project) return;

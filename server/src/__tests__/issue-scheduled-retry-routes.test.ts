@@ -95,6 +95,7 @@ describeEmbeddedPostgres("issue scheduled retry routes", () => {
 
   async function seedIssueWithRetry(input: {
     agentStatus?: "active" | "paused";
+    agentPauseReason?: "budget" | null;
     retryStatus?: "scheduled_retry" | "queued" | "running";
     issueStatus?: "in_progress" | "todo" | "done" | "cancelled";
   } = {}) {
@@ -120,6 +121,7 @@ describeEmbeddedPostgres("issue scheduled retry routes", () => {
       name: "CodexCoder",
       role: "engineer",
       status: input.agentStatus ?? "active",
+      pauseReason: input.agentPauseReason ?? null,
       adapterType: "codex_local",
       adapterConfig: {},
       runtimeConfig: {
@@ -351,8 +353,11 @@ describeEmbeddedPostgres("issue scheduled retry routes", () => {
     });
   });
 
-  it("uses normal promotion gates and records gate-suppressed retries", async () => {
-    const { companyId, issueId, retryRunId } = await seedIssueWithRetry({ agentStatus: "paused" });
+  it.each([
+    { pauseReason: null, errorCode: "agent_not_invokable" },
+    { pauseReason: "budget" as const, errorCode: "budget_blocked" },
+  ])("records the correct retry gate for pause reason $pauseReason", async ({ pauseReason, errorCode }) => {
+    const { companyId, issueId, retryRunId } = await seedIssueWithRetry({ agentStatus: "paused", agentPauseReason: pauseReason });
 
     const res = await request(createApp(boardActor(companyId)))
       .post(`/api/issues/${issueId}/scheduled-retry/retry-now`)
@@ -364,7 +369,7 @@ describeEmbeddedPostgres("issue scheduled retry routes", () => {
       scheduledRetry: {
         runId: retryRunId,
         status: "cancelled",
-        errorCode: "agent_not_invokable",
+        errorCode,
       },
     });
 
@@ -372,7 +377,7 @@ describeEmbeddedPostgres("issue scheduled retry routes", () => {
       .select({ status: heartbeatRuns.status, errorCode: heartbeatRuns.errorCode })
       .from(heartbeatRuns)
       .where(eq(heartbeatRuns.id, retryRunId));
-    expect(run).toEqual({ status: "cancelled", errorCode: "agent_not_invokable" });
+    expect(run).toEqual({ status: "cancelled", errorCode });
 
     const [activity] = await db
       .select({ action: activityLog.action, entityId: activityLog.entityId, runId: activityLog.runId })

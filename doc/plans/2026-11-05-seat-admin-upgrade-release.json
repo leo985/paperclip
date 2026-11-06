@@ -1,0 +1,38 @@
+{
+  "release": "seat-admin-upgrade-20261105",
+  "url": "http://10.60.43.53:3100",
+  "publishedSha256": "189deb0320728b641284e6b9309956906cd9e439c341434324021f150c1f3116",
+  "automaticUpgrade": false,
+  "webUpgrade": true,
+  "canary": {
+    "seat": "李巍",
+    "status": "succeeded",
+    "requestedAt": "2026-11-05T09:23:48.589Z",
+    "confirmedAt": "2026-11-05T09:24:15.115Z",
+    "targetSha256": "189deb0320728b641284e6b9309956906cd9e439c341434324021f150c1f3116",
+    "otherSeatVersionsUnchanged": true,
+    "noRequestProbe": "no_request; installed version unchanged after publication"
+  },
+  "verification": {
+    "python": {
+      "tests": 278,
+      "skipped": 2,
+      "result": "pass"
+    },
+    "routes": {
+      "tests": 9,
+      "result": "pass"
+    },
+    "ui": {
+      "tests": 4,
+      "result": "pass"
+    },
+    "targetedTypechecks": "pass",
+    "uiTokens": "pass",
+    "uiModulesLink": "pass",
+    "fullTypecheckAndBuild": "blocked by unaccepted Xcode license in Rust linker",
+    "fullTests": "stopped after workspace-runtime and seat-execution-permits failures; not all suites completed"
+  },
+  "remoteBackup": "/home/fg/paperclip/private/seat-admin-upgrade-20261105/backup",
+  "completedAt": "2026-11-05T09:25:08.828160+00:00"
+}

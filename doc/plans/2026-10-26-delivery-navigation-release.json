@@ -1,0 +1,58 @@
+{
+  "release": {
+    "release": "delivery-navigation-and-demand-detail",
+    "timestamp": "20261025T162229Z",
+    "backup": "/home/fg/paperclip/private/delivery-ux-backup-20261025T162229Z",
+    "archiveSha256": "01931aa12a034a5f0bcabb7ee1bdf0e85bf973bd7957c5f1ddc5d559fb997caa",
+    "filesVerified": 175,
+    "healthStatus": "ok",
+    "otherServicesUnchanged": true,
+    "databaseMigration": false,
+    "clientChanged": false,
+    "browser": "Microsoft Edge",
+    "browserChecks": [
+      "SQL latest-version deduplication and pagination",
+      "Search and difference filters applied after latest-version selection",
+      "Detail SQL with exact Jira identity matching",
+      "Edge: delivery navigation and latest entry list",
+      "Edge: task entry preserves project and returns to demand detail",
+      "Edge: analysis form prefills project and demand; no task dispatched",
+      "Edge: source history scoped to demand and return navigation",
+      "Edge: mobile detail has no page overflow",
+      "No browser page errors"
+    ],
+    "url": "http://10.60.43.53:3100",
+    "noProductionTasksCreated": true
+  },
+  "postReleaseChecks": {
+    "health": "ok",
+    "entryAsset": "/assets/DeliveryEntries-Cp_A1vRd.js",
+    "clientUnchanged": true,
+    "/api/companies/00000000-0000-0000-0000-000000000000/delivery-intake/entries": 403,
+    "/api/companies/00000000-0000-0000-0000-000000000000/delivery-intake/entries/00000000-0000-0000-0000-000000000000": 403,
+    "onlineHelp": "updated"
+  },
+  "edgeAcceptance": {
+    "browser": "Microsoft Edge",
+    "results": [
+      "SQL latest-version deduplication and pagination",
+      "Search and difference filters applied after latest-version selection",
+      "Detail SQL with exact Jira identity matching",
+      "Edge: delivery navigation and latest entry list",
+      "Edge: task entry preserves project and returns to demand detail",
+      "Edge: analysis form prefills project and demand; no task dispatched",
+      "Edge: source history scoped to demand and return navigation",
+      "Edge: mobile detail has no page overflow",
+      "No browser page errors"
+    ],
+    "errors": []
+  },
+  "productionEdgeSmoke": {
+    "browser": "Microsoft Edge",
+    "url": "http://10.60.43.53:3100/auth?next=%2FDSP%2Fdelivery",
+    "authenticated": false,
+    "loginGateRendered": true,
+    "pageErrors": [],
+    "scope": "Production login smoke only; delivery interactions verified in isolated local environment."
+  }
+}

@@ -302,7 +302,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent?.trim() === "Restore as new revision",
     );
     expect(restoreButtons.length).toBeGreaterThan(0);
     await act(async () => {
@@ -386,7 +386,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent?.trim() === "Restore as new revision",
     );
     expect(restoreButtons.length).toBeGreaterThan(0);
     await act(async () => {
@@ -474,7 +474,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const compareButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Compare with current",
+      (button) => button.textContent?.trim() === "Compare with current",
     );
     await act(async () => {
       compareButton?.click();
@@ -519,7 +519,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent?.trim() === "Restore as new revision",
     );
     await act(async () => {
       restoreButtons[0].click();

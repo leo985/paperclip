@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -61,6 +61,7 @@ vi.mock("@/context/DialogContext", () => ({
   useDialogActions: () => ({ openNewIssue: state.openNewIssue }),
 }));
 vi.mock("@/lib/router", () => ({
+  Link: ({ to, children }: { to: string; children?: ReactNode }) => <a href={to}>{children}</a>,
   useNavigate: () => state.navigate,
   useSearchParams: () => [state.params],
 }));
@@ -143,6 +144,8 @@ async function render(adapter = "pi_local", runnerProvider = "codex") {
   await settle();
 }
 async function connect(provider: string) {
+  // Explicitly enter the website credential flow from Claude's local default.
+  if (container.textContent?.includes("使用本机已有配置") && [...container.querySelectorAll("button")].some(b => b.textContent?.trim() === "使用网站密钥或登录")) await click("使用网站密钥或登录");
   await click(provider + "Subscription");
   await click("Connect");
 }
@@ -381,6 +384,7 @@ describe("New agent setup", () => {
     ["paperclip_runner", "codex", "OpenAI", "OPENAI_API_KEY"],
   ])("stores %s %s as a reusable connection before hiring", async (adapter, runner, provider, key) => {
     await render(adapter, runner);
+    if (container.textContent?.includes("使用网站密钥或登录")) await click("使用网站密钥或登录");
     await click("Use API key insteadUse subscription insteadUse API key instead");
     await click(provider + "API");
     await fill("API key", "connection-key");
@@ -406,6 +410,7 @@ describe("New agent setup", () => {
       secret: { companyId: "company-1", status: "active" },
     }]);
     await render(adapter, runner);
+    if (container.textContent?.includes("使用网站密钥或登录")) await click("使用网站密钥或登录");
     await click(provider + "API");
     expect((container.querySelector("select[aria-label='Saved API key']") as HTMLSelectElement).value).toBe("user:existing-key");
     await click("Use saved API key");
@@ -591,6 +596,7 @@ describe("New agent setup", () => {
     });
     api.getClaudeOAuthTokenStatus.mockResolvedValue({ secretId: "saved-oauth", latestVersion: 1 });
     await render("claude_local");
+    if (container.textContent?.includes("使用网站密钥或登录")) await click("使用网站密钥或登录");
     await click("ClaudeSubscription");
     await click("Use saved subscription");
     await click("Finish setup");

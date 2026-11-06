@@ -16,6 +16,9 @@ const mockPluginsApi = vi.hoisted(() => ({
 }));
 const mockUsePluginSlots = vi.hoisted(() => vi.fn());
 
+const management = vi.hoisted(() => ({ canManage: true, isInstanceAdmin: true }));
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => management }));
+
 vi.mock("@/lib/router", () => ({
   useNavigate: () => vi.fn(),
   Link: ({

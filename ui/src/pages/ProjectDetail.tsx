@@ -1,3 +1,4 @@
+import { ProjectReadiness } from "@/components/ProjectReadiness";
 import { useManagementAccess } from "@/hooks/useManagementAccess";
 import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { Dsp7JiraIntake } from "../components/Dsp7JiraIntake";
@@ -792,6 +793,7 @@ export function ProjectDetail() {
         </div>
       </div>
 
+      <ProjectReadiness key={project.id} project={project} />
       <Dsp7JiraIntake project={project} />
 
       <SummarySlotCard

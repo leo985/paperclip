@@ -1989,6 +1989,125 @@
       "when": 1791430695567,
       "tag": "0285_wakeful_blue_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 286,
+      "version": "7",
+      "when": 1792552967041,
+      "tag": "0286_nice_redwing",
+      "breakpoints": true
+    },
+    {
+      "idx": 287,
+      "version": "7",
+      "when": 1792678420253,
+      "tag": "0287_romantic_mephisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 288,
+      "version": "7",
+      "when": 1792905023889,
+      "tag": "0288_keen_penance",
+      "breakpoints": true
+    },
+    {
+      "idx": 289,
+      "version": "7",
+      "when": 1792907013839,
+      "tag": "0289_bitter_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 290,
+      "version": "7",
+      "when": 1792908718750,
+      "tag": "0290_lyrical_nighthawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 291,
+      "version": "7",
+      "when": 1792909257305,
+      "tag": "0291_thick_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 292,
+      "version": "7",
+      "when": 1792913174454,
+      "tag": "0292_robust_nextwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 293,
+      "version": "7",
+      "when": 1792913314646,
+      "tag": "0293_round_prodigy",
+      "breakpoints": true
+    },
+    {
+      "idx": 294,
+      "version": "7",
+      "when": 1792913487377,
+      "tag": "0294_smart_rachel_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 295,
+      "version": "7",
+      "when": 1792913959340,
+      "tag": "0295_medical_loki",
+      "breakpoints": true
+    },
+    {
+      "idx": 296,
+      "version": "7",
+      "when": 1792930707326,
+      "tag": "0296_kind_christian_walker",
+      "breakpoints": true
+    },
+    {
+      "idx": 297,
+      "version": "7",
+      "when": 1792978854900,
+      "tag": "0297_loose_paladin",
+      "breakpoints": true
+    },
+    {
+      "idx": 298,
+      "version": "7",
+      "when": 1792987688253,
+      "tag": "0298_lowly_maestro",
+      "breakpoints": true
+    },
+    {
+      "idx": 299,
+      "version": "7",
+      "when": 1793317727151,
+      "tag": "0299_flaky_rocket_racer",
+      "breakpoints": true
+    },
+    {
+      "idx": 300,
+      "version": "7",
+      "when": 1793318072928,
+      "tag": "0300_large_katie_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 301,
+      "version": "7",
+      "when": 1793757480583,
+      "tag": "0301_romantic_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 302,
+      "version": "7",
+      "when": 1793839203289,
+      "tag": "0302_parallel_silk_fever",
+      "breakpoints": true
     }
   ]
 }

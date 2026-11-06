@@ -49,6 +49,7 @@ import { StarToggle } from "../components/StarToggle";
 import { Identity } from "../components/Identity";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { AgentActionButtons } from "../components/AgentActionButtons";
+import { useSeatAgentIdentity } from "../hooks/useSeatAgentIdentity";
 import { InlineBanner } from "../components/InlineBanner";
 import { BuiltInBundlePanel } from "../components/BuiltInBundlePanel";
 import { ConfigureBuiltInAgentModal } from "../components/ConfigureBuiltInAgentModal";
@@ -814,6 +815,7 @@ export function AgentDetail() {
     enabled: canFetchAgent,
   });
   const resolvedCompanyId = agent?.companyId ?? selectedCompanyId;
+  const seatIdentity = useSeatAgentIdentity(agent);
   const canonicalAgentRef = agent ? agentRouteRef(agent) : routeAgentRef;
   const handleLegacyTabChange = useCallback((next: string) => {
     if (!prepareAgentNavigation()) return;
@@ -1320,6 +1322,8 @@ export function AgentDetail() {
           </AgentActionButtons>
         </div>
       </header>
+
+      {seatIdentity.isSeat && <div role="note" className="rounded-lg border border-border bg-muted p-4 text-sm">此智能体关联个人电脑席位。请通过“派发 Jira 工单”驱动 Harness；接单、设备诊断和负责人配置统一在关联席位管理。</div>}
 
       {builtInState && (
         <InlineBanner
@@ -2076,7 +2080,7 @@ export function ConfigurationTab({
         environmentVariablesPlacement="configuration"
         compactTestFeedback
         sectionOrder={["identity", "adapter", "configuration", "environment", "environment-variables", "run-policy"]}
-        sectionTitles={{ adapter: "Adapter", configuration: "Configuration", identity: "Agent identity" }}
+        sectionTitles={{ adapter: "执行适配器", configuration: "运行配置", identity: "智能体身份" }}
         canConfigureProviderTrace={canConfigureProviderTrace}
       /> : null}
 

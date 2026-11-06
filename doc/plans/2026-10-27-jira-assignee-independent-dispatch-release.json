@@ -1,0 +1,51 @@
+{
+  "release": "jira-assignee-independent-seat-dispatch",
+  "timestamp": "20261026T181431Z",
+  "backup": "/home/fg/paperclip/private/assignee-policy-backup-20261026T181431Z",
+  "filesVerified": 177,
+  "healthStatus": "ok",
+  "databaseSchemaChanged": false,
+  "otherServicesUnchanged": true,
+  "clientSha256": "779e3cafd8bd6f9fb6c3e9a42c0835718a89c9f5313e5f99055fa358b89cb010",
+  "clientModulesChanged": [
+    "README.md",
+    "jira_dispatch.py",
+    "jira_intake.py",
+    "pilot.py"
+  ],
+  "existingSeatsForceUpdated": false,
+  "checks": {
+    "/": 200,
+    "/api/health": 200,
+    "/dsp7-bridge.zip": 200,
+    "/dsp7-bridge-manifest.json": 200
+  },
+  "url": "http://10.60.43.53:3100",
+  "activeRunsBefore": [],
+  "activeRunsAfter": [],
+  "clientVerification": {
+    "seat": [
+      {
+        "name": "张志林",
+        "last_seen_at": "2026-10-26T18:19:46.043Z",
+        "state": "idle",
+        "bridge_version": "779e3cafd8bd6f9fb6c3e9a42c0835718a89c9f5313e5f99055fa358b89cb010"
+      }
+    ],
+    "task": [
+      {
+        "identifier": "ATS-1",
+        "status": "blocked"
+      }
+    ]
+  },
+  "realJiraValidation": {
+    "jiraKey": "ATSES-513404",
+    "jiraAssignee": "chenjj1708",
+    "seatStatisticsAccount": "zhangzl",
+    "validated": true,
+    "retiredAssigneeErrorCleared": true,
+    "taskStatus": "blocked",
+    "executionStarted": false
+  }
+}

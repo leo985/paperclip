@@ -1,0 +1,34 @@
+{
+  "release": "seat-device-upgrade-v2-20261105",
+  "publishedSha256": "97314fd2af8345b8f3097dbbda32bfe0268fd45a9f740289788224cc60e4d28d",
+  "automaticUpgrade": false,
+  "scope": "local OS user; same registered server; web administrator requests remain single-seat",
+  "tests": {
+    "total": 288,
+    "skipped": 2,
+    "others": "passed"
+  },
+  "windows": [
+    {
+      "id": "4325fc0a-50f1-4954-b38f-8ae3206ccec8",
+      "name": "我的研发电脑",
+      "companyId": "a0dfa44b-e002-437c-a80a-b02c9546c919",
+      "version": "97314fd2af8345b8f3097dbbda32bfe0268fd45a9f740289788224cc60e4d28d",
+      "lastSeen": "2026-11-05T11:31:43.041Z",
+      "online": true
+    },
+    {
+      "id": "b3f7841e-50d5-4b5d-879d-9863afb3b0d8",
+      "name": "李巍的windows电脑",
+      "companyId": "bf49caa4-5d09-4f5c-b6ae-a5d80b90a5e8",
+      "version": "97314fd2af8345b8f3097dbbda32bfe0268fd45a9f740289788224cc60e4d28d",
+      "lastSeen": "2026-11-05T11:31:28.506Z",
+      "online": true
+    }
+  ],
+  "otherClientsUpgraded": false,
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "backup": "/home/fg/paperclip/private/seat-device-upgrade-v2-20261105/backup",
+  "verifiedAt": "2026-11-05T11:32:35.300578+00:00"
+}

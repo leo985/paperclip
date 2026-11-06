@@ -37,6 +37,14 @@ function normalizePath(url: string): string {
   return pathname.length > 0 ? pathname : "/";
 }
 
+/** Conversation payloads stay inside the instance, including on malformed requests. */
+export function isManagedConversationHttpRequest(url:string|undefined):boolean {
+  if(!url)return false;
+  let pathname=normalizePath(url);
+  if (/^https?:\/\//i.test(pathname)) pathname=pathname.replace(/^https?:\/\/[^/]*/i, "");
+  return /^\/api\/(?:agents\/[^/]+\/managed-(?:sessions|task-quality|jira-workload)|companies\/[^/]+\/(?:managed-(?:sessions|seat-report)|issues\/[^/]+\/managed-sessions))(?:\/|$)/i.test(pathname);
+}
+
 const SECRET_SENSITIVE_HTTP_PATHS = [
   /^\/api\/chat-endpoints\/[^/]+\/setup(?:-secret)?(?:\/|$)/,
 ];
@@ -76,7 +84,7 @@ export function isSecretSensitiveHttpRequest(
   method: string | undefined,
   url: string | undefined,
 ): boolean {
-  if (isPrivateWebhookHttpRequest(method, url)) return true;
+  if (isPrivateWebhookHttpRequest(method, url) || isManagedConversationHttpRequest(url)) return true;
   if (!method || !url) return false;
   if (!SECRET_SENSITIVE_HTTP_METHODS.has(method.toUpperCase())) return false;
   const pathname = normalizePath(url);

@@ -1,0 +1,83 @@
+{
+  "release": "stop-verification-fix-v1",
+  "backup": "/home/fg/paperclip/private/stop-verification-fix-20261022T143055Z",
+  "changedFiles": [
+    "dsp7-bridge.zip",
+    "dsp7-install.py",
+    "dsp7-bridge-manifest.json"
+  ],
+  "bridgeSha256": "7b22e6ee1ebb1c4629a62e02b5989d1cefd08a76001b1237099ffe4d7c93b4b8",
+  "serverPidUnchanged": true,
+  "databaseMigration": false,
+  "localSeatUpgraded": true,
+  "localRegistration": {
+    "registrationRefreshed": true,
+    "changedFields": [
+      "settingsDigest"
+    ],
+    "revision": 4,
+    "checks": [
+      {
+        "id": "claude",
+        "label": "Claude 可执行文件",
+        "status": "pass",
+        "message": "2.1.206 (Claude Code)"
+      },
+      {
+        "id": "settings",
+        "label": "本机 Claude 配置",
+        "status": "pass",
+        "message": "JSON 可读，内容不上传"
+      },
+      {
+        "id": "harness",
+        "label": "Harness 根目录",
+        "status": "pass",
+        "message": "Harness CLI 存在"
+      },
+      {
+        "id": "registration",
+        "label": "登记一致性",
+        "status": "pass",
+        "message": "本机、服务端版本和执行环境一致"
+      },
+      {
+        "id": "transport",
+        "label": "接入桥到服务器",
+        "status": "pass",
+        "message": "本席位凭证与服务器通信正常；SSH 以实际启动为准"
+      },
+      {
+        "id": "jira",
+        "label": "Jira 配置",
+        "status": "pass",
+        "message": "网页 PAT 可用；配置内容不回显"
+      },
+      {
+        "id": "dingtalk",
+        "label": "钉钉最近提醒",
+        "status": "pass",
+        "message": "平台已受理，接收人是否已读未知"
+      }
+    ],
+    "backup": "/Users/leo/.config/paperclip-dsp7-bridge/upgrade-backups/registration-repair-20261022-225145"
+  },
+  "localUpgradeBackup": "/Users/leo/.config/paperclip-dsp7-bridge/upgrade-backups/20261022-224951-d0ca8d61",
+  "publicArtifactsMatch": true,
+  "syntaxCheck": "all 28 bundled Python modules compiled",
+  "testsRun": false,
+  "windowsDeviceVerified": false,
+  "localSeat": {
+    "state": "idle",
+    "revision": 4,
+    "lastSeenAt": "2026-10-22T14:52:50.680Z",
+    "failedChecks": []
+  },
+  "DSP11": {
+    "status": "blocked",
+    "stoppedRunId": "1b1502f8-c2ae-4e03-900b-82c09d89d244",
+    "processAbsenceObservations": 5,
+    "summaryPresent": false,
+    "automaticallyRestarted": false
+  }
+}

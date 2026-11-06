@@ -237,7 +237,7 @@ describe("CompanyAccess", () => {
     expect(container.textContent).not.toContain("Members can collaborate across the company by default");
     expect(container.textContent).not.toContain("Core keeps this page focused on membership");
     expect(container.textContent).not.toContain("Manage human company memberships and status here");
-    expect(container.textContent).toContain("Pending human joins");
+    expect(container.textContent).toContain("待审批的人员加入申请");
     expect(container.textContent).toContain("Name");
     expect(container.textContent).toContain("Email");
     expect(container.querySelector('[data-slot="avatar"]')).not.toBeNull();
@@ -253,7 +253,7 @@ describe("CompanyAccess", () => {
     expect(container.textContent).not.toContain("Pending user joins");
 
     const editButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Edit",
+      (button) => button.textContent?.trim() === "Edit",
     );
     expect(editButton).toBeTruthy();
 
@@ -262,7 +262,7 @@ describe("CompanyAccess", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Update organization role and membership status");
+    expect(document.body.textContent).toContain("的组织角色和成员状态");
     expect(document.body.textContent).not.toContain("Implicit grants from role");
     expect(document.body.textContent).not.toContain("permissionKey");
 
@@ -288,7 +288,7 @@ describe("CompanyAccess", () => {
     await flushReact();
 
     const editButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Edit",
+      (button) => button.textContent?.trim() === "Edit",
     );
     expect(editButton).toBeTruthy();
 
@@ -298,7 +298,7 @@ describe("CompanyAccess", () => {
     await flushReact();
 
     const saveButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent === "Save member",
+      (button) => button.textContent?.trim() === "保存成员",
     );
     expect(saveButton).toBeTruthy();
 
@@ -343,7 +343,7 @@ describe("CompanyAccess", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Remove member");
+    expect(document.body.textContent).toContain("移除成员");
     expect(document.body.textContent).toContain("Assigned to removed user");
 
     const reassignmentSelect = document.body.querySelector("select");
@@ -354,7 +354,7 @@ describe("CompanyAccess", () => {
     });
 
     const confirmButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent === "Remove member",
+      (button) => button.textContent?.trim() === "移除成员",
     );
     expect(confirmButton).toBeTruthy();
 
@@ -484,10 +484,10 @@ describe("CompanyAccess", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Advanced Permissions");
-    expect(container.textContent).toContain("Advanced permissions unavailable");
-    expect(container.textContent).toContain("Open Members");
-    expect(container.textContent).toContain("Open Invites");
+    expect(container.textContent).toContain("高级权限");
+    expect(container.textContent).toContain("高级权限暂不可用");
+    expect(container.textContent).toContain("查看成员");
+    expect(container.textContent).toContain("查看邀请");
 
     await act(async () => {
       root.unmount();
@@ -539,8 +539,8 @@ describe("CompanyAccess invites tab", () => {
 
     const tabLabels = [...container.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent);
     expect(tabLabels).toEqual(["Members", "Invites"]);
-    expect(container.textContent).toContain("Organization Members");
-    expect(container.textContent).not.toContain("Invite a person");
+    expect(container.textContent).toContain("组织成员");
+    expect(container.textContent).not.toContain("邀请人员");
 
     await act(async () => {
       root.unmount();
@@ -551,8 +551,8 @@ describe("CompanyAccess invites tab", () => {
     mockSearchParamsState.current = new URLSearchParams("tab=invites");
     const root = await renderPage();
 
-    expect(container.textContent).toContain("Invite a person");
-    expect(container.textContent).toContain("Invite history");
+    expect(container.textContent).toContain("邀请人员");
+    expect(container.textContent).toContain("邀请历史");
 
     await act(async () => {
       root.unmount();
@@ -566,8 +566,8 @@ describe("CompanyAccess invites tab", () => {
     const root = await renderPage(client);
 
     expect(container.querySelectorAll('[role="tab"]')).toHaveLength(0);
-    expect(container.textContent).not.toContain("Invite a person");
-    expect(container.textContent).toContain("Organization Members");
+    expect(container.textContent).not.toContain("邀请人员");
+    expect(container.textContent).toContain("组织成员");
     expect(listInvitesMock).not.toHaveBeenCalled();
 
     await act(async () => {

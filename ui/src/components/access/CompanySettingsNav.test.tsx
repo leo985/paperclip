@@ -11,6 +11,9 @@ let currentPathname = "/company/settings";
 const navigateMock = vi.hoisted(() => vi.fn());
 const pageTabBarMock = vi.hoisted(() => vi.fn());
 
+const management = vi.hoisted(() => ({ canManage: true, isInstanceAdmin: true }));
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => management }));
+
 vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: currentPathname, search: "", hash: "" }),
   useNavigate: () => navigateMock,
@@ -54,6 +57,7 @@ describe("CompanySettingsNav", () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
+    management.canManage = true; management.isInstanceAdmin = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     currentPathname = "/company/settings";
@@ -106,6 +110,16 @@ describe("CompanySettingsNav", () => {
       </QueryClientProvider>,
     );
   }
+
+  it("restricts ordinary members to profile and rejects navigation to hidden tabs", async () => {
+    management.canManage = false; management.isInstanceAdmin = false;
+    const root = createRoot(container);
+    await act(async () => renderNav(root));
+    const props = pageTabBarMock.mock.calls.at(-1)![0];
+    expect(props.items.map((item: { value: string }) => item.value)).toEqual(["instance-profile"]);
+    props.onValueChange("secrets"); expect(navigateMock).not.toHaveBeenCalled();
+    await act(async () => root.unmount());
+  });
 
   it("renders the active tab and navigates when a different tab is selected", async () => {
     currentPathname = "/PAP/company/settings/members";

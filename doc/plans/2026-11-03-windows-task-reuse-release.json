@@ -1,0 +1,26 @@
+{
+  "release": "20261103-windows-task-reuse",
+  "timestamp": "20261103T075117Z",
+  "backup": "/home/fg/paperclip/private/windows-task-reuse-20261103/backup-20261103T075117Z",
+  "publishedFiles": 3,
+  "bridgeSha256": "1706796eb5add52438bea8d90d34a9c682a74b15719f6e24e8866d06c02d76e6",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "accountsChanged": false,
+  "health": "ok",
+  "publicHashesVerified": true,
+  "localPythonTests": {
+    "run": 171,
+    "passed": 169,
+    "skipped": 2
+  },
+  "publishedBundleTestsPassed": 21,
+  "windowsDeviceAcceptance": "Not performed: user operates Windows device. Existing task may be started directly; existing installed immutable version has not been replaced.",
+  "earlierModuleImportFailure": "Not reproduced or claimed resolved by this registration fix",
+  "changedFiles": [
+    "install_service.py",
+    "quick_install.py",
+    "README.md"
+  ],
+  "behavior": "Matching enabled login tasks are started without re-registration. Running tasks are not restarted. Mismatched or disabled tasks are not overwritten. Missing tasks are created without Force. Parent diagnostics preserve safe actionable service errors."
+}

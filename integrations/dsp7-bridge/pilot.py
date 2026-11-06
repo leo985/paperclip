@@ -23,8 +23,15 @@ import urllib.request
 DEFAULT_CONFIG = Path(os.environ.get('DSP7_BRIDGE_CONFIG') or Path.home()/'.config/paperclip-dsp7-bridge/config.json')
 ACTIVE = {'queued','running','scheduled_retry'}
 TERMINAL = {'succeeded','failed','cancelled','timed_out'}
-WORKFLOWS = {'feature':'jira-feature-dev','bugfix':'jira-bug-fix','design':'jira-design-doc'}
-TYPE_WORKFLOW = {'编码':'feature','前端编码':'feature','功能':'feature','内部缺陷':'bugfix','线上问题':'bugfix','系统设计':'design','系统设计补充':'design'}
+WORKFLOWS = {'feature':'jira-feature-dev','bugfix':'jira-bug-fix','design':'jira-design-doc','integration':'dsp-integration-test'}
+TYPE_WORKFLOW = {'编码':'feature','前端编码':'feature','功能':'feature','内部缺陷':'bugfix','线上问题':'bugfix','系统设计':'design','系统设计补充':'design','接口联调':'integration'}
+
+INTEGRATION_INSTRUCTIONS = """接口联调必须加载 Harness 的 dsp-integration-test 技能，不执行编码开发工作流。
+在登记的 state_path 所在工单目录创建或续写 state.json（工单号、类型 integration、状态、当前Phase、经办人），同步阶段与阻塞。
+先确认测试环境、测试账号、执行路径与范围，再进行联调；平台派单不代替技能要求的环境及交易授权。
+将 integration-context.json、integration-test-report.md 及证据保存在该工单目录，摘要写入 state.json.集成测试。
+完成前通过 check_integration_execution_plan.py --stage complete 门禁，按已批准范围记录 passed/partial；blocked/failed 不得完成，partial 不得宣称全链路通过。
+完成仍需 tracker 回执或允许的降级记录、Jira 交付评论及源码工作树证据，通过 agent complete 回写。"""
 
 class BridgeError(RuntimeError): pass
 
@@ -36,6 +43,61 @@ def read_json(path):
     except (OSError,json.JSONDecodeError) as e: raise BridgeError('JSON 文件无法读取: '+str(path)) from e
     if not isinstance(value,dict):raise BridgeError('JSON 必须是对象: '+str(path))
     return value
+
+def artifact_state_path(root, workflow, key):
+    """Negotiate a local public layout; malformed declarations fail closed."""
+    root=Path(root).absolute()
+    contract=root/'harness/artifact-layout.json'
+    if not contract.exists() and not contract.is_symlink():return root/'tickets'/f'{workflow}-{key}'/'state.json'
+    if not contract.resolve().is_relative_to(root.resolve()):raise BridgeError('领域布局契约越出 Harness 根目录')
+    layout=read_json(contract)
+    if type(layout.get('schema_version')) is not int or layout['schema_version']!=1:
+        raise BridgeError('不支持的领域布局 schema_version')
+    directory=layout.get('directory');prefixes=layout.get('workflow_prefixes')
+    expected={'feature':'feature','bugfix':'bugfix','design-doc':'design','code-review':'review'}
+    def component(value):
+        return isinstance(value,str) and bool(value.strip()) and value not in ('.','..') and not any(c in value for c in '/\\:') and not any(ord(c)<32 for c in value)
+    # Keep established mappings stable while allowing Harness to add domains.
+    if (not component(directory) or not isinstance(prefixes,dict)
+            or any(prefixes.get(name)!=prefix for name,prefix in expected.items())
+            or any(not component(name) or not component(prefix) for name,prefix in prefixes.items())
+            or len(set(prefixes.values()))!=len(prefixes)):
+        raise BridgeError('领域布局目录或工作流前缀无效')
+    domain_workflow={'design':'design-doc'}.get(workflow,workflow)
+    # Other domains (such as integration) may retain their original layout.
+    if domain_workflow not in prefixes:return root/'tickets'/f'{workflow}-{key}'/'state.json'
+    if not re.fullmatch(r'[A-Z][A-Z0-9_]*-\d+',key):raise BridgeError('领域布局工单号无效')
+    path=root/directory/f'{prefixes[domain_workflow]}-{key}'/'state.json'
+    if not path.resolve().is_relative_to(root.resolve()):raise BridgeError('领域状态路径越出 Harness 根目录')
+    return path
+
+
+def effective_state_details(root, details):
+    """Resolve only the exact old default. Never mutate registration or state."""
+    d=dict(details)
+    if d.get('mode')=='replay':return d
+    root=Path(root).absolute();workflow=d['workflow'];key=d['jira_key']
+    canonical=artifact_state_path(root,workflow,key)
+    legacy=root/'tickets'/f'{workflow}-{key}'/'state.json'
+    registered=Path(d['state_path'])
+    if registered!=legacy or canonical==legacy:return d
+    if not legacy.resolve().is_relative_to(root.resolve()):raise BridgeError('旧领域状态路径越出 Harness 根目录')
+    if legacy.exists() and canonical.exists():raise BridgeError('两套领域状态文件并存，拒绝歧义；请人工核验，不会合并或复制')
+    if legacy.exists():return d
+    d['registered_state_path']=str(registered)
+    d['state_path']=str(canonical)
+    d['state_path_notice']='旧默认 tickets 路径按 Harness 公开契约映射；原登记未修改。'
+    return d
+
+
+def agent_entry_instructions():
+    parts=[sys.executable,str(Path(__file__).resolve())]
+    entry=subprocess.list2cmdline(parts) if sys.platform=='win32' else shlex.join(parts)
+    return (f'先在 Harness 根目录分别执行 `{entry} agent inspect`、`{entry} agent claim`；'
+            '不要添加 --ticket（这两个子命令从运行身份定位工单）。'
+            '同步及 issue_guard resolve/init/verify 必须在 Harness 根目录独立执行，'
+            '无管道、重定向、cd 串联；沿用启动器的会话/任务身份。'
+            '阶段、阻塞和完成分别通过同一绝对入口 agent stage/block/complete 回写。')
 
 def atomic_json(path,value):
     import tempfile
@@ -53,13 +115,13 @@ class Api:
         p=urllib.parse.urlsplit(self.base)
         if p.scheme not in ('http','https') or not p.hostname or p.username or p.password or p.query or p.fragment:
             raise BridgeError('API origin 格式无效')
-    def request(self,method,path,body=None):
+    def request(self,method,path,body=None,timeout=25):
         headers={'Content-Type':'application/json','Accept':'application/json'}
         if self.token:headers['Authorization']='Bearer '+self.token
         if self.run_id:headers['X-Paperclip-Run-Id']=self.run_id
         req=urllib.request.Request(self.base+path,data=json.dumps(body,ensure_ascii=False).encode() if body is not None else None,headers=headers,method=method)
         try:
-            with urllib.request.urlopen(req,timeout=25) as r:
+            with urllib.request.urlopen(req,timeout=timeout) as r:
                 raw=r.read(5*1024*1024+1)
                 if len(raw)>5*1024*1024:raise BridgeError('API 响应过大')
                 return json.loads(raw) if raw else {}
@@ -71,7 +133,17 @@ class Api:
 
 def load_module(name,path):
     spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec)
-    sys.modules[name]=module;spec.loader.exec_module(module);return module
+    # Harness scripts import sibling modules; loading by file alone does not
+    # give them the search path that running the script directly would provide.
+    search_path=list(sys.path)
+    sys.path.insert(0,str(Path(path).resolve().parent))
+    sys.modules[name]=module
+    try:spec.loader.exec_module(module)
+    except BaseException:
+        sys.modules.pop(name,None)
+        raise
+    finally:sys.path[:]=search_path
+    return module
 
 def processes_for_run(run_id):
     if sys.platform=='win32':
@@ -80,7 +152,7 @@ def processes_for_run(run_id):
         if not executable:return []
         found=[]
         for pid,p in process_table().items():
-            if not matches_claude(p['command'],executable):continue
+            if not matches_claude(p['command'],executable,p.get('image')):continue
             args=windows_argv(p['command'])
             if any(a=='--session-id' and i+1<len(args) and args[i+1]==run_id for i,a in enumerate(args)):found.append(pid)
         return sorted(found)
@@ -225,9 +297,9 @@ class Bridge:
     def pilot(self,key):
         r=self.db.execute('SELECT * FROM pilots WHERE jira_key=?',(key,)).fetchone()
         if not r:raise BridgeError('未登记试点工单')
-        return dict(r)|{'details':json.loads(r['config'])}
+        return dict(r)|{'details':effective_state_details(self.root,json.loads(r['config']))}
     def state(self,pilot,required=True):
-        p=Path(pilot['details']['state_path'])
+        p=Path(effective_state_details(self.root,{'jira_key':pilot['jira_key'],**pilot['details']})['state_path'])
         if not p.exists() and not required:return {}
         s=read_json(p)
         if s.get('工单号')!=pilot['jira_key']:raise BridgeError('领域 state 工单身份不匹配')
@@ -239,21 +311,31 @@ class Bridge:
         if d.get('intake_task_id'):
             task=self.pc.request('GET','/issues/'+pilot['task_id'])
             project=self.pc.request('GET','/projects/'+d['project_id'])
-            workspace=next((w for w in project.get('workspaces',[]) if w['id']==d['source_workspace_id']),None)
-            if task.get('projectId')!=d['project_id'] or task.get('projectWorkspaceId')!=d['source_workspace_id'] or (task.get('assigneeAdapterOverrides') or {}).get('useProjectWorkspace') is not False or project.get('companyId')!=self.cfg['company_id'] or project.get('archivedAt') or not workspace:raise BridgeError('Project 或源工作区已变化，需人工重新核验')
-            from seats import source_repo, normalize_remote
-            if str(source_repo(self,d['project_id'],workspace))!=d['source_repo'] or normalize_remote(workspace.get('repoUrl'))!=normalize_remote(d.get('source_repo_url')) or (workspace.get('repoRef') or workspace.get('defaultRef'))!=d['source_base_ref']:raise BridgeError('本席位仓库映射或共享仓库／基线已变化，停止执行')
-            if d['workflow']!='design':
-                from jira_intake import git
-                if git(d['worktree'],'rev-parse','--path-format=absolute','--git-common-dir')!=git(d['source_repo'],'rev-parse','--path-format=absolute','--git-common-dir'):raise BridgeError('工作树不再属于该席位登记的源仓库')
-        assignee=f.get('assignee') or {};account=assignee.get('name') or assignee.get('accountId')
-        if account!=d.get('source_assignee',d['assignee']):raise BridgeError('Jira 经办人变化，需人工重新登记')
+            if task.get('projectId')!=d['project_id'] or project.get('companyId')!=self.cfg['company_id'] or project.get('archivedAt') or (task.get('assigneeAdapterOverrides') or {}).get('useProjectWorkspace') is not False:
+                raise BridgeError('Project 或执行配置已变化，需人工重新核验')
+            if d.get('repository_management')!='harness':
+                workspace=next((w for w in project.get('workspaces',[]) if w['id']==d['source_workspace_id']),None)
+                if task.get('projectId')!=d['project_id'] or task.get('projectWorkspaceId')!=d['source_workspace_id'] or (task.get('assigneeAdapterOverrides') or {}).get('useProjectWorkspace') is not False or project.get('companyId')!=self.cfg['company_id'] or project.get('archivedAt') or not workspace:raise BridgeError('Project 或源工作区已变化，需人工重新核验')
+                from seats import source_repo, normalize_remote
+                if str(source_repo(self,d['project_id'],workspace))!=d['source_repo'] or normalize_remote(workspace.get('repoUrl'))!=normalize_remote(d.get('source_repo_url')) or (workspace.get('repoRef') or workspace.get('defaultRef'))!=d['source_base_ref']:raise BridgeError('本席位仓库映射或共享仓库／基线已变化，停止执行')
+                if d['workflow']!='design':
+                    from jira_intake import git
+                    if git(d['worktree'],'rev-parse','--path-format=absolute','--git-common-dir')!=git(d['source_repo'],'rev-parse','--path-format=absolute','--git-common-dir'):raise BridgeError('工作树不再属于该席位登记的源仓库')
         if TYPE_WORKFLOW.get(f['issuetype']['name'])!=d['workflow']:raise BridgeError('Jira 工单类型变化')
         if jira_fingerprint(issue)!=d['jira_fingerprint']:raise BridgeError('Jira 需求或附件变化，停止自动续传并重新核验')
-        if f['status']['name'] not in d['ready_statuses']:raise BridgeError('Jira 状态不在明确授权的可执行范围')
+        allowed_statuses=d['ready_statuses']
+        if d.get('seat_rule_intake'):
+            from jira_intake import manual_rule
+            rule=manual_rule(self,{'jira_key':pilot['jira_key'],'project_id':d['project_id'],'workspace_id':d.get('source_workspace_id')},issue,allow_paused=bool(pilot['enabled']))
+            allowed_statuses=rule['readyStatuses']
+        if f['status']['name'] not in allowed_statuses:raise BridgeError('Jira 状态不在明确授权的可执行范围')
+        # Retire only errors from the removed assignee gate after all remaining
+        # checks pass. This never enables a pilot or resumes a blocked task.
+        if pilot.get('last_error') in ('Jira 经办人变化，需人工重新登记','Jira 已重新指派，停止自动接入','Jira 经办人与席位规则不一致，请核对 Jira 登录名和指派','Jira 经办人与席位规则不一致，请使用 Jira 登录名并核对指派'):
+            self.update(pilot['jira_key'],last_error=None)
         return issue
     def worktree_check(self,d):
-        if d.get('mode')=='replay' or d['workflow']=='design':return
+        if d.get('repository_management')=='harness' or d.get('mode')=='replay' or d['workflow']=='design':return
         p=subprocess.run([sys.executable,str(self.root/'harness/scripts/harness_cli.py'),'worktree-check','--repo',d['worktree'],'--ticket',d['jira_key']],capture_output=True,text=True,timeout=30)
         if p.returncode:raise BridgeError('源码 worktree 门禁失败；请在登记的路径单独核验')
     def register(self,key,workflow,worktree,ready_statuses,notify_authorized=False,intake=None):
@@ -263,16 +345,20 @@ class Bridge:
         issue=self.jira_issue(key);f=issue['fields'];assignee=f.get('assignee') or {};account=assignee.get('name') or assignee.get('accountId')
         if not account:raise BridgeError('Jira 工单尚未指定经办人')
         if TYPE_WORKFLOW.get(f['issuetype']['name'])!=workflow:raise BridgeError('工单类型与指定 workflow 不符；不执行父需求单')
-        state_path=self.root/'tickets'/f'{workflow}-{key}'/'state.json'
-        if workflow=='design':state_path=self.root/'tickets'/f'design-{key}'/'state.json'
+        state_path=artifact_state_path(self.root,workflow,key)
         if state_path.exists():
             s=read_json(state_path)
             if s.get('工单号')!=key or s.get('状态')=='completed':raise BridgeError('既有 state 不匹配或已完成')
-        details={'jira_key':key,'workflow':workflow,'worktree':str(Path(worktree).resolve()),'state_path':str(state_path),
+        details={'jira_key':key,'workflow':workflow,'worktree':str(Path(worktree).resolve()) if worktree is not None else None,'state_path':str(state_path),
                  'assignee':account,'assignee_name':assignee.get('displayName') or account,'title':f['summary'],
                  'jira_fingerprint':jira_fingerprint(issue),'ready_statuses':ready_statuses,'notifications_authorized':notify_authorized}
+        if intake and intake.get('repository_management')=='harness':details['repository_management']='harness'
         self.worktree_check(details)
-        if intake:details.update(execution_mode='interactive',intake_task_id=intake['task_id'],project_id=intake['project_id'],source_workspace_id=intake['workspace_id'],source_repo=intake['source_repo'],source_base_ref=intake['base_ref'],seat_id=intake['seat_id'],machine_id=intake['machine_id'],source_repo_url=intake['repo_url'])
+        if intake:
+            details.update(execution_mode='interactive',intake_task_id=intake['task_id'],project_id=intake['project_id'],seat_id=intake['seat_id'],machine_id=intake['machine_id'])
+            if details.get('repository_management')!='harness':
+                details.update(source_workspace_id=intake['workspace_id'],source_repo=intake['source_repo'],source_base_ref=intake['base_ref'],source_repo_url=intake['repo_url'])
+        if intake and intake.get('seat_rule_intake'):details['seat_rule_intake']=True
         with self.db:self.db.execute('INSERT INTO pilots(jira_key,task_id,config,updated_at) VALUES(?,?,?,?)',(key,intake['task_id'] if intake else None,json.dumps(details,ensure_ascii=False),now()))
         self.event(key,'registered',{'workflow':workflow,'assignee':account,'ready_statuses':ready_statuses})
         return {'jira_key':key,'status':'registered','enabled':False,'state_path':str(state_path)}
@@ -337,9 +423,10 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
 研发负责人: {d['assignee_name']} ({d['assignee']})
 源码 worktree: {d['worktree']}
 领域 state: {d['state_path']}
-通过 {subprocess.list2cmdline([sys.executable,str(Path(__file__).resolve()),'agent','inspect']) if sys.platform=='win32' else shlex.join([sys.executable,str(Path(__file__).resolve()),'agent','inspect'])} 获取当前任务。
+{agent_entry_instructions()}
 开始前 agent claim；阶段切换调用 agent stage；需要确认调用 agent block 并退出；领域交付完成后 agent complete。
 必须遵守 base-harness 门禁；不要调用旧 task_api.py complete 绕过领域完成核验。'''
+        if d['workflow']=='integration':desc+='\n'+INTEGRATION_INSTRUCTIONS
         if d.get('mode')=='replay':
             desc+='\n明确模式：replay。仅验证已完成工单的模拟闭环，禁止修改 Jira／tracker／业务源码。\n调用 agent inspect、agent claim 后调用 agent replay；第一次阻塞后立即结束，确认后再次运行 agent replay。\n模拟资料只在登记的 replay state 目录中读取和生成，不加载完整工程开发技能，不修改原 Harness state。'
         # Backlog without assignee suppresses automatic execution until mapping is persisted.
@@ -389,13 +476,24 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
             with self.db:self.db.execute('DELETE FROM leases WHERE jira_key=? AND run_id=?',(pilot['jira_key'],lease['run_id']))
         else:raise BridgeError('旧运行尚未确认停止，不能释放工单执行权')
     def wake(self,pilot,reason,confirmation=None,interactive_nonce=None):
+        from seat_lifecycle import offline_requested
+        if offline_requested(self):raise BridgeError('本机已暂停新运行，请执行 harness online 恢复')
         intent=digest({'task':pilot['task_id'],'reason':reason,'confirmation':confirmation})
         if pilot['last_wakeup']==intent:return
         # Persist the intent first. An uncertain request is NOT automatically resent.
         self.update(pilot['jira_key'],last_wakeup=intent,status='wakeup_pending',last_error=None)
         body={'source':'automation','triggerDetail':'callback','reason':reason,'payload':{'issueId':pilot['task_id'],'taskId':pilot['task_id']},'idempotencyKey':'dsp7-'+intent,'forceFreshSession':True}
-        if interactive_nonce:body['payload']['dsp7InteractiveNonce']=interactive_nonce
-        result=self.pc.request('POST','/agents/'+self.cfg['agent_id']+'/wakeup',body)
+        if interactive_nonce:
+            body['payload']['dsp7InteractiveNonce']=interactive_nonce
+            body['payload']['dsp7SeatAutoRetryV1']=True
+        # Registered seats invoke themselves with their own Agent credential.
+        # The bridge service account is a board member, not a seat owner/admin.
+        # Keep the run-scoped API key when already inside an Agent execution.
+        wake_api=self.pc
+        if not self.agent_mode and self.cfg.get('seat_credential_file'):
+            from seats import seat_api
+            wake_api=seat_api(self)
+        result=wake_api.request('POST','/agents/'+self.cfg['agent_id']+'/wakeup',body)
         self.event(pilot['jira_key'],'wakeup',{'intent':intent,'result':result,'confirmation':confirmation})
         if result.get('status')=='skipped':raise BridgeError('唤醒未接受；请查看 wakeup 记录后人工恢复')
         self.update(pilot['jira_key'],status='dispatched',consumed_confirmation=confirmation if confirmation else pilot['consumed_confirmation'])
@@ -428,8 +526,8 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
                     self.notify._record_state(Path(pilot['details']['state_path']),state,'confirmation',fingerprint,status,error=str(e))
         elif mode=='local':
             from seat_control import notify
-            delivery=notify('智研协同平台：工单待确认',message)
-            status='sent' if delivery=='submitted' else delivery
+            delivery=notify('智研协同平台：工单待确认',message,config=self.config_path,task_id=pilot['task_id'])
+            status='sent' if delivery in ('submitted','submitted_without_click_action') else delivery
         else:raise BridgeError('未知通知模式')
         with self.db:self.db.execute('INSERT OR REPLACE INTO notices VALUES(?,?,?,?)',(notice_key,pilot['jira_key'],status,now()))
         self.event(pilot['jira_key'],'notification',{'confirmation':cid,'channel':mode,'status':status})
@@ -567,6 +665,8 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
         page_state=self.state(pilot,required=False)
         self.sync_page_confirmation(pilot,page_state,task,active=bool(active))
         self.publish_confirmation_status(pilot,self.state(pilot,required=False))
+        from seat_lifecycle import offline_requested
+        if offline_requested(self) and not active:return
         if active:
             if pilot['details'].get('execution_mode')=='interactive' and task['status']=='blocked':
                 state=self.state(pilot,required=False)
@@ -604,17 +704,25 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
             self.pc.request('PATCH','/issues/'+task['id'],{'assigneeAgentId':self.cfg['agent_id']})
             self.wake(pilot,'开始已登记的单人工单；先 claim 并检查 Harness 门禁')
     def tick(self):
+        with (Path(self.cfg['database']).parent/'upgrade.lock').open('a') as lock:
+            try:fcntl.flock(lock,fcntl.LOCK_SH|fcntl.LOCK_NB)
+            except BlockingIOError:return []
+            return self._tick()
+    def _tick(self):
+        if (Path(self.cfg['database']).parent/'upgrade-in-progress.json').exists():return []
         latest=read_json(self.config_path)
         if any(latest.get(k)!=self.cfg.get(k) for k in ('agent_id','company_id','database','harness_root','paperclip_url','credential_file')):
             return [{'configuration_error':'接入身份或运行路径已变化，请重启本机接入桥'}]
         self.cfg=latest
         errors=[]
+        from jira_dispatch import tick as dispatch_tick
+        try:dispatch_tick(self)
+        except (BridgeError,ValueError,OSError) as e:
+            self.cfg['_platform_dispatches']={}
+            errors.append({'platform_dispatch_error':str(e)})
         from seat_control import tick as seat_tick
         try:seat_tick(self)
         except (BridgeError,ValueError,OSError,subprocess.SubprocessError):errors.append({"seat_control_error":"席位心跳或请求处理失败，请核对本机登记与服务器连接"})
-        from jira_dispatch import tick as dispatch_tick
-        try:dispatch_tick(self)
-        except (BridgeError,ValueError,OSError) as e:errors.append({'jira_dispatch_error':str(e)})
         from jira_intake import process_requests
         try:process_requests(self)
         except (BridgeError,ValueError,OSError) as e:errors.append({"web_intake_error":str(e)})
@@ -627,6 +735,18 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
             except BridgeError as e:
                 message=str(e);self.update(pilot['jira_key'],last_error=message)
                 errors.append({'jira_key':pilot['jira_key'],'error':message})
+        try:
+            from managed_sessions import drain
+            drain(self)
+        except (BridgeError,ValueError,OSError):errors.append({'collection_error':'会话队列补传失败，未重新执行任务'})
+        try:
+            from jira_workload import tick as workload_tick
+            workload_tick(self)
+        except (BridgeError,ValueError,OSError):errors.append({'workload_error':'Jira 工作量快照暂不可用，不能把未知显示为零'})
+        try:
+            from quality_collection import tick as quality_tick
+            quality_tick(self)
+        except (BridgeError,ValueError,OSError):errors.append({'quality_error':'Jira 质量关联未更新，页面保留无数据或已有快照'})
         return errors
     def current_pilot(self):
         task_id=self.env['PAPERCLIP_TASK_ID'];row=self.db.execute('SELECT jira_key FROM pilots WHERE task_id=?',(task_id,)).fetchone()
@@ -642,8 +762,13 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
         row=self.db.execute('SELECT run_id FROM leases WHERE jira_key=?',(pilot['jira_key'],)).fetchone()
         if not row or row['run_id']!=self.env['PAPERCLIP_RUN_ID']:raise BridgeError('必须先 claim 当前真实运行的工单执行权')
     def agent(self,action,data):
-        pilot,task=self.current_pilot();key=pilot['jira_key'];rid=self.env['PAPERCLIP_RUN_ID'];d=pilot['details'];path=Path(d['state_path'])
-        if action=='inspect':return {'jira_key':key,'run_id':rid,'task_id':task['id'],'details':d,'state':self.state(pilot,required=False)}
+        pilot,task=self.current_pilot();key=pilot['jira_key'];rid=self.env['PAPERCLIP_RUN_ID'];d=effective_state_details(self.root,{'jira_key':pilot['jira_key'],**pilot['details']});pilot={**pilot,'details':d};path=Path(d['state_path'])
+        if action=='inspect':
+            state=self.state(pilot,required=False)
+            result={'skill':WORKFLOWS[d['workflow']],'workflow_instructions':INTEGRATION_INSTRUCTIONS if d['workflow']=='integration' else None,'jira_key':key,'run_id':rid,'task_id':task['id'],'details':d,'state':state}
+            if state.get('状态')=='completed':
+                result['state_notice']='发现已有 completed 领域记录；这不是本次运行的完成回执。保留原账本，仍须通过当前租约及 agent complete 的全部交付核验，不能重置或复制。'
+            return result
         if action=='claim':
             self.validate_jira(pilot);self.worktree_check(d)
             pids=processes_for_run(rid)
@@ -720,6 +845,19 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
                 atomic_json(path.parent/'paperclip-completion.json',{'run_id':rid,'completed_at':now(),**data})
                 self.pc.request('PATCH','/issues/'+task['id'],{'status':'done','unblockDescriptor':None,'comment':summary+'\n本任务仅为模拟验收；不代表原工单重新开发或真实 tracker 上报。'})
                 return {'status':'done','mode':'replay','jira_key':key,'run_id':rid}
+            if d['workflow']=='integration':
+                gate=self.root/'harness/scripts/check_integration_execution_plan.py'
+                context=path.parent/'integration-context.json'
+                report_file=path.parent/'integration-test-report.md'
+                if not gate.is_file() or not context.is_file() or not report_file.is_file() or not report_file.stat().st_size:
+                    raise BridgeError('接口联调完成需要 Harness 联调门禁、上下文及联调报告')
+                result=subprocess.run([sys.executable,str(gate),'--context',str(context),'--stage','complete','--json'],capture_output=True,text=True,timeout=60)
+                try:gate_report=json.loads(result.stdout)
+                except ValueError:raise BridgeError('接口联调完成门禁未返回有效结果') from None
+                if result.returncode or gate_report.get('ok') is not True or gate_report.get('verification_status') not in ('passed','partial'):
+                    raise BridgeError('接口联调完成门禁未通过，请核对执行范围、授权与证据')
+                atomic_json(path.parent/'paperclip-integration-gate.json',gate_report)
+                summary+='\n接口联调验收：'+gate_report['verification_status']+'；仅代表已批准范围（'+str(gate_report.get('claim'))+'）。'
             if tracker.get('status') not in ('reported','allowed_degradation'):raise BridgeError('需 tracker 回执或 Harness 允许的降级记录')
             if tracker['status']=='reported':
                 ticket_id=tracker.get('ticket_id')
@@ -748,7 +886,7 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
             comment=self.jira().request('GET','/rest/api/2/issue/'+key+'/comment/'+urllib.parse.quote(str(data['jira_evidence_comment_id']),safe=''))
             if not comment.get('id') or not self.jc.comment_text(comment.get('body')):raise BridgeError('Jira 交付评论不存在')
             self.worktree_check(d)
-            if d['workflow']!='design':
+            if d['workflow']!='design' and d.get('repository_management')!='harness':
                 source=state.get('源码工作树') or {}
                 if Path(str(source.get('repo') or '')).resolve()!=Path(d['worktree']).resolve() or source.get('linked_worktree') is not True:raise BridgeError('完成 state 的源码工作树证据不匹配')
                 head=subprocess.run(['git','-C',d['worktree'],'rev-parse','HEAD'],capture_output=True,text=True,check=True).stdout.strip()
@@ -824,13 +962,24 @@ def main():
             except BlockingIOError:raise BridgeError('已有接入桥监督进程') from None
             if args.command=='once':result={'errors':b.tick()}
             else:
+                from command_receiver import start_receiver
+                receiver_stop=start_receiver(b.config_path)
                 print(json.dumps({'status':'watching','at':now()},ensure_ascii=False),flush=True)
                 base_delay=max(10,int(b.cfg.get('poll_seconds',20)));delay=base_delay
-                while True:
-                    errors=b.tick()
-                    if errors:print(json.dumps({'at':now(),'errors':errors},ensure_ascii=False),flush=True)
-                    delay=min(300,max(base_delay,delay*2)) if errors else base_delay
-                    time.sleep(delay)
+                try:
+                    while True:
+                        from seat_lifecycle import finish_offline
+                        if finish_offline(b):
+                            print('席位已空闲，接入服务安全下线。恢复：harness online',flush=True);return
+                        errors=b.tick()
+                        if finish_offline(b):
+                            print('席位已空闲，接入服务安全下线。恢复：harness online',flush=True);return
+                        if errors:print(json.dumps({'at':now(),'errors':errors},ensure_ascii=False),flush=True)
+                        # Reporting/domain errors must not starve heartbeats or website dispatch.
+                        control_error=any(set(e)&{'platform_dispatch_error','seat_control_error','configuration_error'} for e in errors)
+                        delay=min(60,max(base_delay,delay*2)) if control_error else base_delay
+                        time.sleep(delay)
+                finally:receiver_stop.set()
     print(json.dumps(result,ensure_ascii=False,indent=2))
 if __name__=='__main__':
     try:main()

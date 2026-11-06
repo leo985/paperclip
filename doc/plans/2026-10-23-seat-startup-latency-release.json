@@ -1,0 +1,47 @@
+{
+  "release": "seat-startup-latency",
+  "state": "released",
+  "updatedAt": "2026-10-23T06:15:48.952125+00:00",
+  "stage": "/home/fg/paperclip/private/seat-latency-20261023T061456Z",
+  "backup": "/home/fg/paperclip/private/seat-latency-20261023T061456Z/backup",
+  "filesVerified": 19,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "bridgeVersion": "0bc5051e843dfcd220e5e050467a36bf42a6011b63982d281779a6a67a8d2556",
+  "databaseMigration": false,
+  "otherServicesUnchanged": true,
+  "localUpgrade": {
+    "state": "updated",
+    "updatedAt": "2026-10-23T06:16:07.649623+00:00",
+    "version": "0bc5051e843dfcd220e5e050467a36bf42a6011b63982d281779a6a67a8d2556",
+    "bridge": "/Users/leo/.local/share/paperclip/bridge/0bc5051e843dfcd2"
+  },
+  "checks": {
+    "serverTypeScript": true,
+    "uiTypeScript": true,
+    "uiBuild": true,
+    "pythonCompilation": true,
+    "tokenGates": true,
+    "testsRun": false,
+    "realResumeLatencyMeasured": false
+  },
+  "recoveryFix": {
+    "cause": "settingsDigest changed; presence config_error while canResume ignored state",
+    "registrationRefreshed": true,
+    "seatState": "idle",
+    "commandLongpollCapabilityReported": true,
+    "taskAutomaticallyResumed": false
+  }
+}

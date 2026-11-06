@@ -578,7 +578,7 @@ describe("WorkspaceFileBrowser", () => {
     expect(container.textContent).toContain("IssueLinkQuicklook.tsx");
     expect(container.textContent).not.toContain("SourceTrustBadge.tsx");
     const loadMore = Array.from(container.querySelectorAll("button")).find(
-      (el) => el.textContent === "Load more from this folder",
+      (el) => el.textContent?.trim() === "Load more from this folder",
     );
     act(() => {
       loadMore!.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));

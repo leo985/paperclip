@@ -1,3 +1,12 @@
+import { beforeEach } from "vitest";
+import { i18n } from "./src/i18n";
+
+// Behavior fixtures historically use English labels. Keep their language
+// deterministic without changing the product's Chinese default. Locale tests
+// explicitly select the language they exercise after this shared hook.
+await i18n.changeLanguage("en");
+beforeEach(async () => { await i18n.changeLanguage("en"); });
+
 const storageEntries = new Map<string, string>();
 
 function installStorageMock(target: Record<string, unknown>) {

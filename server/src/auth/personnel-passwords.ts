@@ -15,7 +15,7 @@ export async function initializePersonnelPasswords(db: Db, sourceId?: string, ac
       const [person] = await tx.select().from(personnelPeople).where(eq(personnelPeople.id, candidate.id)).for("update");
       if (!person?.userId || !person.active || !person.managedAccount) return false;
       const [source] = await tx.select().from(personnelSources).where(and(eq(personnelSources.id, person.sourceId), eq(personnelSources.enabled, true)));
-      const [member] = await tx.select().from(companyMemberships).where(and(eq(companyMemberships.companyId, person.companyId), eq(companyMemberships.principalType, "user"), eq(companyMemberships.principalId, person.userId), eq(companyMemberships.status, "active")));
+      const [member] = await tx.select().from(companyMemberships).where(and(eq(companyMemberships.principalType, "user"), eq(companyMemberships.principalId, person.userId), eq(companyMemberships.status, "active")));
       if (!source || !member) return false;
       await tx.select().from(authUsers).where(eq(authUsers.id, person.userId)).for("update");
       const [account] = await tx.select().from(authAccounts).where(and(eq(authAccounts.userId, person.userId), eq(authAccounts.providerId, "credential")));

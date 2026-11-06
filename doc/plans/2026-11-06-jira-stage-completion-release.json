@@ -1,0 +1,83 @@
+{
+  "release": "20261106-jira-stage-completion",
+  "status": "deployed",
+  "timestamp": "2026-11-06T06:19:26.249823+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-b159bdde.js",
+  "uiModule": "DeliveryEntries-4890c69b.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/jira-completion-20261106/backup-20261106T061908Z",
+  "serverRestarted": false,
+  "service": "MainPID=3731207\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/lib/delivery-entry-stages.ts": "2a8bd78c68f57333ee13fb087984a9c58a9589d1499c1ffa6b6bf9fead65f047",
+    "ui/src/components/DeliveryEntryStages.tsx": "6e1137cd9dcf5d83951a41fa2891aa5e5ce23d5327691ffcb51a31f7e0250531"
+  },
+  "verification": {
+    "node": "v24.11.0",
+    "linkedModules": 676,
+    "artifactRender": "passed",
+    "sourceReviewTones": "passed",
+    "testingCompletion": "passed",
+    "formalVerificationPreserved": true,
+    "componentTests": 29,
+    "uiTypecheck": "passed",
+    "tokenGates": "passed",
+    "scope": "live production assets plus scoped source transpilation; no full dirty-worktree build"
+  },
+  "browserVerification": {
+    "completedHistorical": {
+      "url": "http://10.60.43.53:3100/ATS/delivery?view=saved&snapshotId=aa4076f7-8ef5-4816-b632-136b1669aa44&stage=testing",
+      "entry": "http://10.60.43.53:3100/assets/index-b159bdde.js",
+      "cards": [
+        {
+          "text": "1. 需求分析\n\n待核对\n\n条目级分析与评审\n\n完成依据：轻舟分析与评审记录",
+          "badge": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300"
+        },
+        {
+          "text": "2. 设计\n\n设计已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态",
+          "badge": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+        },
+        {
+          "text": "3. 编码\n\n编码已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态",
+          "badge": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+        },
+        {
+          "text": "4. 测试\n\n测试已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态",
+          "badge": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+        }
+      ],
+      "section": "条目交付阶段\n\n阶段完成以 Jira 来源工单状态为准；需求分析无子工单时展示轻舟分析与评审记录。\n\n1. 需求分析\n\n待核对\n\n条目级分析与评审\n\n完成依据：轻舟分析与评审记录\n\n2. 设计\n\n设计已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态\n\n3. 编码\n\n编码已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态\n\n4. 测试\n\n测试已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态\n\n测试 · 关联工单与任务\n\n用例编写、用例评审与功能测试\n\n测试阶段的关联工单、业务状态与平台执行\n工单／所属主单\t来源状态／负责人\t平台执行与待办\t完成与交付记录\t操作\n\n\nATSES-503027 · 功能测试\n\n万达集团共享-中行发薪调整-功能测试\n\n主单：ATSES-503014\n\n\t\n\n已完成\n\nshils0815 石立山\n\n\t尚未接入平台执行\t\n\n已完成（Jira）\n\n\t\n查看来源历史\n\n\n\nATSES-503186 · 详细测试用例编写\n\n万达集团共享-中行发薪调整-详细测试用例编写\n\n主单：ATSES-503014\n\n\t\n\n已完成\n\nshils0815 石立山\n\n\t尚未接入平台执行\t\n\n已完成（Jira）\n\n\t\n查看来源历史\n\n测试阶段包含用例编写、人工用例评审和功能测试；各子工单保留独立身份，按前置交付与评审结论推进。\n\n查看全部工单与安排执行\n\n同一阶段的 Jira 来源工单全部完成即显示阶段已完成，无需平台执行或核验记录。平台运行与交付记录仅供补充查看，正式验收单独展示。\n\n正式验收：尚未登记正式验收"
+    },
+    "incompleteHistorical": {
+      "url": "http://10.60.43.53:3100/ATS/delivery?view=saved&snapshotId=248e1081-26a9-4ab0-9862-c23b9e062417&stage=testing",
+      "cards": "1. 需求分析\n\n待核对\n\n条目级分析与评审\n\n完成依据：轻舟分析与评审记录\n\n2. 设计\n\n设计已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态\n\n3. 编码\n\n编码已完成（Jira）\n\n2 张工单 · 来源已完成 2/2\n\n完成依据：Jira 工单状态\n\n4. 测试\n\n测试待核对\n\n2 张工单 · 来源已完成 1/2\n\n完成依据：Jira 工单状态"
+    },
+    "originalScreenshotEntryVerified": false,
+    "screenshotCase3of3": "covered by component test and release artifact render",
+    "screenshot": "/home/fg/paperclip/private/jira-completion-20261106/browser.png"
+  },
+  "criteria": "Nonempty stage Jira source tickets all successfully completed => stage completed; platform verification supplemental; no formal acceptance mutation.",
+  "sourceArchive": "/home/fg/paperclip/private/jira-completion-20261106/sources.tar.gz"
+}

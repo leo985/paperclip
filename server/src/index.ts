@@ -1,3 +1,5 @@
+import { sweepDeliveryWorkflows } from "./services/delivery-workflows.js";
+import { expireSessionBodies } from "./services/managed-sessions.js";
 /// <reference path="./types/express.d.ts" />
 // Kicks off the OTel bootstrap as early as possible (no-op unless
 // OTEL_EXPORTER_OTLP_ENDPOINT is set). startServer() awaits
@@ -1160,6 +1162,8 @@ async function startServerWithDatabaseTeardown(
     ["reconciliation_delivery", () => heartbeat ? deliverReconciledExecutions(db, heartbeat.wakeup) : undefined],
     ["status_delivery", () => deliverExecutionStatuses(db)],
     ["automatic_disposition", () => settleUnrecoverableExecutions(db)],
+    ["delivery_workflows", () => sweepDeliveryWorkflows(db)],
+    ["managed_session_retention", () => expireSessionBodies(db)],
     ["local_ai_login_cleanup", () => localAiLoginService(db).reapExpired()],
   ] as const;
   const sweepExecutionControl = () => {

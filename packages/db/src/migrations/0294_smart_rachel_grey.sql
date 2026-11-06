@@ -1,0 +1,1 @@
+ALTER TABLE "seat_execution_permits" ADD COLUMN "execution_route" jsonb;

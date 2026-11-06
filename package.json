@@ -89,6 +89,8 @@
     "connections:ingest-app-definitions": "node scripts/ingest-app-definitions.mjs"
   },
   "devDependencies": {
+    "@babel/generator": "7.29.8",
+    "@babel/parser": "7.29.8",
     "@playwright/test": "^1.62.1",
     "agentmail": "^0.5.14",
     "cross-env": "^10.1.0",

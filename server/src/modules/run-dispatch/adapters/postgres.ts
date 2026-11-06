@@ -309,7 +309,12 @@ export function createPostgresRunDispatchAdapter(
       issueId,
       projectId: readNonEmptyString(input.contextSnapshot.projectId),
     });
-    facts.budgetBlock = budgetBlock
+    // getInvocationBlock also covers administrative pauses. Preserve the
+    // agent-invokability reason for a manual pause; a hard-stop pause must
+    // retain the budget gate and its precedence.
+    const manualAgentPause = budgetBlock?.scopeType === "agent"
+      && agent.status === "paused" && agent.pauseReason !== "budget";
+    facts.budgetBlock = budgetBlock && !manualAgentPause
       ? { reason: budgetBlock.reason, scopeType: budgetBlock.scopeType, scopeId: budgetBlock.scopeId }
       : null;
     if (facts.budgetBlock) return { agentFound: true, facts };

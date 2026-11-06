@@ -1,0 +1,51 @@
+{
+  "release": "admin-seat-dispatch",
+  "state": "released",
+  "updatedAt": "2026-10-23T11:20:10.923570+00:00",
+  "stage": "/home/fg/paperclip/private/admin-seat-dispatch-20261023T111505Z",
+  "backup": "/home/fg/paperclip/private/admin-seat-dispatch-20261023T111505Z/backup",
+  "filesVerified": 174,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "bridgeVersion": "63a24c109d7178a5ec2e5054318d8f80cc03b40e97ae50a2c7e64dff1325ea13",
+  "databaseMigration": false,
+  "immediateDeploymentAuthorized": true,
+  "clientUpgradeRequired": true,
+  "otherServicesUnchanged": true,
+  "checks": {
+    "serverTypeScript": true,
+    "uiTypeScript": true,
+    "uiBuild": true,
+    "pythonSyntax": true,
+    "tokenGates": true,
+    "testsRun": false,
+    "publicAssets": [
+      {
+        "path": "ui-dist/index.html",
+        "sha256Matches": true
+      },
+      {
+        "path": "ui-dist/assets/index-1XKT2G3A.js",
+        "sha256Matches": true
+      },
+      {
+        "path": "ui-dist/dsp7-bridge-manifest.json",
+        "sha256Matches": true
+      }
+    ]
+  },
+  "unit": "paperclip-admin-seat-dispatch-direct-20261023t111505z",
+  "includesPendingStatusCapacityChange": true
+}

@@ -1,0 +1,33 @@
+{
+  "productionRelease": {
+    "release": "harness-native-directory-enrollment",
+    "timestamp": "20261025T165040Z",
+    "filesVerified": 176,
+    "backup": "/home/fg/paperclip/private/harness-directory-backup-20261025T165040Z",
+    "health": "ok",
+    "serviceRestarted": false,
+    "clientSha256": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+    "existingSeatsForceUpdated": false,
+    "browser": "Microsoft Edge; isolated interaction tests passed",
+    "databaseChanged": false
+  },
+  "postReleaseChecks": {
+    "health": "ok",
+    "clientDownloadVerified": true,
+    "guideAssetVerified": true,
+    "helpUpdated": true
+  },
+  "edge": {
+    "browser": "Microsoft Edge",
+    "checks": [
+      "Guide opens without submitting analysis form",
+      "Seat-bound analysis command without path",
+      "Clipboard success or actionable fallback",
+      "QA command generation and invalidation after kind change",
+      "Refresh seat registration retains form and command",
+      "Mobile page without horizontal overflow",
+      "No model dispatch and no page errors"
+    ],
+    "pageErrors": []
+  }
+}

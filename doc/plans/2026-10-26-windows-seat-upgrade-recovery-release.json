@@ -1,0 +1,35 @@
+{
+  "release": "windows-seat-interrupted-outbound-upgrade-recovery",
+  "baseline": {
+    "dsp7-install.py": "99d625e5b882981eb8aec258b0cf8512792f482972c884b906a51aff70b91189",
+    "dsp7-bridge.zip": "0bc439e27fa760b2d519ac85f4ae4b5e102d90e39fd7b1deb1ad566455cf7bde",
+    "dsp7-bridge-manifest.json": "aa9bbdc176216d05a15d2538938a8aa0b9119096a8be91623421650451bb63ac"
+  },
+  "files": {
+    "dsp7-install.py": "99d625e5b882981eb8aec258b0cf8512792f482972c884b906a51aff70b91189",
+    "dsp7-bridge.zip": "d8fc0ce2a21398bc314e75082d4e4ad34b513628e7f1257d26c679d8a298bfbb",
+    "dsp7-bridge-manifest.json": "d2d19fafdeb9d3b9de22631dd7473c23654a4470cc2535fa3095cf065a8bb125"
+  },
+  "bridgeVersion": "d8fc0ce2a21398bc314e75082d4e4ad34b513628e7f1257d26c679d8a298bfbb",
+  "changedBundleFiles": [
+    "seat_upgrade.py",
+    "seat_lifecycle.py"
+  ],
+  "testCasesPassed": 115,
+  "testCasesTotal": 116,
+  "windowsNativeTestSkipped": true,
+  "windowsUpgradeRecoveryPending": true,
+  "verifiedExistingAgentId": "87ed3723-6fff-40b8-ab01-d0183580686d",
+  "releasePackageTestsPassed": 106,
+  "releasePackageTestsTotal": 107,
+  "releasePackageExcludedTests": [
+    "test_delivery_execution.py (module not present in unchanged production baseline)"
+  ],
+  "state": "released",
+  "updatedAt": "2026-10-26T08:47:40.107025+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-upgrade-recovery-20261026T084738Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

@@ -136,15 +136,15 @@ describe("InvitesSection", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Invite a person");
+    expect(container.textContent).toContain("邀请人员");
     expect(container.textContent).not.toContain("Invite an agent");
     expect(container.textContent).not.toContain("Generate agent onboarding prompt");
-    expect(container.textContent).toContain("Invite history");
+    expect(container.textContent).toContain("邀请历史");
     expect(container.textContent).toContain("Board User 25");
     expect(container.textContent).toContain("Board User 21");
     expect(container.textContent).not.toContain("Board User 20");
     expect(container.textContent).toContain("Review request");
-    expect(container.textContent).toContain("View more");
+    expect(container.textContent).toContain("查看更多");
     expect(container.textContent).not.toContain("Human or agent");
     expect(container.textContent).not.toContain("Invite message");
     expect(container.textContent).not.toContain("Latest generated invite");
@@ -153,15 +153,15 @@ describe("InvitesSection", () => {
     expect(container.textContent).not.toContain("Expired invites");
     expect(container.textContent).not.toContain("OpenClaw shortcut");
 
-    expect(container.textContent).toContain("Choose a role");
-    expect(container.textContent).toContain("Each invite link is single-use.");
-    expect(container.textContent).toContain("Can create agents, invite users, assign tasks, and approve join requests.");
-    expect(container.textContent).toContain("Everything in Admin, plus managing members.");
+    expect(container.textContent).toContain("选择角色");
+    expect(container.textContent).toContain("每条邀请链接仅可使用一次。");
+    expect(container.textContent).toContain("可以配置执行智能体、邀请人员和审批加入申请；实例级配置仍需实例管理员。");
+    expect(container.textContent).toContain("拥有组织管理员能力，并管理成员权限。");
     expect(container.textContent).not.toContain("permission grants");
     expect(listInvitesMock).toHaveBeenCalledWith("company-1", { limit: 5, offset: 0 });
 
     const viewMoreButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "View more",
+      (button) => button.textContent?.trim() === "查看更多",
     );
 
     await act(async () => {
@@ -173,7 +173,7 @@ describe("InvitesSection", () => {
     expect(listInvitesMock).toHaveBeenCalledWith("company-1", { limit: 5, offset: 5 });
     expect(container.textContent).toContain("Board User 20");
     expect(container.textContent).toContain("Board User 16");
-    expect(container.textContent).toContain("View more");
+    expect(container.textContent).toContain("查看更多");
 
     await act(async () => {
       const viewerRadio = container.querySelector('input[type="radio"][value="viewer"]') as HTMLInputElement | null;
@@ -182,8 +182,8 @@ describe("InvitesSection", () => {
     });
 
     const buttons = Array.from(container.querySelectorAll("button"));
-    const createButton = buttons.find((button) => button.textContent === "Create invite");
-    const revokeButton = buttons.find((button) => button.textContent === "Revoke");
+    const createButton = buttons.find((button) => button.textContent?.trim() === "Create invite");
+    const revokeButton = buttons.find((button) => button.textContent?.trim() === "Revoke");
 
     expect(createButton).toBeTruthy();
     expect(revokeButton).toBeTruthy();
@@ -200,9 +200,9 @@ describe("InvitesSection", () => {
       agentMessage: null,
     });
     expect(clipboardWriteTextMock).toHaveBeenCalledWith("https://paperclip.local/invite/new-token");
-    expect(container.textContent).toContain("Latest invite link");
+    expect(container.textContent).toContain("最新邀请链接");
     expect(container.textContent).toContain("This URL includes the current Paperclip domain returned by the server.");
-    expect(container.querySelector('input[aria-label="Latest invite URL"]')).toHaveProperty(
+    expect(container.querySelector('input[aria-label="最新邀请链接"]')).toHaveProperty(
       "value",
       "https://paperclip.local/invite/new-token",
     );
@@ -211,13 +211,13 @@ describe("InvitesSection", () => {
     // mean, so the section deliberately offers no "Open invite" action.
     expect(container.textContent).not.toContain("Open invite");
     expect(pushToastMock).toHaveBeenCalledWith({
-      title: "Invite created",
-      body: "Invite ready below and copied to clipboard.",
+      title: "邀请已创建",
+      body: "邀请链接已生成并复制。",
       tone: "success",
     });
 
     const copyLinkButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Copy link",
+      (button) => button.textContent?.trim() === "Copy link",
     );
 
     await act(async () => {
@@ -272,7 +272,7 @@ describe("InvitesSection", () => {
     await flushReact();
 
     const createButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Create invite",
+      (button) => button.textContent?.trim() === "Create invite",
     );
 
     await act(async () => {
@@ -281,12 +281,12 @@ describe("InvitesSection", () => {
     await flushReact();
     await flushReact();
 
-    const inviteInput = container.querySelector('input[aria-label="Latest invite URL"]') as HTMLInputElement | null;
+    const inviteInput = container.querySelector('input[aria-label="最新邀请链接"]') as HTMLInputElement | null;
     expect(inviteInput?.value).toBe("https://paperclip.local/invite/new-token");
     expect(document.execCommand).toHaveBeenCalledWith("copy");
     expect(pushToastMock).toHaveBeenCalledWith({
-      title: "Invite created",
-      body: "Invite ready below and copied to clipboard.",
+      title: "邀请已创建",
+      body: "邀请链接已生成并复制。",
       tone: "success",
     });
 

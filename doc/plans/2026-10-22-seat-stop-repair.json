@@ -1,0 +1,17 @@
+{
+  "taskId": "f264dbf4-8678-4e64-9dbd-421943a9ae18",
+  "sourceRunId": "1b1502f8-c2ae-4e03-900b-82c09d89d244",
+  "originalAuthorizationId": "0b8b0a97-866c-4097-98fa-8a55514d1e8d",
+  "repairedAuthorizationId": "6edd1cff-5b76-4f9a-b360-212d49276d1a",
+  "verifiedSuccessor": {
+    "runId": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea",
+    "commandId": "3542f08d-640d-56de-8000-1ed2d3ab79aa",
+    "startedAt": "2026-10-22T15:28:39.646Z",
+    "terminalConnectedReceiptAt": "2026-10-22T15:28:48.178Z",
+    "status": "running",
+    "localClaudePid": 41560,
+    "localPidAlive": true,
+    "terminalConnected": true,
+    "terminalLogBytesAtVerification": 67995
+  }
+}

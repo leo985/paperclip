@@ -1,4 +1,5 @@
 import { uiText } from "@/i18n/interface";
+import { useSeatAgentIdentity } from "@/hooks/useSeatAgentIdentity";
 import { AiConnectionField } from "./ai-connections/AiConnectionField";
 import { aiConnectionBindingSchema } from "@paperclipai/shared";
 import { testAgentSetup } from "@/lib/test-agent-setup";
@@ -339,6 +340,7 @@ function ConfigSections({ order, className, children }: {
 export function AgentConfigForm(props: AgentConfigFormProps) {
   const { mode, adapterModels: externalModels } = props;
   const isCreate = mode === "create";
+  const seatIdentity = useSeatAgentIdentity(!isCreate ? props.agent : undefined);
   const cards = props.sectionLayout === "cards";
   const showAdapterTypeField = props.showAdapterTypeField ?? true;
   const showAdapterTestEnvironmentButton = props.showAdapterTestEnvironmentButton ?? true;
@@ -1464,15 +1466,16 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 placeholder={uiText("e.g. VP of Engineering")}
               />
             </Field>
-            <Field label={uiText("Reports to")} hint={help.reportsTo}>
+            {!seatIdentity.isSeat && !seatIdentity.pending && !seatIdentity.failed && <Field label="上级智能体" hint="用于智能体之间的汇报与协作层级，不是人类负责人；独立执行可留空。">
               <ReportsToPicker
                 agents={companyAgents}
                 value={eff("identity", "reportsTo", props.agent.reportsTo ?? null)}
                 onChange={(id) => mark("identity", "reportsTo", id)}
                 excludeAgentIds={[props.agent.id]}
-                chooseLabel="Choose manager…"
+                chooseLabel="选择上级智能体（可选）"
               />
-            </Field>
+            </Field>}
+            {seatIdentity.isSeat && <p className="text-sm text-muted-foreground">个人席位无需配置上级智能体。人类负责人由管理员在席位管理中指定。</p>}
             {isLocal && !props.hidePromptTemplate && (
               <>
                 <Field label={uiText("Prompt Template")} hint={help.promptTemplate}>

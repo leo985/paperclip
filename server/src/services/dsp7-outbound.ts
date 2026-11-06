@@ -14,7 +14,7 @@ interface Job {
 }
 const jobs=new Map<string,Job>();
 export function outboundJob(runId:string) { return jobs.get(runId); }
-export function pendingOutbound(agentId:string) { return [...jobs.values()].find(j=>j.ctx.agent.id===agentId&&!j.lease); }
+export function pendingOutbound(agentId:string) { return [...jobs.values()].find(j=>j.ctx.agent.id===agentId&&!j.lease&&!j.dispatching); }
 export async function claimOutbound(job:Job) {
   if(job.lease||job.dispatching)throw new Error("运行已领取，不自动重新派发");
   job.dispatching=true;
@@ -63,11 +63,13 @@ async function skills(config:Record<string,unknown>) {
 export async function executeOutbound(ctx:AdapterExecutionContext):Promise<AdapterExecutionResult> {
   const reason=String(ctx.context.wakeReason??ctx.context.reason??(ctx.context.paperclipWake as Record<string,unknown>|undefined)?.reason??"");
   // User messages go through the Harness decision relay, never another model.
-  if(!reason.startsWith("本地研发人员主动启动交互会话；"))return {exitCode:0,signal:null,timedOut:false,usage:{inputTokens:0,outputTokens:0},usageBasis:"per_run",costUsd:0,resultJson:{dsp7_no_model_invocation:true},summary:"页面消息由本机接入桥处理；本次未调用模型。"};
+  const analysis=reason.startsWith("智研需求分析授权启动；")&&typeof ctx.context.analysisExecutionId==="string";
+  const delivery=reason.startsWith("智研条目交付授权启动；")&&typeof ctx.context.deliveryWorkflowId==="string";
+  if(!analysis&&!delivery&&!reason.startsWith("本地研发人员主动启动交互会话；"))return {exitCode:1,signal:null,timedOut:false,errorCode:"dsp7_local_start_required",errorMessage:"本次未启动本机 Claude：缺少经过核验的本机启动请求。页面消息由接入桥续传，不能视为执行成功。",resultJson:{dsp7_no_model_invocation:true}};
   if(!ctx.authToken)throw new Error("本机执行缺少运行期凭证");
   const taskId=String(ctx.context.issueId??ctx.context.taskId??"");
   if(!/^[a-f0-9-]{36}$/.test(taskId))throw new Error("本机执行需要已登记的任务");
-  const packet={runId:ctx.runId,agentId:ctx.agent.id,companyId:ctx.agent.companyId,taskId,reason,prompt:[renderPaperclipWakePrompt(ctx.context.paperclipWake),selectPaperclipTaskMarkdown(ctx.context),"按已登记的 Harness 流程执行。先 inspect、claim；不得绕过 Jira 审批与领域完成核验。"].filter(Boolean).join("\n\n"),skills:await skills(ctx.config),mcp:ctx.runtimeMcp?.getServers()??[]};
+  const packet={runId:ctx.runId,agentId:ctx.agent.id,companyId:ctx.agent.companyId,taskId,reason,executionKind:delivery?"delivery":analysis?"analysis":"development",deliveryKind:delivery?ctx.context.deliveryKind:undefined,prompt:[renderPaperclipWakePrompt(ctx.context.paperclipWake),selectPaperclipTaskMarkdown(ctx.context),analysis?"按固定的分析 Harness 原生流程执行；不得伪造真实评审或正式发布。":"按已登记的 Harness 流程执行。先 inspect、claim；不得绕过 Jira 审批与领域完成核验。"].filter(Boolean).join("\n\n"),skills:await skills(ctx.config),mcp:ctx.runtimeMcp?.getServers()??[]};
   await ctx.onCancellationReady?.();
   if(ctx.signal?.aborted)throw new Error("运行已取消");
   await ctx.onMeta?.({adapterType:"claude_local",command:"本机主动连接",commandNotes:["本机领取真实运行，沿用本机模型配置；不使用 SSH。"]});

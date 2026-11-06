@@ -1,0 +1,37 @@
+{
+  "release": "issue-management-ui",
+  "state": "released",
+  "updatedAt": "2026-10-24T02:33:45.883966+00:00",
+  "stage": "/home/fg/paperclip/private/issue-management-ui-20261024T023339Z",
+  "backup": "/home/fg/paperclip/private/issue-management-ui-20261024T023339Z/backup",
+  "filesVerified": 170,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "backendChanged": false,
+  "clientUpgradeRequired": false,
+  "bridgeVersion": "a84fd1d2f0db66a1fb28b4f69b0fafb57d793674a8400b0878d7b61c14373bf6",
+  "checks": {
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "testsRun": false,
+    "authenticatedBrowserTested": false,
+    "localFixtureBrowserTested": true,
+    "executionEvidenceChecks": 9,
+    "publicAssetHashes": true
+  }
+}

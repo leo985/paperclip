@@ -6,6 +6,7 @@ import functools
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -19,35 +20,42 @@ if not WINDOWS:
     import fcntl
 else:
     import msvcrt
+    from ctypes import wintypes
+    class _Overlapped(ctypes.Structure):
+        _fields_=[('Internal',ctypes.c_size_t),('InternalHigh',ctypes.c_size_t),
+                  ('Offset',wintypes.DWORD),('OffsetHigh',wintypes.DWORD),('hEvent',wintypes.HANDLE)]
+    _kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    _kernel.LockFileEx.argtypes=[wintypes.HANDLE,wintypes.DWORD,wintypes.DWORD,wintypes.DWORD,wintypes.DWORD,ctypes.POINTER(_Overlapped)]
+    _kernel.LockFileEx.restype=wintypes.BOOL
+    _kernel.UnlockFileEx.argtypes=[wintypes.HANDLE,wintypes.DWORD,wintypes.DWORD,wintypes.DWORD,ctypes.POINTER(_Overlapped)]
+    _kernel.UnlockFileEx.restype=wintypes.BOOL
     class fcntl:
-        LOCK_EX = 2
-        LOCK_NB = 4
-        LOCK_UN = 8
+        LOCK_SH=1
+        LOCK_EX=2
+        LOCK_NB=4
+        LOCK_UN=8
         @staticmethod
-        def flock(file, flags):
-            fd = file if isinstance(file, int) else file.fileno()
-            # locking() locks from the current position; use the same byte in
-            # every process. Windows releases the byte-range lock on close.
-            if os.fstat(fd).st_size == 0:
-                os.write(fd, b'\0')
-            os.lseek(fd, 0, os.SEEK_SET)
+        def flock(file,flags):
+            fd=file if isinstance(file,int) else file.fileno()
+            handle=msvcrt.get_osfhandle(fd);offset=_Overlapped()
             if flags & fcntl.LOCK_UN:
-                msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                if not _kernel.UnlockFileEx(handle,0,1,0,ctypes.byref(offset)):raise ctypes.WinError(ctypes.get_last_error())
                 return
             while True:
-                try:
-                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-                    return
-                except OSError as error:
-                    if error.errno not in (13, 36): raise
-                    if flags & fcntl.LOCK_NB: raise BlockingIOError('Seat lock is held') from None
-                    time.sleep(.1)
+                # Immediate acquisition with explicit retry keeps shared locks
+                # compatible with exclusive installer and existing byte locks.
+                if _kernel.LockFileEx(handle,1|(2 if flags & fcntl.LOCK_EX else 0),0,1,0,ctypes.byref(offset)):return
+                error=ctypes.get_last_error()
+                if error not in (33,158):raise ctypes.WinError(error)
+                if flags & fcntl.LOCK_NB:raise BlockingIOError('Seat lock is held')
+                time.sleep(.1)
 
 
 def powershell(script, *, env=None, timeout=30):
+    script = "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);\n" + script
     return subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
                           env=env, capture_output=True, encoding='utf-8', errors='replace',
-                          check=True, timeout=timeout, creationflags=subprocess.CREATE_NO_WINDOW if WINDOWS else 0)
+                          stdin=subprocess.DEVNULL, check=True, timeout=timeout, creationflags=subprocess.CREATE_NO_WINDOW if WINDOWS else 0)
 
 
 def private_directory(path):
@@ -59,14 +67,33 @@ def private_directory(path):
         # Replace the DACL, rather than chmod (which does not protect Windows
         # secrets). Only this user and SYSTEM can read inherited seat files.
         env = dict(os.environ, PAPERCLIP_ACL_PATH=str(path.resolve()))
-        powershell("""$ErrorActionPreference='Stop';
+        try:
+            powershell("""$ErrorActionPreference='Stop';
 $p=$env:PAPERCLIP_ACL_PATH;
 $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User;
-$acl=New-Object System.Security.AccessControl.DirectorySecurity;
-$acl.SetOwner($sid);$acl.SetAccessRuleProtection($true,$false);
+$directory=[System.IO.DirectoryInfo]::new($p);
+# Windows may assign an elevated creator's files to Administrators, or keep
+# SYSTEM ownership on a managed profile. Neither is another personal seat.
+$trustedOwners=@($sid.Value,'S-1-5-18','S-1-5-32-544');
+$owner=$directory.GetAccessControl([System.Security.AccessControl.AccessControlSections]::Owner).GetOwner([System.Security.Principal.SecurityIdentifier]).Value;
+if($owner -notin $trustedOwners){throw ('Seat directory has another owner: '+$owner)};
+# Read and write only the access section. Set-Acl on a freshly constructed
+# descriptor can attempt to write the SACL and require SeSecurityPrivilege.
+$acl=$directory.GetAccessControl([System.Security.AccessControl.AccessControlSections]::Access);
+$acl.SetAccessRuleProtection($true,$false);
+foreach($rule in @($acl.GetAccessRules($true,$false,[System.Security.Principal.SecurityIdentifier]))){$acl.RemoveAccessRuleSpecific($rule)};
 foreach($s in @($sid,[System.Security.Principal.SecurityIdentifier]::new('S-1-5-18'))){
 $r=[System.Security.AccessControl.FileSystemAccessRule]::new($s,'FullControl','ContainerInherit,ObjectInherit','None','Allow');$acl.AddAccessRule($r)};
-Set-Acl -LiteralPath $p -AclObject $acl""", env=env)
+$directory.SetAccessControl($acl)""", env=env)
+        except subprocess.CalledProcessError as error:
+            # ACL commands contain no secrets, but do not echo arbitrary child
+            # output or a full command line from the generic installer handler.
+            detail = error.stderr or error.stdout or ''
+            if 'Seat directory has another owner' in detail:
+                owner = re.search(r'Seat directory has another owner:\s*(S-\d+(?:-\d+)+)', detail)
+                label = '（SID：'+owner.group(1)+'）' if owner else ''
+                raise RuntimeError('Windows 接入目录属于其他用户'+label+'：'+str(path.resolve())+'；请使用当前用户自己的目录') from None
+            raise RuntimeError('Windows 接入目录访问权限设置失败（退出码 '+str(error.returncode)+'）；请联系管理员核对该目录的所有者及访问权限，不能通过跳过后台服务安装解决') from None
         _PRIVATE_DIRECTORIES.add(str(path.resolve()))
     elif not WINDOWS:
         if path.stat().st_uid != os.getuid(): raise RuntimeError('Seat directory has another owner')
@@ -79,26 +106,86 @@ def credential_private(path):
     if not path.is_file() or path.is_symlink():return False
     if not WINDOWS:return not bool(path.stat().st_mode & 0o077)
     env=dict(os.environ, PAPERCLIP_ACL_PATH=str(path.resolve()))
-    result=powershell("""$ErrorActionPreference='Stop';
+    try:
+        result=powershell("""$ErrorActionPreference='Stop';
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);
-$a=Get-Acl -LiteralPath $env:PAPERCLIP_ACL_PATH;
+$file=[System.IO.FileInfo]::new($env:PAPERCLIP_ACL_PATH);
+$sections=[System.Security.AccessControl.AccessControlSections]::Access -bor [System.Security.AccessControl.AccessControlSections]::Owner;
+$a=$file.GetAccessControl($sections);
 $me=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value;
 $allowed=@($me,'S-1-5-18','S-1-5-32-544');
-$bad=@($a.Access | Where-Object {$_.AccessControlType -eq 'Allow' -and $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value -notin $allowed});
-if($a.GetOwner([Security.Principal.SecurityIdentifier]).Value -eq $me -and $bad.Count -eq 0){'private'}else{'shared'}""",env=env)
+# Request SID rules directly. NTAccount translation can block on an unreachable
+# domain controller even though all permission data is already stored locally.
+$rules=$a.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]);
+$bad=@($rules | Where-Object {$_.AccessControlType -eq 'Allow' -and $_.IdentityReference.Value -notin $allowed});
+# Match the directory owner policy, while still rejecting any Allow entry
+# outside the current user, SYSTEM and Administrators.
+if($a.GetOwner([Security.Principal.SecurityIdentifier]).Value -in $allowed -and $bad.Count -eq 0){'private'}else{'shared'}""",env=env)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError('Windows 席位凭据权限校验超时（30 秒）；配置及原席位保留，请检查 PowerShell 或终端安全软件，不要删除配置或重复创建席位') from None
     return result.stdout.strip()=='private'
 
 
+def _windows_claude_package_entry(executable):
+    """Resolve installed npm metadata without executing a shell shim."""
+    shim = Path(executable)
+    prefixes = [shim.parent, shim.resolve().parent]
+    for name in ('NPM_CONFIG_PREFIX', 'npm_config_prefix', 'APPDATA'):
+        value = os.environ.get(name)
+        if value:
+            prefixes.append(Path(value) / 'npm' if name == 'APPDATA' else Path(value))
+    checked = []
+    for prefix in dict.fromkeys(prefixes):
+        package = prefix / 'node_modules/@anthropic-ai/claude-code'
+        checked.append(package)
+        metadata = package / 'package.json'
+        target = 'cli.js'
+        if metadata.is_file():
+            try:
+                data = json.loads(metadata.read_text(encoding='utf-8-sig'))
+                binary = data.get('bin')
+                target = binary.get('claude') if isinstance(binary, dict) else binary
+            except (OSError, ValueError, AttributeError):
+                raise RuntimeError('Claude npm 安装的 package.json 无效，请修复 Claude 安装') from None
+            if data.get('name') != '@anthropic-ai/claude-code' or not isinstance(target, str) or not target:
+                continue
+        entry = (package / target).resolve()
+        try:
+            entry.relative_to(package.resolve())
+        except ValueError:
+            raise RuntimeError('Claude npm 入口超出安装包目录，请核对 Claude 安装') from None
+        if entry.is_file() and entry.suffix.lower() in ('.js', '.cjs', '.mjs', '.exe'):
+            return entry
+    raise RuntimeError('找到了 Claude 启动脚本，但未找到有效的 Claude npm 程序入口；请执行 npm root -g 核对安装目录。检查位置：'+str(checked[0]))
+
+
+def _windows_node(executable):
+    """Include standard installs when Node is missing from a stale PATH."""
+    candidates = [Path(executable).parent / 'node.exe', shutil.which('node.exe'), shutil.which('node')]
+    for name in ('ProgramW6432', 'ProgramFiles', 'ProgramFiles(x86)'):
+        if os.environ.get(name):
+            candidates.append(Path(os.environ[name]) / 'nodejs/node.exe')
+    for name in ('NVM_SYMLINK', 'FNM_MULTISHELL_PATH'):
+        if os.environ.get(name):
+            candidates.append(Path(os.environ[name]) / 'node.exe')
+    if os.environ.get('LOCALAPPDATA'):
+        candidates.append(Path(os.environ['LOCALAPPDATA']) / 'Programs/nodejs/node.exe')
+    if os.environ.get('VOLTA_HOME'):
+        candidates.append(Path(os.environ['VOLTA_HOME']) / 'bin/node.exe')
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return str(Path(candidate))
+    raise RuntimeError('Claude npm 程序已找到，但找不到 Node.js；请确认 node --version 可运行，安装或修复 Node.js 后重新打开 PowerShell。也可登记原生 claude.exe')
+
+
 def claude_argv(executable, args=()):
-    """Run npm's JS entry via node instead of sending prompts through cmd.exe."""
+    """Resolve npm JS or native entries; keep prompts out of cmd.exe."""
     executable=str(executable)
     if WINDOWS and Path(executable).suffix.lower() in ('.cmd','.bat','.ps1'):
-        script=Path(executable).parent/'node_modules/@anthropic-ai/claude-code/cli.js'
-        node=Path(executable).parent/'node.exe'
-        node=str(node) if node.is_file() else shutil.which('node')
-        if not script.is_file() or not node:
-            raise RuntimeError('Use native claude.exe or the official npm Claude installation with Node.js')
-        return [node,str(script),*args]
+        entry = _windows_claude_package_entry(executable)
+        if entry.suffix.lower() == '.exe':
+            return [str(entry), *args]
+        return [_windows_node(executable), str(entry), *args]
     return [executable,*args]
 
 
@@ -128,9 +215,9 @@ def windows_argv(command):
 
 def process_table():
     if WINDOWS:
-        output=powershell("[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); @((Get-CimInstance Win32_Process) | Select-Object ProcessId,ParentProcessId,CommandLine,CreationDate) | ConvertTo-Json -Compress",timeout=20).stdout
+        output=powershell("[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); @((Get-CimInstance Win32_Process) | Select-Object ProcessId,ParentProcessId,CommandLine,CreationDate,ExecutablePath) | ConvertTo-Json -Compress",timeout=20).stdout
         data=json.loads(output or '[]');data=[data] if isinstance(data,dict) else data
-        return {int(p['ProcessId']):{'parent':int(p['ParentProcessId']),'command':p.get('CommandLine') or '', 'created':p.get('CreationDate')} for p in data}
+        return {int(p['ProcessId']):{'parent':int(p['ParentProcessId']),'command':p.get('CommandLine') or '', 'created':p.get('CreationDate'),'image':p.get('ExecutablePath')} for p in data}
     output=subprocess.run(['/bin/ps','-axo','pid=,ppid=,command='],capture_output=True,text=True,check=True).stdout
     rows={}
     for line in output.splitlines():
@@ -139,9 +226,17 @@ def process_table():
     return rows
 
 
-def matches_claude(command, executable):
+def matches_claude(command, executable, image=None):
     if not WINDOWS:return False
     argv=windows_argv(command);expected=claude_argv(executable)
+    normalize=lambda p:os.path.normcase(os.path.abspath(p))
+    if image and normalize(image)!=normalize(expected[0]):return False
+    # Pywinpty launches with an explicit application path and a command line
+    # beginning with a space. CommandLineToArgvW then returns an empty argv[0].
+    # Accept that form only with the independently observed process image.
+    if argv and argv[0]=='':
+        if not image:return False
+        argv=[image,*argv[1:]]
     return len(argv)>=len(expected) and all(os.path.normcase(os.path.abspath(a))==os.path.normcase(os.path.abspath(b)) for a,b in zip(argv,expected))
 
 

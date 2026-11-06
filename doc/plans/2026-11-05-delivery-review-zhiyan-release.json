@@ -1,0 +1,21 @@
+{
+  "release": "20261105-delivery-review-zhiyan",
+  "status": "deployed",
+  "filesVerified": 3,
+  "entry": "index-879d8187.js",
+  "health": "ok",
+  "databaseMigrations": [],
+  "backup": "/home/fg/paperclip/private/delivery-review-zhiyan-20261105/backup",
+  "lostRunIds": [],
+  "timestamp": "2026-11-05T08:33:06.809815+00:00",
+  "nativeHarness": {
+    "development": "241cebd30f101ba3b44876207be47e41d53dc21c",
+    "qa": "6cf21ca0aee7cdc96fcb133cc18fe2350aca33e6"
+  },
+  "zhiyan": {
+    "version": "0.10.16",
+    "latestVerified": true,
+    "integrity": "sha512-e2aGUWBmUFNFpT2CWOLP/0fWHykfGipsFmrnZbCncxvifnkEm4trH8ooFbpX3+JaGJqtL7/5bjwzGXzi76fJIg=="
+  },
+  "seatRuntimeRollout": "requires-client-update-and-Claude-restart"
+}

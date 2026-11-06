@@ -7,7 +7,7 @@ import { getTelemetryClient } from "../telemetry.js";
 import { captureException } from "../sentry.js";
 import { COMPANY_IMPORT_API_PATH } from "../routes/company-import-paths.js";
 import { logger } from "./logger.js";
-import { isSecretSensitiveHttpRequest } from "./http-log-policy.js";
+import { isSecretSensitiveHttpRequest, isManagedConversationHttpRequest } from "./http-log-policy.js";
 import {
   collectSensitiveStringValues,
   redactSensitiveValueOccurrences,
@@ -55,9 +55,9 @@ function attachErrorContext(
     error: payload,
     method: req.method,
     url: req.originalUrl,
-    reqBody: req.body,
-    reqParams: req.params,
-    reqQuery: req.query,
+    reqBody: isManagedConversationHttpRequest(req.originalUrl)?undefined:req.body,
+    reqParams: isManagedConversationHttpRequest(req.originalUrl)?undefined:req.params,
+    reqQuery: isManagedConversationHttpRequest(req.originalUrl)?undefined:req.query,
   } satisfies ErrorContext;
   if (rawError) {
     (res as any).err = rawError;
@@ -176,7 +176,7 @@ export function errorHandler(
             },
         reportableError,
       );
-      reportCrash(reportableError);
+      if(!isManagedConversationHttpRequest(req.originalUrl))reportCrash(reportableError);
     }
     const secretSensitiveServerError =
       err.status >= 500 &&
@@ -280,7 +280,7 @@ export function errorHandler(
     reportableError,
   );
 
-  reportCrash(reportableError);
+  if(!isManagedConversationHttpRequest(req.originalUrl))reportCrash(reportableError);
 
   res.status(500).json({
     error: "Internal server error",

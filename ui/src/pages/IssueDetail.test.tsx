@@ -1591,7 +1591,7 @@ describe("IssueDetail", () => {
     expect(titleGroup?.textContent?.replace(/\s+/g, " ").trim()).toBe(
       "Issue detail smokePAP-1",
     );
-    expect(identifier?.textContent).toBe("PAP-1");
+    expect(identifier?.textContent?.trim()).toBe("PAP-1");
     expect(titleRow?.className).toContain("pr-8");
     expect(titleActions?.className).toContain("absolute");
     expect(titleActions?.className).toContain("top-0");
@@ -2970,10 +2970,10 @@ describe("IssueDetail", () => {
       expect(container.textContent).toContain("Core Product");
       expect(avatarStack).toBeTruthy();
       expect(assigneeAvatar?.getAttribute("aria-label")).toBe(
-        "Assignee: CodexCoder",
+        "Assignee：CodexCoder",
       );
       expect(originatingAvatar?.getAttribute("aria-label")).toBe(
-        "Originating: Dotta",
+        "Originating：Dotta",
       );
       expect(assigneeAvatar?.getAttribute("title")).toBeNull();
       expect(originatingAvatar?.getAttribute("title")).toBeNull();
@@ -3062,7 +3062,7 @@ describe("IssueDetail", () => {
         '[data-testid="issue-originating-avatar"]',
       );
       expect(originatingAvatar?.getAttribute("aria-label")).toBe(
-        "Originating: Dotta · via CodexCoder",
+        "Originating：Dotta · 经由 CodexCoder",
       );
     });
 
@@ -3080,7 +3080,7 @@ describe("IssueDetail", () => {
         '[data-testid="issue-originating-tooltip"]',
       );
       expect(tooltip?.textContent).toContain("Dotta");
-      expect(tooltip?.textContent).toContain("via CodexCoder");
+      expect(tooltip?.textContent).toContain("经由 CodexCoder");
     });
   });
 

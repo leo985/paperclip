@@ -1,0 +1,54 @@
+{
+  "release": "20261104-seat-list-height",
+  "files": 165,
+  "backup": "/home/fg/paperclip/private/seat-list-height-20261104/backup-20261103T174804Z",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "uiEntry": "index-bc92f068.js",
+  "target": "http://10.60.43.53:3100",
+  "behavior": "Removed fixed max-height and nested scrolling from seat list; list expands into available space and uses the main page scrollbar",
+  "verification": {
+    "publicFilesVerified": 165,
+    "publicHashMismatches": 0,
+    "bridgeSha256": "643cd8733a94bde4f9839f5eec4c2979fa963ed36656db50be6b7fc822bf69c2",
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  },
+  "validation": {
+    "tokenGates": "passed",
+    "staticModuleLinking": {
+      "modules": 503,
+      "allNamedImportsValid": true
+    },
+    "diffCheck": "passed",
+    "tests": "Not run for a CSS-class-only reversible layout change",
+    "browserAuthenticatedLayout": "not verified; session requires login"
+  }
+}

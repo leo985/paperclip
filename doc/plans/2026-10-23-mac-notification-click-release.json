@@ -1,0 +1,25 @@
+{
+  "release": "mac-notification-click",
+  "backup": "/home/fg/paperclip/private/notification-click-static-backup-20261023T100802Z",
+  "changedStaticFiles": 2,
+  "serverRestarted": false,
+  "mainPid": "1712267",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "bridgeVersion": "fc3b64d78d3511b9190ec6e7cadf6c6b734ee20ea32079427918fbb3237c8a3a",
+  "localUpdate": "scheduled_when_idle",
+  "notificationPermission": "denied",
+  "tests": "23 Python bridge tests passed"
+}

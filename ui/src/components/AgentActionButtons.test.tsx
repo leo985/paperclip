@@ -7,6 +7,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Agent } from "@paperclipai/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentActionButtons } from "./AgentActionButtons";
+import { i18n } from "../i18n";
+
+const mockSeatList = vi.hoisted(() => vi.fn(async () => [] as Array<{ agentId: string }>));
+vi.mock("../api/dsp7-seats", () => ({ dsp7SeatsApi: { list: mockSeatList } }));
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 const mockOpenNewIssue = vi.hoisted(() => vi.fn());
@@ -75,7 +79,7 @@ function makeAgent(overrides: Partial<Agent> = {}): Agent {
     reportsTo: null,
     capabilities: null,
     adapterType: "codex_local",
-    adapterConfig: {},
+    adapterConfig: { command: "claude" },
     runtimeConfig: {},
     budgetMonthlyCents: 0,
     spentMonthlyCents: 0,
@@ -96,7 +100,9 @@ describe("AgentActionButtons", () => {
   let queryClient: QueryClient;
   let invalidateQueries: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
+    mockSeatList.mockResolvedValue([]);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = null;
@@ -133,6 +139,63 @@ describe("AgentActionButtons", () => {
       </QueryClientProvider>,
     );
   }
+
+  it("uses the seat registry when restricted responses hide configuration", async () => {
+    mockSeatList.mockResolvedValue([{ agentId: "agent-1" }]);
+    render(makeAgent({ adapterConfig: {} }));
+    await vi.waitFor(async () => {
+      await flushReact();
+      expect(container.textContent).toContain("派发 Jira 工单");
+    });
+    expect(container.textContent).not.toContain("Run Heartbeat");
+    expect(mockAgentsApi.invoke).not.toHaveBeenCalled();
+  });
+
+  it("does not expose generic actions while execution identity is unknown", async () => {
+    mockSeatList.mockImplementationOnce(() => new Promise(() => {}));
+    render(makeAgent({ adapterConfig: {} }));
+    await flushReact();
+    expect(container.textContent).toContain("正在核对执行身份");
+    expect(container.textContent).not.toContain("Assign Task");
+    expect(container.textContent).not.toContain("Run Heartbeat");
+  });
+
+  it("routes registered seats through Jira dispatch instead of generic mutations", async () => {
+    render(makeAgent({ adapterConfig: { dsp7Seat: { name: "My Mac" } } }), { canRunWithProviderTrace: true });
+    await flushReact();
+    const buttons = Array.from(container.querySelectorAll("button"));
+    expect(buttons.map(button => button.textContent)).toEqual(["派发 Jira 工单", "查看关联席位"]);
+    await act(async () => buttons[0].click());
+    expect(mockNavigate).toHaveBeenLastCalledWith("/jira-intake?seat=agent-1");
+    await act(async () => buttons[1].click());
+    expect(mockNavigate).toHaveBeenLastCalledWith("/seats?scope=all&view=work&seat=agent-1");
+    expect(mockOpenNewIssue).not.toHaveBeenCalled();
+    for (const api of Object.values(mockAgentsApi)) expect(api).not.toHaveBeenCalled();
+  });
+
+  it("honors the unsaved-config navigation guard for outbound seats", async () => {
+    const guard = vi.fn(() => false);
+    render(makeAgent({ adapterConfig: { dsp7Transport: "outbound" } }), {
+      hasPendingNavigationChanges: true, onBeforeNavigate: guard,
+    });
+    await flushReact();
+    await act(async () => container.querySelector<HTMLButtonElement>("button")?.click());
+    expect(guard).toHaveBeenCalledOnce();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("retains direct task assignment and invocation for independent server agents", async () => {
+    mockAgentsApi.invoke.mockResolvedValue({ id: "run-1" });
+    render(makeAgent({ adapterConfig: { command: "claude" } }));
+    await flushReact();
+    const buttons = Array.from(container.querySelectorAll("button"));
+    await act(async () => buttons.find(button => button.textContent?.includes("Assign Task"))?.click());
+    expect(mockOpenNewIssue).toHaveBeenCalledWith({ assigneeAgentId: "agent-1" });
+    await act(async () => buttons.find(button => button.textContent?.includes("Run Heartbeat"))?.click());
+    await flushReact();
+    expect(mockAgentsApi.invoke).toHaveBeenCalledOnce();
+    expect(container.textContent).not.toContain("查看关联席位");
+  });
 
   it("replaces the pause slot with Clear error for error agents", async () => {
     render(makeAgent({ status: "error" }));

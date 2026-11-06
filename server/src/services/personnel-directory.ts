@@ -1,8 +1,8 @@
-/** Company directory import. Never changes existing credentials or administrator roles. */
+/** Instance directory import. Never changes existing credentials or administrator roles. */
 import { initializePersonnelPasswords } from "../auth/personnel-passwords.js";
 import { createHash, randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
-import { authUsers, companyMemberships, principalPermissionGrants, personnelSources, personnelPeople, personnelDepartments, activityLog, type Db } from "@paperclipai/db";
+import { authUsers, personnelSources, personnelPeople, personnelDepartments, activityLog, type Db } from "@paperclipai/db";
 import { secretService } from "./secrets.js";
 import { conflict } from "../errors.js";
 import { logger } from "../middleware/logger.js";
@@ -79,11 +79,9 @@ export function personnelDirectoryService(db:Db) {
             else {userId=randomUUID();managedAccount=true;}
           } else if(!old) {userId=randomUUID();managedAccount=true;}
           if(userId&&managedAccount) {
-            const internalEmail="federated-"+createHash("sha256").update(source.companyId+":"+source.type+":"+source.corpId+":"+person.externalId).digest("hex")+"@paperclip.invalid";
+            const internalEmail="federated-"+createHash("sha256").update(source.id+":"+person.externalId).digest("hex")+"@paperclip.invalid";
             if(!old)await tx.insert(authUsers).values({id:userId,name:person.name,email:internalEmail,emailVerified:false,createdAt:new Date(),updatedAt:new Date()});
             else await tx.update(authUsers).set({name:person.name,updatedAt:new Date()}).where(eq(authUsers.id,userId));
-            const inserted=await tx.insert(companyMemberships).values({companyId:source.companyId,principalType:"user",principalId:userId,membershipRole:"operator",status:"active"}).onConflictDoNothing().returning();
-            if(inserted.length)await tx.insert(principalPermissionGrants).values({companyId:source.companyId,principalType:"user",principalId:userId,permissionKey:"tasks:assign"}).onConflictDoNothing();
           }
           const fields={name:person.name,email:person.email,phone:person.phone,departmentIds:person.departments,userId,managedAccount,active:true,lastSyncedAt:new Date()};
           if(old){await tx.update(personnelPeople).set(fields).where(eq(personnelPeople.id,old.id));updatedUsers++;}
@@ -116,5 +114,5 @@ export function personnelDirectoryService(db:Db) {
     try {for(const s of await db.select().from(personnelSources).where(and(eq(personnelSources.enabled,true),eq(personnelSources.autoSync,true))))if(!s.lastSyncAt||Date.now()-s.lastSyncAt.getTime()>s.syncInterval*1000)try{await sync(s.id);}catch{logger.warn({sourceId:s.id},"Personnel directory sync did not complete");}}
     catch{logger.warn("Personnel directory scheduler unavailable");}finally{busy=false;}
   }
-  return {sync,tick:()=>{if(!inFlight)inFlight=tick().finally(()=>{inFlight=null;});return inFlight;},drain:()=>inFlight||Promise.resolve()};
+  return {sync,initializePasswords:()=>initializePersonnelPasswords(db),tick:()=>{if(!inFlight)inFlight=tick().finally(()=>{inFlight=null;});return inFlight;},drain:()=>inFlight||Promise.resolve()};
 }

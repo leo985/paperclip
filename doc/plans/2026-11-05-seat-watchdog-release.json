@@ -1,0 +1,58 @@
+{
+  "release": "seat-watchdog-20261105T062653Z",
+  "target": "http://10.60.43.53:3100",
+  "remoteStage": "/home/fg/paperclip/private/seat-watchdog-20261105T062653Z",
+  "targetDirectory": "/home/fg/paperclip/runtime/node_modules/@paperclipai/server/ui-dist",
+  "expectedBefore": {
+    "dsp7-install.py": "4205e42a8359631f6500a78c078105332b5e9057c22f8a5cb959d42605cf57d3",
+    "dsp7-bridge.zip": "ef48b2353645be3695e4c0da75ccf2c4cfb90577f0d70173d5055df418c67e16",
+    "dsp7-bridge-manifest.json": "99c0acbfd76400f47c3fbe18472d518e970890bba31b62eb37191851c4e884ae"
+  },
+  "expectedAfter": {
+    "dsp7-install.py": "692c14f1a70b9cbe7df81b99bd24fad11a8b162b651f739d823c87d4d78da6eb",
+    "dsp7-bridge.zip": "cfd9c98d4a104bc736f78fe2eeaac11de2b915a5356d611f3863eb86c208141f",
+    "dsp7-bridge-manifest.json": "645eb38ca1e22244700a81bbf2e76a23189337d152c917032e424051d784eb9a"
+  },
+  "changedClientModules": [
+    "README.md",
+    "install_service.py",
+    "install_watchdog.py",
+    "quick_install.py",
+    "seat_lifecycle.py",
+    "seat_watchdog.py"
+  ],
+  "verification": {
+    "localBridgeTests": 259,
+    "stagedPackageCompatibleTests": 250,
+    "skipped": 2,
+    "excludedStagedModule": "test_artifact_layout.py requires artifact_state_path not present in preserved production pilot.py",
+    "macOSNativeTimer": "passed",
+    "windowsLinuxNative": "not_run"
+  },
+  "state": "deployed",
+  "verifiedAt": "2026-11-05T06:30:50.913632+00:00",
+  "publicDownloads": {
+    "dsp7-install.py": "692c14f1a70b9cbe7df81b99bd24fad11a8b162b651f739d823c87d4d78da6eb",
+    "dsp7-bridge.zip": "cfd9c98d4a104bc736f78fe2eeaac11de2b915a5356d611f3863eb86c208141f",
+    "dsp7-bridge-manifest.json": "645eb38ca1e22244700a81bbf2e76a23189337d152c917032e424051d784eb9a"
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "backup": "/home/fg/paperclip/private/seat-watchdog-20261105T062653Z/backup",
+  "remoteReceipt": "/home/fg/paperclip/private/seat-watchdog-20261105T062653Z/release.json",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "installedClientsUpgraded": false
+}

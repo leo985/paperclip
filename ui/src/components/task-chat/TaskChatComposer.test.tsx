@@ -469,7 +469,7 @@ describe("TaskChatComposer", () => {
       expect(onAdd).toHaveBeenCalledTimes(1);
       const reviewButton = () =>
         Array.from(container.querySelectorAll("button")).find(
-          (button) => button.textContent === "Review conversation",
+          (button) => button.textContent?.trim() === "Review conversation",
         )!;
       flushSync(() => reviewButton().click());
       await flushAsync();
@@ -483,7 +483,7 @@ describe("TaskChatComposer", () => {
       await flushAsync();
       expect(review).toHaveBeenCalledTimes(2);
       const discard = Array.from(container.querySelectorAll("button")).find(
-        (button) => button.textContent === "Discard draft and start new",
+        (button) => button.textContent?.trim() === "Discard draft and start new",
       )!;
       flushSync(() => discard.click());
       expect(editable().textContent).toBe("");

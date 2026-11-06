@@ -1,0 +1,46 @@
+{
+  "release": "delivery-sync-null-main-children",
+  "timestamp": "20261026T021400Z",
+  "backup": "/home/fg/paperclip/private/sync-empty-backup-20261026T021400Z",
+  "filesVerified": 2,
+  "databaseMigration": {
+    "status": "upToDate",
+    "applied": [],
+    "retained": []
+  },
+  "databaseCheck": {
+    "projectJiraColumns": [
+      {
+        "column_name": "jira_agent_id",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "jira_secret_id",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "jira_base_url",
+        "is_nullable": "YES"
+      }
+    ],
+    "connections": 1
+  },
+  "healthStatus": "ok",
+  "otherServicesUnchanged": true,
+  "clientChanged": false,
+  "existingSeatsForceUpdated": false,
+  "checks": {
+    "/": 200,
+    "/delivery-help.html": 200,
+    "/dsp7-bridge-manifest.json": 200
+  },
+  "url": "http://10.60.43.53:3100",
+  "liveValidation": {
+    "month": "2026-10",
+    "demandNo": "SHYH-00043",
+    "items": 39,
+    "regressionTests": 30
+  },
+  "databaseChanged": false,
+  "liveValidationDetail": "Real Qingzhou and Jira read-only sync for SHYH-00043 returned 39 items"
+}

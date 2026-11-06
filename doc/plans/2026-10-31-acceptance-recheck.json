@@ -1,0 +1,155 @@
+{
+  "format": 1,
+  "observedAt": "2026-10-31T07:52:57.400911+00:00",
+  "readOnly": true,
+  "online": {
+    "observedAt": "2026-10-31T07:50:08.039207+00:00",
+    "observation": {
+      "readOnly": true,
+      "seats": [
+        {
+          "id": "b202796e-689f-4883-908c-d1499ddb796e",
+          "last_seen_at": "2026-10-23T11:13:26.094Z",
+          "checked_at": "2026-10-23T11:12:56.927Z"
+        },
+        {
+          "id": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+          "last_seen_at": "2026-10-31T07:50:05.465Z",
+          "checked_at": "2026-10-31T07:40:11.216Z"
+        }
+      ],
+      "migrations": [
+        {
+          "hash": "9cec7cf0c9f0186f615c6173255e50dec6ed7b49c81f46a515bac65c5f59c5ee",
+          "created_at": "1792978854900"
+        },
+        {
+          "hash": "8e257e8ad5d45c8b49e6868dd822ae9dc5d8b206886aebfdb2a058758e74c6a6",
+          "created_at": "1792930707326"
+        },
+        {
+          "hash": "3a783d360365e2a6c53ca97f112d5e9967e3e8fe31be620b297670068351c10a",
+          "created_at": "1792913959340"
+        }
+      ],
+      "clientSha256": "c32fbece1557f576e0d1d537e13430edcc066bccba79c74242da0342b3e54870",
+      "node": "v24.15.0",
+      "monthlyRelease": {
+        "release": "monthly-response-size",
+        "timestamp": "20261030T101401Z",
+        "backup": "/home/fg/paperclip/private/monthly-size-backup-20261030T101401Z",
+        "previousSha256": "ae30fc3e5127d1d6cf7dc456ef4dd4296dfce5f37f99555f3d2cd197ef43447d",
+        "sha256": "c32fbece1557f576e0d1d537e13430edcc066bccba79c74242da0342b3e54870",
+        "health": "ok",
+        "filesChanged": 1,
+        "databaseChanged": false,
+        "clientChanged": false,
+        "monthlyParserChanged": false,
+        "liveCandidateEntries": 62,
+        "regressionTests": 30,
+        "browserValidation": "pending"
+      }
+    }
+  },
+  "jira": {
+    "observedAt": "2026-10-31T07:52:20.377833+00:00",
+    "readOnly": true,
+    "key": "ATSES-515808",
+    "status": "待受理",
+    "updated": "2026-10-30T17:11:16.000+0800",
+    "description": "无法打开页面",
+    "parent": null,
+    "subtaskCount": 0,
+    "linkedIssueCount": 0,
+    "commentTotal": 0,
+    "attachmentCount": 0,
+    "demandReference": null
+  },
+  "localComponentInventory": {
+    "format": 1,
+    "generatedAt": "2026-10-31T07:52:57.280Z",
+    "source": {
+      "commit": "7515b89af7301b49ef4b955a399170ea2680146f",
+      "dirty": true
+    },
+    "tools": {
+      "node": "v22.22.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "components": {
+      "server": {
+        "sourceSha256": "a02a46fb5cd5b42ac1745f1948cf41b98950961a0b5b5ef6fc7466ee568eb142",
+        "files": 1635,
+        "deployed": "unverified"
+      },
+      "ui": {
+        "sourceSha256": "62dd2ed0bef204c323f40b0a2cb7a855dac2f98328700471876f862877b309ef",
+        "files": 1844,
+        "deployed": "unverified"
+      },
+      "database": {
+        "sourceSha256": "8b5b17a0f9449dfd585d92cf0872307c19ca09631e8c3fde75415cfb13596a99",
+        "files": 519,
+        "deployed": "unverified"
+      },
+      "shared": {
+        "sourceSha256": "93f3ae6c8783770890adbe0b1b49ec7d8acbe9e43a542d4f0f90cc07f6d1de56",
+        "files": 372,
+        "deployed": "unverified"
+      },
+      "bridge": {
+        "sourceSha256": "3923493b618b832d753ad22d924662ce4f9fbed8d989f7104167f52bd616575e",
+        "files": 63,
+        "deployed": "unverified"
+      }
+    },
+    "database": {
+      "expectedLatestMigration": "0300_large_katie_power",
+      "appliedMigration": "unverified"
+    },
+    "bridge": {
+      "sha256": "8e0c3d282075ada58df080472005c144e210927ef241d65425989bea66abfc46",
+      "manifestMatches": true,
+      "installerMatches": true,
+      "installedDevices": "unverified"
+    },
+    "ui": {
+      "buildSha256": "f30f174a2534ff557fb022af4cf3d147631f975357a91f7ddb64ac6b669a79d0",
+      "files": 873
+    },
+    "verification": {
+      "tests": "unverified",
+      "typecheck": "unverified",
+      "build": "unverified",
+      "liveAcceptance": "unverified"
+    }
+  },
+  "historicalEvidenceAvailability": {
+    "temporaryLogsRemoved": true,
+    "node24TemporaryToolchainRemoved": true,
+    "historicalFullSuiteResults": "Recorded in 2026-10-30-project-hardening.md; original temporary logs unavailable in current workspace. Not a fresh test run."
+  },
+  "remaining": {
+    "windowsRealAcceptance": "No heartbeat since 2026-10-23",
+    "fullDemandChain": "User issue has no linked demand, parent, subtasks or formal approval sample",
+    "formalAcceptance": "Authoritative final approval source remains unspecified",
+    "phaseTokens": "Native phase timing events have no trustworthy phase-token ledger",
+    "onlineRecovery": "No consistent full-component production restore evidence",
+    "targetDeployment": "Monthly response-size hotfix is deployed; complete P0-P2 target migrations and clients are not proved deployed"
+  },
+  "finalBlockedAudit": {
+    "observedAt": "2026-10-31T07:54:29.037807+00:00",
+    "readOnly": true,
+    "windows": [
+      {
+        "last_seen_at": "2026-10-23T11:13:26.094Z"
+      }
+    ],
+    "activeRuns": [
+      {
+        "n": 0
+      }
+    ]
+  }
+}

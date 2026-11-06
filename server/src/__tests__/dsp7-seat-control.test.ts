@@ -25,6 +25,8 @@ describe("DSP7 seat runtime contracts",()=>{
   const base={mode:"notify",jiraKeys:["ATSES-493499"],reminderMinutes:10,escalationMinutes:30};
   expect(seatPolicySchema.safeParse(base).success).toBe(true);
   expect(seatPolicySchema.safeParse({...base,dingtalk:{userId:"0704296864843839",profile:"corp:sender"}}).success).toBe(true);
+  expect(seatPolicySchema.safeParse({...base,dingtalk:{userId:"owner",botId:"a8661763-c814-4116-bee6-70ef4025e727",groupId:"bc4998cb-b33f-43d1-8fb7-52e397b7dfab"}}).success).toBe(true);
+  expect(seatPolicySchema.safeParse({...base,dingtalk:{userId:"owner",profile:"corp:sender",groupId:"bc4998cb-b33f-43d1-8fb7-52e397b7dfab"}}).success).toBe(false);
   expect(seatPolicySchema.safeParse({...base,dingtalk:{userId:"0704296864843839",profile:""}}).success).toBe(false);
   expect(seatPolicySchema.safeParse({...base,jiraKeys:["arbitrary shell"]}).success).toBe(false);
   expect(seatPolicySchema.safeParse({...base,escalationMinutes:5}).success).toBe(false);

@@ -2,7 +2,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$Server,
-    [Parameter(Mandatory=$true)][string]$Code,
+    [string]$Code,
+    [switch]$Upgrade,
+    [string]$AgentId,
     [switch]$NoService
 )
 $ErrorActionPreference='Stop'
@@ -11,7 +13,7 @@ $installer=$null
 try {
     $uri=[Uri]$Server
     if (-not $uri.IsAbsoluteUri -or $uri.Scheme -notin @('http','https') -or $uri.UserInfo -or $uri.Query -or $uri.Fragment -or $uri.AbsolutePath -ne '/') { throw 'Use only the platform origin as Server.' }
-    if ($Code -notmatch '^[0-9a-fA-F-]{36}:[0-9a-f]{64}$') { throw 'Invalid enrollment code. Generate a fresh command on the Seats page.' }
+    if (-not $Upgrade -and $Code -notmatch '^[0-9a-fA-F-]{36}:[0-9a-f]{64}$') { throw 'Invalid enrollment code. Generate a fresh command on the Seats page.' }
     if ([Environment]::OSVersion.Version.Build -lt 17763) { throw 'Native seats require Windows 10 1809+ or Windows 11 (ConPTY).' }
     $python=$null
     $pythonArgs=@()
@@ -35,7 +37,9 @@ try {
     Write-Host 'Using native Windows Claude and Harness. Existing local model settings are preserved.'
     $installer=Join-Path ([IO.Path]::GetTempPath()) ('paperclip-seat-'+[Guid]::NewGuid().ToString('N')+'.py')
     Invoke-WebRequest -UseBasicParsing -Uri ($Server.TrimEnd('/')+'/dsp7-install.py') -OutFile $installer
-    $installArgs=@($installer,'--server',$Server,'--code',$Code)
+    $installArgs=@($installer,'--server',$Server)
+    if($Upgrade){$installArgs+='--upgrade'}else{$installArgs+=@('--code',$Code)}
+    if($AgentId){$installArgs+=@('--agent-id',$AgentId)}
     if($NoService){$installArgs+='--no-service'}
     & $python @pythonArgs @installArgs
     if($LASTEXITCODE -ne 0){throw 'Enrollment did not complete. See the message above; existing configuration is preserved.'}

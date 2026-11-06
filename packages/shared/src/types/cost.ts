@@ -2,6 +2,7 @@ import type { AgentAppearance } from "../agent-appearance.js";
 import type { BillingType, CostStatus } from "../constants.js";
 
 export interface CostEvent {
+  idempotencyKey?: string | null;
   id: string;
   companyId: string;
   agentId: string;

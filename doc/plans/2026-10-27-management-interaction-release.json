@@ -1,0 +1,94 @@
+{
+  "release": "management-interaction-ui",
+  "state": "released",
+  "updatedAt": "2026-10-27T10:57:24.706586+00:00",
+  "url": "http://10.60.43.53:3100",
+  "stage": "/home/fg/paperclip/private/management-ui-20261027T105719Z",
+  "backup": "/home/fg/paperclip/private/management-ui-20261027T105719Z/backup",
+  "archiveSha256": "5a4cd449db85b3de76c11a065baae648a1852612071dd503b4dfb14ac54294bb",
+  "changedFiles": 505,
+  "completeBuildFilesVerified": 873,
+  "indexSha256": "b7b213c3e3d8b79378eb262da9fd08b020bde4ff86522baba17b9879afe9f721",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "serviceRestarted": false,
+  "servicesUnchanged": true,
+  "backendChanged": false,
+  "databaseChanged": false,
+  "clientFilesUnchanged": true,
+  "clientFiles": {
+    "dsp7-install.py": "a6a16dd1aceb043a765d96521a2cfdf508a24e1c578199030a7724e0b334cc10",
+    "dsp7-install.ps1": "4f0e864f5d6370b9f8cfa9d3a0417ebd46d1e54408828dd4b16005a845d8d1b8",
+    "dsp7-bridge.zip": "779e3cafd8bd6f9fb6c3e9a42c0835718a89c9f5313e5f99055fa358b89cb010",
+    "dsp7-bridge-manifest.json": "9b2d5b818c5884b217c2bc3e1e29da3fae834e709187bb8d5ee3a487edf08f85"
+  },
+  "productionRoutes": {
+    "delivery-workflows.js": false,
+    "delivery-insights.js": true,
+    "analysis-executions.js": true,
+    "dsp7-seats.js": true
+  },
+  "validation": {
+    "targetedTests": 65,
+    "releaseRuleTests": 3,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "repositoryWideValidation": "not passed; existing UI regression failures and incomplete Rust toolchain checks"
+  },
+  "externalStaticVerification": {
+    "verified": 873,
+    "failures": []
+  },
+  "browserVerification": {
+    "tool": "ego-browser",
+    "authenticatedProductionSession": true,
+    "dashboard": {
+      "heading": "组织管理概览",
+      "attention": 2,
+      "running": 0,
+      "queued": 2,
+      "errors": []
+    },
+    "taskState": "DSP-11 is interrupted and appears only in attention, not healthy running",
+    "inbox": "task cards and responsible contact/next action visible",
+    "issues": {
+      "scope": "company",
+      "attentionRows": 2,
+      "errors": []
+    },
+    "projectReadiness": {
+      "visible": true,
+      "repositories": 1,
+      "configuredBaselines": 1,
+      "sourceConnectionVerified": true,
+      "boundSeats": 2,
+      "readySeatConfigurations": 1
+    },
+    "businessMutationsPerformed": false,
+    "executionRecords": {
+      "loaded": true,
+      "taskContextVisible": true,
+      "error": false
+    },
+    "monthlySchedule": {
+      "riskControlsVisible": true,
+      "selectedRisk": "missing_owner",
+      "matchingEntries": 78,
+      "visiblePageRows": 20,
+      "errors": []
+    }
+  }
+}

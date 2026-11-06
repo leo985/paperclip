@@ -1,0 +1,46 @@
+{
+  "release": {
+    "release": "20261105-delivery-review-rework",
+    "status": "deployed",
+    "filesVerified": 338,
+    "entry": "index-879d8187.js",
+    "health": "ok",
+    "databaseMigrations": [],
+    "backup": "/home/fg/paperclip/private/delivery-review-rework-20261105/backup",
+    "lostRunIds": [],
+    "timestamp": "2026-11-05T06:49:06.956127+00:00"
+  },
+  "verification": {
+    "targetedVitest": {
+      "status": "passed",
+      "files": 6,
+      "tests": 35,
+      "evidence": [
+        "/private/tmp/pc-rework-final-tests.log (33 baseline cases)",
+        "/private/tmp/pc-rework-evidence-tests.log (8 service cases, one additional)",
+        "/private/tmp/pc-rework-panel-tests.log (2 panel cases, one additional)"
+      ]
+    },
+    "pythonDeliveryBridge": {
+      "status": "passed",
+      "tests": 21
+    },
+    "serverTypecheckAndCompile": "passed",
+    "sharedBuild": "passed",
+    "uiTypecheckAndBuild": "passed",
+    "uiTokenGates": "passed",
+    "uiModuleLinkCheck": {
+      "status": "passed",
+      "linkedModules": 128
+    },
+    "online": "healthy; built-in template v3 and all three return-policy selectors visible; temporary policy edit cancelled without publishing or starting business work",
+    "repoWideChecks": "not rerun; existing Xcode license / Rust cc blocker from prior full-repo attempts remains"
+  },
+  "compatibility": [
+    "Pinned existing templates keep previous rejection behavior",
+    "Absent rejectionHandling means pause; current rejected stage can be manually resumed by original reviewer or company admin",
+    "Agent rework requires delivery-rework-v1 client capability and refreshed registration",
+    "Native Harness reopening is required; unsupported Harness asks responsible user instead of bypassing native gates"
+  ],
+  "databaseMigrations": []
+}

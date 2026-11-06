@@ -1,0 +1,96 @@
+{
+  "local": {
+    "bridgeVersion": "d922bc4f46b84562d317ff821e47e8ade52960ec892a9c6dfaa4d97534be5553",
+    "backup": "/Users/leo/.config/paperclip-dsp7-bridge/live-patches/native-wait-20261022T155824Z",
+    "changedFiles": [
+      "README.md",
+      "managed_sessions.py",
+      "seat_control.py",
+      "session_hook.py"
+    ],
+    "runId": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea",
+    "preservedPids": [
+      41560,
+      41474,
+      41463
+    ],
+    "serverRestarted": false,
+    "allBundleFilesVerified": true
+  },
+  "remote": {
+    "release": "native-wait-reminders",
+    "backup": "/home/fg/paperclip/private/native-wait-static-backup-20261022T155916Z",
+    "changedStaticFiles": 14,
+    "serverRestarted": false,
+    "mainPid": "1398742",
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "bridgeVersion": "d922bc4f46b84562d317ff821e47e8ade52960ec892a9c6dfaa4d97534be5553"
+  },
+  "verification": {
+    "checkedAt": "2026-10-22T16:00:33.509Z",
+    "run": {
+      "id": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea",
+      "status": "running",
+      "started_at": "2026-10-22T15:28:39.646Z",
+      "finished_at": null
+    },
+    "presence": {
+      "state": "waiting_decision",
+      "runId": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea",
+      "lastSeenAt": "2026-10-22T16:00:09.359Z",
+      "bridgeVersion": "d922bc4f46b84562d317ff821e47e8ade52960ec892a9c6dfaa4d97534be5553",
+      "alerts": [
+        {
+          "id": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea:native:49c0dcc683db7a21537c77c1",
+          "level": "warning",
+          "taskId": "f264dbf4-8678-4e64-9dbd-421943a9ae18",
+          "jiraKey": "ATSES-491887",
+          "message": "ATSES-491887：Claude 正在等待人工处理（回答问题或确认权限）；请到席位电脑的 Claude 终端处理，网页不能代答。",
+          "elapsedMinutes": 29.8
+        }
+      ]
+    },
+    "staleDwsCheckPresent": false,
+    "deliveries": [
+      {
+        "alertId": "b62bea6f-7e0c-42c3-911a-ee99a47f7aea:native:49c0dcc683db7a21537c77c1",
+        "deliveryKey": "77257178e8f2b2f336391b8641c95efc6b904dbeec3c2de3de9fdc796dcf0a07",
+        "rows": [
+          {
+            "created_at": "2026-10-22T15:58:26.634Z",
+            "status": "submitted",
+            "code": "ACCEPTED_NOT_READ"
+          },
+          {
+            "created_at": "2026-10-22T15:58:26.269Z",
+            "status": "sending",
+            "code": null
+          }
+        ]
+      }
+    ]
+  },
+  "httpVerification": {
+    "files": {
+      "dsp7-bridge.zip": "d922bc4f46b84562d317ff821e47e8ade52960ec892a9c6dfaa4d97534be5553",
+      "dsp7-bridge-manifest.json": "56b33fdb177e22f4ba62a948f0203446159b2fadf108bef018b06eb5b3e4c659",
+      "sw.js": "faef00d4170a3454ae4c678dcb7e6d9308eb240b0dc18595d11bbe2c486fb27a"
+    },
+    "entry": "/assets/index-BKiofCsW.js",
+    "entryMatches": true,
+    "runPidsStillAlive": true
+  }
+}

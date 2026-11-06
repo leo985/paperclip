@@ -1,0 +1,33 @@
+{
+  "release": "seat-card-click",
+  "state": "released",
+  "updatedAt": "2026-10-23T10:16:13.044638+00:00",
+  "stage": "/home/fg/paperclip/private/seat-card-click-20261023T101518Z",
+  "backup": "/home/fg/paperclip/private/seat-card-click-20261023T101518Z/backup",
+  "filesVerified": 13,
+  "archiveSha256": "952b4cb83e5d805ef59acf4e5f8e523718614aca0608bcaa790d5bc61e483819",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "clientUpgradeRequired": false,
+  "backendChanged": false,
+  "previousBackendRelease": "waiting_for_idle",
+  "publicAssetChecks": {
+    "indexMatches": true,
+    "/assets/index-W_SiCpDe.js": true,
+    "/assets/index-gM-C-0ql.css": true
+  }
+}

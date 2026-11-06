@@ -328,7 +328,7 @@ function buildOperations(
       interpretations: stages,
       events: groupEvents,
       title,
-      subtitle: uiTextFormat("__PCVAR0__ · __PCVAR1__ PRP event__PCVAR2__", [range, groupEvents.length, ""]),
+      subtitle: uiTextFormat("__PCVAR0__ · __PCVAR1__ PRP event__PCVAR2__", [range, groupEvents.length, groupEvents.length === 1 ? "" : "s"]),
       itemType: itemTypes.at(-1) ?? "",
       nativeMethods: methods,
       directions: unique(groupFrames.map((frame) => text(frame.direction))),

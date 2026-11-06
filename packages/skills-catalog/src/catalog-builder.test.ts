@@ -14,6 +14,28 @@ describe("skills catalog manifest", () => {
   afterEach(async () => {
     await Promise.all(tempDirs.splice(0).map((dir) => fs.rm(dir, { recursive: true, force: true })));
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("reports unavailable pinned sources when remote reads time out", async () => {
+    const packageDir = await createCatalogPackage();
+    await writeReference(packageDir, "optional", "research", "timed-out", {
+      source: { type: "github", hostname: "github.com", owner: "example", repo: "remote-skill", ref: "v1", commit: "0123456789abcdef0123456789abcdef01234567", path: "skills/research" },
+      files: ["SKILL.md"],
+    });
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(new DOMException("Remote read timed out", "TimeoutError")), 1);
+      return controller.signal;
+    });
+    vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      if (!init?.signal) return reject(new Error("Missing request deadline"));
+      init.signal.addEventListener("abort", () => reject(init.signal!.reason), { once: true });
+    })));
+    const result = await buildCatalogManifest({ packageDir });
+    expect(result.manifest.skills).toHaveLength(0);
+    expect(result.errors.join(" ")).toContain("timed out");
+    expect(await fs.readdir(packageDir)).not.toContain("generated");
   });
 
   it("builds stable manifest entries from catalog skill directories", async () => {

@@ -1,0 +1,1 @@
+ALTER TABLE "seat_execution_permits" ADD COLUMN "tree_proof_required" boolean DEFAULT false NOT NULL;

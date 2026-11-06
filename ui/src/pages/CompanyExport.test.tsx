@@ -55,6 +55,7 @@ vi.mock("../context/ToastContext", () => ({
 }));
 
 vi.mock("@/lib/router", () => ({
+  Link: ({ to, children }: { to: string; children?: ReactNode }) => <a href={to}>{children}</a>,
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: "/PAP/company/export", search: "" }),
 }));

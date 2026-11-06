@@ -1,6 +1,7 @@
+import { IssueManagement } from "../components/IssueManagement";
 import { uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useCallback, useRef, useState } from "react";
-import { useLocation, useSearchParams } from "@/lib/router";
+import { Link, useLocation, useSearchParams } from "@/lib/router";
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { issuesApi } from "../api/issues";
 import { agentsApi } from "../api/agents";
@@ -66,7 +67,7 @@ export function buildIssuesSearchUrl(currentHref: string, search: string): strin
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-export function Issues() {
+function LegacyIssuesPage() {
   const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
   const issuesPresentation = resolveIssuesPresentation(streamlinedUiEnabled);
   const { selectedCompanyId } = useCompany();
@@ -84,6 +85,14 @@ export function Issues() {
     }
     return urlSearch;
   }, [searchOverride, urlSearch, location.search]);
+  const selectedProjectId = searchParams.get("projectId") || undefined;
+  const unassignedProject = selectedProjectId === "__none__";
+  const projectId = unassignedProject ? undefined : selectedProjectId;
+  const unassignedIssues = useQuery({
+    queryKey: queryKeys.issues.list(selectedCompanyId!),
+    queryFn: () => issuesApi.list(selectedCompanyId!),
+    enabled: !!selectedCompanyId && unassignedProject,
+  });
   const participantAgentId = searchParams.get("participantAgentId") ?? undefined;
   const initialWorkspaces = searchParams.getAll("workspace").filter((workspaceId) => workspaceId.length > 0);
   const workspaceIdFilter = initialWorkspaces.length === 1 ? initialWorkspaces[0] : undefined;
@@ -153,6 +162,8 @@ export function Issues() {
   } = useInfiniteQuery({
     queryKey: [
       ...queryKeys.issues.list(selectedCompanyId!),
+      "project",
+      selectedProjectId ?? "__all__",
       "participant-agent",
       participantAgentId ?? "__all__",
       "workspace",
@@ -164,6 +175,7 @@ export function Issues() {
     ],
     queryFn: ({ pageParam, signal }) => issuesApi.listCompact(selectedCompanyId!, {
       participantAgentId,
+      projectId,
       workspaceId: workspaceIdFilter,
       includeRoutineExecutions: true,
       limit: issuePageSize,
@@ -174,11 +186,13 @@ export function Issues() {
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       getNextIssuesPageOffset(lastPage.length, lastPageParam, issuePageSize),
-    enabled: !!selectedCompanyId,
-    placeholderData: (previousData) => previousData,
+    enabled: !!selectedCompanyId && !unassignedProject,
+    placeholderData: (previousData) => selectedProjectId ? undefined : previousData,
   });
 
-  const issues = useMemo(() => mergeIssuePagesStable(issuePages?.pages ?? []) as Issue[], [issuePages]);
+  const issues = useMemo(() => unassignedProject
+    ? (unassignedIssues.data ?? []).filter(issue => !issue.projectId)
+    : mergeIssuePagesStable(issuePages?.pages ?? []) as Issue[], [issuePages, unassignedProject, unassignedIssues.data]);
   const liveIssueIds = useMemo(() => collectLiveIssueIds(liveRuns, issues), [issues, liveRuns]);
   const hasMoreServerIssues = syncedSearch.trim().length === 0
     && hasNextPage === true;
@@ -210,11 +224,16 @@ export function Issues() {
   }
 
   return (
+    <div className="space-y-4">
+    {selectedProjectId && <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3"><p className="text-sm">项目：{unassignedProject ? "未关联项目" : projects?.find(project => project.id === projectId)?.name ?? "所选项目"}</p><Link className="text-sm text-primary underline" to={`${location.pathname}?${new URLSearchParams([...searchParams].filter(([key]) => key !== "projectId"))}`}>清除项目条件</Link></div>}
     <IssuesList
+      key={selectedProjectId ?? "all"}
+      projectId={projectId}
+      searchWithinLoadedIssues={unassignedProject}
       issues={issues ?? []}
-      isLoading={isLoading}
+      isLoading={unassignedProject ? unassignedIssues.isPending : isLoading}
       isLoadingMoreIssues={isFetchingNextPage}
-      error={error as Error | null}
+      error={(unassignedProject ? unassignedIssues.error : error) as Error | null}
       agents={agents}
       projects={projects}
       liveIssueIds={liveIssueIds}
@@ -227,10 +246,16 @@ export function Issues() {
       initialSearch={syncedSearch}
       onSearchChange={handleSearchChange}
       enableRoutineVisibilityFilter
-      hasMoreIssues={hasMoreServerIssues}
+      hasMoreIssues={!unassignedProject && hasMoreServerIssues}
       onLoadMoreIssues={loadMoreServerIssues}
       onUpdateIssue={(id, data) => updateIssue.mutate({ id, data })}
       searchFilters={participantAgentId || workspaceIdFilter ? { participantAgentId, workspaceId: workspaceIdFilter } : undefined}
     />
+    </div>
   );
+}
+
+export function Issues() {
+  const { enabled } = useStreamlinedUiEnabled();
+  return enabled ? <IssueManagement /> : <LegacyIssuesPage />;
 }

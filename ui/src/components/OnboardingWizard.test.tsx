@@ -738,7 +738,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       await clickByText((t) => t.startsWith("Continue"));
       expect(document.body.textContent).toContain("Create your first agent");
 
-      await clickByText((t) => t.includes("Back"));
+      await clickByText((t) => /Back|上一步/.test(t));
 
       expect(document.body.textContent).toContain("What is the name of your organization?");
       expect(document.body.textContent).not.toContain("Define your mission");
@@ -998,7 +998,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // fades away with the row once a source is chosen, and is inert after
       // that, so it cannot be used to change the card out from under a running
       // sign-in. Back unwinds to the question, and the answer is given again.
-      await clickByText((t) => t.startsWith("Back"));
+      await clickByText((t) => /^(?:Back|上一步)/.test(t));
       await clickByText((t) => t.startsWith("Use API key"));
       await pickFirstSource(clickByText);
 
@@ -1327,8 +1327,8 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     await flushReact();
 
     // Nothing mounts yet: no premature guess, and the draft is not touched.
-    expect(container.textContent).toBe("");
-    expect(document.body.textContent).toBe("");
+    expect(container.textContent?.trim()).toBe("");
+    expect(document.body.textContent?.trim()).toBe("");
     expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).not.toBeNull();
 
     // Companies resolve asynchronously, owning the saved company.
@@ -1466,7 +1466,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
 
     // The retry is intentionally still in flight. The wrapper removes the
     // safe-default wizard so a completed validation can mount the saved draft.
-    expect(document.body.textContent).toBe("");
+    expect(document.body.textContent?.trim()).toBe("");
 
     await act(async () => {
       resolveRetry([company]);
@@ -1907,7 +1907,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     await flushReact();
 
     // Nothing mounted, so nothing could have written over the draft.
-    expect(document.body.textContent).toBe("");
+    expect(document.body.textContent?.trim()).toBe("");
     expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe(draft);
 
     await act(async () => {
@@ -2300,7 +2300,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
 
       // Back unwinds rather than leaving the step: the row is a question again.
       const back = [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent?.trim().startsWith("Back"),
+        /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => {
         back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2483,7 +2483,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       });
       try {
         const back = [...document.body.querySelectorAll("button")].find((b) =>
-          b.textContent?.trim().startsWith("Back"),
+          /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
         );
         await act(async () => {
           back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2571,7 +2571,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
           }),
         });
         const back = [...document.body.querySelectorAll("button")].find((b) =>
-          b.textContent?.trim().startsWith("Back"),
+          /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
         );
         await act(async () => {
           back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2703,7 +2703,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       );
 
       const back = [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent?.trim().startsWith("Back"),
+        /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => {
         back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2816,7 +2816,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         expect(mockAgentsApi.startClaudeSetupTokenLogin).not.toHaveBeenCalled();
 
         const back = [...document.body.querySelectorAll("button")].find((b) =>
-          b.textContent?.trim().startsWith("Back"),
+          /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
         );
         await act(async () => {
           back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2862,7 +2862,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // path for anyone finishing the sign-in in another browser.
       const link = document.body.querySelector('a[href*="auth.openai.com"]');
       expect(link, "the sign-in link should be in the instruction").toBeTruthy();
-      expect(link!.textContent).toBe("Sign in to OpenAI");
+      expect(link!.textContent?.trim()).toBe("Sign in to OpenAI");
 
       // And the code sits below the sentence carrying it.
       const code = [...document.body.querySelectorAll("span")].find(
@@ -2943,7 +2943,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       expect(mockAgentsApi.startClaudeSetupTokenLogin).toHaveBeenCalledTimes(1);
 
       const back = [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent?.trim().startsWith("Back"),
+        /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => {
         back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -2977,7 +2977,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       expect(mockAgentsApi.startAdapterAuthLogin).toHaveBeenCalledTimes(1);
 
       const back = [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent?.trim().startsWith("Back"),
+        /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => {
         back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -3008,7 +3008,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       expect(mockAgentsApi.startClaudeSetupTokenLogin).toHaveBeenCalledTimes(1);
 
       const back = [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent?.trim().startsWith("Back"),
+        /^(?:Back|上一步)/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => {
         back!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -3108,7 +3108,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         for (let i = 0; i < 10; i++) await flushReact();
       }
       function button(label: string) {
-        const found = [...document.body.querySelectorAll("button")].find(b => b.textContent?.trim() === label);
+        const found = [...document.body.querySelectorAll("button")].find(b => b.textContent?.trim() === (label === "Back" ? "上一步" : label));
         expect(found, label).toBeTruthy();
         return found!;
       }

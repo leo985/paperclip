@@ -53,6 +53,7 @@ const mockExternalObjectsApi = vi.hoisted(() => ({
   getIssueSummaries: vi.fn(),
 }));
 
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => ({ canManage: true, isInstanceAdmin: true }) }));
 vi.mock("../context/CompanyContext", () => ({
   useCompany: () => companyState,
 }));
@@ -453,7 +454,7 @@ describe("IssuesList", () => {
 
     await waitForAssertion(() => {
       expect(mockExternalObjectsApi.getIssueSummaries).toHaveBeenCalledWith("company-1", ["issue-1"]);
-      expect(container.querySelector("[data-testid='external-object-summary']")?.textContent).toBe("2");
+      expect(container.querySelector("[data-testid='external-object-summary']")?.textContent?.trim()).toBe("2");
     });
 
     act(() => {
@@ -1103,7 +1104,7 @@ describe("IssuesList", () => {
       const blockerButtons = Array.from(container.querySelectorAll("button"))
         .filter((button) => button.textContent?.includes("blocked by"));
       expect(blockerButtons).toHaveLength(1);
-      expect(blockerButtons[0]?.textContent).toBe("blocked by PAP-2 · step 2 ... and 2 more");
+      expect(blockerButtons[0]?.textContent?.trim()).toBe("blocked by PAP-2 · step 2 ... and 2 more");
     });
 
     act(() => {
@@ -1905,14 +1906,14 @@ describe("IssuesList", () => {
       expect(container.textContent).toContain("Alpha issue");
       expect(container.textContent).toContain("Beta issue");
       const workspaceButton = Array.from(container.querySelectorAll("button")).find(
-        (button) => button.textContent === "Alpha",
+        (button) => button.textContent?.trim() === "Alpha",
       );
       expect(workspaceButton).not.toBeUndefined();
     });
 
     await act(async () => {
       const workspaceButton = Array.from(container.querySelectorAll("button")).find(
-        (button) => button.textContent === "Alpha",
+        (button) => button.textContent?.trim() === "Alpha",
       );
       workspaceButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();

@@ -1,0 +1,30 @@
+{
+  "release": "managed-session-observability",
+  "timestamp": "20261021T034615Z",
+  "baseCommit": "7515b89af7301b49ef4b955a399170ea2680146f",
+  "archiveSha256": "e532034368f2f04e52acee862e5bde59ac8c0040f9a7928237a2688a25dabb28",
+  "backup": "/home/fg/paperclip/private/managed-session-backup-20261021T034615Z",
+  "stage": "/home/fg/paperclip/private/managed-session-stage-20261021T034615Z",
+  "filesVerified": 448,
+  "managedTables": 10,
+  "migration": {
+    "status": "upToDate",
+    "applied": []
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicesUnchanged": true,
+  "installedClientsUpdated": false
+}

@@ -1,0 +1,27 @@
+{
+  "release": "20261105-work-review-sequence",
+  "status": "deployed",
+  "filesVerified": 340,
+  "entry": "index-86929273.js",
+  "health": "ok",
+  "databaseMigrations": [],
+  "backup": "/home/fg/paperclip/private/work-review-sequence-20261105/backup",
+  "lostRunIds": [],
+  "timestamp": "2026-11-05T04:20:24.731085+00:00",
+  "verification": {
+    "focusedVitest": {
+      "files": 8,
+      "passed": 64
+    },
+    "pythonBridgeTests": 18,
+    "tokenGates": "passed",
+    "serverTypecheckCompile": "passed",
+    "uiTypecheckBuild": "passed",
+    "sharedBuild": "passed",
+    "browser": "Production template v2, editable stage sequences and preview, real review ticket binding form; no business work launched or settings published",
+    "fullTypecheck": "blocked by local Xcode license for Rust cc",
+    "fullBuild": "blocked by local Xcode license for Rust cc",
+    "fullTests": "Attempted; native-codex-runner compilation encountered Xcode license failure. Stopped remaining full-suite work after environmental failure; full suite not completed.",
+    "clientCapabilityRegression": "passed (delivery workflow route suite)"
+  }
+}

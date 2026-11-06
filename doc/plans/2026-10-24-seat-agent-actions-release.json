@@ -1,0 +1,41 @@
+{
+  "release": "seat-agent-actions",
+  "state": "released",
+  "updatedAt": "2026-10-24T12:22:52.301054+00:00",
+  "stage": "/home/fg/paperclip/private/seat-agent-actions-20261024T122156Z",
+  "backup": "/home/fg/paperclip/private/seat-agent-actions-20261024T122156Z/backup",
+  "filesVerified": 171,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "backendChanged": false,
+  "clientUpgradeRequired": false,
+  "bridgeVersion": "2884023a44df958235b971fcde9389900275970f784e96f6167d07247476d1fd",
+  "checks": {
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "agentActionTestsPassed": 10,
+    "authenticatedBrowserTested": false,
+    "realTaskDispatched": false,
+    "publicAssetHashes": {
+      "index.html": "matched",
+      "help.html": "matched",
+      "dsp7-bridge-manifest.json": "matched"
+    },
+    "publicHealth": "ok"
+  }
+}

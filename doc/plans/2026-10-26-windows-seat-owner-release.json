@@ -1,0 +1,26 @@
+{
+  "release": "windows-seat-owner-compat",
+  "baseline": {
+    "dsp7-install.py": "c0bf3bb50b00c1654689f389236738683b7a5e9904b686cf3a9642d5467150f5",
+    "dsp7-bridge.zip": "a56156747332faa1eccf3afa2fe51af87c9571c81302e97b68455dce6ca7bf51",
+    "dsp7-bridge-manifest.json": "12a9f3d2fa4967f28fab5e374a8f8a30fdf08a9bd06036228dfbc16ef4795526"
+  },
+  "files": {
+    "dsp7-install.py": "c0bf3bb50b00c1654689f389236738683b7a5e9904b686cf3a9642d5467150f5",
+    "dsp7-bridge.zip": "45853dd7763f91a389cd5bf3264fe5491cd0f6aec5e9627708ac13e6cc83f4f1",
+    "dsp7-bridge-manifest.json": "fae73a2c4f8353d9cc8488e475ad281a4c7d6d2727bfee69b895776276a90fa1"
+  },
+  "bridgeVersion": "45853dd7763f91a389cd5bf3264fe5491cd0f6aec5e9627708ac13e6cc83f4f1",
+  "changedBundleFiles": [
+    "platform_support.py"
+  ],
+  "testCasesPassed": 85,
+  "windowsNativeTestSkipped": true,
+  "state": "released",
+  "updatedAt": "2026-10-26T07:49:44.256876+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-owner-20261026T074942Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

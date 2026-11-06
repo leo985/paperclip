@@ -121,6 +121,7 @@ async function mount(
           adapterType={adapterType}
           environmentId="e1"
           canLogin={canLogin}
+          allowLocalConfiguration={false}
           localEnvironment={localEnvironment}
           onBack={() => {}}
           testConnection={test}

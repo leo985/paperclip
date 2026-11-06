@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+vi.mock("@/lib/router", () => ({
+  Link: ({ to, children }: { to: string; children?: React.ReactNode }) => <a href={to}>{children}</a>,
+}));
 
 import { webcrypto } from "node:crypto";
 import type { ReactNode } from "react";

@@ -51,6 +51,7 @@ const mockAuthApi = vi.hoisted(() => ({
   getSession: vi.fn(),
 }));
 
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => ({ canManage: true, isInstanceAdmin: true }) }));
 vi.mock("../context/CompanyContext", () => ({
   useCompany: () => companyState,
 }));
@@ -258,7 +259,7 @@ describe("CommandPalette", () => {
     });
 
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Create new task");
+      expect(container.textContent).toContain("接入 Jira 工单");
     });
     expect(container.textContent).not.toContain("Open file in this issue");
 

@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { uiTextFormat,  localizedStatus, uiText } from "@/i18n/interface";
 import { useState } from "react";
 import type { IssueBlockerAttention } from "@paperclipai/shared";
@@ -25,6 +26,22 @@ interface StatusIconProps {
 function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | undefined) {
   if (!blockerAttention || blockerAttention.state === "none") return uiText("Blocked");
 
+  if (!i18n.language.startsWith("zh")) {
+    const attention = blockerAttention;
+    const covered = attention.coveredBlockerCount;
+    if (attention.reason === "active_child" || attention.reason === "active_dependency") {
+      const kind = attention.reason === "active_child" ? "sub-task" : "dependency";
+      return `Blocked · waiting on ${covered === 1 && attention.sampleBlockerIdentifier ? `active ${kind} ${attention.sampleBlockerIdentifier}` : `${covered} active ${kind}${covered === 1 ? "" : "s"}`}`;
+    }
+    if (attention.reason === "stalled_review") {
+      const leaf = attention.sampleStalledBlockerIdentifier ?? attention.sampleBlockerIdentifier;
+      return attention.stalledBlockerCount === 1 && leaf ? `Blocked · review stalled on ${leaf}` : "Blocked · review stalled; next step unclear";
+    }
+    if (attention.reason === "attention_required") {
+      const count = attention.attentionBlockerCount || attention.unresolvedBlockerCount;
+      return `Blocked · ${count} blockers need attention${covered > 0 ? `; ${covered} covered by active work` : ""}`;
+    }
+  }
   if (blockerAttention.reason === "active_child") {
     const count = blockerAttention.coveredBlockerCount;
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {

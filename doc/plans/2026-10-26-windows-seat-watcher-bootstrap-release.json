@@ -1,0 +1,35 @@
+{
+  "release": "windows-seat-consoleless-watcher-bootstrap",
+  "baseline": {
+    "dsp7-install.py": "99d625e5b882981eb8aec258b0cf8512792f482972c884b906a51aff70b91189",
+    "dsp7-bridge.zip": "dd68bcf9c10b57b22a037cfc9bfa5443c1b8b98a222825461a7b2e2297f10ab9",
+    "dsp7-bridge-manifest.json": "91e110c89d36480a1393bcaccc35bad8d747728066bb22121481928e119db5f5"
+  },
+  "files": {
+    "dsp7-install.py": "99d625e5b882981eb8aec258b0cf8512792f482972c884b906a51aff70b91189",
+    "dsp7-bridge.zip": "0bc439e27fa760b2d519ac85f4ae4b5e102d90e39fd7b1deb1ad566455cf7bde",
+    "dsp7-bridge-manifest.json": "aa9bbdc176216d05a15d2538938a8aa0b9119096a8be91623421650451bb63ac"
+  },
+  "bridgeVersion": "0bc439e27fa760b2d519ac85f4ae4b5e102d90e39fd7b1deb1ad566455cf7bde",
+  "changedBundleFiles": [
+    "platform_support.py",
+    "watch_windows.py"
+  ],
+  "testCasesPassed": 107,
+  "testCasesTotal": 108,
+  "windowsNativeTestSkipped": true,
+  "liveForegroundSeatVerified": true,
+  "verifiedExistingAgentId": "87ed3723-6fff-40b8-ab01-d0183580686d",
+  "releasePackageTestsPassed": 98,
+  "releasePackageTestsTotal": 99,
+  "releasePackageExcludedTests": [
+    "test_delivery_execution.py (module not present in unchanged production baseline)"
+  ],
+  "state": "released",
+  "updatedAt": "2026-10-26T08:33:30.885453+00:00",
+  "backup": "/home/fg/paperclip/private/windows-seat-watcher-bootstrap-20261026T083327Z/backup",
+  "health": "ok",
+  "serviceRestarted": false,
+  "databaseChanged": false,
+  "otherServicesUnchanged": true
+}

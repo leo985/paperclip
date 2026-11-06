@@ -1,0 +1,45 @@
+{
+  "release": "seat-agent-manager",
+  "state": "released",
+  "updatedAt": "2026-10-24T14:20:36.980823+00:00",
+  "stage": "/home/fg/paperclip/private/seat-agent-manager-20261024T141922Z",
+  "backup": "/home/fg/paperclip/private/seat-agent-manager-20261024T141922Z/backup",
+  "filesVerified": 172,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "servicesUnchanged": true,
+  "serviceRestarted": false,
+  "backendChanged": false,
+  "clientUpgradeRequired": false,
+  "bridgeVersion": "2884023a44df958235b971fcde9389900275970f784e96f6167d07247476d1fd",
+  "checks": {
+    "uiTypecheck": true,
+    "uiBuild": true,
+    "tokenGates": true,
+    "agentActionAndFormTestsPassed": 107,
+    "authenticatedBrowserTested": false,
+    "realTaskDispatched": false,
+    "liveSeatRegistrationVerified": true,
+    "publicAssetHashes": {
+      "index.html": "matched",
+      "help.html": "matched",
+      "dsp7-bridge-manifest.json": "matched",
+      "assets/AgentDetail-BkR0Lyb6.js": "matched",
+      "assets/AgentConfigForm-ChVPITsW.js": "matched",
+      "assets/useSeatAgentIdentity-CIVRawFt.js": "matched"
+    },
+    "publicHealth": "ok"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "release": "20261102-harness-repositories",
+  "timestamp": "20261102T044400Z",
+  "backup": "/home/fg/paperclip/private/repo-reuse-backup-20261102T044400Z",
+  "files": 187,
+  "databaseChanged": false,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "durationSeconds": 51.9,
+  "uiEntry": "index-7aa32f53.js",
+  "target": "http://10.60.43.53:3100",
+  "deploymentMode": "Scoped runtime patch preserving unrelated live code and configuration; health commit remains base commit",
+  "verification": {
+    "release": "20261102-harness-repositories",
+    "diskFilesChecked": 187,
+    "diskMismatches": [],
+    "publicFilesChecked": 178,
+    "publicMismatches": [],
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  },
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/projects/dsp7-b4752dda/configuration",
+    "optional": true,
+    "pickerHasHarnessRepository": true,
+    "pickerHasBaseline": true,
+    "alerts": 0
+  },
+  "localSeat": {
+    "agentId": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+    "platform": "macOS",
+    "upgrade": "passed",
+    "identityPreserved": true,
+    "bridgeVersion": "5f2770f76e06239c5d54d8f2a14bdf25de10b1bf824b14bbc6bd193d835da161",
+    "freshHeartbeat": true,
+    "reportedRepositories": [
+      {
+        "url": "http://gitlab.fingard.cn/QJ/dsp/dsp7.1_git",
+        "ref": "pre-release"
+      }
+    ],
+    "repositoryOptionsApi": "passed",
+    "boardCredentialRefresh": "Same user and company, supported authentication and board-key APIs; default expiry retained",
+    "businessTaskStartedForAcceptance": false
+  },
+  "localValidation": {
+    "targetedVitest": {
+      "files": 9,
+      "passed": 59
+    },
+    "pythonBridge": {
+      "run": 151,
+      "passed": 149,
+      "skipped": 2
+    },
+    "stagedPublishedBridgeTestsPassed": 15,
+    "workspaceTypecheck": "passed",
+    "workspaceBuild": "passed",
+    "uiTokenGates": "passed",
+    "nativeRunnerTest": "passed",
+    "fullVitest": "Stopped due excessive local load; not claimed as passed"
+  },
+  "limitations": [
+    "Offline Windows seat not upgraded or accepted",
+    "No real business task started during this deployment"
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "release": "20261104-harness-managed-repositories",
+  "timestamp": "20261103T173543Z",
+  "backup": "/home/fg/paperclip/private/harness-managed-backup-20261103T173543Z",
+  "files": 175,
+  "bridgeSha256": "643cd8733a94bde4f9839f5eec4c2979fa963ed36656db50be6b7fc822bf69c2",
+  "databaseChanged": false,
+  "serverRestarted": true,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicePidChanges": {},
+  "durationSeconds": 38.0,
+  "uiEntry": "index-38da0cf0.js",
+  "target": "http://10.60.43.53:3100",
+  "scope": {
+    "repositories": "Harness owns business repository selection, local paths and Git worktrees; platform retains project attribution and execution governance",
+    "intakeVersion": 4,
+    "clientCapability": "harness-repository-management-v1",
+    "clientRecoveryCommand": "harness service install",
+    "changedClientFiles": [
+      "harness_entry.py",
+      "harness_launch.py",
+      "jira_dispatch.py",
+      "jira_intake.py",
+      "pilot.py",
+      "quick_install.py",
+      "seat_control.py",
+      "seat_lifecycle.py",
+      "service_status.py",
+      "README.md"
+    ],
+    "unrelatedClientModulesPreserved": [
+      "delivery_execution.py",
+      "harness_capabilities.py"
+    ]
+  },
+  "verification": {
+    "publicFilesVerified": 168,
+    "publicHashMismatches": 0,
+    "bridgeSha256": "643cd8733a94bde4f9839f5eec4c2979fa963ed36656db50be6b7fc822bf69c2",
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  },
+  "validation": {
+    "sourceServerRegressionTestsPassed": 327,
+    "sourcePython": {
+      "run": 203,
+      "skipped": 2,
+      "passed": 201
+    },
+    "publishedScopedPython": {
+      "run": 187,
+      "skipped": 2,
+      "passed": 185
+    },
+    "publishedDispatchUiTest": "passed",
+    "uiModuleLinking": {
+      "modules": 503,
+      "namedImportsValid": true
+    },
+    "remoteRuntimeModuleImports": "5 passed",
+    "uiBuild": "passed",
+    "uiAndSharedTypecheck": "passed",
+    "fullWorkspaceChecks": "not completed; cargo unavailable; server recheck after dependency restoration missing upstream runner/plugin build outputs",
+    "publishedFullPythonAgainstWorkspaceTests": "7 failures/errors confined to unpublished delivery_execution expectations; preserved online delivery module and excluded that test module from scoped release verification"
+  },
+  "localSeatUpgraded": false,
+  "limitations": [
+    "Existing seats must run harness upgrade before version 4 intake",
+    "No real business task dispatched or Jira data mutated for acceptance",
+    "Authenticated browser interaction not verified because browser is logged out"
+  ],
+  "browserSmoke": "New entry loaded and login form rendered successfully",
+  "deploymentMode": "Scoped runtime patch preserving unrelated live functionality; health commit remains base commit"
+}

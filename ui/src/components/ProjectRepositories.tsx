@@ -1,5 +1,5 @@
 import { uiText } from "@/i18n/interface";
-import { LegacyProjectRepository } from "./LegacyProjectRepository";
+import { ProjectRepositoryUrlEditor } from "./ProjectRepositoryUrlEditor";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Project, ProjectRepository } from "@paperclipai/shared";
@@ -13,11 +13,12 @@ import { Button } from "./ui/button";
 export function ProjectRepositories({ project }: { project: Project }) {
   const client = useQueryClient();
   const saved: ProjectRepository[] = project.workspaces.flatMap((workspace) => {
-    const id = workspace.metadata?.githubRepositoryId;
-    return typeof id === "string" && workspace.repoUrl ? [{ id, fullName: workspace.name, url: workspace.repoUrl, connections: [] }] : [];
+    const id = workspace.metadata?.harnessRepositoryId ?? workspace.metadata?.githubRepositoryId;
+    return typeof id === "string" && workspace.repoUrl ? [{ id, fullName: workspace.name, url: workspace.repoUrl, ...(workspace.metadata?.harnessRepositoryId ? { source: "harness" as const, repoRef: workspace.repoRef ?? undefined } : {}), connections: [] }] : [];
   });
   const [draft, setDraft] = useState<ProjectRepository[] | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [addingUrl, setAddingUrl] = useState(false);
   const save = useMutation({
     mutationFn: () => projectsApi.setRepositories(project.id, (draft ?? saved).map((repo) => repo.id)),
     onSuccess: (updated) => {
@@ -32,7 +33,9 @@ export function ProjectRepositories({ project }: { project: Project }) {
   });
   return <section aria-label={uiText("Repositories")} className="flex min-w-0 flex-col gap-4 py-4">
     <ProjectRepositoryInput companyId={project.companyId} selected={draft ?? saved} onChange={(repos) => { setDraft(repos); save.reset(); }} onConnect={() => setConnecting(true)} disabled={save.isPending} />
-    {project.workspaces.filter((workspace) => workspace.repoUrl && !workspace.metadata?.githubRepositoryId).map((workspace) => <LegacyProjectRepository key={workspace.id} workspace={workspace} projectRef={project.urlKey} />)}
+    {project.workspaces.filter((workspace) => workspace.repoUrl && !workspace.metadata?.githubRepositoryId && !workspace.metadata?.harnessRepositoryId).map((workspace) => <ProjectRepositoryUrlEditor key={workspace.id} workspace={workspace} projectId={project.id} companyId={project.companyId} projectRef={project.urlKey} />)}
+    {addingUrl ? <ProjectRepositoryUrlEditor projectId={project.id} companyId={project.companyId} projectRef={project.urlKey} isPrimary={!project.workspaces.some((workspace) => workspace.repoUrl)} onClose={() => setAddingUrl(false)} />
+      : <Button type="button" variant="outline" className="self-start" disabled={save.isPending} onClick={() => setAddingUrl(true)}>{uiText("Add GitLab / other Git repository")}</Button>}
     <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
       {save.isError && <p role="alert" className="mr-auto text-sm text-destructive">{save.error.message}</p>}
       {save.isSuccess && <span role="status" className="mr-auto text-sm text-muted-foreground">{uiText("Changes saved")}</span>}

@@ -348,6 +348,15 @@ describe.sequential("agent cross-tenant route authorization", () => {
     resetMockDefaults();
   });
 
+  it("does not let a member with agent-management grants bypass administrator-only seat deletion", async () => {
+    currentAccessCanUser = true;
+    mockAgentService.getById.mockResolvedValue({...baseAgent,adapterConfig:{dsp7Seat:{ownerUserId:"member"}}});
+    const app=await createApp({type:"board",source:"session",userId:"member",companyIds:[companyId],memberships:[{companyId,status:"active",membershipRole:"member"}]});
+    const response=await requestApp(app,baseUrl=>request(baseUrl).delete(`/api/agents/${agentId}`));
+    expect(response.status).toBe(403);
+    expect(mockAgentService.remove).not.toHaveBeenCalled();
+  });
+
   it("enforces company boundaries before mutating or reading agent keys", async () => {
     const crossTenantActor = {
       type: "board",

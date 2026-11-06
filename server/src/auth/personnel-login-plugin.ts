@@ -37,7 +37,7 @@ export function personnelLoginPlugin(db:Db) {
   personnelSignIn:createAuthEndpoint("/personnel-sign-in",{method:"POST",requireHeaders:true,body:z.object({username:z.string().trim().min(1).max(300),password:z.string().min(1).max(1024)})},async ctx=>{
    const found=await db.select({person:personnelPeople}).from(personnelPeople).innerJoin(personnelSources,eq(personnelSources.id,personnelPeople.sourceId)).where(and(eq(personnelPeople.active,true),eq(personnelSources.enabled,true),or(eq(personnelPeople.username,ctx.body.username),eq(personnelPeople.email,ctx.body.username),eq(personnelPeople.externalId,ctx.body.username)))).limit(2);
    if(found.length!==1||!found[0].person.userId)throw fail();const p=found[0].person;
-   const [member]=await db.select().from(companyMemberships).where(and(eq(companyMemberships.companyId,p.companyId),eq(companyMemberships.principalId,p.userId!),eq(companyMemberships.principalType,"user"),eq(companyMemberships.status,"active")));
+   const [member]=await db.select().from(companyMemberships).where(and(eq(companyMemberships.principalId,p.userId!),eq(companyMemberships.principalType,"user"),eq(companyMemberships.status,"active")));
    const [account]=await db.select().from(authAccounts).where(and(eq(authAccounts.userId,p.userId!),eq(authAccounts.providerId,"credential")));
    if(!member||!account?.password||!await verifyPassword({hash:account.password,password:ctx.body.password}))throw fail();
    const user=await ctx.context.internalAdapter.findUserById(p.userId!);if(!user)throw fail();
@@ -51,7 +51,7 @@ export function personnelLoginPlugin(db:Db) {
     const [p]=await tx.select().from(personnelPeople).where(and(eq(personnelPeople.activationHash,digest),gt(personnelPeople.activationExpires,new Date()),eq(personnelPeople.active,true),eq(personnelPeople.managedAccount,true))).for("update");
     if(!p?.userId)throw fail();
     const [s]=await tx.select().from(personnelSources).where(and(eq(personnelSources.id,p.sourceId),eq(personnelSources.enabled,true)));if(!s)throw fail();
-    const [member]=await tx.select().from(companyMemberships).where(and(eq(companyMemberships.companyId,p.companyId),eq(companyMemberships.principalType,"user"),eq(companyMemberships.principalId,p.userId),eq(companyMemberships.status,"active")));if(!member)throw fail();
+    const [member]=await tx.select().from(companyMemberships).where(and(eq(companyMemberships.principalType,"user"),eq(companyMemberships.principalId,p.userId),eq(companyMemberships.status,"active")));if(!member)throw fail();
     const [old]=await tx.select().from(authAccounts).where(and(eq(authAccounts.userId,p.userId),eq(authAccounts.providerId,"credential")));if(old)throw fail();
     await tx.insert(authAccounts).values({id:randomUUID(),issuer:"local:credential",accountId:p.userId,providerId:"credential",userId:p.userId,password:hash,createdAt:new Date(),updatedAt:new Date()});
     await tx.update(personnelPeople).set({activationHash:null,activationExpires:null}).where(eq(personnelPeople.id,p.id));

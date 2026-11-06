@@ -5,6 +5,10 @@ import { flushSync } from "react-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Layout } from "./Layout";
+vi.mock("@/hooks/useManagementAccess", () => ({ useManagementAccess: () => ({ canManage: true, isInstanceAdmin: true }) }));
+vi.mock("./DeferredBoardDialogs", () => ({ DeferredBoardDialogs: () => null }));
+vi.mock("./PlatformHeaderActions", () => ({ PlatformHeaderActions: () => null }));
+vi.mock("./FocusedRouteGate", () => ({ FocusedRouteGate: ({ children }: { children: React.ReactNode }) => children }));
 
 const mockHealthApi = vi.hoisted(() => ({
   get: vi.fn(),
@@ -41,6 +45,7 @@ const mockSidebarState = vi.hoisted(() => ({
 let currentPathname = "/PAP/dashboard";
 
 vi.mock("@/lib/router", () => ({
+  Link: ({ to, children, ...props }: React.PropsWithChildren<{ to: string }>) => <a href={to} {...props}>{children}</a>,
   Outlet: () => <div>Outlet content</div>,
   useLocation: () => ({
     pathname: currentPathname,

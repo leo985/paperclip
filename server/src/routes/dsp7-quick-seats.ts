@@ -1,8 +1,16 @@
+import { seatOccupancy } from "../services/seat-concurrency.js";
+import { assertDeliveryRun, stageKind } from "../services/delivery-workflows.js";
+import { assertAnalysisRun } from "../services/analysis-executions.js";
+import { seatRunControl } from "../services/seat-run-control.js";
+import { acceptSeatUsageCheckpoint } from "../services/seat-usage-checkpoints.js";
+import { acceptSeatFinalUsage } from "../services/seat-final-usage.js";
+import { heartbeatService } from "../services/heartbeat.js";
+import { seatPermitService } from "../services/seat-execution-permits.js";
 import { isSeatManager, requireSeatOwner } from "./dsp7-seat-owners.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Router, type Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
-import { activityLog, agentApiKeys, agents, companies, environments, heartbeatRuns, companyMemberships, instanceUserRoles, type Db } from "@paperclipai/db";
+import { seatExecutionPermits, activityLog, agentApiKeys, agents, companies, environments, heartbeatRuns, companyMemberships, instanceUserRoles, type Db } from "@paperclipai/db";
 import { z } from "zod";
 import { assertBoard, assertCompanyAccess } from "./authz.js";
 import { accessService } from "../services/access.js";
@@ -15,14 +23,31 @@ export const quickProfileSchema=z.object({harnessRoot:localPath,bridgeRoot:local
 const resultSchema=z.object({exitCode:z.number().int().nullable(),signal:z.string().max(50).nullable(),timedOut:z.boolean(),summary:z.string().max(10000).optional(),errorMessage:z.string().max(2000).optional(),usage:z.object({inputTokens:z.number().int().nonnegative(),outputTokens:z.number().int().nonnegative(),cachedInputTokens:z.number().int().nonnegative().optional()}).optional(),model:z.string().max(100).optional(),usageBasis:z.literal("per_run").optional(),billingType:z.literal("unknown").optional(),costUsd:z.null().optional(),sessionId:uuid.optional()}).strict();
 export function dsp7QuickSeatRoutes(db:Db) {
  const router=Router();const access=accessService(db);
- async function own(req:Request) {
+ // A bearer invitation can reveal its target organization without consuming it.
+ // This lets a computer preserve existing identities before choosing a profile.
+ router.post("/dsp7-quick-enroll/inspect",async(req,res)=>{
+  const parsed=z.object({invitationId:uuid,token:z.string().regex(/^[a-f0-9]{64}$/)}).strict().safeParse(req.body);
+  if(!parsed.success)throw badRequest("邀请格式无效");
+  const [invite]=await db.select().from(activityLog).where(and(eq(activityLog.entityType,"dsp7_quick_enrollment"),eq(activityLog.entityId,parsed.data.invitationId),eq(activityLog.action,"dsp7.quick.invited"))).limit(1);
+  const data=invite?.details;
+  if(!invite||!data||data.tokenHash!==createHash("sha256").update(parsed.data.token).digest("hex")||Date.parse(String(data.expiresAt))<=Date.now())throw forbidden("邀请无效或过期，请从网页重新生成");
+  const [company]=await db.select({name:companies.name}).from(companies).where(eq(companies.id,invite.companyId));
+  if(!company)throw forbidden("邀请所属组织已不可用");
+  res.setHeader("Cache-Control","no-store");res.json({companyId:invite.companyId,companyName:company.name});
+ });
+ router.get("/companies/:companyId/seat-run-control/:runId",async(req,res)=>{
+  assertBoard(req);const companyId=String(req.params.companyId);assertCompanyAccess(req,companyId);
+  if(!uuid.safeParse(req.params.runId).success)throw badRequest("运行编号无效");
+  res.setHeader("Cache-Control","no-store");res.json(await seatRunControl(db,companyId,String(req.params.runId)));
+ });
+ async function own(req:Request, control = false) {
   const parsed=machine.safeParse(req.body);
   if(!parsed.success)throw badRequest("本机身份无效");
   if(req.actor.type!=="agent"||req.actor.source!=="agent_key"||(req.actor.keyScope&&req.actor.keyScope.kind!=="standard")||req.actor.agentId!==String(req.params.id))throw forbidden("需要本机独立凭证");
   assertCompanyAccess(req,req.actor.companyId!);
   const[agent]=await db.select().from(agents).where(and(eq(agents.id,String(req.params.id)),eq(agents.companyId,req.actor.companyId!)));
   const seat=agent?.adapterConfig.dsp7Seat as Record<string,unknown>|undefined;
-  if(!agent||agent.adapterConfig.dsp7Transport!=="outbound"||!seat||seat.machineId!==parsed.data.machine_id||seat.machineFingerprint!==parsed.data.machine_fingerprint||parsed.data.seat_id!==agent.id||["paused","terminated","pending_approval"].includes(agent.status))throw forbidden("席位不可用或本机身份不一致");
+  if(!agent||agent.adapterConfig.dsp7Transport!=="outbound"||!seat||seat.machineId!==parsed.data.machine_id||seat.machineFingerprint!==parsed.data.machine_fingerprint||parsed.data.seat_id!==agent.id||!control&&["paused","terminated","pending_approval"].includes(agent.status))throw forbidden("席位不可用或本机身份不一致");
   return agent;
  }
  router.post("/companies/:companyId/dsp7-quick-enrollments",async(req,res)=>{
@@ -73,16 +98,59 @@ export function dsp7QuickSeatRoutes(db:Db) {
   if(!runtime||req.body.revision!==runtime.revision)throw conflict("登记版本已变化，不能领取运行");
   const[run]=await db.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id,job.ctx.runId),eq(heartbeatRuns.companyId,agent.companyId),eq(heartbeatRuns.agentId,agent.id),eq(heartbeatRuns.status,"running")));
   if(!run){res.json({job:null});return;}
+  const analysis=job.packet.executionKind==="analysis";
+  const delivery=job.packet.executionKind==="delivery";
+  const deliveryScope=delivery?await assertDeliveryRun(db,agent.companyId,agent.id,run.id):null;
+  if(delivery&&(req.body.permitProtocol!==1||req.body.supervisionProtocol!==2))throw conflict("条目执行需要新版监督协议");
+  if(analysis){if(req.body.permitProtocol!==1||req.body.supervisionProtocol!==2)throw conflict("分析运行需要新版许可监督协议");await assertAnalysisRun(db,agent.companyId,agent.id,run.id);}
+  const capacity = await seatOccupancy(db, agent, [], String(job.packet.taskId));
+  if (capacity.occupied >= capacity.limit) { res.json({job:null}); return; }
   const packet=await claimOutbound(job);
+  if(req.body.permitProtocol===1){
+   try {
+    const permit=await seatPermitService(db).issue({companyId:agent.companyId,agentId:agent.id,runId:run.id,machineId:String(req.body.machine_id),lease:packet.lease},{kind:deliveryScope?stageKind(deliveryScope.stage.stage):analysis?"analysis":"development",supervisionProtocol:req.body.supervisionProtocol===2?2:1});
+    Object.assign(packet,{permit,executionRoute:permit.executionRoute});
+   } catch(error) {
+    job.resolve({exitCode:1,signal:null,timedOut:false,errorCode:"seat_permit_denied",errorMessage:"执行许可未获准；未启动本机模型，请核对任务、预算和旧进程停止回执"});
+    throw error;
+   }
+  }
   await db.insert(activityLog).values({companyId:agent.companyId,actorType:"agent",actorId:agent.id,agentId:agent.id,action:"dsp7.outbound.claimed",entityType:"heartbeat_run",entityId:run.id,details:{machineId:req.body.machine_id,revision:runtime.revision}});
   res.json({job:packet});
  });
  router.post("/agents/:id/dsp7-outbound-runs/:runId",async(req,res)=>{
-  const agent=await own(req);const parsed=z.object({lease:uuid,sequence:z.number().int().nonnegative(),stream:z.enum(["stdout","stderr"]).optional(),chunk:z.string().max(65536).optional(),result:resultSchema.optional()}).safeParse(req.body);if(!parsed.success)throw badRequest("执行回执无效");
+  const agent=await own(req,true);const parsed=z.object({lease:uuid,permitProtocol:z.literal(1).optional(),sequence:z.number().int().nonnegative(),stream:z.enum(["stdout","stderr"]).optional(),chunk:z.string().max(65536).optional(),result:resultSchema.optional()}).safeParse(req.body);if(!parsed.success)throw badRequest("执行回执无效");
   const runId=String(req.params.runId);const job=outboundJob(runId);
   const[run]=await db.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id,runId),eq(heartbeatRuns.agentId,agent.id),eq(heartbeatRuns.companyId,agent.companyId)));
   if(!job||!run||job.ctx.agent.id!==agent.id||job.lease!==parsed.data.lease||run.status!=="running"||job.ctx.signal?.aborted){res.json({alive:false,status:run?.status??"unavailable"});return;}
+  const [persistedPermit]=await db.select({id:seatExecutionPermits.id}).from(seatExecutionPermits).where(and(eq(seatExecutionPermits.runId,runId),eq(seatExecutionPermits.companyId,agent.companyId)));
+  if(parsed.data.permitProtocol===1||persistedPermit){
+   const decision=await seatPermitService(db).renew({companyId:agent.companyId,agentId:agent.id,runId,machineId:String(req.body.machine_id),lease:parsed.data.lease});
+   if(!decision.alive){res.json(decision);return;}
+   await receiveOutbound(job,parsed.data);res.json({...decision,sequence:job.sequence});return;
+  }
   await receiveOutbound(job,parsed.data);res.json({alive:true,sequence:job.sequence});
+ });
+ router.post("/agents/:id/dsp7-outbound-runs/:runId/usage-checkpoint",async(req,res)=>{
+  const agent=await own(req,true);
+  const parsed=z.object({lease:uuid,sequence:z.number().int().min(1).max(2147483647),model:z.string().min(1).max(100),observedAt:z.string().datetime({offset:true}),usage:z.object({inputTokens:z.number().int().min(0).max(2147483647),outputTokens:z.number().int().min(0).max(2147483647),cachedInputTokens:z.number().int().min(0).max(2147483647).optional()}).strict()}).safeParse(req.body);
+  if(!parsed.success)throw badRequest("累计用量回执无效");
+  const receipt=await acceptSeatUsageCheckpoint(db,{companyId:agent.companyId,agentId:agent.id,runId:String(req.params.runId),machineId:String(req.body.machine_id),lease:parsed.data.lease},parsed.data,{cancelWorkForScope:heartbeatService(db).cancelBudgetScopeWork});
+  res.setHeader("Cache-Control","no-store");res.json(receipt);
+ });
+ router.post("/agents/:id/dsp7-outbound-runs/:runId/usage-final",async(req,res)=>{
+  const agent=await own(req,true);
+  const parsed=z.object({lease:uuid,model:z.string().min(1).max(100),usage:z.object({inputTokens:z.number().int().min(0).max(2147483647),outputTokens:z.number().int().min(0).max(2147483647),cachedInputTokens:z.number().int().min(0).max(2147483647).optional()}).strict()}).safeParse(req.body);
+  if(!parsed.success)throw badRequest("最终用量回执无效");
+  const receipt=await acceptSeatFinalUsage(db,{companyId:agent.companyId,agentId:agent.id,runId:String(req.params.runId),machineId:String(req.body.machine_id),lease:parsed.data.lease},parsed.data,{cancelWorkForScope:heartbeatService(db).cancelBudgetScopeWork});
+  res.setHeader("Cache-Control","no-store");res.json(receipt);
+ });
+ router.post("/agents/:id/dsp7-outbound-runs/:runId/stopped",async(req,res)=>{
+  const agent=await own(req,true);
+  const parsed=z.object({lease:uuid,exitObserved:z.literal(true),treeProof:z.object({protocolVersion:z.literal(1),runId:uuid,isolation:z.enum(["posix-sessions","windows-job","not-started"]),firstObservedAt:z.string().datetime({offset:true}),observedAt:z.string().datetime({offset:true}),observations:z.number().int().min(2).max(1000),remaining:z.literal(0)}).strict().optional()}).safeParse(req.body);
+  if(!parsed.success)throw badRequest("进程退出回执无效");
+  const receipt=await seatPermitService(db).observeExit({companyId:agent.companyId,agentId:agent.id,runId:String(req.params.runId),machineId:String(req.body.machine_id),lease:parsed.data.lease},parsed.data.treeProof);
+  res.setHeader("Cache-Control","no-store");res.json(receipt);
  });
  return router;
 }

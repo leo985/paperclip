@@ -35,9 +35,9 @@ export function resolveProjectRepositorySelection(
   return [...new Set(ids)].map((id) => {
     const current = available.find((repo) => repo.id === id);
     if (current) return current;
-    const retained = existing.find((workspace) => workspace.metadata?.githubRepositoryId === id && workspace.repoUrl);
-    if (retained) return { id, fullName: retained.name, url: retained.repoUrl!, connections: [] };
-    throw unprocessable("A selected GitHub repository is no longer available. Refresh repositories and try again.");
+    const retained = existing.find((workspace) => (workspace.metadata?.harnessRepositoryId ?? workspace.metadata?.githubRepositoryId) === id && workspace.repoUrl);
+    if (retained) return { id, fullName: retained.name, url: retained.repoUrl!, ...(id.startsWith("harness:") ? { source: "harness" as const } : {}), connections: [] };
+    throw unprocessable("A selected repository is no longer available. Refresh repositories and try again.");
   });
 }
 

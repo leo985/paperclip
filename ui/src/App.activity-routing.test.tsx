@@ -2,7 +2,8 @@
 
 // Regression guard for the Audit hub: Activity remains the canonical root,
 // while Runs, Costs, and Budgets live beneath it. Company-prefixed and bare
-// legacy routes must keep resolving with their query filters intact; `/audit`
+// legacy routes must keep resolving with their query filters intact. Focused
+// `/runs` opens execution records; `/audit`
 // specifically retains the historical Agent Actions preset. This drives the
 // real <App> route table so removing either registration fails loudly.
 
@@ -83,6 +84,13 @@ vi.mock("./pages/audit/AuditHub", () => ({
   AuditHub: ({ section }: { section: string }) => {
     const location = useLocation();
     return <div>{`AUDIT_${section.toUpperCase()}@${location.pathname}${location.search}`}</div>;
+  },
+}));
+
+vi.mock("./pages/ExecutionRecords", () => ({
+  ExecutionRecords: () => {
+    const location = useLocation();
+    return <div>{`EXECUTION_RECORDS@${location.pathname}${location.search}`}</div>;
   },
 }));
 
@@ -261,9 +269,9 @@ describe("App Activity routing (PAP-16302)", () => {
     flushSync(() => root.unmount());
   });
 
-  it("redirects a bare legacy section through to the prefixed Audit hub", async () => {
+  it("redirects bare runs to focused execution records with its filters", async () => {
     const root = renderAppAt(container, "/runs?runStatus=succeeded");
-    await waitForRoute(container, "AUDIT_RUNS@/PAP/activity/runs?runStatus=succeeded");
+    await waitForRoute(container, "EXECUTION_RECORDS@/PAP/runs?runStatus=succeeded");
     flushSync(() => root.unmount());
   });
 

@@ -204,6 +204,9 @@ export async function prepareManagedAiRuntime(
     allowUninstalledShared?: boolean;
     allowLegacyValidation?: boolean;
     config: Record<string, unknown>;
+    projectAuthTarget?: AdapterExecutionTarget | null;
+    /** Heartbeat verifies after workspace realization, before provider dispatch. */
+    deferProjectAuthCheck?: boolean;
   },
 ) {
   const configuredEnv =
@@ -225,7 +228,7 @@ export async function prepareManagedAiRuntime(
         { code: "ai_connection_incompatible" },
       );
   }
-  await assertManagedAiProjectAuth(input.config, input.binding.provider);
+  if (!input.deferProjectAuthCheck) await assertManagedAiProjectAuth(input.config, input.binding.provider, input.projectAuthTarget);
   const service = aiConnectionService(db);
   let selection = await service.select({
     ...input,

@@ -96,6 +96,42 @@ def verify_runtime(b):
     return current
 
 
+class RuntimeRefreshDeferred(BridgeError):
+    def __init__(self,reason):
+        super().__init__('自动刷新登记暂缓：'+reason)
+        self.reason=reason
+
+
+def auto_refresh_runtime(b):
+    """Refresh changes at enrolled locations, never adopt a different seat or path."""
+    with (Path(b.cfg['database']).parent/'config.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        b.cfg=read_json(b.config_path)
+        stored=b.cfg.get('seat_runtime') or {}
+        if not stored:raise RuntimeRefreshDeferred('identity')
+        local=identity(b)
+        current=runtime_profile(b,stored['claudeCommand'],stored.get('claudeSettingsFile'),stored['environmentId'])
+        changed={key for key,value in current.items() if stored.get(key)!=value}
+        if changed-{'claudeVersion','settingsDigest'}:
+            raise RuntimeRefreshDeferred('path')
+        agent=seat_api(b).request('GET','/agents/'+b.cfg['agent_id'])
+        config=agent.get('adapterConfig') or {}
+        remote=config.get('dsp7SeatRuntime') or {};seat=config.get('dsp7Seat') or {}
+        if (agent.get('defaultEnvironmentId')!=stored['environmentId']
+                or remote.get('revision')!=stored.get('revision')
+                or any(remote.get(key)!=stored.get(key) for key in current)
+                or seat.get('machineId')!=local['machine_id']
+                or seat.get('machineFingerprint')!=local['machine_fingerprint']):
+            raise RuntimeRefreshDeferred('identity')
+        from seat_upgrade import assert_idle
+        try:assert_idle(b)
+        except BridgeError:raise
+        except RuntimeError:raise RuntimeRefreshDeferred('busy') from None
+        # Reuse the authoritative registration route and its transaction-time
+        # active-run guard. _command runs under our existing config lock.
+        _command(b,['seat','register'])
+
+
 def reserve(b,task_id):
     local=identity(b)
     if b.agent_mode:
@@ -118,7 +154,9 @@ def normalize_remote(value):
 def source_repo(b,project_id,workspace):
     identity(b)
     mapping=(b.cfg.get('project_repositories') or {}).get(project_id+':'+workspace['id'])
-    if not mapping:raise BridgeError('本席位尚未绑定该 Project 工作区；请执行 harness repo bind')
+    if not mapping:
+        from harness_repositories import resolve_existing
+        mapping=resolve_existing(b,workspace)
     if not workspace.get('repoUrl'):raise BridgeError('共享工作区需要仓库 URL，不使用其他电脑的 cwd')
     repo=Path(mapping).expanduser()
     if not repo.is_absolute():raise BridgeError('本机仓库映射必须是绝对路径')
@@ -178,7 +216,10 @@ def _command(b,argv):
                 if candidate.is_file():settings=str(candidate)
             profile=runtime_profile(b,args.claude or stored.get('claudeCommand') or 'claude',settings,environment_id)
         result=api.request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-seat-registration',{**identity(b),'runtime':profile})
-        b.cfg['execution_transport']=(agent.get('adapterConfig') or {}).get('dsp7Transport') or 'ssh'
+        # The registration endpoint is authoritative; general Agent views may
+        # omit private adapter metadata. Never infer SSH from a missing field.
+        transport=result.pop('executionTransport',None)
+        if transport in ('outbound','ssh'):b.cfg['execution_transport']=transport
         b.cfg['seat_runtime']=result
         atomic_json(b.config_path,b.cfg)
         print(json.dumps({'registration':result,'message':'登记已刷新；网页选择本席位即可复用现有智能体。登记不代表电脑持续在线。'},ensure_ascii=False,indent=2))

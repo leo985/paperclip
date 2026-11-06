@@ -7,6 +7,8 @@ import { BreadcrumbProvider, useBreadcrumbs } from "../context/BreadcrumbContext
 import { BreadcrumbBar } from "./BreadcrumbBar";
 
 const viewport = vi.hoisted(() => ({ isMobile: false }));
+// Account actions own their queries; this suite exercises breadcrumb layout.
+vi.mock("./PlatformHeaderActions", () => ({ PlatformHeaderActions: () => null }));
 
 vi.mock("@/lib/router", () => ({
   Link: ({ children, className, to }: { children: ReactNode; className?: string; to: string }) => (

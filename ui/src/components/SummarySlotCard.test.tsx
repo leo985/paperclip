@@ -260,7 +260,7 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toBe("");
+    expect(container.textContent?.trim()).toBe("");
     expect(mockSummarySlotsApi.get).not.toHaveBeenCalled();
     expect(mockBuiltInAgentsApi.list).not.toHaveBeenCalled();
   });
@@ -285,7 +285,7 @@ describe("SummarySlotCard", () => {
 
     expect(container.textContent).toContain("Set up the Summarizer");
     const setupButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Set up Summarizer",
+      (button) => button.textContent?.trim() === "Set up Summarizer",
     );
     expect(setupButton).not.toBeNull();
 
@@ -321,12 +321,12 @@ describe("SummarySlotCard", () => {
     expect(container.textContent).toContain("Summary request failed");
 
     const setupButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Set up Summarizer",
+      (button) => button.textContent?.trim() === "Set up Summarizer",
     );
     await act(() => setupButton?.click());
     await flushQueries();
     const finishSetupButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Finish setup",
+      (button) => button.textContent?.trim() === "Finish setup",
     );
     await act(() => finishSetupButton?.click());
 
@@ -365,7 +365,7 @@ describe("SummarySlotCard", () => {
     expect(container.textContent).toContain("Summarizer is paused");
     expect(container.textContent).not.toContain("No summary yet");
     expect(container.textContent).not.toContain("Generate summary");
-    expect([...container.querySelectorAll("button")].filter((button) => button.textContent === "Resume agent"))
+    expect([...container.querySelectorAll("button")].filter((button) => button.textContent?.trim() === "Resume agent"))
       .toHaveLength(1);
   });
 
@@ -441,7 +441,7 @@ describe("SummarySlotCard", () => {
     expect(container.textContent).toContain("3 revisions");
     expect(container.textContent).not.toContain("Latest (Rev 3)");
     expect([...container.querySelectorAll<HTMLButtonElement>("button")].some(
-      (button) => button.textContent === "Revision 1" || button.textContent === "Rev 1",
+      (button) => button.textContent?.trim() === "Revision 1" || button.textContent?.trim() === "Rev 1",
     )).toBe(false);
 
     await openRevisionSelect(container);
@@ -456,7 +456,7 @@ describe("SummarySlotCard", () => {
     expect(container.textContent).toContain("Old body");
 
     const latestButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Latest",
+      (button) => button.textContent?.trim() === "Latest",
     );
     expect(latestButton).not.toBeNull();
 
@@ -526,7 +526,7 @@ describe("SummarySlotCard", () => {
     expect(container.textContent).toContain("PAP-14000 finished without writing a summary");
     expect(container.querySelector('[role="note"]')?.className).toContain("text-red-700");
     const retryButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Retry",
+      (button) => button.textContent?.trim() === "Retry",
     );
     expect(retryButton).not.toBeNull();
 

@@ -1,0 +1,19 @@
+{
+  "release": "terminal-display-v1",
+  "backup": "/home/fg/paperclip/private/terminal-display-20261022T141051Z",
+  "changedFiles": [
+    "dsp7-bridge.zip",
+    "dsp7-install.py",
+    "dsp7-bridge-manifest.json"
+  ],
+  "bridgeSha256": "14da12131df3b3ab2ecae14715f20841814836e1635175068a8474762d0e2c6d",
+  "serverPidUnchanged": true,
+  "databaseMigration": false,
+  "localSeatUpgraded": true,
+  "localBackup": "/Users/leo/.config/paperclip-dsp7-bridge/upgrade-backups/20261022-221116-a8033d4b",
+  "syntaxCheck": "all bundled Python modules compile",
+  "publicArtifactsMatch": true,
+  "taskAutoStarted": false,
+  "windowsDeviceVerified": false,
+  "testsRun": false
+}

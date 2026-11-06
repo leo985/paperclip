@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { localizedStatus,  uiTextFormat,  uiText } from "@/i18n/interface";
 import { createContext, useContext, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -262,7 +263,7 @@ export function SecretBindingPicker({
           <AlertCircle className="h-3 w-3" />
           {missingHint.status === "deleted"
             ? uiText("The previously selected secret was deleted. Pick another or remove the binding.")
-            : uiTextFormat("This secret is __PCVAR0__; runs cannot resolve it until it is active again.", [localizedStatus(missingHint.status)])}
+            : uiTextFormat("This secret is __PCVAR0__; runs cannot resolve it until it is active again.", [i18n.language.startsWith("en") ? localizedStatus(missingHint.status).toLowerCase() : localizedStatus(missingHint.status)])}
         </p>
       ) : hintsPending ? (
         <p className="text-(length:--text-micro) text-muted-foreground flex items-center gap-1">

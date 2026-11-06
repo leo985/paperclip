@@ -471,7 +471,7 @@ describe("TaskChatProtocolCard", () => {
       patchArtifactRef: null,
     });
     const button = Array.from(container.querySelectorAll("button")).find(
-      (candidate) => candidate.textContent === "Review diff",
+      (candidate) => candidate.textContent?.trim() === "Review diff",
     );
     expect(button).not.toBeUndefined();
     expect(container.textContent).toContain("1 file changed · +1 −1");
@@ -500,7 +500,7 @@ describe("TaskChatProtocolCard", () => {
       previewTruncated: false,
     });
     const button = Array.from(container.querySelectorAll("button")).find(
-      (candidate) => candidate.textContent === "Preview",
+      (candidate) => candidate.textContent?.trim() === "Preview",
     );
     await act(async () => button?.click());
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain(
@@ -529,7 +529,7 @@ describe("TaskChatProtocolCard", () => {
       onDecision,
     );
     const button = Array.from(container.querySelectorAll("button")).find(
-      (candidate) => candidate.textContent === "Allow once",
+      (candidate) => candidate.textContent?.trim() === "Allow once",
     );
     expect(button?.disabled).toBe(false);
     await act(async () => button?.click());
@@ -568,7 +568,7 @@ describe("TaskChatProtocolCard", () => {
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
     });
     const submit = Array.from(container.querySelectorAll("button")).find(
-      (candidate) => candidate.textContent === "Submit response",
+      (candidate) => candidate.textContent?.trim() === "Submit response",
     );
     await act(async () => submit?.click());
     expect(onDecision).toHaveBeenCalledWith({
@@ -752,7 +752,7 @@ describe("TaskChatProtocolCard", () => {
       '[data-testid="task-chat-runtime-request"]',
     );
     expect(receipt?.open).toBe(false);
-    expect(receipt?.querySelector("summary")?.textContent).toBe(
+    expect(receipt?.querySelector("summary")?.textContent?.trim()).toBe(
       "Questions answered",
     );
     expect(receipt?.querySelectorAll("summary svg")).toHaveLength(2);
@@ -821,7 +821,7 @@ describe("TaskChatProtocolCard", () => {
       '[data-testid="task-chat-runtime-request"]',
     );
     expect(receipt?.open).toBe(false);
-    expect(receipt?.querySelector("summary")?.textContent).toBe(
+    expect(receipt?.querySelector("summary")?.textContent?.trim()).toBe(
       "Questions cancelled",
     );
     const iconSlot = receipt?.querySelector(

@@ -1,7 +1,12 @@
 const BOARD_ROUTE_ROOTS = new Set([
   "dashboard",
+  "setup",
   "management",
   "jira-intake",
+  "delivery",
+  "delivery-chain",
+  "delivery-workbench",
+  "analysis-executions",
   "runs",
   "seats",
   "help",

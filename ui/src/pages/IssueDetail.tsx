@@ -1,3 +1,6 @@
+import { JiraRequirementPanel } from "@/components/JiraRequirementPanel";
+import { Dsp7ExecutionStatus } from "../components/Dsp7ExecutionStatus";
+import { ManagedSessionPanel } from "@/components/ManagedSessionPanel";
 import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { isDsp7ConfirmationMessage, projectDsp7Comment } from "../lib/dsp7-confirmations";
 import { AgentAvatar } from "@/components/AgentAvatar";
@@ -7398,6 +7401,9 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           {/* Parent chain breadcrumb (redesign: rendered inside the thread viewport) */}
           {taskChatShellEnabled ? null : ancestorsNav}
 
+          <JiraRequirementPanel issue={issue} />
+          <Dsp7ExecutionStatus issue={issue} />
+
           <ExternallyConnectedTaskBanner
             key={issue.id}
             attachments={attachments ?? []}
@@ -7649,6 +7655,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           {taskChatShellEnabled ? null : (
             <Separator className={shellSectionClass} />
           )}
+
+          {(issue.description?.includes("DSP7-PILOT:") || issue.description?.includes("DELIVERY-WORKFLOW")) && <ManagedSessionPanel key={issue.id} companyId={issue.companyId} taskId={issue.id} />}
 
           <Tabs
             value={resolvedDetailTab}

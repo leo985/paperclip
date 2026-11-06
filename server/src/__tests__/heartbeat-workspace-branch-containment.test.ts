@@ -922,7 +922,7 @@ describeEmbeddedPostgres("heartbeat workspace branch containment", () => {
   });
 
   afterAll(async () => {
-    await db.$client.end();
+    await db?.$client.end();
     await tempDb?.cleanup();
   }, 60_000);
 

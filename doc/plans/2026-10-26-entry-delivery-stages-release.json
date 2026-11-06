@@ -1,0 +1,35 @@
+{
+  "release": "entry-four-stages-and-execution-overview",
+  "timestamp": "20261026T045302Z",
+  "filesVerified": 502,
+  "backup": "/home/fg/paperclip/private/entry-stages-backup-20261026T045302Z",
+  "health": "ok",
+  "serviceRestarted": false,
+  "clientSha256": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+  "existingSeatsForceUpdated": false,
+  "browser": "ego-browser: actual entry component, isolated API fixtures; 20 regressions passed",
+  "databaseChanged": false,
+  "otherServicesUnchanged": true,
+  "automaticDeliveryBackendPublished": false,
+  "onlineVerification": {
+    "health": "ok",
+    "indexMatchesBuild": true,
+    "assets": [
+      "/assets/DeliveryEntries-CAvbfCBD.js",
+      "/assets/ManagedSessionPanel-BkvOUNjQ.js"
+    ],
+    "onlineHelp": true,
+    "clientUnchanged": true,
+    "entryResourcesAvailable": true
+  },
+  "browserValidation": {
+    "realComponentWithIsolatedData": true,
+    "stageSwitching": true,
+    "deepLink": true,
+    "oldService404Compatible": true,
+    "mobileWidth": 390,
+    "pageOverflow": false,
+    "productionHelpVerified": true,
+    "productionAuthenticatedBusinessFlow": false
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "release": "jira-execution-layout",
+  "backup": "/home/fg/paperclip/private/jira-execution-layout-20261022T135537Z",
+  "changedFiles": 13,
+  "serverPidUnchanged": true,
+  "clientChanged": false,
+  "databaseMigration": false
+}

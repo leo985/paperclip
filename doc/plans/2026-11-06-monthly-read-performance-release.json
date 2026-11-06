@@ -1,0 +1,143 @@
+{
+  "state": "deployed",
+  "release": "20261106-monthly-read-performance",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "20261106T070328Z",
+  "filesChanged": 5,
+  "backup": "/home/fg/paperclip/private/monthly-performance-20261106/backup-20261106T070328Z",
+  "beforePid": 3875626,
+  "afterPid": 3878847,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-06T07:03:28.273Z",
+    "completedAt": "2026-11-06T07:04:10.345Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 3875626,
+    "newServerPid": 3878847,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "databaseChanged": false,
+  "uiChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "durationSeconds": 43.9,
+  "comparison": [
+    {
+      "company": "基础平台",
+      "companyId": "bf49caa4-5d09-4f5c-b6ae-a5d80b90a5e8",
+      "projectId": "c1b516ef-34a4-4722-a0fb-3a56659303cc",
+      "month": "2026-10",
+      "items": 63,
+      "owners": 63,
+      "managed": 32,
+      "beforeSourceMs": 7952,
+      "afterSourceMs": 4862,
+      "beforeAnnotationMs": 664,
+      "afterAnnotationMs": 81,
+      "beforeQueries": 225,
+      "afterQueries": 6,
+      "beforeTotalMs": 8616,
+      "afterTotalMs": 4943,
+      "sourceParity": true,
+      "admissionParity": true
+    },
+    {
+      "company": "基础平台",
+      "companyId": "bf49caa4-5d09-4f5c-b6ae-a5d80b90a5e8",
+      "projectId": "c1b516ef-34a4-4722-a0fb-3a56659303cc",
+      "month": "2026-11",
+      "items": 36,
+      "owners": 36,
+      "managed": 36,
+      "beforeSourceMs": 4834,
+      "afterSourceMs": 3045,
+      "beforeAnnotationMs": 1342,
+      "afterAnnotationMs": 22,
+      "beforeQueries": 253,
+      "afterQueries": 6,
+      "beforeTotalMs": 6176,
+      "afterTotalMs": 3067,
+      "sourceParity": true,
+      "admissionParity": true
+    }
+  ],
+  "files": {
+    "services/delivery-monthly.js": "a7abc4abc601a8f2ccb5528063b88772c0f0265a0430e776a6fec08fe6584a17",
+    "services/delivery-monthly-annotations.js": "77c342a40dabb78948607ac7003cf5560b84346e3f1453b9eb56262a7389c953",
+    "services/delivery-admission.js": "13350dd20d0894da31c16a5509d2356e2f982dee51a96c0418138ab8b8b65c41",
+    "services/delivery-chain-admission.js": "d42d68ec0e72a7708581d41113997132c95a1862e77801abb8df3dc5b5a6439d",
+    "routes/delivery-connections.js": "842152ee3e5bbf0b098ff08863d5c7b137eb8363a6cb64ac6cb60ea555d22859"
+  },
+  "sourceHashes": {
+    "server/src/services/delivery-monthly.ts": "99fae0411e3aaa766b4e223145ece4143628c9ab65a41bf8f70be1248f263da5",
+    "server/src/services/delivery-monthly-annotations.ts": "ee4f7f2088b7fff4bf6a03629e63d7f040987e80d9e7ae6d4dc00ba53105ba61",
+    "server/src/services/delivery-admission.ts": "054aedebfda9d7acea3fb5542b3e81b6f2646852ec4c7042c3d8fe8844bc4116",
+    "server/src/services/delivery-chain-admission.ts": "ba594af17c67d748584a79b0fc7df3634c79eff424448017de03df7148815129",
+    "server/src/routes/delivery-connections.ts": "90d787fe8c0e83d842f98ab83537db37ca429109700a071f593c4b2257509b2f"
+  },
+  "verification": {
+    "tests": 45,
+    "serverTypecheck": "passed",
+    "scopedBuild": "TypeScript emit and Node syntax checks passed",
+    "productionSourceAndAdmissionParity": "passed for CMP 2026-10 and 2026-11",
+    "uiEntryPreserved": "index-45c7c7b5.js"
+  },
+  "browser": {
+    "october": {
+      "month": "2026-10",
+      "status": [
+        "2026-10 · 显示 63 / 63 个条目 · 读取于 2026/11/6 15:04:55"
+      ],
+      "requestMs": [
+        5931
+      ],
+      "errors": []
+    },
+    "november": {
+      "month": "2026-11",
+      "url": "http://10.60.43.53:3100/CMP/delivery?projectId=c1b516ef-34a4-4722-a0fb-3a56659303cc&month=2026-11",
+      "status": [
+        "2026-11 · 显示 36 / 36 个条目 · 读取于 2026/11/6 15:07:28"
+      ],
+      "requestMs": [
+        {
+          "durationMs": 5931,
+          "status": 200
+        },
+        {
+          "durationMs": 3005,
+          "status": 0
+        }
+      ],
+      "errors": []
+    },
+    "monthControlAutomation": "One intermediate fetch ended without HTTP status; explicit retry displayed all 36 November entries without errors.",
+    "taskSpaceFinished": true
+  },
+  "sourceArchive": {
+    "path": "/home/fg/paperclip/private/monthly-performance-20261106/sources.tar.gz",
+    "sha256": "6fa22a0945f089828e6db916151534ee8c1d5ae4353af711c2d4a5d86af801e6"
+  }
+}

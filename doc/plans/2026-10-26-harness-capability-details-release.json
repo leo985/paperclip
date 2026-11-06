@@ -1,0 +1,28 @@
+{
+  "release": {
+    "release": "harness-capability-details-and-refresh",
+    "timestamp": "20261025T165930Z",
+    "filesVerified": 173,
+    "backup": "/home/fg/paperclip/private/harness-details-backup-20261025T165930Z",
+    "health": "ok",
+    "serviceRestarted": false,
+    "clientSha256": "5b8e7bfc05a37d870bf3dc0e209725d6db6dd1c9276f844a1308deb8bc186095",
+    "existingSeatsForceUpdated": false,
+    "browser": "Microsoft Edge; isolated interaction tests passed",
+    "databaseChanged": false
+  },
+  "browser": {
+    "browser": "Microsoft Edge",
+    "mockedRegistration": true,
+    "checks": [
+      "Unregistered state",
+      "External registration reflected by automatic polling",
+      "Analysis absolute root and metadata visible",
+      "QA Windows unicode path and skills visible",
+      "Manual refresh available"
+    ],
+    "pageErrors": []
+  },
+  "postReleaseHealth": "ok",
+  "staticAssetsMatched": true
+}

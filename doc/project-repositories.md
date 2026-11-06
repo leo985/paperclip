@@ -71,3 +71,45 @@ forty persisted repos, mobile scrolling, removal/save/reload, legacy URL editing
 and rejection without a partial project. Provider discovery is simulated in the
 picker rejection test. GitHub network and popup behavior use deterministic fixtures
 in integration/component tests; the suite does not authorize a real GitHub account.
+
+## Existing Harness checkouts and repository-free testing
+
+Project source repositories remain optional. A QA Harness can use its own test
+assets and a target environment without a separate business repository or a
+`harness repo bind` mapping. Native QA admission, environment/build checks and
+formal delivery evidence still apply; absence of a business repository does not
+skip those gates. Coding intake still requires a project source URL, an existing
+local checkout and a locally resolvable baseline.
+
+The seat bridge reports credential-free business repository URLs and current
+branches with its authenticated machine heartbeat. Discovery first reads `permissions.additionalDirectories` from each registered
+Harness `.claude/settings.local.json`, treating entries as candidates rather than
+assuming they are Git repositories. Nonempty native lists are authoritative:
+stale, foreign-machine or non-Git entries do not cause substitution of unrelated
+sibling repos. Credentials, hooks and commands are not used. All candidates
+must still be within the seat source allowlist. Legacy suites without native
+directory references can fall back to the
+configured `intake_repository_roots`, explicit local mappings, and at most two
+levels beneath the allowlisted roots. It excludes registered Harness roots,
+skips directory symlinks and build directories, and is bounded by count/time.
+Paths remain local. This is local checkout discovery, not a remote repository
+crawler; deeper layouts can use the existing explicit mapping. No clone, fetch,
+branch switch or source modification occurs during discovery.
+
+The existing repository-options endpoint places these checkouts before GitHub
+options for board users who own or manage the reporting company seat. Reports
+must have a heartbeat within 90 seconds; terminated seats are excluded. IDs have
+`harness:<sha256(URL, branch)>` format. Selection revalidates availability, saves
+`metadata.harnessRepositoryId` and initializes `repoRef` for a new workspace.
+Matching manual workspaces are adopted while preserving their configured paths
+and baseline. Existing selections can remain when their seat goes offline.
+GitHub grants and manual URL configuration continue to work independently.
+
+Coding intake first honors an explicit `harness repo bind`. Without one, it can
+reuse a unique allowlisted checkout matching the project's origin and baseline.
+Ambiguous matches require explicit binding. Execution rechecks origin and root
+containment; existing per-ticket worktree isolation and baseline commit recording
+remain in force. This does not imply that a different seat has the same checkout.
+
+Deploy the server before upgrading seat bridges: older bridges omit the optional
+heartbeat inventory and remain supported; inventory requires the new bridge.

@@ -431,6 +431,39 @@ describeEmbeddedPostgres("cost and finance aggregate overflow handling", () => {
     await tempDb?.cleanup();
   });
 
+  it("deduplicates concurrent immutable receipts and rejects conflicting replays", async () => {
+    const companyId = randomUUID(), agentId = randomUUID();
+    await db.insert(companies).values({ id: companyId, name: "Receipts", issuePrefix: `R${companyId.slice(0, 6)}` });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Seat", role: "engineer", adapterType: "claude_local" });
+    const input = { agentId, idempotencyKey: "provider-event-42", provider: "relay",
+      model: "claude", inputTokens: 500, outputTokens: 100, costCents: 12,
+      occurredAt: new Date() };
+    const receipts = await Promise.all(Array.from({ length: 5 }, () => costs.createEvent(companyId, input)));
+    expect(new Set(receipts.map(row => row.id)).size).toBe(1);
+    expect(await db.select().from(costEvents)).toHaveLength(1);
+    const [agent] = await db.select().from(agents);
+    expect(agent!.spentMonthlyCents).toBe(12);
+    await expect(costs.createEvent(companyId, { ...input, costCents: 24 })).rejects.toThrow("different content");
+    await expect(costs.createEvent(companyId, { ...input, occurredAt: new Date(input.occurredAt.getTime() + 1000) })).rejects.toThrow("different content");
+    const replay = await costs.createEvent(companyId, { ...input, biller: "relay", billingType: "unknown", costStatus: "reported", cachedInputTokens: 0 });
+    expect(replay.id).toBe(receipts[0]!.id);
+    // A different run's own event ID is independent even when token values match.
+    await costs.createEvent(companyId, { ...input, idempotencyKey: "provider-event-43" });
+    expect(await db.select().from(costEvents)).toHaveLength(2);
+  });
+
+  it("rejects receipt attribution outside the reporting company or agent", async () => {
+    const companyId = randomUUID(), agentId = randomUUID(), foreignCompany = randomUUID(), foreignAgent = randomUUID();
+    await db.insert(companies).values([{ id: companyId, name: "A", issuePrefix: `A${companyId.slice(0, 6)}` }, { id: foreignCompany, name: "B", issuePrefix: `B${foreignCompany.slice(0, 6)}` }]);
+    await db.insert(agents).values([{ id: agentId, companyId, name: "A", role: "engineer", adapterType: "claude_local" }, { id: foreignAgent, companyId: foreignCompany, name: "B", role: "engineer", adapterType: "claude_local" }]);
+    const [run] = await db.insert(heartbeatRuns).values({ companyId: foreignCompany, agentId: foreignAgent, status: "running" }).returning();
+    const [project] = await db.insert(projects).values({ companyId: foreignCompany, name: "Foreign", status: "in_progress" }).returning();
+    const input = { agentId, idempotencyKey: "bad-attribution", provider: "relay", model: "claude", costCents: 1, occurredAt: new Date() };
+    await expect(costs.createEvent(companyId, { ...input, heartbeatRunId: run!.id })).rejects.toThrow("does not belong");
+    await expect(costs.createEvent(companyId, { ...input, projectId: project!.id })).rejects.toThrow("does not belong");
+    expect(await db.select().from(costEvents)).toHaveLength(0);
+  });
+
   it("persists unpriced token usage without inflating monthly spend", async () => {
     const companyId = randomUUID();
     const agentId = randomUUID();

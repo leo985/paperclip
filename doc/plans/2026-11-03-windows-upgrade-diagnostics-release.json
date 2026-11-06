@@ -1,0 +1,48 @@
+{
+  "release": "20261103-windows-upgrade-diagnostics",
+  "expected": {
+    "dsp7-bridge.zip": "1706796eb5add52438bea8d90d34a9c682a74b15719f6e24e8866d06c02d76e6",
+    "dsp7-bridge-manifest.json": "68764cad062a2bfe2b8349751e2ab89a2f9f6f29611bffa276b710f74410d90f",
+    "dsp7-install.py": "0e42b9325fc318216bf5e59fdc0074f87a5ea4e2bd875eccbfbdf2a863348256"
+  },
+  "files": {
+    "dsp7-bridge.zip": "89ae3cfe3790204a05eee665164e768c2e90be0c841a23247c416f7bd501171c",
+    "dsp7-install.py": "0e42b9325fc318216bf5e59fdc0074f87a5ea4e2bd875eccbfbdf2a863348256",
+    "dsp7-bridge-manifest.json": "18773d356b7a3519081eaef6725d05cc63c1dfcdf0f8dcb104067887983ac8f3"
+  },
+  "changedBundleFiles": [
+    "seat_upgrade.py",
+    "README.md"
+  ],
+  "databaseChanged": false,
+  "accountsChanged": false,
+  "serverRestarted": false,
+  "verification": {
+    "sourcePythonSuite": {
+      "run": 176,
+      "skipped": 2,
+      "result": "passed"
+    },
+    "publishedWindowsSuite": {
+      "run": 38,
+      "skipped": 1,
+      "result": "passed"
+    },
+    "publishedUpgradeRecoverySuite": {
+      "run": 8,
+      "result": "passed"
+    },
+    "publishedFullSuite": {
+      "run": 176,
+      "failures": 10,
+      "errors": 7,
+      "skipped": 2,
+      "result": "failed",
+      "reason": "Workspace tests for unpublished delivery_execution and installer_network_errors features exceed live bundle scope; those modules kept at live versions."
+    },
+    "windowsRealAcceptance": "pending user rerun",
+    "externalHttpHashes": "verified",
+    "health": "ok"
+  },
+  "remoteBackup": "/home/fg/paperclip/private/windows-upgrade-diagnostics-20261103/backup-20261103T083431Z"
+}

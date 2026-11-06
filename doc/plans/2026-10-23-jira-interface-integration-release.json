@@ -1,0 +1,23 @@
+{
+  "release": "jira-interface-integration",
+  "state": "waiting_for_idle",
+  "updatedAt": "2026-10-23T11:11:52.230879+00:00",
+  "stage": "/home/fg/paperclip/private/jira-interface-integration-20261023T111109Z",
+  "active": {
+    "runs": 1,
+    "busySeats": 1,
+    "pendingCommands": 0
+  },
+  "bridgeVersion": "e8311bcfde2f2d72ed4feb08826d6d2da64f8323593b07f1ea8fdd3fdf971d2e",
+  "unit": "paperclip-jira-interface-integration-20261023t111109z",
+  "checks": {
+    "serverTypeScript": true,
+    "uiTypeScript": true,
+    "uiBuild": true,
+    "pythonSyntax": true,
+    "tokenGates": true,
+    "testsRun": false
+  },
+  "clientUpgradeRequired": true,
+  "includesPendingStatusCapacityChange": true
+}

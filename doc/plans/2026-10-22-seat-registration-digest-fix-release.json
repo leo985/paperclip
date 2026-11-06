@@ -1,0 +1,27 @@
+{
+  "release": "seat-registration-digest-fix",
+  "timestamp": "20261022T004714Z",
+  "backup": "/home/fg/paperclip/private/seat-digest-backup-20261022T004714Z",
+  "stage": "/home/fg/paperclip/private/seat-digest-stage-20261022T004714Z",
+  "archiveSha256": "533f1816e21390bbbf1e8d77bfa1986386a112f8f6b537728b67b0d3886f9655",
+  "filesVerified": 1,
+  "filesChanged": 1,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "otherServicesUnchanged": true,
+  "databaseMigration": false,
+  "installedClientsUpdated": false,
+  "bridgeSha256": "cd6591e96cea043749380dee76cd3134b0ae7e66187e83aea5ccd61378dbc31a"
+}

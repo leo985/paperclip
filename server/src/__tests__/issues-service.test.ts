@@ -3002,6 +3002,19 @@ describeEmbeddedPostgres("issueService.create workspace inheritance", () => {
     await tempDb?.cleanup();
   });
 
+  it("keeps an external executor's explicit workspace opt-out while retaining project attribution", async () => {
+    const companyId = randomUUID(), projectId = randomUUID(), workspaceId = randomUUID(), parentId = randomUUID();
+    await db.insert(companies).values({ id: companyId, name: "Harness workspace ownership", issuePrefix: `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`, requireBoardApprovalForNewAgents: false });
+    await db.insert(projects).values({ id: projectId, companyId, name: "Project with a platform repository", status: "in_progress" });
+    await db.insert(projectWorkspaces).values({ id: workspaceId, companyId, projectId, name: "Primary repository", isPrimary: true });
+    await db.insert(issues).values({ id: parentId, companyId, projectId, projectWorkspaceId: workspaceId, title: "Parent", status: "backlog" });
+    const svc = issueService(db);
+    const child = await svc.create(companyId, { title: "Harness-managed child", projectId, parentId, projectWorkspaceId: null, assigneeAdapterOverrides: { useProjectWorkspace: false } });
+    expect(child).toMatchObject({ projectId, projectWorkspaceId: null, executionWorkspaceId: null });
+    const normal = await svc.create(companyId, { title: "Normal project workspace", projectId });
+    expect(normal.projectWorkspaceId).toBe(workspaceId);
+  });
+
   it("inherits the parent issue workspace linkage when child workspace fields are omitted", async () => {
     const companyId = randomUUID();
     const projectId = randomUUID();

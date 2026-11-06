@@ -1,0 +1,6 @@
+import type { DeliverySnapshotInput } from "@paperclipai/shared";
+export function fixture(): DeliverySnapshotInput {
+  const child={urid:"1846022152414969857",parentId:"1846012231615135745",issueNo:"ATSES-2",status:"已完成"};
+  const schedule={success:true,code:"0",data:[{urid:"1828643972046290945",demandNo:"ATS3-00156",children:[{urid:"1846012231606747137",issueUrid:"1846012231615135745",issueNo:"ATSES-1",parentId:"1828643972046290945",children:[child]}]}]};
+  return {projectId:"33333333-3333-4333-8333-333333333333",sourceOrigin:"https://proj.fingard.com:1888",demandNo:"ATS3-00156",collectedAt:"2026-10-25T00:00:00Z",demandJson:JSON.stringify({success:true,code:"0",total:1,rows:[{urid:"1828643972046290945",demandNo:"ATS3-00156",theme:"示例"}]}),analysisJson:JSON.stringify({success:true,code:"0",data:{urid:"1828643972046290945",demandIssuePoList:[{urid:"1846012231606747137",demandId:"1828643972046290945",itemNo:"ATSES-1",del:0}]}}),scheduleJsons:[JSON.stringify(schedule),JSON.stringify(schedule)],jiraJson:JSON.stringify({startAt:0,total:3,issues:[{key:"ATSES-1",fields:{summary:"main",issuetype:{name:"需求",subtask:false},status:{name:"已验收"},subtasks:[{key:"ATSES-2"},{key:"ATSES-3"}]}},...["ATSES-2","ATSES-3"].map(key=>({key,fields:{summary:"child",issuetype:{name:"编码",subtask:true},status:{name:key==="ATSES-2"?"已作废":"已完成"},parent:{key:"ATSES-1"}}}))]})};
+}

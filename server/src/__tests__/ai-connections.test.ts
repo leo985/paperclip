@@ -12,7 +12,7 @@ import { createDb, companies, agents, heartbeatRuns, companyMemberships, connect
 import { startEmbeddedPostgresTestDatabase } from "@paperclipai/db/test-embedded-postgres";
 import { aiConnectionService } from "../services/ai-connections.js";
 import * as executionTarget from "@paperclipai/adapter-utils/execution-target";
-import { prepareManagedAiRuntime, assertManagedAiProjectAuth } from "../services/ai-connection-runtime.js";
+import { prepareManagedAiRuntime as prepareManagedAiRuntimeActual, assertManagedAiProjectAuth } from "../services/ai-connection-runtime.js";
 import { toolAccessService } from "../services/tool-access.js";
 import { secretService } from "../services/secrets.js";
 import { aiConnectionBindingSchema, connectionPurposeTransportSchema, isAiConnectionCompatible } from "@paperclipai/shared";
@@ -24,6 +24,8 @@ import { validateAiApiKey } from "../routes/ai-connections.js";
 let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
 let db: ReturnType<typeof createDb>;
 let home: string;
+// Runtime isolation tests must not read the developer checkout's auth config.
+const prepareManagedAiRuntime = (db: Parameters<typeof prepareManagedAiRuntimeActual>[0], input: Parameters<typeof prepareManagedAiRuntimeActual>[1]) => prepareManagedAiRuntimeActual(db, { ...input, config: { cwd: home, ...input.config } });
 const companyId = randomUUID();
 const otherCompanyId = randomUUID();
 const agentId = randomUUID();

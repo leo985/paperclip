@@ -1,0 +1,33 @@
+{
+  "release": "seat-concurrency-20261105",
+  "status": "deployed",
+  "serverPid": 3121099,
+  "filesVerified": 354,
+  "entry": "index-7c808eee.js",
+  "health": "ok",
+  "databaseMigrations": [],
+  "backup": "/home/fg/paperclip/private/seat-concurrency-20261105/backup",
+  "lostRunIds": [],
+  "timestamp": "2026-11-05T13:31:56.548161+00:00",
+  "url": "http://10.60.43.53:3100",
+  "clientSha256": "d14a862bda8af178b67f111166f72ea0ce5be96ba8b1db426af8035711bc4685",
+  "clientAutoUpgrade": false,
+  "baselineCommit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+  "releaseKind": "scoped production overlay",
+  "verification": {
+    "targetedVitestTests": 52,
+    "bridgeTests": {
+      "passed": 287,
+      "skipped": 2
+    },
+    "uiStaticallyLinkedModules": 674,
+    "serverModuleImports": true,
+    "httpAssetsVerified": 342,
+    "externalHealth": "ok"
+  },
+  "limits": [
+    "Full workspace checks blocked by local Xcode license; full Vitest suite did not finish.",
+    "Browser interaction and real concurrent business executions were not run in production."
+  ],
+  "usage": "Seats → 接单设置 → 并发执行；upgrade seat client and wait online before configuring more than one concurrent task."
+}

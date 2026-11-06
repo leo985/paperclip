@@ -432,3 +432,118 @@ cleanup authority; it does not prove that remote inference has stopped. Recovery
 revokes the previous boot identity with a conditional update. Its own claim also
 expires so another sweep can finish cleanup after a restart. Historical rows keep
 null ownership fields and follow the previous recovery path.
+
+
+## DSP7 private managed-session tables
+
+Migration `0286_nice_redwing.sql` adds ten `dsp7_managed_*` tables for sessions, run bindings, stream receipts, events, content projections, parts, quality snapshots, compressed seat-presence spans, immutable task facts and Jira workload snapshots. Every row is company-scoped. Private body access must go through managed-session routes with owner/admin checks; never join bodies into issue-list/search/log responses. UTF-8 parts and manifests are SHA-256 checked before projection; event sequence and payload digest enforce idempotent append. Large body reads paginate and require authorization on every request.
+
+Body purge deletes parts, message projections and content-bearing event copies together. The session tombstone and stream receipts prevent accidental resurrection. Default body retention is 90 days from session start. The background execution-control scheduler expires at most 100 sessions per transaction, using the partial `dsp7_ms_retention_idx` index and locked rows with `SKIP LOCKED`. Full batches drain on later scheduler ticks; an exhausted batch is checked again after one hour. Failures roll back body deletion and tombstones together, are logged by the scheduler, and remain retryable. Expiry also clears `last_observation`; content-free session identities, stream receipts and timeline metadata remain to reject reuploads and preserve diagnostic history. Parent company/task/run/seat deletion cascades as specified in the schema. Back up before applying the additive migration; roll back by disabling collection and retaining new tables, not by deleting captured data.
+
+
+## DSP7 seat work schedule
+
+Migration `0287_romantic_mephisto.sql` adds `dsp7_managed_seat_report_settings`, keyed by company with a cascading company foreign key. It stores only the organization work schedule (ISO weekdays and same-day time ranges) and update time; heartbeat history remains in `dsp7_managed_seat_samples`. Schedule updates and activity audit rows commit in one transaction. Existing companies use the documented default until configured. Rule changes apply to historical queries; this is a connectivity reference, not an attendance ledger.
+
+### Management follow-up records
+
+`management_follow_ups` stores one coordination record per company and source issue, with a nullable owner, reminder, optimistic version, updater and timestamp. The source issue is locked during updates; audit and state commit together. Releasing ownership clears reminder state. This sidecar does not replace issue assignees or approval records.
+
+## Complete local recovery bundles
+
+Database backups alone do not preserve attachment bodies or the encryption key.
+`scripts/instance-recovery-bundle.mjs` combines an existing logical SQL backup,
+config, master key, local artifacts and run logs in a private, checksummed directory.
+It rejects symlinks, source changes, nested destinations, corruption and existing
+restore destinations. It preserves the SQL gzip extension required by the restore
+engine. Checksums detect accidental damage; they are not a signature against an
+attacker who can rewrite the manifest.
+
+1. Stop application writers, including background schedulers and agents. Leave
+   PostgreSQL available for the logical backup. Keep writers stopped through bundling.
+2. Run `npx paperclipai db:backup --json`; record its `backupFile`.
+3. Create a private spec JSON with actual configured paths (expand `~` yourself):
+
+```json
+{
+  "quiesced": true,
+  "components": {
+    "database": "/absolute/path/to/paperclip.sql.gz",
+    "config": "/absolute/path/to/config.json",
+    "masterKey": "/absolute/path/to/master.key",
+    "artifacts": "/absolute/path/to/storage",
+    "runLogs": "/absolute/path/to/logs"
+  }
+}
+```
+
+4. Run `node scripts/instance-recovery-bundle.mjs create spec.json /new/backup-dir`.
+   Parent directories must already exist. Include extra named components for
+   externally configured local workspaces or other required files. S3 bodies and
+   external secret providers require their own backup; this tool does not fetch them.
+5. Verify with `node scripts/instance-recovery-bundle.mjs verify /new/backup-dir`.
+6. Stage recovery into a new directory with
+   `node scripts/instance-recovery-bundle.mjs restore /new/backup-dir /new/restore-dir`.
+   This never imports into or overwrites a live database. Import the staged
+   `database.sql.gz` into a new, isolated PostgreSQL database using
+   `runDatabaseRestore` from `@paperclipai/db` (or gunzip and psql with
+   `ON_ERROR_STOP=1`). Restore config, key, storage and logs to the corresponding
+   new instance paths; update paths and database URL before starting that instance.
+7. Check restored database rows, attachment hashes, encrypted-secret decryption
+   and login on the isolated instance before planning any production cutover.
+
+`quiesced` is an operator assertion, not an application lock. The tool detects
+changes during each component copy but cannot prove cross-system consistency if
+writers remain active. Treat bundles as credentials: transport and store them in
+an access-controlled location. No production recovery drill is implied by the
+fixture-backed database and encrypted-evidence regression tests.
+交付流程的 JSON 阶段记录支持可选 `intent`（bugfix、code-review、retest）、绑定失败回执的 `repairFailure` 及最多三轮的 `repairHistory`。修复链将原失败阶段保存到历史，原 issue 保持可访问且不标为成功；新的修复、独立评审、重测各自建立平台 issue。创建链、更新历史、任务及活动审计处于同一事务，工作流行锁和公司级 Jira 任务预留锁防止并发重复创建。回执新增可选 `testResults` 与 `codeReview` 元数据，均绑定已有产物指纹；不增加数据库列，因此不生成空迁移。旧功能测试回执缺少结果时保留但阻断自动验收。
+
+
+## Instance personnel directory (2026-11-04)
+
+`personnel_sources`, `personnel_people` and `personnel_departments` now represent
+an instance directory. Existing rows are reused without reimporting, copying or
+merging accounts. Their `company_id` columns remain immutable provenance and the
+original encrypted secret/audit context; they no longer define directory visibility
+or membership. Do not delete the origin company while a source references its vault.
+Migration `0301_romantic_gambit.sql` adds indexes for enterprise and account lookup;
+it does not mutate existing directory rows or membership/seat relationships. For a component deployment to an older runtime, apply only these two idempotent `IF NOT EXISTS` index statements and retain the existing migration journal; later full upgrades can apply all intervening migrations normally.
+
+Instance-only management is at `/api/instance/personnel-federation`. Legacy
+company-prefixed management routes are instance-admin-only compatibility aliases.
+New sources are serialized with an instance advisory lock and duplicate provider /
+CorpId creation is rejected across organizations. Existing duplicate sources are
+retained and flagged for manual review; account identities and app scopes must not
+be merged by email or guessed. Source provider and CorpId are immutable on edit.
+New sources retain the selected organization's vault/audit context; existing sources
+keep their original context even when edited from another organization.
+
+Sync creates identities but no organization memberships. Explicit assignment at
+`POST /api/instance/personnel-federation/people/:id/membership` creates only an
+ordinary operator and its normal task permission, together with an activity row.
+Active roles are preserved and suspended memberships cannot be reactivated here.
+The person row and target membership key are locked for concurrent assignments.
+Local password initialization and directory login accept active membership in any
+organization, rather than requiring membership in the legacy origin organization.
+Notification listing and send-time validation both require actual active membership
+in the target organization, enabled DingTalk source, active person and matching CorpId.
+
+### Delivery workflow templates (2026-11-05)
+
+`delivery_workflow_templates` stores immutable company-scoped revisions. `scope_key` is `organization` or the validated project UUID; `(company_id, scope_key, revision)` is unique. Project rows can publish an inheritance marker in the JSON definition; the resolver then follows the current organization template. Revisions are retained for audit. Workflow `config.template` holds a complete snapshot, and stage JSON holds dependency task IDs, review assignment and confirmed-start state. Existing workflow rows need no rewrite and keep legacy serial dependencies. Migration: `0302_parallel_silk_fever.sql`.
+
+阶段内评审顺序仅扩展现有模板／工作流 JSON：`taskSequence`、`reviewSeatId`、`reviewTasks`、阶段 `executionMode`、`reviewWorkKeys` 及设计／用例评审 intent。人工节点使用前置摘要和人工审批证据，不伪造设备 receipt。没有新增列或表，无需 SQL 迁移；旧记录保持原语义。
+
+人工／Agent 执行配置新增模板 JSON 可选 `workExecution`、`reviewExecution`、`workExecutorUserId`、`reviewExecutorUserId`，阶段 JSON 可选 `manualDelivery`，原生回执可选 `domainReview`。仍使用现有 JSON 字段，没有 SQL 迁移，旧模板和运行记录保留原语义。
+
+### 评审返工（2026-11-05）
+
+交付阶段 `reworkHistory` 在既有 stages JSON 中保存旧交付及评审证据；配置 `rejectionHandling` 固定在既有模板 JSON 中，无新表或 SQL 迁移。
+
+
+### 交付链开始节点准入（2026-11-06）
+
+模板 stages JSON 新增可选 `entryChecks` 检查项数组；只有首个启用阶段的配置参与条目入口核验。已有工作流固定原模板并保留已准入状态。检查结果随 `delivery.workflow.started` 活动记录保存，不增加表或列，无需 SQL 迁移。旧模板可读但不自动补齐入口条件；新模板发布需明确配置开始节点检查项。
+
+交付链席位归属策略存于现有 `delivery_workflows.config` JSON：新流程保存 `seatAssignment: "jira_assignee"`，`workSeats` 保存按工单的显式席位选择，节点中的 `seatId` 固定实际席位。无需数据库迁移；旧流程缺少该标记时沿用原策略。
