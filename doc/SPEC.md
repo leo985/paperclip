@@ -688,3 +688,15 @@ Agent 节点仍要求对应领域原生能力、租约、进程停止和正式�
 正式分析检查接受同条目最新平台分析的正式发布状态，或与当前来源和分析修订匹配的人工核验记录；设计检查要求匹配记录中明确登记了必需的正式设计评审通过引用。不得从来源“开发中”“已交付”或进程结束推断审批通过。条件检查不评判材料内容质量，也不自动代替人工审批。启动前在事务内检查入口条件，并将模板版本、开始节点和逐项结果写入启动活动记录。
 
 交付链 Agent 节点按当前 Jira 经办人账号匹配同项目、同 Jira 来源、具备节点能力的负责人席位；唯一匹配自动绑定，多匹配需明确选择或使用同一经办人的已配置默认席位，无匹配提示配置，不按显示姓名推断身份。启动及首次派发前核验账号归属，人工选择不能绕过服务端校验；离线或忙碌等待原席位，经办人变更时提示处理，不自动换人。需求分析无 Jira 子单时仍单独选分析席位，人工执行节点保留人员配置。新流程固定保存所选席位及 jira_assignee 绑定策略，已有流程沿用原授权；修复、独立评审和重测的席位选择也需通过经办人匹配。
+
+## Harness runtime observation (2026-11-14 candidate)
+
+Paperclip remains the scheduling and authorization control plane. Harness Mods can provide private bounded observations through a capability-negotiated managed-session event; these observations do not grant execution, timing or acceptance authority. The candidate contract is specified in [SPEC-implementation.md](SPEC-implementation.md) and [the protocol plan](plans/2026-11-14-harness-observation-protocol.md).
+
+## Bundle discovery versus execution (2026-11-14 candidate)
+
+Candidate L3/L4 package discovery is distinct from executable domain capabilities. Device-reported local hashes can be queried without granting task routing, permit or delivery authority. Required execution bundles need a later explicit dispatch contract; the candidate registry cannot be treated as that authorization.
+
+## Synthetic Harness validation domain (2026-11-16 candidate)
+
+Synthetic Harness package validation is separate from requirements analysis and Jira development. Explicit company/task/seat/project/bundle authorization is preparation only; native run, permit, host session and accepted output remain separate facts. Existing platform scheduling, budget, cancellation and process-stop authority remain canonical. The current slice implements preparation and native permit admission; dedicated dispatch and Bridge execution are pending. See [implementation scope](plans/2026-11-16-harness-validation-admission.md).

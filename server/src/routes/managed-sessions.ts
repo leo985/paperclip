@@ -1,3 +1,6 @@
+import { assertHarnessValidationRun } from "../services/harness-validation.js";
+import { harnessV2Enabled } from "../services/harness-v2-rollout.js";
+import { HARNESS_OBSERVATION_CAPABILITY, parseBoundHarnessObservation } from "@paperclipai/shared";
 import { analysisExecutions } from "@paperclipai/db";
 import { Router, type Request } from "express";
 import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
@@ -84,8 +87,15 @@ export function managedSessionRoutes(db:Db) {
       const [task]=await tx.select().from(issues).where(and(eq(issues.id,data.taskId),eq(issues.companyId,agent.companyId)));
       const context=run?.contextSnapshot as Record<string,unknown>|null;
       const [analysis]=task?await tx.select({id:analysisExecutions.id}).from(analysisExecutions).where(and(eq(analysisExecutions.id,task.id),eq(analysisExecutions.companyId,agent.companyId),eq(analysisExecutions.seatId,agent.id),eq(analysisExecutions.activeRunId,run?.id??"00000000-0000-0000-0000-000000000000"))):[];
-      if(!run||!task||(context?.issueId!==task.id&&context?.taskId!==task.id)||task.assigneeAgentId!==agent.id||(!analysis&&!task.description?.includes("DSP7-PILOT:")))throw forbidden("采集必须绑定本席位已登记的真实运行和工单");
       const [existing]=await tx.select().from(managedSessions).where(and(eq(managedSessions.seatId,agent.id),eq(managedSessions.machineId,data.machine_id),eq(managedSessions.nativeSessionId,data.nativeSessionId)));
+      // The native permit validator verifies the exact selected task, manager grant,
+      // registry pin and one-run binding. A context marker alone grants no collection.
+      let validation = false;
+      if (run && task && context?.harnessValidationDispatchId !== undefined) {
+        if (!existing) await assertHarnessValidationRun(store, { companyId: agent.companyId, seatId: agent.id, taskId: task.id }, run.id);
+        validation = true;
+      }
+      if(!run||!task||(context?.issueId!==task.id&&context?.taskId!==task.id)||task.assigneeAgentId!==agent.id||(!analysis&&!validation&&!task.description?.includes("DSP7-PILOT:")))throw forbidden("采集必须绑定本席位已登记的真实运行和工单");
       if(existing){
         if(existing.taskId!==task.id||existing.ownerUserId!==seatOwnerId(agent.adapterConfig.dsp7Seat as Record<string,unknown>)||existing.deletedAt||existing.runId!==run.id)throw conflict("禁止跨任务、负责人或未声明轮次复用会话");
         return existing;
@@ -103,7 +113,7 @@ export function managedSessionRoutes(db:Db) {
     const result=await db.transaction(async tx=>{
       const session=await sourceSession(req,tx as unknown as Db,true);
       const streams=await tx.select({streamId:managedStreams.streamId,ackSequence:managedStreams.ackSequence}).from(managedStreams).where(eq(managedStreams.sessionId,session.id));
-      return {sessionId:session.id,deleted:!!session.deletedAt,streams,collectionPaused:session.collectionPaused,uploadPaused:session.uploadPaused,finalized:!!session.finalizedAt};
+      return {sessionId:session.id,deleted:!!session.deletedAt,streams,collectionPaused:session.collectionPaused,uploadPaused:session.uploadPaused,finalized:!!session.finalizedAt, capabilities: harnessV2Enabled("observation",session.companyId,session.seatId) ? [HARNESS_OBSERVATION_CAPABILITY] : []};
     });noCache(res);res.json(result);
   });
   router.post("/agents/:id/managed-sessions/:sessionId/events",async(req,res)=>{
@@ -119,7 +129,13 @@ export function managedSessionRoutes(db:Db) {
       const [stored]=await tx.select({bytes:sql<number>`coalesce(sum(octet_length(${managedParts.data})),0)::float8`}).from(managedParts).where(eq(managedParts.sessionId,session.id));
       let bodyBytes=Number(stored?.bytes??0);
       let coverage=session.coverage,endedAt=session.endedAt,observation=session.lastObservation;
+      let harnessAppended=false;
       for(const event of parsed.data.events){
+        if(event.eventType === "harness.observation") {
+          if(!harnessV2Enabled("observation",session.companyId,session.seatId)) throw conflict("Harness observation capability is disabled");
+          try { parseBoundHarnessObservation(event.payload, session, event.streamId); }
+          catch { throw badRequest("Invalid Harness observation scope or payload"); }
+        }
         if(event.eventType!=="content.part"&&event.eventType!=="content.manifest") {
           const schema=managedMetadataSchemas[event.eventType];
           if(!schema.safeParse(event.payload).success||Buffer.byteLength(JSON.stringify(event.payload))>16384)throw badRequest("状态事件字段无效或过大");
@@ -157,8 +173,10 @@ export function managedSessionRoutes(db:Db) {
         if(event.eventType==="lifecycle"&&event.payload.state==="exited")endedAt=new Date(event.occurredAt);
         if(event.eventType==="observation")observation=event.payload;
         await tx.insert(managedEvents).values({sessionId:session.id,companyId:session.companyId,streamId:event.streamId,sequence:event.sequence,eventId:event.eventId,eventType:event.eventType,occurredAt:new Date(event.occurredAt),observedAt:new Date(event.observedAt),sourceGeneration:event.sourceGeneration,sourceOffset:event.sourceOffset,digest:hash,payload:event.payload});
+        if(event.eventType === "harness.observation") harnessAppended=true;
         await tx.update(managedStreams).set({ackSequence:event.sequence}).where(eq(managedStreams.id,stream.id));
       }
+      if(harnessAppended) await audit(req,session,"dsp7.session.harness_observation.appended",store);
       await tx.update(managedSessions).set({coverage,endedAt,lastObservation:observation,lastReceivedAt:new Date(),syncState:endedAt?"backfilling":"collecting"}).where(eq(managedSessions.id,session.id));
       return {streams:await tx.select({streamId:managedStreams.streamId,ackSequence:managedStreams.ackSequence}).from(managedStreams).where(eq(managedStreams.sessionId,session.id)),missing:[]};
     });noCache(res);res.json(result);
@@ -185,6 +203,16 @@ export function managedSessionRoutes(db:Db) {
     const health=session.collectionPaused?"collection_paused":session.uploadPaused?"upload_paused":session.finalizedAt?"ended":Date.now()-session.lastReceivedAt.getTime()>90000?"disconnected":Number(session.lastObservation.queuedBytes??0)>262144?"backlogged":"normal";
     const [quality]=await db.select().from(managedQuality).where(and(eq(managedQuality.taskId,session.taskId),eq(managedQuality.companyId,session.companyId),eq(managedQuality.ownerUserId,session.ownerUserId??"")));
     res.json({session:safe,health,quality:quality?{observedAt:quality.observedAt,windowDays:quality.windowDays,defects:quality.defects,source:quality.source}:null,streams:await db.select({streamId:managedStreams.streamId,ackSequence:managedStreams.ackSequence}).from(managedStreams).where(eq(managedStreams.sessionId,session.id)),phases:timeline.filter(e=>e.eventType!=="execution"),timing:timingFor(session,timeline)});
+  });
+  router.get("/companies/:companyId/managed-sessions/:sessionId/harness-observations",async(req,res)=>{
+    const session=await readable(req);noCache(res);
+    const query=z.object({stream:z.string().regex(/^harness:[a-zA-Z0-9_-]{1,128}$/),after:z.coerce.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).default(0)}).strict().safeParse(req.query);
+    if(!query.success)throw badRequest("Invalid observation cursor");
+    if(session.deletedAt){res.json({items:[],next:null});return;}
+    const rows=await db.select({sequence:managedEvents.sequence,observedAt:managedEvents.observedAt,payload:managedEvents.payload}).from(managedEvents)
+      .where(and(eq(managedEvents.sessionId,session.id),eq(managedEvents.companyId,session.companyId),eq(managedEvents.eventType,"harness.observation"),eq(managedEvents.streamId,query.data.stream),gt(managedEvents.sequence,query.data.after)))
+      .orderBy(asc(managedEvents.sequence)).limit(51);
+    res.json({items:rows.slice(0,50),next:rows.length>50?rows[49]!.sequence:null});
   });
   router.get("/companies/:companyId/managed-sessions/:sessionId/messages",async(req,res)=>{
     const session=await readable(req);noCache(res);if(session.deletedAt){res.json({items:[],next:null});return;}

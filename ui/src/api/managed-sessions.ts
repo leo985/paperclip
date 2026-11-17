@@ -1,6 +1,7 @@
 import { api } from "./client";
-import type { ManagedSession, ManagedSessionDetail, ManagedContent, SeatPeriodReport, SeatWorkSchedule } from "@paperclipai/shared";
+import type { HarnessObservation, ManagedSession, ManagedSessionDetail, ManagedContent, SeatPeriodReport, SeatWorkSchedule } from "@paperclipai/shared";
 export const managedSessionsApi={
+  harnessObservations:(companyId:string,id:string,stream:string,after=0)=>api.get<{items:Array<{sequence:number;observedAt:string;payload:HarnessObservation}>;next:number|null}>(`/companies/${companyId}/managed-sessions/${id}/harness-observations?stream=${encodeURIComponent(stream)}&after=${after}`),
   list:(companyId:string,taskId:string)=>api.get<ManagedSession[]>(`/companies/${companyId}/issues/${taskId}/managed-sessions`),
   detail:(companyId:string,id:string)=>api.get<ManagedSessionDetail>(`/companies/${companyId}/managed-sessions/${id}`),
   messages:(companyId:string,id:string,after=0)=>api.get<{items:ManagedContent[];next:number|null}>(`/companies/${companyId}/managed-sessions/${id}/messages?after=${after}`),

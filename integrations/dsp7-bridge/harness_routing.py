@@ -12,7 +12,7 @@ def resolve_route(b, route, run_id, task_id, kind):
         if kind != 'development': raise BridgeError('新领域缺少经过核验的 Harness 路由')
         return None  # enrolled legacy development remains compatible
     machine = identity(b)
-    if (route.get('protocolVersion') != 1 or route.get('runId') != run_id or route.get('taskId') != task_id
+    if (route.get('protocolVersion') not in (1, 2) or route.get('runId') != run_id or route.get('taskId') != task_id
             or route.get('agentId') != b.cfg['agent_id'] or route.get('companyId') != b.cfg['company_id']
             or route.get('machineId') != machine['machine_id']):
         raise BridgeError('Harness 路由与本机运行身份不匹配')
@@ -27,6 +27,11 @@ def resolve_route(b, route, run_id, task_id, kind):
     current = inspect(capability['root'],kind,capability['profile'])
     if any(current[k] != capability.get(k) or current[k] != route.get('capability',{}).get(k) for k in current):
         raise BridgeError('Harness 仓库、profile、文件或版本已变化，请空闲时重新登记')
+    if route['protocolVersion'] == 2:
+        from harness_composition import composition
+        composition(b, route)
+    elif route.get('composition') is not None:
+        raise BridgeError('旧路由不得携带正式组合')
     return current
 
 

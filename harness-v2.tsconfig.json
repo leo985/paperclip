@@ -1,0 +1,17 @@
+{
+  "extends": "./server/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "declaration": false,
+    "declarationMap": false,
+    "typeRoots": ["./server/node_modules/@types"],
+    "paths": {
+      "@paperclipai/shared": ["./packages/shared/src/index.ts"],
+      "@paperclipai/db": ["./packages/db/src/index.ts"],
+      "@paperclipai/db/*": ["./packages/db/src/*.ts"]
+    }
+  },
+  "include": ["server/src"],
+  "exclude": ["server/src/__tests__"]
+}

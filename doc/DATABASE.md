@@ -547,3 +547,22 @@ in the target organization, enabled DingTalk source, active person and matching 
 模板 stages JSON 新增可选 `entryChecks` 检查项数组；只有首个启用阶段的配置参与条目入口核验。已有工作流固定原模板并保留已准入状态。检查结果随 `delivery.workflow.started` 活动记录保存，不增加表或列，无需 SQL 迁移。旧模板可读但不自动补齐入口条件；新模板发布需明确配置开始节点检查项。
 
 交付链席位归属策略存于现有 `delivery_workflows.config` JSON：新流程保存 `seatAssignment: "jira_assignee"`，`workSeats` 保存按工单的显式席位选择，节点中的 `seatId` 固定实际席位。无需数据库迁移；旧流程缺少该标记时沿用原策略。
+
+## Harness observation metadata (2026-11-14 candidate)
+
+`harness.observation` uses existing private `dsp7_managed_events` rows (text event type, JSONB payload); no migration or new table is required. Existing session/stream sequence uniqueness and digest deduplication apply. It is excluded from execution timing and private body projections. The new read endpoint uses company and owner/manager checks and hides deleted sessions. See [protocol plan](plans/2026-11-14-harness-observation-protocol.md).
+
+## Candidate bundle registry storage
+
+`agents.adapter_config.dsp7HarnessBundles` stores a versioned registry of at most 16 immutable candidate bundle descriptors. Existing seat-command advisory locks, row locks and revision comparison protect registration; unrelated config and legacy Harness routing are preserved. No migration is needed. A changed registration writes a minimal `harness.bundle.registered` activity row in the same transaction; exact retries do not duplicate it.
+
+Harness V2 observer attachments (2026-11-15 candidate): optional typed
+`ledger_scope.harnessObserver` freezes the selected candidate descriptor and
+run/company/seat/device/task/project identities in the existing execution-permit
+transaction. This is a JSON payload extension only; no table/column/index or DDL
+change. Renewals compare the current selection before extending the original
+permit. The attachment is observation-only and is not an execution route.
+
+### Synthetic validation authorization (2026-11-16 candidate)
+
+Bounded pilot authorization/revocation and one-run binding append to the existing company/seat-scoped `activity_log`, serialized by the original seat-command advisory transaction lock. Typed `ledger_scope.harnessValidation` freezes the selected authorization in the original `seat_execution_permits` row. Renewal rechecks that target and caps permit expiry to authorization expiry. No table, column, index, DDL migration, second permit store or scheduler is added. Preparation does not create native runs. Explicit dispatch appends `harness.validation.dispatch-requested` under the same seat lock before native heartbeat wakeup. This reservation survives uncertain responses and is not automatically replayed. The existing heartbeat run, permit ledger scope and activity log remain authoritative; no schema migration is introduced. See [dispatch contract](plans/2026-11-16-harness-validation-dispatch.md).

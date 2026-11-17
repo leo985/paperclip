@@ -28,9 +28,17 @@ class OutboundUsageTest(unittest.TestCase):
         self.assertIsNone(result['costUsd']);self.assertEqual(result['billingType'],'unknown')
 
     def test_sums_multiple_models_once(self):
-        result=execution_result(0,{'modelUsage':{'a':{'inputTokens':100},'b':{'inputTokens':200,'outputTokens':50}}},'run')
+        result=execution_result(0,{'modelUsage':{'a':{'inputTokens':100,'outputTokens':0,'cacheReadInputTokens':0},'b':{'inputTokens':200,'outputTokens':50,'cacheReadInputTokens':0}}},'run')
         self.assertEqual(result['usage'],{'inputTokens':300,'outputTokens':50,'cachedInputTokens':0})
         self.assertEqual(result['exitCode'],0)
+
+    def test_missing_model_counters_stay_unknown_instead_of_becoming_zero(self):
+        complete={'inputTokens':100,'outputTokens':20,'cacheReadInputTokens':0}
+        for missing in complete:
+            incomplete={key:value for key,value in complete.items() if key!=missing}
+            result=execution_result(0,{'modelUsage':{'claude':incomplete}},'run')
+            self.assertEqual(result['exitCode'],1)
+            self.assertNotIn('usage',result)
 
     def test_missing_usage_is_not_success(self):
         self.assertEqual(execution_result(0,None,'run')['exitCode'],1)
@@ -44,7 +52,7 @@ class ReceiptOutboxTest(unittest.TestCase):
     def test_checkpoints_are_cumulative_immutable_and_ignore_missing_or_regressing_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp)
-            observed={'modelUsage':{'claude':{'inputTokens':100,'outputTokens':10}}}
+            observed={'modelUsage':{'claude':{'inputTokens':100,'outputTokens':10,'cacheReadInputTokens':0}}}
             with patch('interactive.usage_ledger',return_value=(observed,'observed')):
                 sequence,previous=collect_usage_checkpoint(folder,'run','lease','cwd',0,None)
                 self.assertEqual(sequence,1)

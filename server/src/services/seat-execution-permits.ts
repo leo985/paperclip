@@ -9,7 +9,9 @@ import type { SeatExecutionPermit } from "@paperclipai/shared";
 import { issueTreeControlService } from "./issue-tree-control.js";
 import { budgetService } from "./budgets.js";
 import { hasSeatStopIntent } from "./seat-execution-stop.js";
+import { resolveHarnessObserverBinding, assertObserverNegotiation, sameObserverBinding } from "./harness-observer-binding.js";
 import { conflict } from "../errors.js";
+import { assertHarnessValidationRun, sameHarnessValidation } from "./harness-validation.js";
 
 export type TreeStopProof = { protocolVersion: 1; runId: string; isolation: "posix-sessions" | "windows-job" | "not-started"; firstObservedAt: string; observedAt: string; observations: number; remaining: 0 };
 const VALIDITY_MS = 60_000;
@@ -23,7 +25,7 @@ export function seatPermitService(db: Db, now: () => number = Date.now) {
       return fn(tx as unknown as Db);
     });
   }
-  async function eligible(tx: Db, identity: PermitIdentity, starting = false, kind: "development" | "analysis" | "qa" = "development", routeRequired = true) {
+  async function eligible(tx: Db, identity: PermitIdentity, starting = false, kind: "development" | "analysis" | "qa" | "validation" = "development", routeRequired = true) {
     const [agent] = await tx.select().from(agents).where(and(eq(agents.id, identity.agentId), eq(agents.companyId, identity.companyId)));
     const [run] = await tx.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id, identity.runId), eq(heartbeatRuns.agentId, identity.agentId), eq(heartbeatRuns.companyId, identity.companyId)));
     const seat = agent?.adapterConfig.dsp7Seat as { machineId?: string } | undefined;
@@ -37,16 +39,22 @@ export function seatPermitService(db: Db, now: () => number = Date.now) {
     if (await hasSeatStopIntent(tx, identity.companyId, identity.agentId, identity.runId)) return { reason: "stop_requested" };
     const block = await budgetService(tx).getInvocationBlock(identity.companyId, identity.agentId, { issueId: task.id, projectId: task.projectId });
     if (block) return { reason: "scope_paused" };
+    if ((run.contextSnapshot?.harnessValidationDispatchId !== undefined) !== (kind === "validation")) throw conflict("隔离验证不得借用其他领域许可");
+    const harnessValidation = kind === "validation" ? await assertHarnessValidationRun(tx, { companyId: identity.companyId, seatId: identity.agentId, taskId: task.id }, run.id, now) : undefined;
     if(run.contextSnapshot?.deliveryWorkflowId){const scope=await assertDeliveryRun(tx,identity.companyId,identity.agentId,identity.runId);if(kind!==stageKind(scope.stage.stage))throw conflict("领域执行许可与阶段不匹配");}
     if(kind==="analysis"){const scope=await assertAnalysisRun(tx,identity.companyId,identity.agentId,identity.runId);const route=resolveHarnessRoute(agent,{runId:run.id,taskId:task.id,kind,required:true});if(route?.capabilityId!==scope.task.capabilityId||route?.registryRevision!==scope.task.registryRevision)throw conflict("分析授权的 Harness 路由已变化");}
     if (kind !== "development") await assertNewDomainMetering(tx, identity.companyId, identity.agentId, task.projectId);
-    const executionRoute = routeRequired ? resolveHarnessRoute(agent, { runId: run.id, taskId: task.id, kind, required: kind !== "development" }) : null;
+    const executionRoute = routeRequired && kind !== "validation" ? resolveHarnessRoute(agent, { runId: run.id, taskId: task.id, kind, required: kind !== "development" }) : null;
+    const harnessObserver = resolveHarnessObserverBinding(agent, { taskId: task.id, runId: run.id, machineId: identity.machineId, projectId: task.projectId });
     // New analysis/QA metering is checked above; legacy Jira development
     // intentionally retains its enrolled observation mode.
-    return { executionRoute, taskId: task.id, ledgerScope: { issueId: task.id, projectId: task.projectId, billingCode: task.billingCode } };
+    return { executionRoute, taskId: task.id, ledgerScope: { issueId: task.id, projectId: task.projectId, billingCode: task.billingCode, ...(harnessObserver ? { harnessObserver } : {}), ...(harnessValidation ? { harnessValidation } : {}) } };
   }
   function response(permit: typeof seatExecutionPermits.$inferSelect): SeatExecutionPermit {
-    return { protocolVersion: 1, permitId: permit.id, validForMs: Math.max(0, Math.min(VALIDITY_MS, permit.expiresAt.getTime() - now())), expiresAt: permit.expiresAt.toISOString(), mode: "observed_cost" };
+    return { protocolVersion: 1, permitId: permit.id, validForMs: Math.max(0, Math.min(VALIDITY_MS, permit.expiresAt.getTime() - now())), expiresAt: permit.expiresAt.toISOString(), mode: "observed_cost", ...(permit.ledgerScope?.harnessObserver ? { harnessObserver: permit.ledgerScope.harnessObserver } : {}), ...(permit.ledgerScope?.harnessValidation ? { harnessValidation: permit.ledgerScope.harnessValidation } : {}) };
+  }
+  function expiresAt(validation?: { expiresAt: string }) {
+    return new Date(Math.min(now() + VALIDITY_MS, validation ? Date.parse(validation.expiresAt) : Infinity));
   }
   async function revoke(tx: Db, permit: typeof seatExecutionPermits.$inferSelect, reason: string) {
     if (permit.revokedAt) return;
@@ -54,9 +62,11 @@ export function seatPermitService(db: Db, now: () => number = Date.now) {
     await tx.insert(activityLog).values({ companyId: permit.companyId, agentId: permit.agentId, actorType: "system", actorId: "seat_permit", action: "seat.permit.revoked", entityType: "heartbeat_run", entityId: permit.runId, details: { permitId: permit.id, reason, processExitVerified: false } });
   }
   return {
-    issue: (identity: PermitIdentity, options: { kind: "development" | "analysis" | "qa"; supervisionProtocol?: 1 | 2 } = { kind: "development", supervisionProtocol: 2 }) => transaction(identity, async tx => {
+    issue: (identity: PermitIdentity, options: { kind: "development" | "analysis" | "qa" | "validation"; supervisionProtocol?: 1 | 2; observerProtocol?: 1; validationProtocol?: 1 } = { kind: "development", supervisionProtocol: 2 }) => transaction(identity, async tx => {
+      if (options.kind === "validation" && (options.validationProtocol !== 1 || options.supervisionProtocol !== 2 || options.observerProtocol !== 1)) throw conflict("隔离验证需要独立协商及进程树监督协议");
       const eligibility = await eligible(tx, identity, true, options.kind);
       if (!eligibility.taskId) throw conflict("执行许可未获准，请核对任务、暂停及预算状态");
+      assertObserverNegotiation(eligibility.ledgerScope.harnessObserver ?? null, options.observerProtocol, options.supervisionProtocol ?? 2);
       const treeProofRequired = options.supervisionProtocol !== 1;
       if (eligibility.executionRoute && !treeProofRequired) throw conflict("此领域路由需要新版进程树监督协议，请更新客户端");
       const unresolved = await tx.select({ id: seatExecutionPermits.id, taskId: seatExecutionPermits.taskId }).from(seatExecutionPermits).where(and(
@@ -68,7 +78,7 @@ export function seatPermitService(db: Db, now: () => number = Date.now) {
       const [prior] = await tx.select().from(seatExecutionPermits).where(eq(seatExecutionPermits.runId, identity.runId));
       // A lost claim response must never produce a second executor.
       if (prior) throw conflict("运行已经签发过执行许可，不能重新领取");
-      const [permit] = await tx.insert(seatExecutionPermits).values({ companyId: identity.companyId, agentId: identity.agentId, runId: identity.runId, machineId: identity.machineId, taskId: eligibility.taskId, treeProofRequired, ledgerScope: eligibility.ledgerScope, executionRoute: eligibility.executionRoute, leaseHash: hash(identity.lease), expiresAt: new Date(now() + VALIDITY_MS), issuedAt: new Date(now()), renewedAt: new Date(now()) }).returning();
+      const [permit] = await tx.insert(seatExecutionPermits).values({ companyId: identity.companyId, agentId: identity.agentId, runId: identity.runId, machineId: identity.machineId, taskId: eligibility.taskId, treeProofRequired, ledgerScope: eligibility.ledgerScope, executionRoute: eligibility.executionRoute, leaseHash: hash(identity.lease), expiresAt: expiresAt(eligibility.ledgerScope.harnessValidation), issuedAt: new Date(now()), renewedAt: new Date(now()) }).returning();
       await tx.insert(activityLog).values({ companyId: identity.companyId, agentId: identity.agentId, actorType: "agent", actorId: identity.agentId, action: "seat.permit.issued", entityType: "heartbeat_run", entityId: identity.runId, details: { permitId: permit!.id, mode: "observed_cost", machineId: identity.machineId } });
       return { ...response(permit!), executionRoute: permit!.executionRoute, treeProofRequired: permit!.treeProofRequired };
     }),
@@ -78,11 +88,13 @@ export function seatPermitService(db: Db, now: () => number = Date.now) {
       if (permit.revokedAt || permit.processExitObservedAt) return { alive: false as const, reason: permit.stopReason ?? "process_exited" };
       if (permit.expiresAt.getTime() <= now()) { await revoke(tx, permit, "permit_expired"); return { alive: false as const, reason: "permit_expired" }; }
       let eligibility: Awaited<ReturnType<typeof eligible>>;
-      try { eligibility = await eligible(tx, identity, false, permit.executionRoute?.capability.kind ?? "development", Boolean(permit.executionRoute)); }
+      try { eligibility = await eligible(tx, identity, false, permit.ledgerScope?.harnessValidation ? "validation" : permit.executionRoute?.capability.kind ?? "development", Boolean(permit.executionRoute)); }
       catch { await revoke(tx,permit,"execution_configuration_changed");return {alive:false as const,reason:"execution_configuration_changed"}; }
       if (!eligibility.taskId) { await revoke(tx, permit, eligibility.reason!); return { alive: false as const, reason: eligibility.reason! }; }
+      if (!sameHarnessValidation(permit.ledgerScope?.harnessValidation, eligibility.ledgerScope.harnessValidation)) { await revoke(tx, permit, "harness_validation_changed"); return { alive: false as const, reason: "harness_validation_changed" }; }
+      if (permit.taskId !== eligibility.taskId || !sameObserverBinding(permit.ledgerScope?.harnessObserver, eligibility.ledgerScope.harnessObserver)) { await revoke(tx, permit, "harness_observer_changed"); return { alive: false as const, reason: "harness_observer_changed" }; }
       if (!sameHarnessRoute(permit.executionRoute, eligibility.executionRoute ?? null)) { await revoke(tx,permit,"harness_route_changed");return {alive:false as const,reason:"harness_route_changed"}; }
-      const [updated] = await tx.update(seatExecutionPermits).set({ renewedAt: new Date(now()), expiresAt: new Date(now() + VALIDITY_MS) }).where(eq(seatExecutionPermits.id, permit.id)).returning();
+      const [updated] = await tx.update(seatExecutionPermits).set({ renewedAt: new Date(now()), expiresAt: expiresAt(eligibility.ledgerScope.harnessValidation) }).where(eq(seatExecutionPermits.id, permit.id)).returning();
       return { alive: true as const, permit: response(updated!) };
     }),
     observeExit: (identity: PermitIdentity, proof?: TreeStopProof) => transaction(identity, async tx => {

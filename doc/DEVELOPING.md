@@ -1,5 +1,30 @@
 # Developing
 
+## 2026-11-16 Phase 1 closeout
+
+Phase 1 is complete for the token-only observation vertical prototype. Frozen live normal/fault/rollback evidence is preserved. New closeout evidence in the paired Harness tree: `harness/v2/artifacts/phase1-closeout-20261116/{README.md,report.json}`. Host, canonical ledger and authenticated HTTP usage agree (input 13,466 / output 4,843 / cache read 15,936); interrupted runs remain unknown/null. Four concurrent production final-usage replays return one event ID with unchanged ledger/runtime totals and no execution grant. Actual disposable PostgreSQL tests cover concurrent dispatch reservations, permit claims, seat capacity and tenant rejection; this is not a production multi-seat stress claim.
+
+Source and actual frozen service r4 overlay pass the same 94 cases (not 188); original timing/report/identity/review regressions pass 204, observer off/on paired comparisons 3, native state 6 and JS observer/query 21. External identity/Zhiyan/Tracker use existing offline fixtures; production customer workflow takeover is Phase 3 work. Bridge r6 rejects missing modelUsage counters instead of fabricating zero, passes 109 extracted-package tests and retained actual-host-result replay. SHA256 `6b6d3f46660c197adde0a990d22641dcb1264598697648c7eda4e2ce1317746c`; not installed. Existing live proof remains r5.
+
+Current service matches all 22 captured original baseline entries and is healthy with no pilot drop-in. The seat has a later Bridge cf5a58d29584d8a1 since the verified historical rollback; identity/runtime remain preserved. No downgrade or global release was performed. Registry stays candidate/unconfirmed/executionReady=false. Phase 2/3/4, full-repository regression, production customer acceptance, commit/push and release are not claimed. Earlier incomplete/pending statements below are historical; this section is authoritative for current Phase 1 status.
+
+
+## 2026-11-16 scope amendment: token usage only for this Harness iteration
+
+Per user decision, token usage accounting is required; price integration, monetary billing and real priced-budget exhaustion acceptance are deferred and no longer block this iteration or Phase 1. Existing platform budget/pause controls remain enforced; this document change disables no runtime policy. Preserve historical tests and frozen acceptance artifacts.
+
+Reuse canonical run usage/cost_events and original idempotency: attribute host-reported inputTokens/outputTokens/cachedInputTokens to the same company/task/run/seat. Keep unavailable values unknown with provenance/completeness; do not infer zero, prices or tokens. Do not sum cache and input fields until provider inclusion semantics are established. Verify host-to-platform field parity, replay without duplicate usage, and explicit incomplete usage for interrupted runs. Existing normal-run snapshot records input 13,466, output 4,843 and cached input 15,936 in one canonical row; this is sample evidence, not complete token acceptance. These Phase 1 checks have now passed as documented in the closeout section above.
+
+
+## 2026-11-16 controlled platform acceptance update
+
+The production 基础平台 / 李巍 pilot on CMP-2 exercised native dispatch and permits, fixed Bridge entry, actual host session and L4 report checks, original outbox ACK and replay rejection, cancellation, natural authorization expiry, targeted network errors, supervisor death and accepted-response loss recovery. All managed trees were verified empty. Final tested service overlay r4 and Bridge r5 were rolled back to the original service bytes and seat configuration; all twelve test grants were revoked. Registry remains candidate / executionReady=false / unconfirmed. CMP-2 is done; Phase 1 as a whole remains incomplete.
+
+The frozen service source and compiled candidate covered the same 81 distinct cases; Bridge r5 extraction passed 108 tests. A later source-only test covers disposable PostgreSQL synthetic billing, original budget pause and permit revocation with actual Python process-tree stop/exit evidence. It uses service calls and stdin, not full HTTP/auth/native dispatch. New validation domains already reject billed-cents hard policies because real prices are unavailable. Production costs remain unknown/unpriced; no fabricated production costs or token-derived prices were used. Priced budget exhaustion was unaccepted under the historical scope and is now deferred, not a Phase 1 blocker; production concurrency and business timing/delivery equivalence remain unaccepted. Detailed immutable inputs and run/permit links: paired Harness `harness/v2/artifacts/validation-platform-acceptance-20261116/{README.md,report.json}`. No global release, commit or push.
+
+Earlier pending/not-deployed statements below describe the preparation baseline, not current platform state.
+
+
 This project can run fully in local dev without setting up PostgreSQL manually.
 
 ## Deployment Modes
@@ -1668,3 +1693,16 @@ Template forms live at `/company/settings/delivery`; delivery snapshots resolve 
 ### 评审返工（2026-11-05）
 
 交付评审退回测试覆盖多轮版本绑定、旧结论失效、并行依赖闭包和旧进程停止。新增 `/companies/:companyId/delivery-workflows/:workflowId/rework` 仅接受当前退回 taskId/digest，限原评审人或组织管理员；无数据库迁移。
+
+## Harness V2 candidate validation
+
+Run `node_modules/.bin/vitest run --config harness-v2.vitest.config.ts` and `node_modules/.bin/tsc -p harness-v2.tsconfig.json` to resolve this worktree's shared contract rather than an older linked dependency checkout. Bridge SQLite/transport tests and opt-in rollout limits are documented in [the protocol plan](plans/2026-11-14-harness-observation-protocol.md). These checks do not activate the feature.
+
+### Isolated validation authorization candidate (2026-11-16)
+
+The Harness V2 scoped Vitest configuration now includes `harness-validation` service/API tests using isolated PostgreSQL and an outbound fallthrough regression. Validation defaults off; development tests stub exact selections and never modify production seats. API preparation creates no run or permit. See [authorization contract and remaining dispatch work](plans/2026-11-16-harness-validation-admission.md). The server/Bridge compiled vertical overlays captured before this change do not include these new modules and are not current release candidates.
+
+
+### Harness V2 synthetic validation dispatch candidate (2026-11-16)
+
+Authorization preparation remains separate from explicit native dispatch. The fixed POSIX Bridge entry executes the pinned synthetic fixture under the original permit and process tree, with the existing collector/outbox. Source and actual compiled service overlays passed the same 77 targeted cases; the final extracted Bridge overlay passed 107 cases. Local real-model and real-process fault checks are not production acceptance. Dedicated CMP-2 is unassigned backlog; no live run/permit or candidate deployment has occurred. See [dispatch implementation, test boundaries and controlled release](plans/2026-11-16-harness-validation-dispatch.md). Do not publish an old overlay or switch the default/other-company seat while activating the selected 李巍 profile. No schema migration is required.

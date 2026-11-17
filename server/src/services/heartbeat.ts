@@ -1,3 +1,4 @@
+import { HARNESS_VALIDATION_READY_STATUSES, nativeWakeCheckoutStatuses } from "./harness-validation-readiness.js";
 import { seatOccupancy } from "./seat-concurrency.js";
 import { seatConcurrencyLimit } from "@paperclipai/shared";
 import { accountFinalRunUsage } from "./run-usage-accounting.js";
@@ -6921,6 +6922,9 @@ export function shouldAutoCheckoutIssueForWake(input: {
   ) {
     return false;
   }
+
+  if (input.contextSnapshot?.harnessValidationDispatchId != null &&
+      !HARNESS_VALIDATION_READY_STATUSES.includes(issueStatus ?? "")) return false;
 
   const wakeReason = readNonEmptyString(input.contextSnapshot?.wakeReason);
   if (!wakeReason) return false;
@@ -20263,7 +20267,7 @@ export function heartbeatService(
           await issuesSvc.checkout(
             issueId,
             agent.id,
-            ["todo", "backlog", "blocked"],
+            nativeWakeCheckoutStatuses(context),
             run.id,
           );
           context[PAPERCLIP_HARNESS_CHECKOUT_KEY] = true;

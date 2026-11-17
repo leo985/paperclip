@@ -292,3 +292,15 @@ Stage configuration exposes work-only or work-then-review ordering and previews 
 ### 席位并发执行
 
 每个席位可独立设置最大并发工单数（1–50，默认 1）。新版主动连接客户端支持多个工单同时执行；达到上限的授权任务排队，释放名额后继续。等待人工处理、已领取待启动和退出尚未核验的执行占用名额。降低上限不终止已有运行；旧客户端及 SSH 席位保持单任务。
+
+## Harness observation candidate (2026-11-14)
+
+The private managed-session API can expose bounded Harness runtime summaries to the existing session owner/managers. This is an opt-in candidate capability, not delivery approval or execution-time accounting. See [protocol plan](plans/2026-11-14-harness-observation-protocol.md).
+
+## Candidate Harness bundle inspection
+
+Owners/managers may query seat-reported candidate L3/L4 package metadata through the private bundle API. Local verification, actual host loading and task execution readiness remain separate states; this candidate does not add a UI page or make packages eligible for dispatch.
+
+## Harness isolated validation preparation (2026-11-16 candidate)
+
+Organization managers can prepare and revoke a short-lived authorization for an explicitly allowlisted synthetic history task and frozen L3/L4 bundle. Discovery remains observation-only. Preparation does not wake a seat or create a run. A separate explicit dispatch now reserves one request and uses the native heartbeat scheduler; the fixed Bridge entry runs only the authorized synthetic fixture under the original permit. This candidate has local verification; live rollout and joint acceptance remain pending. Native execution permits enforce a separate validation domain, one run per authorization, budgets, cancellation, process-tree supervision and authorization expiry. See [dispatch scope and remaining acceptance](plans/2026-11-16-harness-validation-dispatch.md).

@@ -9,7 +9,7 @@ import { buildRuntimeMountedSkillSnapshot, resolveLegacyPaperclipDesiredSkillNam
 // model credential is persisted. A server restart fences the old invocation.
 interface Job {
   ctx: AdapterExecutionContext; packet: Record<string,unknown>; lease: string|null;
-  lastSeen: number; sequence: number; dispatching: boolean; receipts: Promise<void>;
+  lastSeen: number; sequence: number; dispatching: boolean; receipts: Promise<void>; settled: boolean;
   resolve: (result: AdapterExecutionResult)=>void;
 }
 const jobs=new Map<string,Job>();
@@ -61,27 +61,32 @@ async function skills(config:Record<string,unknown>) {
   return files;
 }
 export async function executeOutbound(ctx:AdapterExecutionContext):Promise<AdapterExecutionResult> {
+  const validationMarker=ctx.context.harnessValidationDispatchId;
+  const validation=typeof validationMarker==="string" && /^[a-f0-9-]{36}$/.test(validationMarker) &&
+    ctx.context.wakeReason==="Harness 隔离验证授权启动；"+validationMarker &&
+    !ctx.context.analysisExecutionId && !ctx.context.deliveryWorkflowId;
+  if(validationMarker!==undefined && !validation)return {exitCode:1,signal:null,timedOut:false,errorCode:"harness_validation_dispatch_pending",errorMessage:"隔离验证派发上下文无效；未启动模型。",resultJson:{dsp7_no_model_invocation:true}};
   const reason=String(ctx.context.wakeReason??ctx.context.reason??(ctx.context.paperclipWake as Record<string,unknown>|undefined)?.reason??"");
   // User messages go through the Harness decision relay, never another model.
   const analysis=reason.startsWith("智研需求分析授权启动；")&&typeof ctx.context.analysisExecutionId==="string";
   const delivery=reason.startsWith("智研条目交付授权启动；")&&typeof ctx.context.deliveryWorkflowId==="string";
-  if(!analysis&&!delivery&&!reason.startsWith("本地研发人员主动启动交互会话；"))return {exitCode:1,signal:null,timedOut:false,errorCode:"dsp7_local_start_required",errorMessage:"本次未启动本机 Claude：缺少经过核验的本机启动请求。页面消息由接入桥续传，不能视为执行成功。",resultJson:{dsp7_no_model_invocation:true}};
+  if(!validation&&!analysis&&!delivery&&!reason.startsWith("本地研发人员主动启动交互会话；"))return {exitCode:1,signal:null,timedOut:false,errorCode:"dsp7_local_start_required",errorMessage:"本次未启动本机 Claude：缺少经过核验的本机启动请求。页面消息由接入桥续传，不能视为执行成功。",resultJson:{dsp7_no_model_invocation:true}};
   if(!ctx.authToken)throw new Error("本机执行缺少运行期凭证");
   const taskId=String(ctx.context.issueId??ctx.context.taskId??"");
   if(!/^[a-f0-9-]{36}$/.test(taskId))throw new Error("本机执行需要已登记的任务");
-  const packet={runId:ctx.runId,agentId:ctx.agent.id,companyId:ctx.agent.companyId,taskId,reason,executionKind:delivery?"delivery":analysis?"analysis":"development",deliveryKind:delivery?ctx.context.deliveryKind:undefined,prompt:[renderPaperclipWakePrompt(ctx.context.paperclipWake),selectPaperclipTaskMarkdown(ctx.context),analysis?"按固定的分析 Harness 原生流程执行；不得伪造真实评审或正式发布。":"按已登记的 Harness 流程执行。先 inspect、claim；不得绕过 Jira 审批与领域完成核验。"].filter(Boolean).join("\n\n"),skills:await skills(ctx.config),mcp:ctx.runtimeMcp?.getServers()??[]};
+  const packet={runId:ctx.runId,agentId:ctx.agent.id,companyId:ctx.agent.companyId,taskId,reason,executionKind:validation?"validation":delivery?"delivery":analysis?"analysis":"development",deliveryKind:delivery?ctx.context.deliveryKind:undefined,harnessValidationDispatchId:validation?validationMarker:undefined,prompt:validation?"Fixed synthetic-history validation; issue text is never executed.":[renderPaperclipWakePrompt(ctx.context.paperclipWake),selectPaperclipTaskMarkdown(ctx.context),analysis?"按固定的分析 Harness 原生流程执行；不得伪造真实评审或正式发布。":"按已登记的 Harness 流程执行。先 inspect、claim；不得绕过 Jira 审批与领域完成核验。"].filter(Boolean).join("\n\n"),skills:validation?[]:await skills(ctx.config),mcp:validation?[]:ctx.runtimeMcp?.getServers()??[]};
   await ctx.onCancellationReady?.();
   if(ctx.signal?.aborted)throw new Error("运行已取消");
   await ctx.onMeta?.({adapterType:"claude_local",command:"本机主动连接",commandNotes:["本机领取真实运行，沿用本机模型配置；不使用 SSH。"]});
   const outcome=await new Promise<AdapterExecutionResult>(resolve=>{
-    const job:Job={ctx,packet,lease:null,lastSeen:Date.now(),sequence:0,dispatching:false,receipts:Promise.resolve(),resolve};jobs.set(ctx.runId,job);
+    const job:Job={ctx,packet,lease:null,lastSeen:Date.now(),sequence:0,dispatching:false,receipts:Promise.resolve(),settled:false,resolve};jobs.set(ctx.runId,job);
     const timer=setInterval(()=>{
       const cancelled=ctx.signal?.aborted;
       // No blind replacement after connectivity loss. Local worker must stop
       // when the lease status cannot be renewed, before a human can retry.
       if(cancelled||Date.now()-job.lastSeen>(job.lease?90000:150000))job.resolve({exitCode:1,signal:null,timedOut:!cancelled,errorCode:"dsp7_local_connection_lost",errorMessage:cancelled?"运行已取消；本机将在下一次租约检查时停止，请核对停止状态":"本机连接丢失，保留状态；核对本机停止后才能重试",resultJson:{localStopRequiresVerification:true}});
     },1000);timer.unref();
-    const settle=job.resolve;job.resolve=r=>{clearInterval(timer);settle(r);};
+    const settle=job.resolve;job.resolve=r=>{if(job.settled)return;job.settled=true;clearInterval(timer);settle(r);};
   });
   jobs.delete(ctx.runId);return outcome;
 }

@@ -1,3 +1,5 @@
+import { harnessBundleRoutes } from "./harness-bundles.js";
+import { harnessValidationRoutes } from "./harness-validation.js";
 import { createHash } from "node:crypto";
 import { Router } from "express";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -12,6 +14,8 @@ const registration=identity.extend({expectedRevision:z.number().int().min(0),cap
 const empty:HarnessCapabilityRegistry={version:1,revision:0,items:[]};
 export function harnessCapabilityRoutes(db:Db){
  const router=Router();
+ router.use(harnessBundleRoutes(db));
+ router.use(harnessValidationRoutes(db));
  router.get("/companies/:companyId/dsp7-seats/:id/harness-capabilities",async(req,res)=>{
   const companyId=String(req.params.companyId);assertBoard(req);assertCompanyAccess(req,companyId);
   const [agent]=await db.select().from(agents).where(and(eq(agents.companyId,companyId),eq(agents.id,String(req.params.id))));

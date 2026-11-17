@@ -2782,7 +2782,8 @@ export { HARNESS_ROLES, harnessCapabilityInputSchema, harnessRepositorySchema } 
 export type { HarnessCapabilityInput, HarnessCapability, HarnessCapabilityRegistry, HarnessRepository } from "./harness-capabilities.js";
 export type { SeatExecutionPermit } from "./seat-execution-permits.js";
 export type { DeliveryConnection, DeliveryAdmission, DeliveryChainAdmission, DeliveryMonthlyEntries, DeliverySourceOrganization, DeliverySourceOrganizations } from "./delivery-connections.js";
-export type { HarnessExecutionRoute } from "./harness-execution-route.js";
+export { harnessExecutionCompositionSchema } from "./harness-execution-route.js";
+export type { HarnessExecutionRoute, HarnessExecutionComposition } from "./harness-execution-route.js";
 export type { SeatRunControl } from "./seat-run-control.js";
 export * from "./analysis-executions.js";
 
@@ -2800,3 +2801,10 @@ export * from "./seat-upgrades.js";
 export * from "./seat-concurrency.js";
 
 export { DELIVERY_CHAIN_ADMISSION_LABELS } from "./delivery-connections.js";
+
+export * from "./harness-observation.js";
+
+export * from "./harness-bundles.js";
+
+export * from "./harness-observer-binding.js";
+export * from "./harness-validation.js";

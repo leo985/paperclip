@@ -1,3 +1,5 @@
+import { assertHarnessValidationRun } from "../services/harness-validation.js";
+import { resolveHarnessObserverBinding, assertObserverNegotiation } from "../services/harness-observer-binding.js";
 import { seatOccupancy } from "../services/seat-concurrency.js";
 import { assertDeliveryRun, stageKind } from "../services/delivery-workflows.js";
 import { assertAnalysisRun } from "../services/analysis-executions.js";
@@ -10,7 +12,7 @@ import { isSeatManager, requireSeatOwner } from "./dsp7-seat-owners.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Router, type Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
-import { seatExecutionPermits, activityLog, agentApiKeys, agents, companies, environments, heartbeatRuns, companyMemberships, instanceUserRoles, type Db } from "@paperclipai/db";
+import { issues, seatExecutionPermits, activityLog, agentApiKeys, agents, companies, environments, heartbeatRuns, companyMemberships, instanceUserRoles, type Db } from "@paperclipai/db";
 import { z } from "zod";
 import { assertBoard, assertCompanyAccess } from "./authz.js";
 import { accessService } from "../services/access.js";
@@ -98,17 +100,31 @@ export function dsp7QuickSeatRoutes(db:Db) {
   if(!runtime||req.body.revision!==runtime.revision)throw conflict("登记版本已变化，不能领取运行");
   const[run]=await db.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id,job.ctx.runId),eq(heartbeatRuns.companyId,agent.companyId),eq(heartbeatRuns.agentId,agent.id),eq(heartbeatRuns.status,"running")));
   if(!run){res.json({job:null});return;}
-  const analysis=job.packet.executionKind==="analysis";
-  const delivery=job.packet.executionKind==="delivery";
+  const validation=job.packet?.executionKind==="validation";
+  if ((run.contextSnapshot?.harnessValidationDispatchId !== undefined) !== validation) throw conflict("隔离验证派发领域不匹配");
+  if (validation) {
+   if(req.body.permitProtocol!==1||req.body.supervisionProtocol!==2||req.body.observerProtocol!==1||req.body.validationProtocol!==1) throw conflict("隔离验证需要独立协商及进程树监督协议");
+   await assertHarnessValidationRun(db,{companyId:agent.companyId,seatId:agent.id,taskId:String(job.packet.taskId)},run.id,Date.now,false);
+  }
+  const analysis=job.packet?.executionKind==="analysis";
+  const delivery=job.packet?.executionKind==="delivery";
   const deliveryScope=delivery?await assertDeliveryRun(db,agent.companyId,agent.id,run.id):null;
   if(delivery&&(req.body.permitProtocol!==1||req.body.supervisionProtocol!==2))throw conflict("条目执行需要新版监督协议");
   if(analysis){if(req.body.permitProtocol!==1||req.body.supervisionProtocol!==2)throw conflict("分析运行需要新版许可监督协议");await assertAnalysisRun(db,agent.companyId,agent.id,run.id);}
+  const observerTaskId = run.nativeIssueId ?? run.contextSnapshot?.issueId;
+  if (typeof observerTaskId === "string") {
+   const [observerTask] = await db.select().from(issues).where(and(eq(issues.id,observerTaskId),eq(issues.companyId,agent.companyId)));
+   if (observerTask) {
+    const observer = resolveHarnessObserverBinding(agent,{taskId:observerTask.id,runId:run.id,machineId:String(req.body.machine_id),projectId:observerTask.projectId});
+    assertObserverNegotiation(observer,req.body.permitProtocol===1?req.body.observerProtocol:undefined,req.body.supervisionProtocol);
+   }
+  }
   const capacity = await seatOccupancy(db, agent, [], String(job.packet.taskId));
   if (capacity.occupied >= capacity.limit) { res.json({job:null}); return; }
   const packet=await claimOutbound(job);
   if(req.body.permitProtocol===1){
    try {
-    const permit=await seatPermitService(db).issue({companyId:agent.companyId,agentId:agent.id,runId:run.id,machineId:String(req.body.machine_id),lease:packet.lease},{kind:deliveryScope?stageKind(deliveryScope.stage.stage):analysis?"analysis":"development",supervisionProtocol:req.body.supervisionProtocol===2?2:1});
+    const permit=await seatPermitService(db).issue({companyId:agent.companyId,agentId:agent.id,runId:run.id,machineId:String(req.body.machine_id),lease:packet.lease},{kind:validation?"validation":deliveryScope?stageKind(deliveryScope.stage.stage):analysis?"analysis":"development",supervisionProtocol:req.body.supervisionProtocol===2?2:1,observerProtocol:req.body.observerProtocol===1?1:undefined,validationProtocol:req.body.validationProtocol===1?1:undefined});
     Object.assign(packet,{permit,executionRoute:permit.executionRoute});
    } catch(error) {
     job.resolve({exitCode:1,signal:null,timedOut:false,errorCode:"seat_permit_denied",errorMessage:"执行许可未获准；未启动本机模型，请核对任务、预算和旧进程停止回执"});
@@ -150,6 +166,23 @@ export function dsp7QuickSeatRoutes(db:Db) {
   const parsed=z.object({lease:uuid,exitObserved:z.literal(true),treeProof:z.object({protocolVersion:z.literal(1),runId:uuid,isolation:z.enum(["posix-sessions","windows-job","not-started"]),firstObservedAt:z.string().datetime({offset:true}),observedAt:z.string().datetime({offset:true}),observations:z.number().int().min(2).max(1000),remaining:z.literal(0)}).strict().optional()}).safeParse(req.body);
   if(!parsed.success)throw badRequest("进程退出回执无效");
   const receipt=await seatPermitService(db).observeExit({companyId:agent.companyId,agentId:agent.id,runId:String(req.params.runId),machineId:String(req.body.machine_id),lease:parsed.data.lease},parsed.data.treeProof);
+  // Classify only the first authenticated, persisted proof. A replay cannot
+  // turn an executed model into a no-start failure or replace a normal result.
+  const [stored]=await db.select({proof:seatExecutionPermits.treeStopProof}).from(seatExecutionPermits).where(and(eq(seatExecutionPermits.runId,String(req.params.runId)),eq(seatExecutionPermits.companyId,agent.companyId),eq(seatExecutionPermits.agentId,agent.id)));
+  const job=outboundJob(String(req.params.runId));
+  if(job&&job.ctx.agent.id===agent.id&&job.ctx.agent.companyId===agent.companyId&&job.lease===parsed.data.lease){
+   // New result receipts may join while logging an earlier chunk. Drain to
+   // a stable tail before the synchronous settlement boundary.
+   let pending;
+   do{pending=job.receipts;await pending;}while(job.receipts!==pending);
+   if(outboundJob(String(req.params.runId))===job&&!job.settled&&!job.ctx.signal?.aborted){
+    if(stored?.proof?.isolation==="not-started"){
+     job.resolve({exitCode:1,signal:null,timedOut:false,errorCode:"dsp7_local_prepare_failed",errorMessage:"本机执行准备失败，模型未启动；请核对本机入口和安装配置。",resultJson:{dsp7_no_model_invocation:true}});
+    }else if(job.packet?.executionKind==="validation"&&["windows-job","posix-sessions"].includes((stored?.proof?.isolation??"") as string)){
+     job.resolve({exitCode:1,signal:null,timedOut:false,errorCode:"dsp7_validation_worker_exited",errorMessage:"隔离验证进程已退出，未收到完整执行结果；原进程树停止已核验。",resultJson:{validationInterrupted:true,processTreeExitVerified:true}});
+    }
+   }
+  }
   res.setHeader("Cache-Control","no-store");res.json(receipt);
  });
  return router;

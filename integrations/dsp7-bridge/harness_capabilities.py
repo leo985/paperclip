@@ -156,7 +156,34 @@ def main(argv):
     add.add_argument('--profile', default='default')
     add.add_argument('--seat-id', help='网页生成命令绑定的席位；防止在其他席位电脑误登记')
     sub.add_parser('check')
+    sub.add_parser('bundle-register')
+    sub.add_parser('bundle-list')
+    execution_register = sub.add_parser('bundle-execution-register')
+    execution_register.add_argument('--expected-digest', required=True)
+    for operation in ('bundle-install-plan', 'bundle-install'):
+        command = sub.add_parser(operation)
+        command.add_argument('--source', required=True)
+        command.add_argument('--expected-digest', required=True)
+        command.add_argument('--project', required=True)
+        command.add_argument('--seat-id', required=True)
+        if operation == 'bundle-install':command.add_argument('--expected-config-digest', required=True)
     args = parser.parse_args(argv); b = Bridge()
+    if args.action == 'bundle-execution-register':
+        from harness_bundle_registry import register as register_bundle
+        installed = b.cfg.get('harness_v2_execution', {})
+        config = installed.get('versions', {}).get(args.expected_digest) if installed.get('enabled') is True else None
+        if not config:raise BridgeError('本机未安装指定正式组合')
+        print(json.dumps(register_bundle(b, config), ensure_ascii=False, indent=2));return
+    if args.action in ('bundle-install-plan', 'bundle-install'):
+        from harness_bundle_install import plan, install
+        values = (b, args.source, args.expected_digest, args.project, args.seat_id)
+        result = plan(*values) if args.action == 'bundle-install-plan' else install(*values, args.expected_config_digest)
+        print(json.dumps(result, ensure_ascii=False, indent=2));return
+    if args.action == 'bundle-register':
+        from harness_bundle_registry import register as register_bundle
+        print(json.dumps(register_bundle(b),ensure_ascii=False,indent=2));return
+    if args.action == 'bundle-list':
+        print(json.dumps(seat_api(b).request('GET','/agents/'+b.cfg['agent_id']+'/dsp7-harness-bundles'),ensure_ascii=False,indent=2));return
     if args.action == 'register':
         if args.seat_id and args.seat_id != b.cfg.get('agent_id'):
             raise BridgeError('此命令属于其他席位，请在网页所选席位对应的电脑和原注册用户下执行；未修改登记')

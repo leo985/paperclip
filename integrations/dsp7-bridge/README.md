@@ -562,3 +562,31 @@ Agent 节点仍要求对应领域原生能力、租约、进程停止和正式�
 设计／用例 Agent 评审需原生 Harness 声明 delivery-review-protocols.json 并安装对应独立技能；能力摘要包含身份、计时和上报脚本。准备阶段按原生 execution_state_path 定位账本，不能假定研发和 QA 使用同一目录。返工需 delivery-rework-protocol.json v1，保留原统计来源与代次，归档旧证据、撤销旧确认，不重置历史统计。新版只读 verify 避免核验时间变化导致反复冻结失败；旧核验器只允许身份元数据变化。
 
 交付回读核对已确认知言快照、项目/工单、代次与实际度量；仅统计文件改变不能证明返工材料已修改。领域评审必须绑定本次 inputDigest 与 reviewWorkKeys。人工网页等待不等于人工实际投入；Agent changes_requested 请求负责人决定，不能冒充人工审签。部署与验证范围见 doc/plans/2026-11-05-delivery-review-zhiyan-fix.md。
+
+## Harness V2 observation candidate
+
+`harness_observation.py --config <seat-config> --run <registered-run>` accepts the validated Harness transport summary on stdin and queues it locally; it does not launch work or upload. The existing collector uploads it only when a fresh receipt advertises `harness.observation/1`. Missing capability leaves this stream queued while old streams continue. See [contract, validation and remaining launcher work](../../doc/plans/2026-11-14-harness-observation-protocol.md).
+
+## Explicit candidate bundle registry
+
+The Harness capabilities CLI supports `bundle-list` and `bundle-register`. Registration first validates the configured frozen bundle, negotiates the new endpoint, then sends only descriptor metadata with expectedRevision using existing device authentication. It never uploads local paths or changes execution routing/configuration. Registration conflicts are not automatically retried. Include `harness_bundle_registry.py` when distributing this candidate.
+
+
+Harness V2 单席位试点现要求服务端 `DSP7_HARNESS_V2_SEATS` 精确白名单和 Bridge `harness_v2_pilot` 公司/席位/任务范围。仅开启旧功能开关不再放行。配置、发布前置条件与回滚见 [试点准备](../../doc/plans/2026-11-14-harness-v2-seat-pilot.md)。
+
+Harness V2 platform observer binding (candidate): outbound poll negotiates
+`observerProtocol: 1` alongside the existing permit/tree protocols. A selected
+`harness.observer-binding/1` attachment travels in the original permit. Bridge
+checks its run scope and actual local bundle at launch and compares the same
+attachment on renewals. A required attachment cannot fall back to optional
+observation when preparation fails. This does not grant any new domain task
+execution authority or mark a package loaded. The new module is included in the
+installer inventory. No live configuration is changed by installing the source.
+
+The candidate bundle launcher also freezes `harness.runtime-context/1` from the
+original Collector paths and the verified package roots. It exposes
+`HARNESS_CONTEXT_FILE` / `HARNESS_CONTEXT_DIGEST` only after successful
+preparation, checks for drift before producing further projections, and supplies
+the same context to the pinned native reader. This records the organization
+Bridge configuration directory without reading configuration contents. Legacy
+core configuration precedence and state locations remain authoritative.

@@ -300,6 +300,9 @@ class Collector:
                 self.coverage('门禁证据缺失，不能确认阶段完成',stream,offset);return
             self.event(stream,'phase',{k:item.get(k) for k in ('phase','status','gateVersion','evidence','flowVersion')},generation,offset,item.get('at'))
     def scan(self,final=False):
+        from harness_observation_runtime import poll, poll_native
+        poll(self)
+        poll_native(self)
         row=self.row()
         if row['finalized']:return
         queued=self.queue_size();self.queued_bytes=queued
@@ -315,7 +318,8 @@ class Collector:
             if self.queued_bytes>self.quota-65536:
                 self.setmeta('capacity_paused',True);return
             state_file=Path(self.info['state_path'])
-            if state_file.is_file():
+            native_observer=(self.meta('harness_observer_runtime') or {}).get('nativeDomain')
+            if state_file.is_file() and not native_observer:
                 try:
                     state=json.loads(state_file.read_text());phase=state.get('当前Phase') or (state.get('phase') if state.get('schema_version')==1 else None)
                     if phase and self.meta('phase')!=phase:
@@ -386,7 +390,9 @@ class Collector:
             self.status();return
         if receipt['uploadPaused']:self.status();return
         for _ in range(max_batches):
-            rows=self.db.execute('SELECT event FROM outbox WHERE run_id=? AND acked_at IS NULL ORDER BY rowid LIMIT 100',(self.run_id,)).fetchall()
+            # Capability removal holds only the new stream, never legacy uploads.
+            supports_harness='harness.observation/1' in receipt.get('capabilities', [])
+            rows=self.db.execute("SELECT event FROM outbox WHERE run_id=? AND acked_at IS NULL AND (? OR json_extract(event,'$.eventType') != 'harness.observation') ORDER BY rowid LIMIT 100",(self.run_id,int(supports_harness))).fetchall()
             events=[];size=0
             for item in rows:
                 data=json.loads(item['event']);length=len(item['event'].encode())

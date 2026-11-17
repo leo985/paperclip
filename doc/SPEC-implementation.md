@@ -1,5 +1,30 @@
 # Paperclip V1 Implementation Spec
 
+## 2026-11-16 Phase 1 closeout
+
+Phase 1 is complete for the token-only observation vertical prototype. Frozen live normal/fault/rollback evidence is preserved. New closeout evidence in the paired Harness tree: `harness/v2/artifacts/phase1-closeout-20261116/{README.md,report.json}`. Host, canonical ledger and authenticated HTTP usage agree (input 13,466 / output 4,843 / cache read 15,936); interrupted runs remain unknown/null. Four concurrent production final-usage replays return one event ID with unchanged ledger/runtime totals and no execution grant. Actual disposable PostgreSQL tests cover concurrent dispatch reservations, permit claims, seat capacity and tenant rejection; this is not a production multi-seat stress claim.
+
+Source and actual frozen service r4 overlay pass the same 94 cases (not 188); original timing/report/identity/review regressions pass 204, observer off/on paired comparisons 3, native state 6 and JS observer/query 21. External identity/Zhiyan/Tracker use existing offline fixtures; production customer workflow takeover is Phase 3 work. Bridge r6 rejects missing modelUsage counters instead of fabricating zero, passes 109 extracted-package tests and retained actual-host-result replay. SHA256 `6b6d3f46660c197adde0a990d22641dcb1264598697648c7eda4e2ce1317746c`; not installed. Existing live proof remains r5.
+
+Current service matches all 22 captured original baseline entries and is healthy with no pilot drop-in. The seat has a later Bridge cf5a58d29584d8a1 since the verified historical rollback; identity/runtime remain preserved. No downgrade or global release was performed. Registry stays candidate/unconfirmed/executionReady=false. Phase 2/3/4, full-repository regression, production customer acceptance, commit/push and release are not claimed. Earlier incomplete/pending statements below are historical; this section is authoritative for current Phase 1 status.
+
+
+## 2026-11-16 scope amendment: token usage only for this Harness iteration
+
+Per user decision, token usage accounting is required; price integration, monetary billing and real priced-budget exhaustion acceptance are deferred and no longer block this iteration or Phase 1. Existing platform budget/pause controls remain enforced; this document change disables no runtime policy. Preserve historical tests and frozen acceptance artifacts.
+
+Reuse canonical run usage/cost_events and original idempotency: attribute host-reported inputTokens/outputTokens/cachedInputTokens to the same company/task/run/seat. Keep unavailable values unknown with provenance/completeness; do not infer zero, prices or tokens. Do not sum cache and input fields until provider inclusion semantics are established. Verify host-to-platform field parity, replay without duplicate usage, and explicit incomplete usage for interrupted runs. Existing normal-run snapshot records input 13,466, output 4,843 and cached input 15,936 in one canonical row; this is sample evidence, not complete token acceptance. These Phase 1 checks have now passed as documented in the closeout section above.
+
+
+## 2026-11-16 controlled platform acceptance update
+
+The production 基础平台 / 李巍 pilot on CMP-2 exercised native dispatch and permits, fixed Bridge entry, actual host session and L4 report checks, original outbox ACK and replay rejection, cancellation, natural authorization expiry, targeted network errors, supervisor death and accepted-response loss recovery. All managed trees were verified empty. Final tested service overlay r4 and Bridge r5 were rolled back to the original service bytes and seat configuration; all twelve test grants were revoked. Registry remains candidate / executionReady=false / unconfirmed. CMP-2 is done; Phase 1 as a whole remains incomplete.
+
+The frozen service source and compiled candidate covered the same 81 distinct cases; Bridge r5 extraction passed 108 tests. A later source-only test covers disposable PostgreSQL synthetic billing, original budget pause and permit revocation with actual Python process-tree stop/exit evidence. It uses service calls and stdin, not full HTTP/auth/native dispatch. New validation domains already reject billed-cents hard policies because real prices are unavailable. Production costs remain unknown/unpriced; no fabricated production costs or token-derived prices were used. Priced budget exhaustion was unaccepted under the historical scope and is now deferred, not a Phase 1 blocker; production concurrency and business timing/delivery equivalence remain unaccepted. Detailed immutable inputs and run/permit links: paired Harness `harness/v2/artifacts/validation-platform-acceptance-20261116/{README.md,report.json}`. No global release, commit or push.
+
+Earlier pending/not-deployed statements below describe the preparation baseline, not current platform state.
+
+
 Status: Implementation contract for first release (V1)
 Date: 2026-04-28
 Audience: Product, engineering, and agent-integration authors
@@ -1844,3 +1869,15 @@ Agent 节点仍要求对应领域原生能力、租约、进程停止和正式�
 月度排期在风险筛选上方提供全部进度、已完成、进行中、未开始与待确认，依据轻舟条目的 sourceStatus 精确映射，不使用日期、工单数或平台执行状态推断。显式完成、发布、上线、验收状态归为已完成；待需求分析等初始状态归为未开始；分析、评审、研发及后续等待、打回、挂起状态归为进行中；作废、关闭、缺失及未识别状态归为待确认。各组互斥且覆盖完整列表，来源完成不代表平台正式交付核验通过。进度计数应用其他明细筛选，但忽略风险选择；风险计数应用当前进度。所有筛选在分页前执行，URL 保留 mProgress，清除筛选一并移除。
 
 线上轻舟条目状态使用“全部交付”“部分交付”“待开发”时，分别归入已完成、进行中、进行中。排期接口缺失状态时，复用按需求编号的精确查询补齐 demandState_show，去重并与责任人补查合并；来源明确为空的需求拆分人员不因补状态而被替换。
+
+## Harness observation protocol candidate (2026-11-14)
+
+Managed-session batches accept the closed `harness.observation` metadata event only when `DSP7_HARNESS_OBSERVATION_ENABLED=true`. Receipts advertise `harness.observation/1`; old or disabled servers leave the new Bridge stream queued while legacy uploads continue. The company/task/run/stream must match the registered authenticated session. The owner/manager query is paginated and no-store. These events never update execution timing, process exit or delivery acceptance. See [contract and local evidence](plans/2026-11-14-harness-observation-protocol.md).
+
+## Candidate Harness bundle discovery (2026-11-14)
+
+A separate device-bound bundle registry stores local-inspection claims in `adapterConfig.dsp7HarnessBundles`. It does not extend or replace legacy Harness execution capabilities or routing. Closed descriptors contain only bundle/package digests, project scope key, layers, versions and skill names. Server output fixes `executionReady=false`, `loadState=unconfirmed`, and `validation=seat-reported-local-files`. Registration requires explicit `DSP7_HARNESS_BUNDLES_ENABLED=true`, seat identity, idle state for changes, revision CAS and audit. Reads are device-own or company seat-owner/manager scoped. See the Harness observation protocol plan for verification limits.
+
+## Harness isolated validation admission (2026-11-16 candidate)
+
+Manager-only POST `/api/companies/:companyId/dsp7-seats/:id/harness-validation/:taskId` accepts only dispatchId and expectedBundleDigest; DELETE with `/:dispatchId` revokes the authorization. The default-off validation scope pins company, seat, native task, project and bundle. Responses explicitly report dispatched=false and executionStarted=false. No native run is created by preparation. A separate negotiated validation permit freezes the authorized target in the existing ledger scope and rechecks authorization, owner, registry, budget and native task on renewal. Its expiry cannot exceed authorization expiry. Explicit manager-only POST with `/:dispatchId/dispatch` accepts an empty body, persists a single dispatch reservation and calls the original heartbeat wakeup without coalescing; uncertain responses are not replayed. Outbound requires validation/observer/permit/supervision negotiation before claim and routes only to the fixed frozen synthetic-history entry, never the issue prompt or legacy Jira-development path. Bridge retains native supervision and outbox; parent-death fencing and observe-only orphan recovery never turn missing evidence into tree exit. Source and compiled candidates are locally verified; deployment and real platform run/permit/fault acceptance remain pending. See [dispatch contract and evidence](plans/2026-11-16-harness-validation-dispatch.md).

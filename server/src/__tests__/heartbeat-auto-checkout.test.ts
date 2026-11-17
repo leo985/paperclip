@@ -4,6 +4,19 @@ import {
 } from "../services/heartbeat.ts";
 
 describe("shouldAutoCheckoutIssueForWake", () => {
+  it.each(["backlog", "todo", "in_progress", "blocked", "in_review", "done", "cancelled"])("keeps validation checkout scoped for %s", status => {
+    expect(shouldAutoCheckoutIssueForWake({
+      contextSnapshot: { wakeReason: "Harness 隔离验证授权启动", harnessValidationDispatchId: "dispatch" },
+      issueStatus: status, issueAssigneeAgentId: "agent", isDependencyReady: true, agentId: "agent",
+    })).toBe(["backlog", "todo", "in_progress"].includes(status));
+  });
+  it("preserves ordinary blocked task checkout", () => {
+    expect(shouldAutoCheckoutIssueForWake({
+      contextSnapshot: { wakeReason: "issue_assigned" }, issueStatus: "blocked",
+      issueAssigneeAgentId: "agent", isDependencyReady: true, agentId: "agent",
+    })).toBe(true);
+  });
+
   it("auto-checks out an assigned todo issue for an actionable wake", () => {
     expect(shouldAutoCheckoutIssueForWake({
       contextSnapshot: { wakeReason: "issue_assigned" },

@@ -1,5 +1,5 @@
 import { boolean, index, jsonb, pgTable, text, timestamp, uuid, uniqueIndex } from "drizzle-orm/pg-core";
-import type { HarnessExecutionRoute } from "@paperclipai/shared";
+import type { HarnessExecutionRoute, HarnessObserverBinding, HarnessValidationBinding } from "@paperclipai/shared";
 import { companies } from "./companies.js";
 import { agents } from "./agents.js";
 import { issues } from "./issues.js";
@@ -22,7 +22,7 @@ export const seatExecutionPermits = pgTable("seat_execution_permits", {
   treeStopVerifiedAt: timestamp("tree_stop_verified_at", { withTimezone: true }),
   treeStopProof: jsonb("tree_stop_proof").$type<Record<string, unknown>>(),
   executionRoute: jsonb("execution_route").$type<HarnessExecutionRoute>(),
-  ledgerScope: jsonb("ledger_scope").$type<{ issueId: string; projectId: string | null; billingCode: string | null }>(),
+  ledgerScope: jsonb("ledger_scope").$type<{ issueId: string; projectId: string | null; billingCode: string | null; harnessObserver?: HarnessObserverBinding; harnessValidation?: HarnessValidationBinding }>(),
   processExitObservedAt: timestamp("process_exit_observed_at", { withTimezone: true }),
 }, table => ({
   runIdentity: uniqueIndex("seat_execution_permits_run_idx").on(table.runId),

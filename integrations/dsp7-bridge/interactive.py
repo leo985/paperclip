@@ -193,6 +193,10 @@ def terminal_write(master,data):
     return master.write(data) if WINDOWS else os.write(master,data)
 
 def exec_claude(executable,args):
+    # A selected composition must reach prepare_launch. Legacy/probe and
+    # non-interactive shortcuts cannot silently consume a formal route.
+    if os.environ.get('DSP7_HARNESS_EXECUTION_ROUTE'):
+        raise BridgeError('正式组合需要受管交互启动；当前旧入口不支持，未启动模型')
     cli=claude_argv(executable,args)
     if WINDOWS:raise SystemExit(subprocess.call(cli))
     os.execv(executable,cli)
@@ -370,8 +374,36 @@ def wrapper(args):
             from analysis_execution import prompt as analysis_prompt
             prompt=analysis_prompt(analysis_context)
         else:prompt=task_prompt(pilot['jira_key'],clean_prompt(prompt,platform_dispatch=bool(d.get('platform_dispatch'))),context)
+        from harness_observer_binding import from_env, ENV as observer_attachment_env
+        platform_attachment=from_env(os.environ)
+        observer_env={}
+        try:
+            from managed_sessions import Collector
+            from harness_observation_runtime import prepare
+            observer_collector=Collector(b.cfg,run_id)
+            try:cli_args,observer_env=prepare(observer_collector,cli_args,domain_context=delivery_context if delivery else None,platform_attachment=platform_attachment)
+            finally:observer_collector.db.close()
+        except Exception:
+            if platform_attachment is not None:raise BridgeError('平台指定观察附件未能准备，未启动模型')
+            print('[DSP7] Harness observation unavailable; domain execution unchanged.',file=sys.stderr,flush=True)
+        composition_env={}
+        raw_route=os.environ.get('DSP7_HARNESS_EXECUTION_ROUTE')
+        if raw_route:
+            if len(raw_route)>32768:raise BridgeError('正式组合路由超过大小限制')
+            from harness_composition import prepare_launch
+            route=json.loads(raw_route)
+            cli_args,composition_env,method_instruction=prepare_launch(b,route,run_id,task['id'],
+                project_root=cwd,source_root=source_cwd,state_path=d['state_path'],folder=folder,
+                cli_args=cli_args,workflow=delivery_context['workflow'] if delivery else None,observer_env=observer_env)
+            prompt+=method_instruction
         command=claude_argv(executable,[*cli_args,prompt+('' if managed else '\n\n本次为研发人员可见的交互会话。在领域操作前 inspect、claim；正式需求确认仍在 Jira。'+instruction+' 不要绕过领域门禁。')])
         env=dict(os.environ)
+        for name in ('HARNESS_V2_OBSERVER_BINDING','HARNESS_RUNTIME_ROOT','HARNESS_RESOURCE_ROOT','HARNESS_BUNDLE_ROOT','HARNESS_BUNDLE_DIGEST','HARNESS_CONTEXT_FILE','HARNESS_CONTEXT_DIGEST','HARNESS_CORE_CONTEXT'):
+            env.pop(name,None)
+        env.pop(observer_attachment_env,None)
+        env.update(observer_env)
+        env.update(composition_env)
+        env.pop('DSP7_HARNESS_EXECUTION_ROUTE',None)
         for name in ('TERM','TERM_PROGRAM','COLORTERM'):env.pop(name,None)
         env.update(terminal_env);env.setdefault('TERM','xterm-256color')
         env['DSP7_INTERACTIVE']='1';env['DSP7_SAME_SESSION_RESUME']='1' if same_session else '0';env['DSP7_MANAGED_FOLDER']=str(folder);env['DSP7_ANALYSIS_WAIT_SECONDS']=str(max(30,min(3600,int(b.cfg.get('confirmation_wait_seconds',3600)))))

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { harnessObservationSchema } from "./harness-observation.js";
 
 /** Private task conversation data. Never pass these payloads to telemetry/run logs. */
 export const MANAGED_SESSION_PROTOCOL = 1;
@@ -7,7 +8,7 @@ export const MANAGED_BATCH_BYTES = 256 * 1024;
 export const managedIdentitySchema = z.object({ seat_id: z.string().uuid(), machine_id: z.string().uuid(), machine_fingerprint: z.string().regex(/^[a-f0-9]{64}$/) });
 export const managedEventSchema = z.object({
   eventId: z.string().uuid(), streamId: z.string().min(1).max(160), sequence: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-  eventType: z.enum(["content.part", "content.manifest", "lifecycle", "coverage", "phase", "execution", "observation"]),
+  eventType: z.enum(["content.part", "content.manifest", "lifecycle", "coverage", "phase", "execution", "observation", "harness.observation"]),
   occurredAt: z.string().datetime({ offset: true }), observedAt: z.string().datetime({ offset: true }),
   sourceGeneration: z.string().max(160), sourceOffset: z.number().int().nonnegative(), parserVersion: z.literal(1),
   payload: z.record(z.string(), z.unknown()),
@@ -75,6 +76,7 @@ export interface SeatWorktime {
 
 /** Closed metadata contracts prevent arbitrary conversation copies in phase/status rows. */
 export const managedMetadataSchemas = {
+  "harness.observation": harnessObservationSchema,
   lifecycle: z.object({state:z.enum(["started","exited"]),policy:z.string().max(80).optional(),boundary:z.string().max(100).optional()}).strict(),
   coverage: z.object({reason:z.string().max(500),source:z.string().max(160)}).strict(),
   phase: z.object({phase:z.string().min(1).max(100),status:z.enum(["started","passed","failed","reopened","skipped","observed"]),source:z.string().max(100).optional(),evidence:z.union([z.string().max(2000),z.array(z.object({script:z.string().max(500),scriptSha256:z.string().regex(/^[a-f0-9]{64}$/),exitCode:z.number().int()}).strict()).max(100)]).nullable().optional(),gateVersion:z.string().max(160).nullable().optional(),flowVersion:z.string().max(160).nullable().optional(),note:z.string().max(500).optional()}).strict(),
