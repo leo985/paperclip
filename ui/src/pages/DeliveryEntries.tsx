@@ -164,7 +164,7 @@ function DeliveryEntriesPage() {
         />}
         {tab === "work" && <div className="space-y-5">
           {jiraReviewResults.isError && <p role="status" className="text-sm text-muted-foreground">
-            Jira 评审结论读取失败
+            Jira 交付材料读取失败
             <Button variant="ghost" size="sm" onClick={() => void jiraReviewResults.refetch()}>重试</Button>
           </p>}
           <DeliveryWorkDispatch
@@ -177,6 +177,7 @@ function DeliveryEntriesPage() {
             canManage={canManage}
             records={evidenceRecords}
             jiraReviewResults={jiraReviewResults.data?.results}
+            jiraAttachments={jiraReviewResults.data?.attachments}
             workflowState={workflowState}
           />
           <DeliveryEntryEvidence

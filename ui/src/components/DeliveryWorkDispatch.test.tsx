@@ -88,3 +88,15 @@ it("shows the Jira result in its child row independently of platform evidence", 
   expect(row?.textContent).toContain("评审未通过\n需要补充异常测试");
   expect(row?.textContent).toContain("尚未登记平台交付证据");
 });
+
+
+it("links a Jira attachment in the matching coding row with a separate platform status", () => {
+  const url = "https://jira.example/secure/attachment/123/coding.zip";
+  const { node } = mount({ jiraAttachments: [{ jiraKey: "DONE-1", files: [{ filename: "coding.zip", url }] }] });
+  const attachment = node.querySelector(`a[href="${url}"]`);
+  const row = attachment?.closest("tr");
+  expect(attachment?.textContent).toBe("coding.zip");
+  expect(row?.textContent).toContain("DONE-1");
+  expect(row?.textContent).toContain("Jira 来源附件");
+  expect(row?.textContent).toContain("尚未登记平台交付证据");
+});

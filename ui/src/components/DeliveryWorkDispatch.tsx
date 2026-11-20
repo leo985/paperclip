@@ -8,15 +8,19 @@ import { deliveryDispatchRows, matchesDispatchView, deliveryTaskStates, delivery
 import { DeliveryEvidence, type DeliveryEvidenceState } from "./DeliveryMaterials";
 
 const views: [DispatchView, string][] = [["pending", "待安排"], ["linked", "已接入"], ["ended", "来源已结束"], ["all", "全部子单"]];
-export function DeliveryWorkDispatch({ plan, tasks, admission, projectId, snapshotId, records, jiraReviewResults, workflowState = "ready" }: {
+export function DeliveryWorkDispatch({ plan, tasks, admission, projectId, snapshotId, records, jiraReviewResults, jiraAttachments, workflowState = "ready" }: {
   plan: DeliveryPlan; tasks: DeliveryLinkedTask[]; admission: DeliveryAdmission | null; projectId: string; snapshotId: string; canManage: boolean;
-  records?: DeliveryStageRecord[]; jiraReviewResults?: DeliveryJiraReviewResults["results"]; workflowState?: DeliveryEvidenceState;
+  records?: DeliveryStageRecord[];
+  jiraReviewResults?: DeliveryJiraReviewResults["results"];
+  jiraAttachments?: DeliveryJiraReviewResults["attachments"];
+  workflowState?: DeliveryEvidenceState;
 }) {
   const [view, setView] = useState<DispatchView>("all");
   const [search, setSearch] = useState("");
   const [sourceStatuses,setSourceStatuses] = useState<string[]>([]);
   const id = useId();
   const rows = deliveryDispatchRows(plan, tasks);
+  const jiraAttachmentsByChild = new Map(jiraAttachments?.map(result => [result.jiraKey, result.files]));
   const jiraReviewByChild = new Map(jiraReviewResults?.map(result => [result.jiraKey, result]));
   const evidenceByChild = new Map<string, DeliveryStageRecord[]>();
   const unmatchedEvidence: DeliveryStageRecord[] = [];
@@ -56,6 +60,7 @@ export function DeliveryWorkDispatch({ plan, tasks, admission, projectId, snapsh
       <div className="overflow-x-auto"><table className="w-full text-left text-sm"><caption className="sr-only">{group.key} 子工单执行安排</caption><thead><tr className="border-b border-border">{["子工单／类型", "来源状态／排期", "来源负责人", "平台任务／运行", "交付材料与核验", "操作"].map(label=><th key={label} scope="col" className="p-3">{label}</th>)}</tr></thead><tbody>{group.visible.map(row => {
         const evidence = evidenceByChild.get(row.item.key);
         const jiraReview = jiraReviewByChild.get(row.item.key);
+        const attachments = jiraAttachmentsByChild.get(row.item.key);
         return <tr key={row.item.key} className="border-b border-border align-top">
         <td className="p-3"><p className="font-medium">{row.item.key} · {row.item.type}</p><p className="text-muted-foreground">{row.item.title}</p></td>
         <td className="p-3"><p>{row.item.status||"来源未提供"}</p><p className="text-xs text-muted-foreground">{row.item.scheduled?"已排期":"未在所采集排期中"}</p></td>
@@ -65,6 +70,14 @@ export function DeliveryWorkDispatch({ plan, tasks, admission, projectId, snapsh
           {jiraReview && <div className="space-y-1">
             <a className="font-medium underline" href={jiraReview.url} target="_blank" rel="noreferrer">Jira 来源结论</a>
             <p className="whitespace-pre-wrap break-words">{jiraReview.description}</p>
+          </div>}
+          {!!attachments?.length && <div className="space-y-1">
+            <p className="font-medium">Jira 来源附件</p>
+            <ul className="space-y-1" aria-label="Jira 来源附件">
+              {attachments.map(file => <li key={file.url}>
+                <a className="break-all underline" href={file.url} target="_blank" rel="noreferrer">{file.filename}</a>
+              </li>)}
+            </ul>
           </div>}
           {evidence ? <div className="space-y-3">{evidence.map(record => <DeliveryEvidence
             key={record.taskId}

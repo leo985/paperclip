@@ -24,6 +24,7 @@ export interface DeliveryWorkItem {
 }
 export interface DeliveryJiraReviewResults {
   results: { jiraKey: string; description: string; url: string }[];
+  attachments?: { jiraKey: string; files: { filename: string; url: string }[] }[];
 }
 export interface DeliveryPlan {
   demandId: string;
