@@ -930,7 +930,7 @@ harness doctor
 <p>安装器创建当前用户的 <code>Zhiyan-Seat-Bridge-&lt;用户SID&gt;</code> 计划任务，以交互登录身份、普通权限在登录时启动，并立即启动本次接入；不保存 Windows 密码，不安装 SYSTEM 服务。必须保持该 Windows 用户已登录，退出登录、休眠或断网会导致席位离线。</p>
 <p>使用 <code>-NoService</code> 时不创建计划任务，按安装器输出的命令手动运行。本机日志位于 <code>%USERPROFILE%\.config\paperclip-dsp7-bridge\watcher.log</code>。Windows 气泡提醒受系统通知设置影响；网页和钉钉是独立通知通道。</p>
 <p><code>harness start</code>、<code>attach</code>、<code>seat</code>、<code>repo</code>、<code>status</code> 和 <code>knowledge</code> 通过桥执行，其他子命令委托给登记的 Harness CLI。安装不修改 Harness 源码；业务技能使用的 Shell、Maven、MCP 等仍需在本机准备好。Windows 原生流程仍需按上述步骤做实机验收。</p><a href="#top">返回目录 ↑</a></article>
-<article id="entry-delivery-stages"><p class="category">交付管理</p><h2>条目交付四阶段：分析、设计、编码、测试</h2><p>按阶段查看关联工单、执行情况与交付证据。</p><aside><strong>什么时候使用</strong><ul><li>查看完整条目交付</li><li>检查研发与测试阶段待办</li><li>进入工单执行与对话</li></ul></aside><p>打开需求条目详情，在顶部选择需求分析、设计、编码或测试。每个阶段可以包含多张工单；点击执行过程与对话进入具体任务。</p>
+<article id="entry-delivery-stages"><p class="category">交付管理</p><h2>条目交付四阶段：分析、设计、编码、测试</h2><p>按阶段查看关联工单、执行情况与交付证据。</p><aside><strong>什么时候使用</strong><ul><li>查看完整条目交付</li><li>检查研发与测试阶段待办</li><li>进入工单执行与对话</li></ul></aside><p>打开需求条目详情，在上方选择需求分析、设计、编码或测试阶段卡片。「需求分析」卡片下可以查看轻舟评审记录、关联工单和分析修订，也可以进入分析任务。每个阶段可以包含多张工单，点击「执行过程与对话」进入具体任务。</p>
 <p>代码评审归入编码；测试阶段包含用例编写、用例评审和功能测试。分析保留所有修订，阶段状态以最新修订为准。其他未识别类型单独列出。</p>
 <p>来源已结束、平台任务完成、Agent 运行结束均不自动等于正式交付核验通过。缺少证据时显示未采集或待核验，不推测完成。阶段选择保存在页面链接中，可分享给同事。</p>
 <p>进入工单后，在本机会话与 Harness 进度中选择本次或历史会话，查看执行总览、阶段门禁及对话记录。各阶段的安排执行仍通过原派单流程进行；主需求验收按正式流程处理。</p>
