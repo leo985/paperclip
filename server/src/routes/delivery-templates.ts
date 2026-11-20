@@ -1,3 +1,4 @@
+import { containsCredential } from "../services/managed-sessions.js";
 import { Router } from "express";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -47,6 +48,7 @@ export function deliveryTemplateRoutes(db: Db) {
     if (!parsed.success)
       throw badRequest(parsed.error.issues.map((x) => x.message).join("；"));
     const input = parsed.data;
+    if(containsCredential(JSON.stringify(input.definition))) throw badRequest("流程配置不能包含凭据");
     if (!input.projectId && input.definition.inheritOrganization)
       throw badRequest("组织模板不能继承自身");
     const result = await db.transaction(async (tx) => {
@@ -69,6 +71,12 @@ export function deliveryTemplateRoutes(db: Db) {
             .from(agents)
             .where(and(eq(agents.companyId, c), eq(agents.id, seatId!)));
           if (!seat) throw forbidden("模板默认席位不属于当前组织");
+        }
+      }
+      if (!input.definition.inheritOrganization && input.definition.automaticRepair) {
+        for (const route of input.definition.automaticRepair.routes) for (const seatId of [route.developmentSeatId,route.reviewSeatId,route.qaSeatId]) {
+          const [seat]=await tx.select({id:agents.id}).from(agents).where(and(eq(agents.companyId,c),eq(agents.id,seatId)));
+          if (!seat) throw forbidden("自动修复路由席位不属于当前组织");
         }
       }
       const [row] = await tx

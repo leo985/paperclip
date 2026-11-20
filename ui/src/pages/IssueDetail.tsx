@@ -1,3 +1,4 @@
+import { UnifiedTaskDetailPage } from "./UnifiedTaskDetailPage";
 import { JiraRequirementPanel } from "@/components/JiraRequirementPanel";
 import { Dsp7ExecutionStatus } from "../components/Dsp7ExecutionStatus";
 import { ManagedSessionPanel } from "@/components/ManagedSessionPanel";
@@ -2867,7 +2868,7 @@ function IssueDetailActivityTab({
   );
 }
 
-export function IssueDetail({ tasksTab }: { tasksTab?: TaskSidePanelProps["tasksTab"] }) { return <TaskDetailSurface tasksTab={tasksTab} />; }
+export function IssueDetail({ tasksTab }: { tasksTab?: TaskSidePanelProps["tasksTab"] }) { return <UnifiedTaskDetailPage collaboration={<TaskDetailSurface tasksTab={tasksTab} />} />; }
 
 /** One controller and surface for both task URLs and agent conversations. */
 export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskSidePanelProps["tasksTab"]; conversation?: {

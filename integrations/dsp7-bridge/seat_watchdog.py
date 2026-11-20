@@ -89,13 +89,22 @@ def probe(config, cfg, settings, now):
     return dict(result, condition='heartbeat_stale' if running else 'service_stopped')
 
 
-def recover(config, cfg, settings):
+def recover(config, cfg, settings, stale=False):
     # Read the current bridge from config on every probe. An upgrade rollback
     # restores this value, so the timer never resurrects the replaced bridge.
     bridge = Path((cfg.get('quick_setup') or {}).get('bridge') or settings['bridge'])
     entry = bridge / 'harness_entry.py'
     if not entry.is_file():
         return {'action': 'command_missing'}
+    if stale:
+        if not (bridge / 'heartbeat_health.py').is_file():
+            return {'action': 'client_upgrade_required'}
+        runtime = Path(cfg['database']).expanduser().parent
+        control = runtime / 'seat-control'
+        control.mkdir(mode=0o700, parents=True, exist_ok=True)
+        write_json(control / 'heartbeat-recovery-request.json',
+                   {'agentId': cfg['agent_id'], 'requestedEpoch': time.time()})
+        return {'action': 'cooperative_restart_requested'}
     try:
         result = subprocess.run(
             [settings['python'], str(entry), 'online'],
@@ -139,7 +148,7 @@ def check(directory, now=None):
                         # Persist before invoking online; failed calls are also
                         # rate limited and never reset the last real heartbeat.
                         write_json(directory / 'attempt.json', {'at': now})
-                        result.update(recover(config, cfg, settings))
+                        result.update(recover(config, cfg, settings, stale=result['condition']=='heartbeat_stale'))
             result['checked_at'] = dt.datetime.fromtimestamp(now, dt.timezone.utc).isoformat()
             write_json(directory / 'status.json', result)
             if result.get('action') and result['action'] != 'cooldown':

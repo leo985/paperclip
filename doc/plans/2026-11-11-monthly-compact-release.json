@@ -1,0 +1,48 @@
+{
+  "release": "20261111-monthly-compact",
+  "status": "deployed",
+  "timestamp": "2026-11-11T08:55:18.800475+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-ff5a10ab.js",
+  "uiModule": "DeliveryEntries-1dacbeb5.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/monthly-compact-20261111/backup-20261111T085455Z",
+  "serverRestarted": false,
+  "service": "MainPID=280738\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/DeliveryMonthlyBoard.tsx": "a25f81c6605d8deca1e13470fa9afeed211de3f530a87bee0f26d27092a217ea",
+    "ui/src/pages/DeliveryEntries.tsx": "915b118f189a3d64bf22f978fcc58c83042a6540fb90f11a974ab983ef0db84e"
+  },
+  "verification": {
+    "relatedTestsPassed": 40,
+    "uiTypecheckPassed": true,
+    "uiBuildPassed": true,
+    "tokenGatesPassed": true,
+    "artifactPageRerenders": 8,
+    "duplicateLookupCards": false,
+    "categoryFilterRenderPassed": true,
+    "deployedModuleHttpHashVerified": true,
+    "browserVerification": "unavailable: browser connector auth token unavailable; ego lite previously failed to start"
+  }
+}

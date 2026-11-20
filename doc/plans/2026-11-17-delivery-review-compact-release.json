@@ -1,0 +1,87 @@
+{
+  "release": "delivery-review-compact-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-16T16:46:10.747737+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-review-compact-20261117/backup",
+  "httpFilesVerified": 344,
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1045579,
+  "backendPidAfter": 1045579,
+  "health": "ok",
+  "bridgeAndEnvironmentUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "889a2669b8b3b48580dfb2f45d9b7269673c5f6b239b2b49c94e2beebc15569b",
+  "swSha256": "6f9f7a9a9c7641fb644c2356f52a6d9b59468cf07c0e2bef89626fa52e0fc273",
+  "verification": {
+    "uiTestsPassed": 29,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "externalHttp": {
+      "verified": 344,
+      "failures": []
+    },
+    "browser": {
+      "url": "http://10.60.43.53:3100/DSP/delivery?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=734bc43a-37c4-4c38-9a51-5e0bb253f08b&tab=work&reviewKey=ATSES-516505#delivery-workflow",
+      "selectedDesign": "ATSES-516503",
+      "reuse": "reuse",
+      "workSeatPresent": false,
+      "bound": true,
+      "details": [
+        {
+          "title": "查看交付流程",
+          "open": false
+        },
+        {
+          "title": "派单与成果核验规则",
+          "open": false
+        },
+        {
+          "title": "已完成 · 复用已有交付，启动时核验成果",
+          "open": false
+        },
+        {
+          "title": "成果核验说明",
+          "open": false
+        },
+        {
+          "title": "调整评审工单与覆盖范围",
+          "open": false
+        },
+        {
+          "title": "添加其他评审绑定",
+          "open": false
+        },
+        {
+          "title": "查看并补齐完整交付链配置",
+          "open": false
+        },
+        {
+          "title": "添加其他评审绑定",
+          "open": false
+        },
+        {
+          "title": "添加其他评审绑定",
+          "open": false
+        }
+      ],
+      "button": "核验成果并启动交付链",
+      "focusedText": "设计子工单\n选择真实 Jira 子工单\nATSES-516503 · 东阳国资-邮储代发PSBC01渠道上传文件增加收方联行号-系统设计 · 已完成\n已完成 · 复用已有交付，启动时核验成果\n成果核验说明\n设计评审单与前置工作单绑定\n\n评审负责人：沿用项目配置的人工负责人。\n\n被审工单：ATSES-516503\n\n调整评审工单与覆盖范围\n添加其他评审绑定"
+    },
+    "productionWorkflowStarted": false,
+    "fullRepositoryChecks": "not run: scoped UI release",
+    "anonymousCompaniesStatus": 403
+  },
+  "scope": [
+    "Focused review configuration with unique same-parent work selection",
+    "Completed Jira subtasks reuse prior delivery by default",
+    "Full chain configuration, rules and binding edits collapsed; native invalid events reveal missing fields",
+    "Full delivery-chain startup scope explicitly shown"
+  ],
+  "sourceHashes": {
+    "ui/src/components/DeliveryWorkflowPanel.tsx": "e46870d511cc9c6928ef54f0b62c46774c963aaa1a1da7a988ab1c017d8d76a7",
+    "ui/src/components/DeliveryWorkflowPanel.test.tsx": "e2f419b8b2dfb8678bbc39d53acb730f82d48c6be75172bce4166cadf1a07324"
+  }
+}

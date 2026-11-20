@@ -46,7 +46,7 @@ export function HarnessCapabilities({ companyId, agentId, canConfigure = false, 
           const title = { development: "研发 Harness", analysis: "需求分析 Harness", qa: "测试 Harness" }[kind];
           return <section key={kind} className="space-y-3 rounded-md border border-border p-4" aria-label={title}>
             <div className="flex items-start justify-between gap-3">
-              <h4 className="min-w-0 font-medium">{title} · {items.length ? `已登记 ${items.length} 个套件` : kind === "development" ? "沿用默认研发目录" : "尚未登记"}</h4>
+              <h4 className="min-w-0 font-medium">{title} · {items.length ? `已登记 ${items.length} 个套件` : kind === "development" && defaultRoot ? "目录已登记，能力待补登记" : "尚未登记"}</h4>
               {canConfigure && <Button type="button" size="sm" variant="outline" className="shrink-0" aria-label={`${items.length || (kind === "development" && defaultRoot) ? "更新登记" : "登记"}${title}`} aria-expanded={enrolling === kind} aria-controls={`harness-enrollment-${agentId}-${kind}`} onClick={() => setEnrolling(enrolling === kind ? null : kind)}>{enrolling === kind ? "收起" : items.length || (kind === "development" && defaultRoot) ? "更新登记" : "登记"}</Button>}
             </div>
             <p className="truncate font-mono text-xs text-muted-foreground" title={items.find(item => item.id === selected)?.root ?? (kind === "development" ? defaultRoot : undefined)}>{items.find(item => item.id === selected)?.root ?? (kind === "development" ? defaultRoot : undefined) ?? (items.length > 1 ? "多个套件，请展开核对并指定路由" : "尚未选择本机目录")}</p>
@@ -61,7 +61,7 @@ export function HarnessCapabilities({ companyId, agentId, canConfigure = false, 
                 <div><dt className="text-muted-foreground">设备登记版本</dt><dd>{runtime?.revision ?? "未登记"}</dd></div>
                 <div><dt className="text-muted-foreground">最近设备登记／检查</dt><dd>{runtime?.checkedAt ? new Date(runtime.checkedAt).toLocaleString() : "未登记"}</dd></div>
               </dl>
-              <p className="text-xs text-muted-foreground">当前沿用设备登记的研发目录。共享仓库、技能清单、Git 版本及文件摘要尚未通过能力登记上报；更新登记后可查看。启动任务时仍会核验本机配置与执行权限。</p>
+              <p className="text-xs text-muted-foreground">研发目录已完成设备登记，共享仓库、技能清单、Git 版本及文件摘要尚未上报。新版客户端会在上线空闲后从此目录补登记；若持续未完成，请查看设备检查提示或更新客户端，也可点击“更新登记”显式登记。启动任务时仍会核验本机配置与执行权限。</p>
             </div></details>}
             {items.length > 0 && <details className="text-sm"><summary className="cursor-pointer">查看套件详情（{items.length}）</summary><div className="mt-3 space-y-4">
             {items.map(capability => <article key={capability.id} className="space-y-3" aria-label={`${title} 套件详情`}>

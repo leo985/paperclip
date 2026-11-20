@@ -1,0 +1,54 @@
+{
+  "files": {
+    "dsp7-bridge.zip": "5fa46e5f08af10479541b8a1b1d91ae286de6bdeabd424757aba08bbf9620526",
+    "dsp7-bridge-manifest.json": "9d0b636fbc6c28d310dff0ea34f9d271cdb91378c707fd87cd98e6943e9952f9"
+  },
+  "expected": {
+    "dsp7-bridge.zip": "126a7323b89d118c7f3433539a28af9030286445dfa620df6d550f1560d84a87",
+    "dsp7-bridge-manifest.json": "dbd34ab5e99e88e2ce7f599ab6920e6693659907a87803fc790975f06f5dd784"
+  },
+  "bridgeSha256": "5fa46e5f08af10479541b8a1b1d91ae286de6bdeabd424757aba08bbf9620526",
+  "changedBridgeFiles": [
+    "pilot.py",
+    "seat_control.py",
+    "seat_lifecycle.py",
+    "seat_watchdog.py",
+    "install_watchdog.py",
+    "seat_upgrade.py",
+    "heartbeat_health.py"
+  ],
+  "baseBridgeSha256": "126a7323b89d118c7f3433539a28af9030286445dfa620df6d550f1560d84a87",
+  "autoUpgradeEnabled": false,
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/heartbeat-recovery-20261112/backup-20261112T061205Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "service": "MainPID=1250817\nActiveState=active",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "existingClientsChanged": false,
+  "uiEntryUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "timestamp": "2026-11-12T06:12:05.797320+00:00",
+  "externalVerification": {
+    "dsp7-bridge.zip": "5fa46e5f08af10479541b8a1b1d91ae286de6bdeabd424757aba08bbf9620526",
+    "dsp7-bridge-manifest.json": "9d0b636fbc6c28d310dff0ea34f9d271cdb91378c707fd87cd98e6943e9952f9"
+  },
+  "verification": {
+    "pythonTestsPassed": 53,
+    "testedExtractedPackage": true,
+    "repoWideTypecheckBuild": "not run: Python client and two static package assets only"
+  }
+}

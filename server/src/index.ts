@@ -1,4 +1,6 @@
 import { sweepDeliveryWorkflows } from "./services/delivery-workflows.js";
+import { createDeliverySourceOperations } from "./services/delivery-source-operations.js";
+import { createDeliveryMonthlyScheduler } from "./services/delivery-monthly-schedule.js";
 import { expireSessionBodies } from "./services/managed-sessions.js";
 /// <reference path="./types/express.d.ts" />
 // Kicks off the OTel bootstrap as early as possible (no-op unless
@@ -1156,6 +1158,8 @@ async function startServerWithDatabaseTeardown(
     }
   };
   const executionControlSweepsInFlight = new Set<string>();
+  const syncDeliveryMonth = createDeliveryMonthlyScheduler(db, createDeliverySourceOperations(db));
+  let nextDeliveryScheduleCheck = 0;
   const executionControlSweeps = [
     ["finalization", () => reconcileAbandonedExecutionControl(db)],
     ["replacement", () => heartbeat ? reconcileSafeNativeReplacements(db, new Date(), { verifyStoppedSession: run => verifyStoppedNativeSessionForReplacement(db, run) }) : undefined],
@@ -1163,6 +1167,12 @@ async function startServerWithDatabaseTeardown(
     ["status_delivery", () => deliverExecutionStatuses(db)],
     ["automatic_disposition", () => settleUnrecoverableExecutions(db)],
     ["delivery_workflows", () => sweepDeliveryWorkflows(db)],
+    ["delivery_monthly_schedule", () => {
+      const now = Date.now();
+      if (now < nextDeliveryScheduleCheck) return;
+      nextDeliveryScheduleCheck = now + 60_000;
+      return syncDeliveryMonth(() => heartbeatSchedulerStopped);
+    }],
     ["managed_session_retention", () => expireSessionBodies(db)],
     ["local_ai_login_cleanup", () => localAiLoginService(db).reapExpired()],
   ] as const;

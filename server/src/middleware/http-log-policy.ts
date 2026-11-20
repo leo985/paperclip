@@ -86,6 +86,9 @@ export function isSecretSensitiveHttpRequest(
 ): boolean {
   if (isPrivateWebhookHttpRequest(method, url) || isManagedConversationHttpRequest(url)) return true;
   if (!method || !url) return false;
+  if (/^\/api\/agents\/[^/]+\/analysis-runs\/[^/]+\/qingzhou-credentials(?:\/|$)/.test(normalizePath(url))) return true;
+  // Vault/provider errors may quote credentials on account save, check or removal.
+  if (/^\/api\/companies\/[^/]+\/dsp7-seats\/[^/]+\/qingzhou-account(?:\/|$)/.test(normalizePath(url))) return true;
   if (!SECRET_SENSITIVE_HTTP_METHODS.has(method.toUpperCase())) return false;
   const pathname = normalizePath(url);
   return SECRET_SENSITIVE_HTTP_PATHS.some((pattern) => pattern.test(pathname));

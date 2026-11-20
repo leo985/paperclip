@@ -106,7 +106,7 @@ export function CompanySettingsSidebar() {
       >
         <div data-slot="contextual-sidebar-group" className={primarySidebarStyles.group}>
           <SidebarNavItem to="/company/settings" label={uiText("General")} icon={SlidersHorizontal} end />
-          {canManage && <SidebarNavItem to="/company/settings/delivery" label="交付链" icon={SlidersHorizontal} end />}
+          {canManage && <SidebarNavItem to="/company/settings/delivery" label="AI交付链" icon={SlidersHorizontal} end />}
           {isInstanceAdmin && <SidebarNavItem to="/company/settings/instance/personnel" label="系统人员联邦" icon={Users} end />}
           {showPage("instance.profile") && (
             <SidebarNavItem

@@ -3,7 +3,7 @@ import generateModule from '@babel/generator';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 const generate = generateModule.default ?? generateModule;
-export const deliveryRouteFiles = ['analysis-executions','delivery-connections','delivery-insights','delivery-intake','delivery-workflows','dsp7-jira-dispatch','dsp7-quick-seats','dsp7-seat-control','dsp7-seat-groups','dsp7-seat-owners','dsp7-seats','harness-capabilities','jira-intake-sync','jira-requirements','managed-session-reports','managed-sessions','management-follow-ups','personnel-federation'];
+export const deliveryRouteFiles = ['analysis-executions','delivery-connections','delivery-insights','delivery-intake','delivery-workflows','dsp7-jira-dispatch','dsp7-quick-seats','dsp7-seat-control','dsp7-seat-groups','dsp7-seat-owners','dsp7-seat-qingzhou','dsp7-seats','harness-capabilities','jira-intake-sync','jira-requirements','managed-session-reports','managed-sessions','management-follow-ups','personnel-federation'];
 function walk(node, visit) {
  if (!node || typeof node !== 'object') return;
  if (typeof node.type === 'string') visit(node);

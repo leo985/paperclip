@@ -1,0 +1,50 @@
+{
+  "release": "20261112-dialog-context-hotfix",
+  "status": "deployed",
+  "timestamp": "2026-11-12T02:26:37.936772+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-212820ff.js",
+  "uiModule": "index-b55a1b53.js",
+  "filesVerified": 331,
+  "backup": "/home/fg/paperclip/private/dialog-context-hotfix-20261112/backup-20261112T022623Z",
+  "serverRestarted": false,
+  "service": "MainPID=1141251\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "canonical": "c48f8e5b524024085059d84f610be0fdc489e8bda84d3ea8d765b0a94a644bd5",
+    "duplicate": "f076ac1e3cc5699a82bd2aaf623a1ff89cad76926d27fa0d237b5635fe8f7ce2"
+  },
+  "externalHttpVerified": [
+    "index.html",
+    "sw.js",
+    "assets/index-212820ff.js",
+    "assets/index-b55a1b53.js"
+  ],
+  "compiledRuntimeVerification": {
+    "linkedModules": 674,
+    "hookIdentity": true,
+    "compiledProviderConsumerRender": true,
+    "dialogContextDefinitionModules": 1,
+    "browserVerified": false
+  }
+}

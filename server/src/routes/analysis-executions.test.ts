@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import {
   createDb,
   companies,
+  companyMemberships,
   projects,
   agents,
   analysisExecutions,
@@ -97,6 +98,7 @@ const support = await getEmbeddedPostgresTestSupport();
         name: "Analysis Test",
         issuePrefix: "A" + cid.slice(0, 6),
       });
+      await db.insert(companyMemberships).values({companyId:cid,principalType:"user",principalId:"local-board",membershipRole:"admin",status:"active"});
       await db
         .insert(projects)
         .values({ id: pid, companyId: cid, name: "Project" });
@@ -153,6 +155,46 @@ const support = await getEmbeddedPostgresTestSupport();
       expect(r.status).toBe(201);
       return { execution: r.body, input };
     }
+    it("uses the registered seat name and reflects later renames without changing identity", async () => {
+      const [original] = await db.select().from(agents).where(eq(agents.id, sid));
+      const seat = original.adapterConfig.dsp7Seat as Record<string, unknown>;
+      try {
+        for (const name of ["研发电脑", "已重命名的研发电脑", undefined]) {
+          await db.update(agents).set({ adapterConfig: {
+            ...original.adapterConfig, dsp7Seat: { ...seat, name },
+          } }).where(eq(agents.id, sid));
+          const response = await request(app()).get(url + "/seats");
+          expect(response.status).toBe(200);
+          expect(response.body).toEqual([expect.objectContaining({
+            id: sid, name: name ?? original.name, capabilityId: capid,
+          })]);
+        }
+        expect((await request(app("stranger", "member")).get(url + "/seats")).body).toEqual([]);
+      } finally {
+        await db.update(agents).set({ adapterConfig: original.adapterConfig }).where(eq(agents.id, sid));
+      }
+    });
+    it("uses management heartbeat freshness rules for analysis seat availability", async () => {
+      const [original] = await db.select().from(agents).where(eq(agents.id, sid));
+      const presence = original.adapterConfig.dsp7SeatPresence as Record<string, unknown>;
+      try {
+        for (const [lastSeenAt, online] of [
+          [new Date().toISOString(), true],
+          [new Date(Date.now() - 120000).toISOString(), false],
+          [new Date(Date.now() + 60000).toISOString(), false],
+          ["invalid", false],
+        ] as const) {
+          await db.update(agents).set({ adapterConfig: {
+            ...original.adapterConfig, dsp7SeatPresence: { ...presence, lastSeenAt },
+          } }).where(eq(agents.id, sid));
+          const response = await request(app()).get(url + "/seats");
+          expect(response.status).toBe(200);
+          expect(response.body[0].online).toBe(online);
+        }
+      } finally {
+        await db.update(agents).set({ adapterConfig: original.adapterConfig }).where(eq(agents.id, sid));
+      }
+    });
     it("creates a non-running record idempotently and restricts management and project boundaries", async () => {
       const { execution, input } = await create();
       expect(execution.state).toBe("draft");
@@ -185,6 +227,23 @@ const support = await getEmbeddedPostgresTestSupport();
             })
         ).status,
       ).toBe(400);
+    });
+    it("resolves task details without weakening analysis or company visibility", async () => {
+      const { execution } = await create();
+      const path = url + `/by-task/${execution.id}`;
+      const response = await request(app()).get(path);
+      expect(response.status).toBe(200);
+      expect(response.headers["cache-control"]).toBe("no-store");
+      expect(response.body.analysis.execution.id).toBe(execution.id);
+      expect(response.body.analysis.decisions).toEqual([]);
+      expect(response.body.analysis.run).toBeNull();
+      const absent = await request(app()).get(url + `/by-task/${randomUUID()}`);
+      expect(absent.status).toBe(200);
+      expect(absent.body).toEqual({ analysis: null });
+      expect((await request(app("unrelated-member", "member")).get(path)).status).toBe(404);
+      expect((await request(app("local-board", "admin", true)).get(path)).status).toBe(403);
+      expect((await request(app()).get(path.replace(cid, randomUUID()))).status).toBe(403);
+      expect(wakes.call).not.toHaveBeenCalled();
     });
     it("runs questions, exact-version review delivery and explicit manual publication without Jira identity", async () => {
       const { execution: e } = await create();
@@ -371,6 +430,10 @@ const support = await getEmbeddedPostgresTestSupport();
         .post(cb + "/questions")
         .send({ ...body, questions: [rq] });
       const rd = rqs.body.decisions[0];
+      expect((await request(app()).post(url + `/${e.id}/decisions/${rd.id}/answer`)
+        .send({ answer: "approve", contentDigest: rd.contentDigest })).status).toBe(409);
+      const documents = ["intake.md", "requirements.json", "analysis.md"].map(path => ({path,content:"review text",sha256:createHash("sha256").update("review text").digest("hex")}));
+      expect((await request(app("", "", true)).post(cb + "/observe").send({...body,snapshot:{...snapshot,phase:"P3",completedPhases:["P0","P1","P2"],reviewMaterials:{runId,inputDigest:delivery.inputDigest,capturedAt:new Date().toISOString(),documents,evidenceSha256:"a".repeat(64),evidence:[]}},waiting:true})).status).toBe(200);
       expect(
         (
           await request(app())
@@ -400,6 +463,7 @@ const support = await getEmbeddedPostgresTestSupport();
             })
         ).status,
       ).toBe(409);
+      await db.update(analysisExecutions).set({ demandNo: "ATS3-00156" }).where(eq(analysisExecutions.id, e.id));
       expect(
         (
           await request(app("", "", true))
@@ -417,6 +481,14 @@ const support = await getEmbeddedPostgresTestSupport();
       const detail = await request(app()).get(url + `/${e.id}`);
       expect(detail.body.execution.state).toBe("local_completed");
       expect(detail.body.execution.publication).toBeNull();
+      expect((await request(app("","",true)).post(cb+"/delivery").send({...body,delivery})).status).toBe(200);
+      expect(detail.body.execution.qingzhouWriteback).toMatchObject({status:"failed",error:expect.stringContaining("未上传分析正文")});
+      expect((await request(app("member","member")).post(url+`/${e.id}/qingzhou-writeback`).send({})).status).toBe(403);
+      expect((await request(app()).post(url+`/${e.id}/qingzhou-writeback`).send({options:{workHour:"0"}})).status).toBe(400);
+      const text = "# Approved analysis\n\nExact version result.";
+      const enriched = { ...delivery, analysisMarkdown: text, artifacts: delivery.artifacts.map(a => a.path === "analysis.md" ? { ...a, sha256: createHash("sha256").update(text).digest("hex") } : a) };
+      // Frozen manifests cannot be replaced to smuggle different content in a retry.
+      expect((await request(app("","",true)).post(cb+"/delivery").send({...body,delivery:enriched})).status).toBe(409);
       expect(detail.body.decisions[0].status).toBe("delivered");
       const pub = {
         inputDigest: delivery.inputDigest,

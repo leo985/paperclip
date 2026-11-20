@@ -1,3 +1,5 @@
+import { AutomaticDeliveryStart } from "./AutomaticDeliveryStart";
+import { deliveryReviewEntryStage } from "@/lib/delivery-review-entry";
 import { deliveryTemplatesApi } from "@/api/delivery-templates";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,16 +8,13 @@ import {
   DELIVERY_STAGE_LABELS,
   DELIVERY_REVIEW_LABELS,
   deliverySequenceLabel,
-  deliveryReviewExecution,
   deliveryRecordLabel,
   deliveryReviewDigest,
-  matchesDeliveryWorkType,
-  type DeliveryWorkflowConfig,
   DELIVERY_STAGE_MAX_RESUMES,
   type DeliverySnapshot,
   type DeliveryStageRecord,
 } from "@paperclipai/shared";
-import { deliveryWorkflowApi } from "@/api/delivery-workflows";
+import { deliveryPlanPreviewQuery, deliveryWorkflowApi } from "@/api/delivery-workflows";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { DeliveryRepairControls } from "./DeliveryRepairControls";
@@ -40,94 +39,58 @@ export function DeliveryWorkflowPanel({
   snapshot,
   canManage,
   startRequested = false,
+  initialReviewKey = "",
+  viewPlanRequest,
 }: {
   companyId: string;
   snapshot: DeliverySnapshot;
   canManage: boolean;
   startRequested?: boolean;
+  initialReviewKey?: string;
+  viewPlanRequest?: string;
 }) {
-  const qc = useQueryClient();
-  const [expanded, setExpanded] = useState(false),
-    [analysisSeatId, setAnalysisSeat] = useState(""),
-    [developmentSeatId, setDevSeat] = useState(""),
-    [qaSeatId, setQaSeat] = useState(""),
-    [environmentReference, setEnvironment] = useState("");
+  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
-    if (startRequested && canManage) setExpanded(true);
-  }, [startRequested, canManage]);
-  const [keys, setKeys] = useState<Record<string, string>>({}),
-    [requestId, setRequestId] = useState(() => crypto.randomUUID());
+    if ((startRequested || initialReviewKey) && canManage) setExpanded(true);
+  }, [startRequested, initialReviewKey, canManage]);
   const workflows = useQuery({
     queryKey: ["delivery-workflows", companyId, snapshot.id],
     queryFn: () => deliveryWorkflowApi.list(companyId, snapshot.id),
     refetchInterval: 5000,
-  });
-  const seats = useQuery({
-    queryKey: ["delivery-workflow-seats", companyId, snapshot.id],
-    queryFn: () => deliveryWorkflowApi.seats(companyId, snapshot.id),
-    enabled: expanded && canManage,
   });
   const template = useQuery({
     queryKey: ["delivery-template", companyId, snapshot.projectId],
     queryFn: () => deliveryTemplatesApi.get(companyId, snapshot.projectId),
   });
   const definition = template.data?.effective.definition;
-  const [codingTasks, setCodingTasks] = useState<
-    Array<{ jiraKey: string; seatId: string }>
-  >([]);
-  const [reviewTasks,setReviewTasks]=useState<NonNullable<DeliveryWorkflowConfig["reviewTasks"]>>([]);
-  const [workSeats,setWorkSeats]=useState<Record<string,string>>({});
-  const candidates=(key:string,kind:string,role?:string)=>seats.data?.filter(s=>s.jiraKeys?.includes(key)&&s.domains.some(d=>d.kind===kind&&(!role||d.roles.includes(role))))??[];
-  const picked=(key:string,kind:string,selected:string,role?:string)=>{const choices=candidates(key,kind,role);return choices.some(s=>s.id===selected)?selected:choices.length===1?choices[0].id:"";};
-  const start = useMutation({
-    mutationFn: () =>
-      deliveryWorkflowApi.start(companyId, {
-        requestId,
-        snapshotId: snapshot.id,
-        analysisSeatId,
-        developmentSeatId,
-        qaSeatId,
-        designKey: keys.design ?? "",
-        codingKey: keys.coding ?? "",
-        testCasesKey: keys["test-cases"] ?? "",
-        testExecutionKey: keys["functional-test"] ?? "",
-        environmentReference,
-        workSeats:Object.entries(workSeats).map(([jiraKey,seatId])=>({jiraKey,seatId})),
-        codingTasks: codingTasks.length ? codingTasks.map(t=>({...t,seatId:picked(t.jiraKey,"development",t.seatId,"coding")})) : undefined,
-        reviewTasks: reviewTasks.filter(r=>definition?.stages[r.stage].enabled&&definition.stages[r.stage].taskSequence==="work_then_review").map(r=>({...r,seatId:picked(r.jiraKey,r.stage==="test-cases"?"qa":"development",r.seatId??"",r.stage==="coding"?"code-review":r.stage==="design"?"design-review":"test-case-review")||undefined})),
-        expectedTemplate: template.data
-          ? {
-              id: template.data.effective.id,
-              revision: template.data.effective.revision,
-            }
-          : undefined,
-      }),
-    onSuccess: () => {
-      setExpanded(false);
-      setRequestId(crypto.randomUUID());
-      void workflows.refetch();
-      void qc.invalidateQueries({queryKey:["delivery-entry",companyId,snapshot.id]});
-      void qc.invalidateQueries({queryKey:["delivery-monthly",companyId,snapshot.projectId]});
-    },
-  });
+  const requestedReview = snapshot.plan.items.find(item => item.key === initialReviewKey && item.parentKey);
+  const requestedReviewStage = requestedReview && deliveryReviewEntryStage(requestedReview);
   const flow = workflows.data?.[0];
-  const displayDefinition=flow?.config.template?.definition??definition;
-  const configRows = [
-    ["analysis", "需求分析席位", analysisSeatId, setAnalysisSeat],
-    [
-      "development",
-      "设计默认席位（编码单分别绑定席位）",
-      developmentSeatId,
-      setDevSeat,
-    ],
-    ["qa", "测试席位（用例、执行共用）", qaSeatId, setQaSeat],
-  ] as const;
-  const childRows = [
-    ["design", "设计子工单", /设计/],
-    ["coding", "编码子工单", /编码|开发/],
-    ["test-cases", "用例编写子工单", /用例.*编写|用例.*设计|测试用例/],
-    ["functional-test", "功能测试子工单", /功能测试|测试执行/],
-  ] as const;
+  const displayDefinition = flow?.config.template?.definition ?? definition;
+  const canOpenPlan = canManage && (!flow || (flow.config.entryScope
+    ? ["active", "acceptance"].includes(flow.state)
+    : (snapshot.plan.mains?.length ?? 0) > 1 && (["active", "acceptance", "completed"].includes(flow.state) ||
+      (flow.state === "blocked" && flow.message?.startsWith("来源输入已变化")))));
+  const savedPlan = useQuery({
+    ...deliveryPlanPreviewQuery(companyId, snapshot.id),
+    enabled: canOpenPlan && workflows.isSuccess && !flow,
+  });
+  const canShowPlan = (canOpenPlan && workflows.isSuccess) || !!flow?.stages.length;
+  const canViewWithoutGenerating = canShowPlan && (!!savedPlan.data || !canOpenPlan);
+  useEffect(() => {
+    if (viewPlanRequest !== undefined && canViewWithoutGenerating) setExpanded(true);
+  }, [viewPlanRequest, canViewWithoutGenerating]);
+  const checkingPlan = !flow && (savedPlan.isPending || (savedPlan.isFetching && !savedPlan.data));
+  const planLookupFailed = !flow && savedPlan.isError && !savedPlan.data;
+  const planLabel = flow || savedPlan.data ? "查看计划"
+    : checkingPlan ? "正在读取交付计划…"
+      : planLookupFailed ? "重试读取交付计划" : "生成交付计划";
+  const sharedAnalysisDone = !flow?.stages.some(stage => stage.stage === "analysis" && stage.state !== "done");
+  const inScopeMains = (snapshot.plan.mains ?? []).filter(main => !flow?.config.entryScope?.ignoredParentKeys?.includes(main.key));
+  const verifiedMains = sharedAnalysisDone ? inScopeMains.filter(main =>
+    flow?.config.entryScope?.branches[main.key] &&
+    !flow.stages.some(stage => stage.parentKey === main.key && stage.state !== "done"),
+  ).length : 0;
   return (
     <section
       className="space-y-4 rounded-lg border border-border p-4"
@@ -135,8 +98,8 @@ export function DeliveryWorkflowPanel({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold">一键交付条目</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="font-semibold">{requestedReviewStage ? `${DELIVERY_REVIEW_LABELS[requestedReviewStage]}交付计划` : "交付计划"}</h2>
+          <details className="text-sm text-muted-foreground"><summary className="cursor-pointer">查看交付流程</summary><p>
             {displayDefinition
               ? Object.entries(displayDefinition.stages)
                   .filter(([, v]) => v.enabled)
@@ -147,14 +110,25 @@ export function DeliveryWorkflowPanel({
                   )
                   .join(" → ") + " → 正式验收"
               : "正在读取交付模板…"}
-          </p>
+          </p></details>
         </div>
-        {!flow && canManage && (
-          <Button onClick={() => setExpanded(!expanded)} variant="outline">
-            {expanded ? "收起配置" : "配置并启动"}
+        {canShowPlan && (
+          <Button
+            variant="outline"
+            disabled={!expanded && checkingPlan}
+            onClick={() => {
+              if (!expanded && planLookupFailed) void savedPlan.refetch();
+              else setExpanded(!expanded);
+            }}
+          >
+            {expanded ? "收起计划" : planLabel}
           </Button>
         )}
       </div>
+      {flow && <p className="text-xs text-muted-foreground">实例：{flow.id} · 节点按前置条件激活，未到达节点不生成可处理待办。</p>}
+      {!!flow?.config.entryScope?.ignoredParentKeys?.length && (
+        <p className="text-sm text-muted-foreground">已排除出交付和验收范围 · {flow.config.entryScope.ignoredParentKeys.join("、")}</p>
+      )}
       <p className="text-sm">
         <Link className="underline" to="/delivery-chain">
           交付链设置
@@ -162,6 +136,12 @@ export function DeliveryWorkflowPanel({
         · {flow?.config.template?.definition.name ?? definition?.name} · v
         {flow?.config.template?.revision ?? template.data?.effective.revision}
       </p>
+      {initialReviewKey && <div className="space-y-2 rounded-md border border-border p-3 text-sm" aria-label="所选评审执行配置">
+        {!requestedReviewStage ? <p role="alert">该工单不是当前条目中的设计、代码或用例评审子单，请重新选择。</p> : <>
+          <p className="font-medium">当前评审：{initialReviewKey}{requestedReview?.assignee ? ` · ${requestedReview.assignee}` : ""}</p>
+          {flow ? flow.stages.some(stage => stage.jiraKey === initialReviewKey) ? <>{flow.stages.filter(stage => stage.jiraKey === initialReviewKey).map(stage => <Link key={stage.taskId} className="underline" to={`/issues/${stage.taskId}`}>查看已有评审任务与处理记录</Link>)}<p>已有评审沿用当前流程，不重复创建或派发。</p></> : <p role="alert">当前交付实例未绑定该评审单。请同步最新来源，并在主工单计划中核对是否可以纳入。</p> : !definition ? <p role="status">正在核对项目评审配置…</p> : !definition.stages[requestedReviewStage].enabled || definition.stages[requestedReviewStage].taskSequence !== "work_then_review" ? <p role="alert">项目模板尚未启用该阶段的独立评审工单。请在交付链设置中核对项目固有流程，再启动新实例；本次不会自动修改模板。</p> : <p>按 Jira 类型自动识别评审单，等待同一主工单下对应阶段的全部工作子单完成。已完成工单自动核验并复用成果。</p>}
+        </>}
+      </div>}
       {template.isError && (
         <p role="alert">模板读取失败：{template.error.message}</p>
       )}
@@ -176,7 +156,10 @@ export function DeliveryWorkflowPanel({
         </p>
       ) : flow ? (
         <>
-          <p className="font-medium">{states[flow.state] ?? flow.state}</p>
+          <p className="font-medium">
+            {flow.state === "active" && verifiedMains ? "部分交付" : states[flow.state] ?? flow.state}
+            {flow.config.entryScope && " · " + verifiedMains + " / " + inScopeMains.length + " 个主工单完成核验"}
+          </p>
           {canManage && !["completed", "cancelled"].includes(flow.state) && (
             <Cancel
               companyId={companyId}
@@ -200,28 +183,29 @@ export function DeliveryWorkflowPanel({
             {flow.stages.map((s) => (
               <li
                 key={s.taskId}
+                id={`delivery-node-${s.taskId}`}
                 className="space-y-2 rounded-md border border-border p-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="font-medium">
-                    {deliveryRecordLabel(s)}{" "}
-                    · {states[s.state]}
+                    {s.parentKey && flow.config.entryScope && s.parentKey + " · "}{deliveryRecordLabel(s)}{" "}
+                    · {s.historicalVerification && s.state === "review" ? "历史交付待核验" : s.executionMode === "human" && s.state === "review" ? s.reviewWorkKeys ? "待人工评审" : "待人工办理" : states[s.state]}
                   </p>
                   <Link
                     className="text-sm underline"
                     to={
-                      s.stage === "analysis"
+                      s.stage === "analysis" && !s.priorCompletion
                         ? `/analysis-executions?executionId=${s.taskId}&projectId=${flow.projectId}`
                         : `/issues/${s.taskId}`
                     }
                   >
-                    {s.stage === "analysis"
+                    {s.stage === "analysis" && !s.priorCompletion
                       ? "分析、决定与正式发布"
                       : "执行记录与完整对话"}
                   </Link>
                 </div>
-                <p className="text-xs text-muted-foreground">工单：{s.jiraKey??"条目级分析"} · 前置：{s.dependsOn?.length?s.dependsOn.map(id=>flow.stages.find(p=>p.taskId===id)?.jiraKey??"需求分析").join("、"):"流程起点"}{s.executionMode==="human"?s.reviewWorkKeys?" · 由负责人完成正式评审并登记结论":" · 由负责人完成人工工作单并登记交付":""}</p>
-                {s.startMode === "confirmation" &&
+                <p className="text-xs text-muted-foreground">工单：{s.jiraKey??"条目级分析"} · 前置：{s.dependsOn?.length?s.dependsOn.map(id=>flow.stages.find(p=>p.taskId===id)?.jiraKey??"需求分析").join("、"):"流程起点"}{s.executionMode==="human"&&!s.historicalVerification?s.reviewWorkKeys?" · 由负责人完成正式评审并登记结论":" · 由负责人完成人工工作单并登记交付":""}</p>
+                {!s.branchBlocked && s.startMode === "confirmation" &&
                   !s.startApprovedBy &&
                   !s.runId &&
                   (s.dependsOn ?? []).every((id) =>
@@ -236,7 +220,8 @@ export function DeliveryWorkflowPanel({
                       refresh={() => void workflows.refetch()}
                     />
                   )}
-                <p className="text-sm">执行方式：{s.executionMode==="human"?"人工":"Agent"}{s.executionMode==="human"?` · 负责人 ${s.reviewerUserId}`:""}</p>
+                {!s.priorCompletion && !s.deferredPriorCompletion && <p className="text-sm">{s.historicalVerification ? "人工核验历史交付" : s.executionMode === "human" ? "执行方式：人工" : "执行方式：Agent"}{s.executionMode==="human"?` · 负责人 ${s.reviewerUserId}`:""}</p>}
+                {s.priorCompletion && <div className="space-y-2 text-sm"><p>启动前已完成 · 版本 {s.priorCompletion.version} · 确认人 {s.priorCompletion.by}</p>{s.priorCompletion.jiraEvidence?.reviewResult && <p>Jira 结果描述：{s.priorCompletion.jiraEvidence.reviewResult}</p>}{s.priorCompletion.jiraEvidence?.testResult && <p>Jira 结果描述：{s.priorCompletion.jiraEvidence.testResult}</p>}{s.priorCompletion.passedTests !== undefined && <p>功能测试全部通过：{s.priorCompletion.passedTests} 项</p>}{s.priorCompletion.artifactReferences.map(url=><p key={url}><a className="underline" href={url} target="_blank" rel="noreferrer">已有成果</a></p>)}<a className="underline" href={s.priorCompletion.reviewReference} target="_blank" rel="noreferrer">正式评审／完成依据</a></div>}
                 {s.manualDelivery && <div className="space-y-2 text-sm"><p>人工交付版本：{s.manualDelivery.version}</p>{s.manualDelivery.artifactReferences.map(url=><p key={url}><a className="underline" href={url} target="_blank" rel="noreferrer">正式交付材料</a></p>)}</div>}
                 {s.jiraKey && <p className="text-sm">{s.jiraKey}</p>}
                 {s.message && <p className="text-sm">{s.message}</p>}
@@ -326,7 +311,7 @@ export function DeliveryWorkflowPanel({
                     refresh={() => void workflows.refetch()}
                   />
                 )}
-                {s.state === "review" &&
+                {!s.branchBlocked && s.state === "review" &&
                   (s.requiresReview ??
                     ["design", "test-cases"].includes(s.stage)) &&
                   deliveryReviewDigest(s) &&
@@ -344,14 +329,14 @@ export function DeliveryWorkflowPanel({
                   <summary>返工与评审记录（{s.reworkHistory.length} 轮）</summary>
                   {s.reworkHistory.map(r=><div key={r.round} className="space-y-2 border-t border-border py-2">
                     <p>第 {r.round} 轮 · {r.rejection.at} · {r.rejection.by}</p>
-                    <p>修改要求：{r.rejection.note}</p>
-                    <a className="underline" href={r.rejection.reference} target="_blank" rel="noreferrer">查看退回结论</a>
+                    <p>{r.kind === "scope_change" ? "范围变更" : "修改要求"}：{r.rejection.note}</p>
+                    <a className="underline" href={r.rejection.reference} target="_blank" rel="noreferrer">{r.kind === "scope_change" ? "查看来源主工单" : "查看退回结论"}</a>
                     {r.previous.manualDelivery && <><p>退回版本：{r.previous.manualDelivery.version}</p>{r.previous.manualDelivery.artifactReferences.map(url=><p key={url}><a className="underline" href={url} target="_blank" rel="noreferrer">原交付材料</a></p>)}</>}
                     {r.previous.receipt?.artifacts.map(a=><p key={a.path}>{a.downloadUrl ? <a className="underline" href={a.downloadUrl} target="_blank" rel="noreferrer">{a.path}</a>:a.path} · {a.sha256}</p>)}
                     {r.previous.review && <p>原评审结论：{r.previous.review.decision === "approve" ? "通过（已失效）" : "退回"} · {r.previous.review.note}</p>}
                   </div>)}
                 </details>}
-                {flow.state === "blocked" && s.review?.decision === "reject" && <Rework companyId={companyId} flowId={flow.id} stage={s} refresh={()=>void workflows.refetch()} />}
+                {(flow.state === "blocked" || s.branchBlocked) && s.review?.decision === "reject" && <Rework companyId={companyId} flowId={flow.id} stage={s} refresh={()=>void workflows.refetch()} />}
                 {s.review && (
                   <p className="text-sm">
                     {s.review.decision === "approve"
@@ -382,11 +367,11 @@ export function DeliveryWorkflowPanel({
               </li>
             ))}
           </ol>
-          {flow.state === "acceptance" && canManage && (
+          {flow.state === "acceptance" && canManage && (flow.config.entryScope || (snapshot.plan.mains?.length ?? 0) < 2) && (
             <WorkflowAction
               companyId={companyId}
               flowId={flow.id}
-              fingerprint={flow.fingerprint}
+              fingerprint={flow.config.entryScope?.acceptanceDigest ?? flow.fingerprint}
               action="accept"
               refresh={() => void workflows.refetch()}
             />
@@ -402,251 +387,15 @@ export function DeliveryWorkflowPanel({
             </a>
           )}
         </>
-      ) : (
+      ) : !expanded ? (
         <p className="text-sm text-muted-foreground">
-          尚未启动。当前模板已自动接入，选定席位与真实子工单后启动，平台按模板衔接执行与审核。
+          尚未启动。{savedPlan.data && "查看交付计划后，授权启动。"}
         </p>
+      ) : null}
+      {expanded && canShowPlan && (
+        <AutomaticDeliveryStart key={`${companyId}:${snapshot.id}`} companyId={companyId} snapshot={snapshot} environmentReference={flow?.config.environmentReference} workflow={flow} readOnly={!canOpenPlan} />
       )}
-      {!flow && expanded && canManage && (
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            start.mutate();
-          }}
-        >
-          <p className="text-sm">
-            工单按 Jira 经办人账号匹配其席位：唯一匹配自动绑定，多个匹配请选择，无匹配请配置负责人席位。离线或忙碌等待原席位，不自动换人。不同席位按模板并行，同一席位排队。启动即授权模板中的自动执行。
-          </p>
-          {seats.isError && (
-            <p role="alert">席位读取失败：{seats.error.message}</p>
-          )}
-          {Object.values(definition?.stages??{}).some(s=>s.enabled&&s.taskSequence==="work_then_review")&&seats.data?.some(s=>!s.orderedReviewReady)&&<p className="text-sm text-muted-foreground">此流程需要支持独立评审顺序调度的席位客户端。旧客户端仍可查看和配置，启动执行前须在席位电脑更新客户端并刷新登记。</p>}
-          <div className="grid gap-3 md:grid-cols-3">
-            {configRows
-              .filter(([kind]) => kind === "analysis" &&
-                Object.entries(definition?.stages ?? {}).some(
-                  ([k, v]) =>
-                    v.enabled &&
-                    (kind === "analysis"
-                      ? k === "analysis"
-                      : kind === "development"
-                        ? ["design", "coding"].includes(k)
-                        : ["test-cases", "functional-test"].includes(k)),
-                ),
-              )
-              .map(([kind, label, value, setter]) => (
-                <label key={kind} className="space-y-2 text-sm">
-                  <span>{label}</span>
-                  <select
-                    required={Object.entries(definition?.stages ?? {}).some(
-                      ([k, v]) =>
-                        v.enabled &&
-                        !v.seatId &&
-                        !(v.workExecution === "human" && v.workExecutorUserId) &&
-                        k !== "coding" &&
-                        (kind === "analysis"
-                          ? k === "analysis"
-                          : kind === "development"
-                            ? ["design", "coding"].includes(k)
-                            : ["test-cases", "functional-test"].includes(k)),
-                    )}
-                    aria-label={label}
-                    className={field}
-                    value={value}
-                    onChange={(e) => setter(e.target.value)}
-                  >
-                    <option value="">请选择已登记能力的席位</option>
-                    {seats.data
-                      ?.filter((s) => s.domains.some((d) => d.kind === kind))
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                          {!s.online ? "（离线，等待上线）" : ""}
-                          {!s.clientReady ? "（需更新客户端）" : ""}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              ))}
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {childRows
-              .filter(
-                ([stage]) =>
-                  definition?.stages[stage].enabled && stage !== "coding",
-              )
-              .map(([stage, label, type]) => (
-                <div key={stage} className="space-y-2"><label className="space-y-2 text-sm">
-                  <span>{label}</span>
-                  <select
-                    required
-                    aria-label={label}
-                    className={field}
-                    value={keys[stage] ?? ""}
-                    onChange={(e) =>
-                      setKeys((v) => ({ ...v, [stage]: e.target.value }))
-                    }
-                  >
-                    <option value="">选择真实 Jira 子工单</option>
-                    {snapshot.plan.items
-                      .filter(
-                        (i) =>
-                          i.parentKey &&
-                          type.test(i.type) &&
-                          !/评审|审查/.test(i.type),
-                      )
-                      .map((i) => (
-                        <option key={i.key} value={i.key}>
-                          {i.key} · {i.title} · {i.status}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-                {definition?.stages[stage].workExecution!=="human"&&<label className="block space-y-2 text-sm"><span>按工单经办人匹配席位</span><select required aria-label={`${label}执行席位`} className={field} value={picked(keys[stage]??"",stage==="design"?"development":"qa",workSeats[keys[stage]??""]??"",stage==="design"?"system-design":stage==="test-cases"?"test-cases":"functional-test")} onChange={e=>setWorkSeats(v=>({...v,[keys[stage]]:e.target.value}))}><option value="">{!keys[stage]?"请先选择工单":candidates(keys[stage],stage==="design"?"development":"qa").length?"请选择该经办人的席位":"无匹配席位，请配置经办人账号与能力"}</option>{candidates(keys[stage]??"",stage==="design"?"development":"qa",stage==="design"?"system-design":stage==="test-cases"?"test-cases":"functional-test").map(s=><option key={s.id} value={s.id}>{s.name}{!s.online?"（离线，等待上线）":""}</option>)}</select></label>}
-                </div>
-              ))}
-          </div>
-          {definition?.stages.coding.enabled && (
-            <fieldset className="space-y-3 rounded-md border border-border p-3">
-              <legend>
-                编码单（
-                {definition.codingExecution === "parallel"
-                  ? "并行汇合"
-                  : "依次执行"}
-                ）
-              </legend>
-              {codingTasks.map((task, index) => (
-                <div className="flex flex-wrap gap-2" key={index}>
-                  <select
-                    required
-                    aria-label={`编码单 ${index + 1}`}
-                    className={field}
-                    value={task.jiraKey}
-                    onChange={(e) =>
-                      setCodingTasks((v) =>
-                        v.map((t, i) =>
-                          i === index ? { ...t, jiraKey: e.target.value } : t,
-                        ),
-                      )
-                    }
-                  >
-                    <option value="">选择编码子工单</option>
-                    {snapshot.plan.items
-                      .filter(
-                        (i) =>
-                          i.parentKey &&
-                          /编码|开发/.test(i.type) &&
-                          !/评审|审查/.test(i.type),
-                      )
-                      .map((i) => (
-                        <option key={i.key} value={i.key}>
-                          {i.key} · {i.title}
-                        </option>
-                      ))}
-                  </select>
-                  <select
-                    required={definition.stages.coding.workExecution!=="human" || !definition.stages.coding.workExecutorUserId}
-                    aria-label={`编码席位 ${index + 1}`}
-                    className={field}
-                    value={picked(task.jiraKey,"development",task.seatId,"coding")}
-                    onChange={(e) =>
-                      setCodingTasks((v) =>
-                        v.map((t, i) =>
-                          i === index ? { ...t, seatId: e.target.value } : t,
-                        ),
-                      )
-                    }
-                  >
-                    <option value="">{!task.jiraKey?"请先选择工单":candidates(task.jiraKey,"development","coding").length?"请选择该经办人的席位":"无匹配席位，请配置经办人账号与能力"}</option>
-                    {seats.data
-                      ?.filter((s) => s.jiraKeys?.includes(task.jiraKey)&&s.domains.some((d) => d.kind === "development"&&d.roles.includes("coding")))
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                  </select>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() =>
-                      setCodingTasks((v) => v.filter((_, i) => i !== index))
-                    }
-                  >
-                    移除
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                  setCodingTasks((v) => [
-                    ...v,
-                    {
-                      jiraKey: "",
-                      seatId:
-                        definition.stages.coding.seatId ?? developmentSeatId,
-                    },
-                  ])
-                }
-              >
-                添加编码单
-              </Button>
-            </fieldset>
-          )}
-          {(["design","coding","test-cases"] as const).filter(stage=>definition?.stages[stage].enabled&&definition.stages[stage].taskSequence==="work_then_review").map(stage=>{
-            const work=stage==="coding"?codingTasks:[{jiraKey:keys[stage]??"",seatId:(definition?.stages[stage].seatId||(stage==="design"?developmentSeatId:qaSeatId))}];
-            return <fieldset key={stage} className="space-y-3 rounded-md border border-border p-3"><legend>{DELIVERY_REVIEW_LABELS[stage]}与前置工作单绑定</legend>
-              <p className="text-sm text-muted-foreground">{deliveryReviewExecution(stage,definition!.stages[stage])==="agent"?"工作单交付后启动独立 Agent 评审；共享评审等待全部所选工作单完成，评审席位须独立于工作席位。":"工作单完成后转交配置的人工负责人，完成正式评审后登记结论。"}</p>
-              {reviewTasks.map((review,index)=>review.stage!==stage?null:<div key={index} className="space-y-2 rounded-md border border-border p-3">
-                <label className="block space-y-2 text-sm">真实{DELIVERY_REVIEW_LABELS[stage]}<select required aria-label={`${DELIVERY_REVIEW_LABELS[stage]} ${index+1}`} className={field} value={review.jiraKey} onChange={e=>setReviewTasks(v=>v.map((r,i)=>i===index?{...r,jiraKey:e.target.value}:r))}>
-                  <option value="">选择本条目真实评审子单</option>{snapshot.plan.items.filter(i=>i.parentKey&&matchesDeliveryWorkType(stage,true,i.type)).map(i=><option key={i.key} value={i.key}>{i.key} · {i.title} · {i.status}</option>)}
-                </select></label>
-                <div className="space-y-2 text-sm" role="group" aria-label={`${DELIVERY_REVIEW_LABELS[stage]}前置工单 ${index+1}`}><p>该评审等待以下工作单完成：</p>{work.filter(w=>w.jiraKey).map(w=><label key={w.jiraKey} className="flex items-center gap-2"><input type="checkbox" checked={review.workKeys.includes(w.jiraKey)} onChange={e=>setReviewTasks(v=>v.map((r,i)=>i===index?{...r,workKeys:e.target.checked?[...r.workKeys,w.jiraKey]:r.workKeys.filter(k=>k!==w.jiraKey)}:r))}/>{w.jiraKey}</label>)}</div>
-                {deliveryReviewExecution(stage,definition!.stages[stage])==="agent"&&<label className="block space-y-2 text-sm">独立 Agent 评审席位<select required aria-label={`${stage==="coding"?"代码评审":DELIVERY_REVIEW_LABELS[stage]}席位 ${index+1}`} className={field} value={picked(review.jiraKey,stage==="test-cases"?"qa":"development",review.seatId??"",stage==="coding"?"code-review":stage==="design"?"design-review":"test-case-review")} onChange={e=>setReviewTasks(v=>v.map((r,i)=>i===index?{...r,seatId:e.target.value||undefined}:r))}><option value="">选择独立席位</option>{seats.data?.filter(s=>s.jiraKeys?.includes(review.jiraKey)&&s.domains.some(d=>d.kind===(stage==="test-cases"?"qa":"development")&&d.roles.includes(stage==="coding"?"code-review":stage==="design"?"design-review":"test-case-review"))&&(definition?.stages[stage].workExecution==="human"||!work.some(w=>review.workKeys.includes(w.jiraKey)&&w.seatId===s.id))).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>}
-                <Button type="button" variant="ghost" onClick={()=>setReviewTasks(v=>v.filter((_,i)=>i!==index))}>移除此评审绑定</Button>
-              </div>)}
-              <Button type="button" variant="outline" onClick={()=>setReviewTasks(v=>[...v,{stage,jiraKey:"",workKeys:work.filter(w=>w.jiraKey&&!v.some(r=>r.stage===stage&&r.workKeys.includes(w.jiraKey))).map(w=>w.jiraKey),...(definition?.stages[stage].reviewSeatId?{seatId:definition.stages[stage].reviewSeatId}:{})}])}>添加{DELIVERY_REVIEW_LABELS[stage]}绑定</Button>
-            </fieldset>;
-          })}
-          {definition?.stages["functional-test"].enabled && (
-            <label className="block space-y-2 text-sm">
-              测试环境与待测构建的准入说明链接
-              <Input
-                required
-                type="url"
-                aria-label="测试环境准入引用"
-                value={environmentReference}
-                onChange={(e) => setEnvironment(e.target.value)}
-                placeholder="正式环境或发布说明 URL"
-              />
-            </label>
-          )}
-          {start.isError && <p role="alert">启动失败：{start.error.message}</p>}
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setExpanded(false)}
-            >
-              取消
-            </Button>
-            <Button
-              disabled={
-                start.isPending ||
-                seats.isPending ||
-                !template.data ||
-                !!(definition?.stages.coding.enabled && !codingTasks.length)
-              }
-              type="submit"
-            >
-              {start.isPending ? "正在建立流程…" : "启动条目自动交付"}
-            </Button>
-          </div>
-        </form>
-      )}
+
     </section>
   );
 }
@@ -705,6 +454,7 @@ function WorkflowAction({
     [note, setNote] = useState(""),
     [decision, setDecision] = useState("approve");
   const manualWork=action==="review"&&stage?.executionMode==="human"&&!stage.reviewWorkKeys;
+  const historical = action === "review" && stage?.historicalVerification;
   const [version,setVersion]=useState(""),[materials,setMaterials]=useState(""),[passed,setPassed]=useState("");
   const m = useMutation({
     mutationFn: () =>
@@ -746,13 +496,15 @@ function WorkflowAction({
         {action === "answer"
           ? stage?.question?.text
           : action === "review"
-            ? manualWork ? "登记人工工作单交付" : "核验本版本正式评审结论"
+            ? historical ? "核验历史交付" : manualWork ? "登记人工工作单交付" : "核验本版本正式评审结论"
             : "登记正式验收结论"}
       </p>
       {action !== "answer" && (
         <>
           <p className="text-sm text-muted-foreground">
-            请先在正式流程完成评审／验收，再登记结论链接。此处为人工核验记录，不自动替代源系统审签。
+            {historical
+              ? "核对 Jira 工单的正式结论后，登记该工单链接和核验说明。"
+              : "请先在正式流程完成评审／验收，再登记结论链接。此处为人工核验记录，不自动替代源系统审签。"}
           </p>
           <Input
             type="url"
@@ -767,17 +519,17 @@ function WorkflowAction({
       {manualWork&&decision==="approve"&&<div className="space-y-2">
         <Input required aria-label="人工交付版本" placeholder="交付版本／提交号／被测构建" value={version} onChange={e=>setVersion(e.target.value)} />
         <textarea required aria-label="人工交付材料" className={field} placeholder="正式交付材料链接，每行一条；请包含交付产物和相关版本说明" value={materials} onChange={e=>setMaterials(e.target.value)} />
-        {stage?.stage==="functional-test"&&<><p className="text-sm">仅全部用例通过时登记完成；失败、阻塞或跳过请退回，测试执行报告须包含逐条记录。</p><Input required type="number" min="1" max="1000000" aria-label="人工测试通过用例数" value={passed} onChange={e=>setPassed(e.target.value)} placeholder="全部通过用例数" /></>}
+        {stage?.stage==="functional-test"&&<><p className="text-sm">{historical ? "测试执行报告须包含逐条记录。全部用例通过后登记被测版本、报告链接和通过数量。" : "仅全部用例通过时登记完成；失败、阻塞或跳过请退回，测试执行报告须包含逐条记录。"}</p><Input required type="number" min="1" max="1000000" aria-label="人工测试通过用例数" value={passed} onChange={e=>setPassed(e.target.value)} placeholder="全部通过用例数" /></>}
       </div>}
-      {action === "review" && (
+      {action === "review" && !historical && (
         <select
-          aria-label="评审结论"
+          aria-label={manualWork ? "人工办理结果" : "评审结论"}
           className={field}
           value={decision}
           onChange={(e) => setDecision(e.target.value)}
         >
-          <option value="approve">当前版本通过</option>
-          <option value="reject">{automaticRework ? "退回原执行人修改并重新送审" : "退回并暂停，手动确认后返工"}</option>
+          <option value="approve">{manualWork ? "提交本次交付" : "当前版本通过"}</option>
+          <option value="reject">{manualWork ? "交付需修改，登记返工要求" : automaticRework ? "退回原执行人修改并重新送审" : "退回并暂停，手动确认后返工"}</option>
         </select>
       )}
       <textarea
@@ -800,7 +552,7 @@ function WorkflowAction({
           : action === "answer"
             ? "答复并续传本机会话"
             : action === "review"
-              ? manualWork ? "登记人工交付完成" : "登记评审结论"
+              ? historical ? "登记核验结果" : manualWork ? "登记人工交付完成" : "登记评审结论"
               : "登记验收完成"}
       </Button>
     </form>

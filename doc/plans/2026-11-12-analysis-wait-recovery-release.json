@@ -1,0 +1,106 @@
+{
+  "release": "20261112-analysis-wait-recovery",
+  "bridgeSha256": "8ff4722992ebb0cdd2cc84d88bda12fa247a53cff69c7bc0170d85243ef54146",
+  "changedFiles": [
+    "analysis_execution.py",
+    "analysis_runtime.py"
+  ],
+  "preservedFiles": 47,
+  "expected": {
+    "dsp7-bridge.zip": "a756ab361b4032e5d4d0e9bff0a8947621bec5a9ce22fa3bcc605e20e14b9787",
+    "dsp7-bridge-manifest.json": "818310b317371b3ca5e0346a0e9b3e4daddb7c167f0b18b9171ed782adc884ba",
+    "dsp7-install.py": "87e37d3c37382dd5fdfd63fed9ffd695c174c547601721d608329b74eba58559"
+  },
+  "hashes": {
+    "dsp7-bridge.zip": "8ff4722992ebb0cdd2cc84d88bda12fa247a53cff69c7bc0170d85243ef54146",
+    "dsp7-bridge-manifest.json": "87500862d6a138ef45fe5f4d3a82c615c3dbbe4367842ba4ad9c9412e4069a2b",
+    "dsp7-install.py": "87e37d3c37382dd5fdfd63fed9ffd695c174c547601721d608329b74eba58559"
+  },
+  "status": "deployed",
+  "deployedAt": "2026-11-12T10:45:22.175683+00:00",
+  "serverRestarted": false,
+  "globalAutoUpgrade": false,
+  "backup": "/home/fg/paperclip/private/analysis-wait-repair-20261112/backup-final",
+  "verification": {
+    "sourceAnalysisTests": 25,
+    "candidateBundleAnalysisTests": 25,
+    "nativeLockRegression": {
+      "nativeLockCollisionReproduced": true,
+      "repairedAdapterRecovered": true,
+      "realTaskModified": false
+    },
+    "externalDownloads": {
+      "dsp7-bridge.zip": "8ff4722992ebb0cdd2cc84d88bda12fa247a53cff69c7bc0170d85243ef54146",
+      "dsp7-bridge-manifest.json": "87500862d6a138ef45fe5f4d3a82c615c3dbbe4367842ba4ad9c9412e4069a2b",
+      "dsp7-install.py": "87e37d3c37382dd5fdfd63fed9ffd695c174c547601721d608329b74eba58559"
+    }
+  },
+  "taskRecovery": {
+    "taskId": "213d6ba8-9de4-4576-a981-61393d318608",
+    "originalRunId": "96c8828d-70a9-4f46-9b5d-d9fc1cf0c756",
+    "question": "Q2",
+    "answerDeliveredAt": "2026-11-12T10:44:32.046Z",
+    "nativeQuestionResolved": true,
+    "providerExitedAfterViewerDisconnect": true,
+    "oldRunStopProof": {
+      "runs": [
+        {
+          "id": "96c8828d-70a9-4f46-9b5d-d9fc1cf0c756",
+          "status": "failed",
+          "finished_at": "2026-11-12T10:46:39.484Z"
+        }
+      ],
+      "permits": [
+        {
+          "run_id": "96c8828d-70a9-4f46-9b5d-d9fc1cf0c756",
+          "tree_stop_verified_at": "2026-11-12T10:46:39.396Z",
+          "process_exit_observed_at": "2026-11-12T10:46:40.104Z",
+          "revoked_at": "2026-11-12T10:46:40.104Z"
+        }
+      ]
+    },
+    "newRunId": "b81afdde-4187-48a4-83d5-6c10a7a1a699",
+    "newProviderPid": 64443,
+    "nativeTaskReinitialized": false,
+    "analysisCompleted": false
+  },
+  "localUpgrade": {
+    "status": "completed",
+    "digest": "8ff4722992ebb0cdd2cc84d88bda12fa247a53cff69c7bc0170d85243ef54146",
+    "upgradeMarkerPresent": false,
+    "scope": "all local seats on same website via standard harness upgrade"
+  },
+  "runtime": {
+    "task": [
+      {
+        "id": "213d6ba8-9de4-4576-a981-61393d318608",
+        "state": "running",
+        "active_run_id": "b81afdde-4187-48a4-83d5-6c10a7a1a699",
+        "updated_at": "2026-11-12T10:50:34.284Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "b81afdde-4187-48a4-83d5-6c10a7a1a699",
+        "status": "running",
+        "error_code": null,
+        "started_at": "2026-11-12T10:49:34.703Z",
+        "finished_at": null
+      }
+    ],
+    "permits": [
+      {
+        "run_id": "b81afdde-4187-48a4-83d5-6c10a7a1a699",
+        "renewed_at": "2026-11-12T10:50:19.319Z",
+        "expires_at": "2026-11-12T10:51:19.319Z",
+        "revoked_at": null
+      }
+    ],
+    "seats": [
+      {
+        "version": "8ff4722992ebb0cdd2cc84d88bda12fa247a53cff69c7bc0170d85243ef54146",
+        "seen_at": "2026-11-12T10:50:02.592Z"
+      }
+    ]
+  }
+}

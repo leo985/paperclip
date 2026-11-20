@@ -1,0 +1,17 @@
+{
+  "release": "delivery-materials-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-17T02:27:59.647035+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-materials-20261117/backup",
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1788815,
+  "backendPidAfter": 1788815,
+  "health": "ok",
+  "httpFilesVerified": 344,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "3fc9e0a98eea2c76b2148d5bf74ae9d352fec79ae2ac9a27e8871a331846fc73",
+  "swSha256": "3931ba2edb1c143940d8d351f07f0fda6a0e46cfb25ff6ba3e5be5fce09989fc"
+}

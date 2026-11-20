@@ -1,5 +1,6 @@
 import type { DeliveryEntryDetail, DeliveryStageRecord, DeliveryWorkflow, DeliveryWorkItem, DeliveryPlan } from "@paperclipai/shared";
 import { sourceWorkEnded } from "./delivery-work-dispatch";
+export const DELIVERY_ANALYSIS_SECTION_ID = "delivery-entry-analysis";
 export const ENTRY_STAGES = [
   { id: "analysis", label: "需求分析", description: "分析修订、人工决定与正式发布" },
   { id: "design", label: "设计", description: "研发设计、产物与设计评审" },
@@ -7,6 +8,12 @@ export const ENTRY_STAGES = [
   { id: "testing", label: "测试", description: "用例编写、用例评审与功能测试" },
 ] as const;
 export type EntryStageId = (typeof ENTRY_STAGES)[number]["id"];
+export function deliveryMainIssueKeys(plan: DeliveryPlan): string[] {
+  return [...new Set([
+    ...plan.mains.map(main => main.key),
+    ...plan.items.flatMap(item => item.parentKey ? [item.parentKey] : []),
+  ])];
+}
 export const workflowEntryStage = (stage: DeliveryStageRecord["stage"]): EntryStageId => ["test-cases", "functional-test"].includes(stage) ? "testing" : stage as EntryStageId;
 export function sourceEntryStage(type: string): EntryStageId | null {
   // Testing comes before design so that 测试用例设计 is not a development design task.

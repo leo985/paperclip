@@ -162,3 +162,22 @@ describe("delivery template settings", () => {
     );
   });
 });
+
+it("configures an opt-in bounded automatic repair policy without changing the standard stages",async()=>{
+ await render();const checkbox=container.querySelector('input[aria-label="启用测试失败自动修复"]') as HTMLInputElement;
+ expect(checkbox.checked).toBe(false);await act(async()=>checkbox.click());
+ expect(container.querySelector('input[aria-label="测试环境构建回读地址"]')?.hasAttribute('required')).toBe(true);
+ expect((container.querySelector('input[aria-label="最多自动修复轮数"]') as HTMLInputElement).value).toBe("3");
+ const add=[...container.querySelectorAll('button')].find(b=>b.textContent==="添加自动修复模块路由")!;
+ await act(async()=>add.click());expect(container.querySelector('input[aria-label="自动修复模块 1"]')).toBeTruthy();
+ expect(container.textContent).toContain("最终验收仍由人工完成");
+ await act(async()=>checkbox.click());expect(container.querySelector('input[aria-label="测试环境构建回读地址"]')).toBeNull();
+});
+
+it("configures reuse of original nodes without invented Jira ticket types",async()=>{
+ await render();const toggle=container.querySelector<HTMLInputElement>('input[aria-label="启用测试失败自动修复"]')!;
+ await act(async()=>toggle.click());
+ expect(container.textContent).toContain("复用原编码、代码评审和功能测试任务");
+ for(const label of ["缺陷主单类型 ID","修复子单类型 ID","独立代码评审子单类型 ID","重测执行子单类型 ID"])
+  expect(container.querySelector(`[aria-label="${label}"]`)).toBeNull();
+});

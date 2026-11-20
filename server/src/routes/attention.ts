@@ -25,6 +25,7 @@ export function attentionRoutes(db: Db) {
     }
 
     const includeDismissed = req.query.includeDismissed === "true";
+    const includeArchived = req.query.includeArchived === "true";
     const archived = req.query.archived === "true";
     const all = req.query.all === "true";
     const activitySince = optionalQueryString(req.query.activitySince, "activitySince");
@@ -41,6 +42,7 @@ export function attentionRoutes(db: Db) {
     const feed = await svc.list(companyId, {
       userId: req.actor.userId,
       includeDismissed,
+      includeArchived,
       archived,
       all,
       allowUnscopedAll: all,

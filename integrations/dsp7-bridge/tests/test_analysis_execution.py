@@ -13,7 +13,8 @@ class AnalysisExecutionTest(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.root=Path(self.tmp.name);self.task=self.root/'native';self.task.mkdir()
         atomic_json(self.task/'requirements.json',{'questions':[]});atomic_json(self.task/'review.json',{})
-        self.rt=SimpleNamespace(folder=self.task,native_id='native',_call=lambda *a:'a'*64,status=lambda:{'phase':'P3','localCompleted':False})
+        (self.task/'intake.md').write_text('intake');(self.task/'analysis.md').write_text('analysis');atomic_json(self.task/'evidence.json',{'items':[]})
+        self.rt=SimpleNamespace(export_report=lambda *args:None,folder=self.task,native_id='native',_call=lambda *a:'a'*64,status=lambda:{'phase':'P3','localCompleted':False})
         self.context={'runId':'test-run'}
     def test_review_invalidates_on_input_change(self):
         first=relay.questions(self.rt)
@@ -55,5 +56,56 @@ class AnalysisExecutionTest(unittest.TestCase):
         d=self.decision();result,api=self.run_hook([],receipt={d['id']:d})
         self.assertEqual(result['decision'],'block')
         self.assertIn('ack',[c.args[2] for c in api.call_args_list])
+
+    def test_completion_retry_sends_frozen_delivery_without_mutable_observation(self):
+        self.context['execution']={'demandNo':'ATS3-00156'}
+        self.rt.status=lambda:{'phase':'P4','localCompleted':True}
+        from unittest.mock import Mock
+        self.rt.delivery=Mock(return_value={'inputDigest':'a'*64,'analysisMarkdown':'分析正文'})
+        result,api=self.run_hook([])
+        self.assertEqual(result,{})
+        self.rt.delivery.assert_called_once_with(include_content=True)
+        self.assertEqual([c.args[2] for c in api.call_args_list],['delivery'])
+        self.assertTrue((self.root/'analysis-completion.json').is_file())
+
+    def test_transient_status_failure_recovers_saved_answer(self):
+        d=self.decision()
+        from pilot import BridgeError
+        status={'phase':'P3','localCompleted':False}
+        from unittest.mock import Mock
+        self.rt.status=Mock(side_effect=[BridgeError('temporary status collision'),status,status])
+        with patch.object(relay.time,'sleep'):
+            result,api=self.run_hook([d])
+        self.assertEqual(result['decision'],'block')
+        self.assertIn('ack',[c.args[2] for c in api.call_args_list])
+        self.assertEqual(json.loads((self.task/'review.json').read_text())['reviewer'],d['answeredBy'])
+
+    def test_expired_wait_never_silently_accepts_stop(self):
+        with patch.object(relay,'context_from_env',return_value=(object(),self.context,self.root)),patch.object(relay,'runtime_for',return_value=self.rt):
+            result=relay.stop_hook(timeout=0)
+        self.assertEqual(result['decision'],'block')
+        self.assertEqual(json.loads((self.task/'review.json').read_text()),{})
+
+    def test_retry_keeps_original_deadline_and_does_not_hide_failure(self):
+        from pilot import BridgeError
+        with patch.object(relay,'_stop_hook',side_effect=[BridgeError('status'),{'decision':'block','reason':'real answer'}]) as attempt,patch.object(relay.time,'monotonic',side_effect=[100,100,280,280,280]),patch.object(relay.time,'sleep'):
+            result=relay.stop_hook(timeout=3600)
+        self.assertEqual(result['reason'],'real answer')
+        self.assertEqual(attempt.call_args_list[1].kwargs['timeout'],3420)
+
+    def test_review_capture_includes_exact_documents_but_removes_signed_metadata(self):
+        atomic_json(self.task/'evidence.json',{'items':[{'id':'E1','kind':'file','source':'https://example.com/api?token=secret','metadata':{'url':'signed-secret'},'path':'sources/file.pdf','sha256':'b'*64}]})
+        result=relay.review_materials(self.rt,'test-run')
+        self.assertEqual(result['inputDigest'],'a'*64)
+        self.assertTrue(result['capturedAt'].endswith('Z'))
+        self.assertEqual(len(result['documents']),3)
+        self.assertNotIn('secret',json.dumps(result))
+        self.assertEqual(result['evidence'][0]['source'],'https://example.com/api')
+
+    def test_changed_review_inputs_are_not_uploaded_as_a_stable_version(self):
+        self.rt._call=lambda *a: next(values)
+        values=iter(['a'*64,'b'*64])
+        from pilot import BridgeError
+        with self.assertRaises(BridgeError):relay.review_materials(self.rt,'test-run')
 
 if __name__=='__main__':unittest.main()

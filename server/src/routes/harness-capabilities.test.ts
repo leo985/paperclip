@@ -13,6 +13,40 @@ function fixture(results:unknown[][],actor:Record<string,unknown>={type:"agent",
 }
 describe("machine bound Harness capabilities",()=>{
  const url=`/agents/${agentId}/dsp7-harness-capabilities`;
+ it("backfills default development capabilities only at the machine's enrolled runtime root",async()=>{
+  const development={...capability,kind:"development",profile:"default",root:"D:\\harness\\base",roles:["coding","system-design"]};
+  const enrolled={...agent,defaultEnvironmentId:"env",adapterConfig:{...agent.adapterConfig,dsp7SeatRuntime:{harnessRoot:development.root,environmentId:"env"}}};
+  const f=fixture([[enrolled],[]]);
+  const r=await request(f.app).post(url).send({...input,automatic:true,capability:development});
+  expect(r.status).toBe(200);expect(r.body.revision).toBe(1);
+  expect(f.writes[1].details).toMatchObject({automatic:true,initialDevelopment:true,executionGranted:false});
+  for(const change of [{root:"D:\\other"},{kind:"analysis",roles:["requirements-analysis"]},{profile:"other"}]){
+   const denied=fixture([[enrolled]]);
+   expect((await request(denied.app).post(url).send({...input,automatic:true,capability:{...development,...change}})).status).toBe(409);
+   expect(denied.writes).toHaveLength(0);
+  }
+  const busy=fixture([[enrolled],[{id:"running"}]]);
+  expect((await request(busy.app).post(url).send({...input,automatic:true,capability:development})).status).toBe(409);
+  expect(busy.writes).toHaveLength(0);
+  const current={...enrolled,adapterConfig:{...enrolled.adapterConfig,dsp7HarnessCapabilities:r.body}};
+  const replacement=fixture([[current]]);
+  expect((await request(replacement.app).post(url).send({...input,expectedRevision:1,automatic:true,capability:{...development,repository:"git.example.com/team/other"}})).status).toBe(409);
+  const wrongEnv=fixture([[{...enrolled,defaultEnvironmentId:"other"}]]);
+  expect((await request(wrongEnv.app).post(url).send({...input,automatic:true,capability:development})).status).toBe(409);
+ });
+ it("automatically refreshes only enrolled content and audits the old and new fingerprints",async()=>{
+  const first=fixture([[agent],[]]);const registry=(await request(first.app).post(url).send(input)).body;
+  const current={...agent,adapterConfig:{...agent.adapterConfig,dsp7HarnessCapabilities:registry}};
+  const updated={...capability,commit:"d".repeat(40),manifestDigest:"e".repeat(64)};
+  const f=fixture([[current],[]]);const r=await request(f.app).post(url).send({...input,expectedRevision:1,automatic:true,capability:updated});
+  expect(r.status).toBe(200);expect(r.body.revision).toBe(2);
+  expect(f.writes[1].details).toMatchObject({automatic:true,previousCommit:capability.commit,commit:updated.commit,previousManifestDigest:capability.manifestDigest,manifestDigest:updated.manifestDigest,executionGranted:false});
+  for(const change of [{root:"/other"},{repository:"git.example.com/team/other"},{profile:"other"},{roles:["coding"],kind:"development"}]){
+   const denied=fixture([[current]]);expect((await request(denied.app).post(url).send({...input,expectedRevision:1,automatic:true,capability:{...updated,...change}})).status).toBe(409);expect(denied.writes).toHaveLength(0);
+  }
+  const missing=fixture([[agent]]);expect((await request(missing.app).post(url).send({...input,automatic:true})).status).toBe(409);expect(missing.writes).toHaveLength(0);
+  const busy=fixture([[current],[{id:"running"}]]);expect((await request(busy.app).post(url).send({...input,expectedRevision:1,automatic:true,capability:updated})).status).toBe(409);expect(busy.writes).toHaveLength(0);
+ });
  it("cannot be registered by board users or other machines",async()=>{
   const board=fixture([],{type:"board",source:"local_implicit"});expect((await request(board.app).post(url).send(input)).status).toBe(403);
   const other=fixture([{...agent,adapterConfig:{dsp7Seat:{machineId:"different"}}} as any].map(x=>[x]));expect((await request(other.app).post(url).send(input)).status).toBe(403);expect(other.writes).toHaveLength(0);

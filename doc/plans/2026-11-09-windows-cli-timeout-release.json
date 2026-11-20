@@ -1,0 +1,85 @@
+{
+  "release": "20261109-windows-cli-timeout",
+  "files": {
+    "dsp7-install.py": "e1ed0b4c810ead26ede0e8f5f59d1af2e3eaec11f2a3a70285fa75928d9af7f4",
+    "dsp7-bridge.zip": "41d09f937de15963e13c7f26f829901f3655244c30d9e635fe6a2343e9246ff5",
+    "dsp7-bridge-manifest.json": "b7a48ba5b6f3a0aa46cf204bf60af441609799a4d86eda4187aa3b99f81c5427"
+  },
+  "expected": {
+    "dsp7-install.py": "6e8779b35375c4fc9d33a77bd2ad59ab19b4a02f165151367141d9465b3bfacb",
+    "dsp7-bridge.zip": "7d90c84b96087fe0a1e59fb486f654672a2ff8f4c71cd94316165c2286b546b0",
+    "dsp7-bridge-manifest.json": "ad867269f8aabbad22d895f8f8c5a8006ace52dc4bf1bca3377e445a8ac2b0f7"
+  },
+  "changedSources": [
+    "quick_install.py"
+  ],
+  "sha256": "41d09f937de15963e13c7f26f829901f3655244c30d9e635fe6a2343e9246ff5",
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/windows-cli-timeout-20261109/backup-20261109T092505Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "service": "MainPID=65004\nActiveState=active",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "uiEntryUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "timestamp": "2026-11-09T09:25:05.362318+00:00",
+  "externalHttpVerified": [
+    "dsp7-install.py",
+    "dsp7-bridge.zip",
+    "dsp7-bridge-manifest.json"
+  ],
+  "tests": {
+    "total": 295,
+    "passed": 293,
+    "skipped": 2
+  },
+  "windowsLauncherVerified": {
+    "fresh_install_seconds": 3.25,
+    "reinstall_seconds": 2.828,
+    "unknown_launcher_preserved": true,
+    "upgrade_seconds": 3.625,
+    "native_rollback_verified": true,
+    "organization_install_seconds": 3.359,
+    "organization_isolation_verified": true,
+    "user_path_saved": true,
+    "unicode_space_percent_path_verified": true,
+    "elapsed_seconds": 20.453,
+    "status": "passed"
+  },
+  "windowsSlowWindowTest": {
+    "windowCount": 40,
+    "oldTimeoutSeconds": 30.05,
+    "newLauncherSeconds": 1.16,
+    "notificationDeadlineSeconds": 3,
+    "installationSucceeded": true
+  },
+  "fullFirstEnrollmentVerified": false,
+  "publishedPackageWindowsValidation": {
+    "fresh_install_seconds": 6.313,
+    "reinstall_seconds": 4.156,
+    "unknown_launcher_preserved": true,
+    "upgrade_seconds": 3.843,
+    "native_rollback_verified": true,
+    "organization_install_seconds": 3.078,
+    "organization_isolation_verified": true,
+    "user_path_saved": true,
+    "unicode_space_percent_path_verified": true,
+    "elapsed_seconds": 26.25,
+    "status": "passed"
+  }
+}

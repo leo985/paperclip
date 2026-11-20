@@ -1,0 +1,74 @@
+{
+  "release": "20261106-ai-delivery-launch",
+  "status": "deployed",
+  "timestamp": "2026-11-06T08:50:20.885214+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-697419d7.js",
+  "uiModule": "DeliveryEntries-004d7553.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/ai-delivery-launch-20261106/backup-20261106T084742Z",
+  "serverRestarted": false,
+  "service": "MainPID=3878847\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/pages/DeliveryEntries.tsx": "a67155b3ee47e536636e89d3363b2ac8a99446c2a99090214e529e17fc82c40a",
+    "ui/src/components/DeliveryWorkflowPanel.tsx": "ec4568334b7a95a4762f98f2fe04a3ad5b6a4981ee629e676464679c43cb6c08",
+    "ui/src/components/DeliveryEntryStages.tsx": "9b4b8482bf7b4bb41efb5efdc5c2ca8e8941122556dfa4a420d449725eb225ec"
+  },
+  "verification": {
+    "sourceRegressionTests": 3,
+    "uiTypecheck": "passed",
+    "tokenGates": "passed",
+    "artifact": {
+      "linkedModules": 676,
+      "cachedEntryReset": "passed",
+      "returnViaListReset": "passed",
+      "startEntryPoint": "passed",
+      "admissionDisabledReason": "passed"
+    },
+    "externalHttp": {
+      "verified": 329,
+      "failures": []
+    },
+    "browser": {
+      "startFormOpened": true,
+      "otherEntry": {
+        "entry": "ATS3-01021 · 基础平台优化-公共配置（get_config）接口安全性改造",
+        "panelOpen": false,
+        "formPresent": false
+      },
+      "cachedEntry": {
+        "entry": "JLLYSL-00004 · APP接入金蝶云之家统一代办",
+        "panelOpen": false,
+        "formPresent": false,
+        "module": "/assets/index-697419d7.js"
+      },
+      "businessTasksStarted": false
+    }
+  },
+  "sourceArchive": {
+    "path": "/home/fg/paperclip/private/ai-delivery-launch-20261106/sources.tar.gz",
+    "sha256": "a452df1bbcc3af5dd0d26d6f9246a8d7b93e14e79271b8151d819211e331b721"
+  },
+  "scope": "Live production assets plus scoped transpilation of entry page, workflow panel and running badge; no full dirty-tree build."
+}

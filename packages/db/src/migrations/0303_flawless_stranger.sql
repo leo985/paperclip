@@ -1,0 +1,1 @@
+ALTER TABLE "analysis_executions" ADD COLUMN "qingzhou_writeback" jsonb;

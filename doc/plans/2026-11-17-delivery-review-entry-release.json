@@ -1,0 +1,35 @@
+{
+  "release": "delivery-review-entry-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-16T16:22:33.415278+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-review-entry-20261117/backup",
+  "httpFilesVerified": 344,
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1045579,
+  "backendPidAfter": 1045579,
+  "health": "ok",
+  "bridgeAndEnvironmentUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "53c00f408f7d5bb3cc1d2250a41b71c0eee460c364ff3c1d4d681c75853d47b6",
+  "swSha256": "82abffb4bd22376918e3ed24b89489d20b194ca2687df60a17545a0499f20b6c",
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/delivery?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=734bc43a-37c4-4c38-9a51-5e0bb253f08b&tab=work&reviewKey=ATSES-516505#delivery-workflow",
+    "panelOpen": true,
+    "review": "配置设计评审单：ATSES-516505已预选评审单。请在下方选择同一主工单的被审工作单，并明确勾选评审覆盖范围；已完成工作请登记已有交付，由平台读取 Jira 产物与版本依据。按项目配置转交人工负责人或具备对应能力的独立评审席位。启动前仍须满足交付链准入及各节点条件，不会只凭 Jira 已完成状态派发评审。",
+    "selectedReview": true,
+    "actualExecutionStarted": false
+  },
+  "verification": {
+    "uiTests": 24,
+    "backendBindingTests": 10,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "externalHttp": "passed",
+    "productionReviewExecution": "not started; read-only UI verification",
+    "fullRepositoryChecks": "not run: UI-only scope"
+  },
+  "behavior": "Design/code/test-case review entry selects the real review issue in the existing delivery workflow configuration. Explicit same-parent work bindings and prior-delivery evidence remain required. Existing workflow tasks are reused. Template settings and native execution guards unchanged."
+}

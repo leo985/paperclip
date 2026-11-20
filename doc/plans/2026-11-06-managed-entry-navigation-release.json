@@ -1,0 +1,64 @@
+{
+  "release": "20261106-managed-entry-navigation",
+  "status": "deployed",
+  "timestamp": "2026-11-06T09:50:40.281856+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-5e2703cf.js",
+  "uiModule": "DeliveryEntries-5f17c8a0.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/managed-entry-navigation-20261106/backup-20261106T095027Z",
+  "serverRestarted": false,
+  "service": "MainPID=3878847\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/pages/DeliveryEntries.tsx": "a31a41f4bf9da34d5801df92dd65f3db2f19f660fb5b0688ce82f23c5bad1121"
+  },
+  "verification": {
+    "linkedModules": 676,
+    "managedNavigation": "passed",
+    "cachedEntryReset": "passed",
+    "returnViaListReset": "passed",
+    "startEntryPoint": "passed",
+    "admissionDisabledReason": "passed"
+  },
+  "browser-verification": {
+    "saved": {
+      "labels": [
+        "月度排期",
+        "已纳管条目",
+        "独立需求分析",
+        "组织来源配置"
+      ],
+      "active": "已纳管条目",
+      "entry": "http://10.60.43.53:3100/assets/index-5e2703cf.js"
+    },
+    "monthlyNavigation": "passed",
+    "url": "http://10.60.43.53:3100/CMP/delivery"
+  },
+  "external-verification": {
+    "verified": 329,
+    "failures": []
+  },
+  "tokenGates": "passed",
+  "scopedCommit": "d2f11ed1df2de2faccd4d7881f66bc3662c72f72"
+}

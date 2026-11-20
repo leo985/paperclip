@@ -5399,6 +5399,7 @@ registry.registerPath({
     params: z.object({ companyId: z.string() }),
     query: z.object({
       includeDismissed: z.enum(["true", "false"]).optional(),
+      includeArchived: z.enum(["true", "false"]).optional(),
       archived: z.enum(["true", "false"]).optional(),
       all: z.enum(["true", "false"]).optional(),
       activitySince: z.string().datetime().optional(),

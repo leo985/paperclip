@@ -1,0 +1,44 @@
+{
+  "name": "delivery-lookup-detail",
+  "backend": [
+    {
+      "source": "server/src/routes/delivery-connections.ts",
+      "target": "@paperclipai/server/dist/routes/delivery-connections.js",
+      "route": {
+        "method": "post",
+        "path": "/lookup",
+        "imports": [
+          { "from": "drizzle-orm", "name": "isNull" },
+          { "from": "@paperclipai/db", "name": "projects" }
+        ]
+      }
+    }
+  ],
+  "ui": [
+    {
+      "markers": ["条目精确查询结果", "DeliveryMonthlySchedule"],
+      "components": [
+        {
+          "source": "ui/src/components/DeliveryDemandLookup.tsx",
+          "name": "DeliveryDemandLookup",
+          "anchor": "条目精确查询结果",
+          "count": 2,
+          "bindings": {
+            "jsx": "_jsx",
+            "jsxs": "_jsxs",
+            "Fragment": "_Fragment",
+            "useQueryClient": "fe",
+            "useNavigate": "Ue"
+          }
+        }
+      ],
+      "replacements": [
+        {
+          "from": "projectId,\n          compact: true\n        }, companyId + projectId)",
+          "to": "projectId,\n          compact: true, month\n        }, companyId + projectId)",
+          "alreadyApplied": true
+        }
+      ]
+    }
+  ]
+}

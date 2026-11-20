@@ -2128,4 +2128,20 @@ describeEmbeddedPostgres("attention service", () => {
     }
     expect(byKey.get(`approval:${queueApprovalId}`)).toMatchObject({ shelf: true, retentionDays: 10 });
   });
+  it("includes archived but still pending approvals in workbench snapshots until the business action resolves", async () => {
+    const { companyId, workerId } = await seedCompany("WBA");
+    const approvalId = randomUUID();
+    const at = new Date();
+    await db.insert(approvals).values({ id: approvalId, companyId, type: "request_board_approval", requestedByAgentId: workerId, status: "pending", payload: { title: "仍需处理的审批" }, createdAt: at, updatedAt: at });
+    await db.insert(decisionRetention).values({ companyId, sourceKind: "approval", sourceId: approvalId, sourceActivityAt: at, archivedAt: at, archivedByType: "system" });
+    const service = attentionService(db);
+    const normal = await service.list(companyId, { userId: "board-user", all: true, allowUnscopedAll: true });
+    expect(normal.items.some(item => item.subject.id === approvalId)).toBe(false);
+    const pending = await service.list(companyId, { userId: "board-user", all: true, allowUnscopedAll: true, includeArchived: true, includeDismissed: true });
+    expect(pending.items.some(item => item.subject.id === approvalId)).toBe(true);
+    await db.update(approvals).set({ status: "approved" }).where(eq(approvals.id, approvalId));
+    const resolved = await service.list(companyId, { userId: "board-user", all: true, allowUnscopedAll: true, includeArchived: true, includeDismissed: true });
+    expect(resolved.items.some(item => item.subject.id === approvalId)).toBe(false);
+  });
+
 });

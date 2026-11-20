@@ -1,0 +1,211 @@
+{
+  "deployment": {
+    "release": "20261112-analysis-resume",
+    "status": "deployed",
+    "target": "http://10.60.43.53:3100",
+    "timestamp": "2026-11-12T06:55:34.759958+00:00",
+    "backup": "/home/fg/paperclip/private/analysis-resume-20261112/backup-20261112T065119Z",
+    "databaseBackup": {
+      "file": "/home/fg/paperclip/private/analysis-resume-20261112/backup-20261112T065119Z/pre-analysis-resume-20261112-065119.sql.gz",
+      "sizeBytes": 9780288,
+      "sha256": "4fc1f766f7d8c137ed598cf469a843832343e8af6c5ce6ad79a39facaae25b2e"
+    },
+    "migrations": [],
+    "filesVerified": 174,
+    "httpFilesVerified": 171,
+    "entry": "index-30d41d84.js",
+    "uiModules": {
+      "taskStages": "UnifiedTaskDetail-9daf8e5d.js"
+    },
+    "serverRestarted": true,
+    "databaseChanged": false,
+    "clientChanged": false,
+    "forcedDeviceUpgrade": false,
+    "bridgeUnchanged": true,
+    "envUnchanged": true,
+    "authenticatedSeatAccountReads": [],
+    "anonymousRequests": [
+      {
+        "path": "/api/companies",
+        "status": 403
+      },
+      {
+        "path": "/api/companies/00000000-0000-4000-8000-000000000000/issues?view=compact",
+        "status": 401
+      }
+    ],
+    "activeBefore": [],
+    "activeAfter": [],
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "hotRestartReport": {
+      "version": 1,
+      "requestedAt": "2026-11-12T06:54:19.506Z",
+      "completedAt": "2026-11-12T06:55:16.762Z",
+      "drainRequired": false,
+      "drainReason": null,
+      "previousServerPid": 1250817,
+      "newServerPid": 1383506,
+      "previousServerVersion": "2026.1001.0",
+      "newServerVersion": "2026.1001.0",
+      "adoptedRunIds": [],
+      "finalizedWhileDownRunIds": [],
+      "lostRunIds": [],
+      "skippedRunIds": [],
+      "runs": []
+    },
+    "sourceHashes": {
+      "ui/src/lib/issueDetailBreadcrumb.ts": "11341ccf3e5f4184209e955dd50b79d48aecf3bc7dfc4c95e5393ebaa72ab4f7",
+      "ui/src/api/analysis-executions.ts": "9862c3ae086dcff27a2528f50957953486616c0e0ce2df000f2cc3d0401dd73e",
+      "ui/src/lib/managed-input-source.ts": "7b110c1893845446ac6d62f6412d3d0fff509cfb05221968e8b9da119f83b164",
+      "ui/src/api/managed-sessions.ts": "30a47185637573e95189c6da188448f6c1a433bc2fb3e5e48a80586d7a13f29a",
+      "ui/src/components/task-detail/TaskSessionSelection.tsx": "6031230a18749b44e71757b53c3fa815e63a3e5fc42dabffd64a2efed4f3a110",
+      "ui/src/components/HarnessExecutionOverview.tsx": "24ae325af2949cf49e9d3e5420ff339b022db2571f94f1e28f624f0b9cae90d8",
+      "ui/src/components/ManagedSessionPanel.tsx": "3548d8ae7f99600f3d24793b4da5396308808e2769ea74a8202eb95203bf9bc3",
+      "ui/src/components/task-detail/TaskIdentitySummary.tsx": "9d6fe0264a72333e4eb6a924fa94485d7bef44dae8e430234ede0108e26e2d71",
+      "ui/src/components/task-detail/TaskDetailLayout.tsx": "a4aee069a57250d0a18eaf3cf2aa286c2784baa09b98aa56517b7f6b559392e7",
+      "ui/src/components/AnalysisQingzhouWriteback.tsx": "7ef56d6c63398552ca949f21a790566b08e57baab532699cccec3187e8d7ff3d",
+      "ui/src/components/task-detail/AnalysisTaskDetail.tsx": "a75c651e0aa3a1b8ee52e9759474d3d6bcd4b0361632751e9f2235b153981547",
+      "ui/src/components/task-detail/TaskExecutionDetail.tsx": "f6c27932d639be7b33bad634e92eacb21ba4acb9598707329a0fd87a69345b38",
+      "ui/src/lib/recent-tasks.ts": "15048cac8e6975590e0e782a0dc8b91b523bf9b6e4b074dd761c5bd384cd475f",
+      "ui/src/pages/UnifiedTaskDetailPage.tsx": "b91f1aaf6ff5f7c422273ef3e5d7931223f9566c90cc21dbfdc1649d059fddf0",
+      "ui/src/pages/AnalysisExecutions.tsx": "995babc85869bacc1f51d3a6d28b0056aca6bd96ac40d7dbd23002565a04b14f",
+      "ui/src/lib/task-delivery-stage.ts": "cd84267a7e2cd82a1b9b122904fcaa452e638a582adbdbc5322bb7779b31465c",
+      "ui/src/components/TaskCollections.tsx": "d1c940ec242b75a79dbc3c0c8f00af64f5d68b45eb15148e6636109b0f68e3c9",
+      "ui/src/lib/issue-management.ts": "40aa997c103be8c6def7a305d797a617d8772282d892d1c2986d4321544d433a",
+      "ui/src/hooks/useManagementIssues.ts": "f80b59139813b16e8063d92bd95a192ead896287ffa7e749e052059239879155",
+      "ui/src/components/IssueManagement.tsx": "0907e98e43f20a2c5335f418c631d9cb91b875b38528f524cfd98711ac83e54c",
+      "server/src/services/analysis-execution-resume.ts": "823a43f0d040db13a267500ac54381cd7d219a0746341e940bd7f54c1e7de3db",
+      "server/src/services/analysis-dispatch-state.ts": "d795d3c111720dd696bb10fe8c9410c67cbba78cb6c0a8eb2a5ee9dd6d49f7cd",
+      "server/src/routes/analysis-executions.ts": "3b0c0e0e130c76554cc76eb1772398449bb063f852e1943ed9628269e2241ad2"
+    },
+    "durationSeconds": 75.1,
+    "limitations": [
+      "Browser functional QA unavailable in this environment; read-only route and resource checks performed."
+    ],
+    "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets."
+  },
+  "regressions": {
+    "mode": "shadow",
+    "checks": [
+      "verified_cancel_resume_preserves_history_and_is_idempotent",
+      "retains_protection_missing_tree_receipt",
+      "retains_protection_child_exit_only",
+      "retains_protection_wrong_machine",
+      "retains_protection_wrong_task",
+      "retains_protection_wrong_adapter",
+      "retains_protection_non_analysis",
+      "retains_protection_active_run",
+      "retains_protection_process_owner",
+      "retains_protection_unreleased_lease",
+      "retains_protection_unrelated_hold",
+      "dispatch_receipt_skipped",
+      "dispatch_receipt_failed",
+      "dispatch_receipt_cancelled",
+      "dispatch_receipt_queued",
+      "lost_run_receipt_recovers_exact_dispatch_without_duplicate",
+      "real_dispatch_accept",
+      "real_dispatch_reject",
+      "real_dispatch_throw",
+      "real_dispatch_durable"
+    ],
+    "targetResumeDryRunVerified": true,
+    "fixtureTransactionRolledBack": true,
+    "persistentChanges": false,
+    "providerStarted": false
+  },
+  "externalResources": {
+    "assets/UnifiedTaskDetail-9daf8e5d.js": "f1826fa18a97310355ea58e74751dcffb0237819ecb2e43c8ac2f117476d7361",
+    "assets/index-30d41d84.js": "16297803668da7b77dbcaaea170f05c94100922e8ea98abedcdabc4e7aca4097",
+    "index.html": "6c181dbc90d1949da37059efbf1c8a99a94b953d5ba7e66ff1120024cbe8321b",
+    "sw.js": "1d8f2647bfffcbaee08fbfc3a5b997d401f297eeed6bf1ddd874eafb16d33b98"
+  },
+  "resumedTask": {
+    "task": [
+      {
+        "id": "213d6ba8-9de4-4576-a981-61393d318608",
+        "state": "running",
+        "active_run_id": "33a4764f-9ed5-43df-a6e8-ebdd74dde354",
+        "updated_at": "2026-11-12T06:58:26.652Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "33a4764f-9ed5-43df-a6e8-ebdd74dde354",
+        "status": "running",
+        "started_at": "2026-11-12T06:57:54.349Z",
+        "finished_at": null,
+        "error_code": null,
+        "error": null,
+        "process_pid": null,
+        "process_group_id": null,
+        "runtime_mode": "legacy"
+      }
+    ],
+    "permits": [
+      {
+        "run_id": "33a4764f-9ed5-43df-a6e8-ebdd74dde354",
+        "machine_id": "3bd97293-1c84-4360-94e5-6cde16158248",
+        "issued_at": "2026-11-12T06:58:23.440Z",
+        "renewed_at": "2026-11-12T06:58:25.359Z",
+        "process_exit_observed_at": null,
+        "tree_stop_verified_at": null,
+        "revoked_at": null
+      }
+    ],
+    "events": [
+      {
+        "event_type": "adapter.invoke",
+        "created_at": "2026-11-12T06:57:58.372Z"
+      },
+      {
+        "event_type": "lifecycle",
+        "created_at": "2026-11-12T06:57:57.544Z"
+      }
+    ]
+  },
+  "localProcess": {
+    "checkedAt": "2026-11-12T06:59:05.329222+00:00",
+    "runId": "33a4764f-9ed5-43df-a6e8-ebdd74dde354",
+    "pid": 69939,
+    "processGroupId": 69939,
+    "command": "/usr/local/bin/claude",
+    "sessionStatus": "running",
+    "startedAt": "2026-11-12T06:58:26.030355+00:00"
+  },
+  "registryRefresh": {
+    "previousRevision": 3,
+    "currentRevision": 4,
+    "reason": "Local analysis Harness tracked files changed; repository, root, profile and commit unchanged. Re-registered through authenticated local capability CLI.",
+    "previousManifestDigest": "c57a70da838b64f3c035a3ac1297b4d965945b743c5680188051c655526b792d",
+    "currentManifestDigest": "d093cb9a60bcad311d1083baafa7f9b8285efc1ca8a7ee9a919734edc46b609a"
+  },
+  "recoveryAuthentication": {
+    "originalActiveManagerGrantRechecked": true,
+    "temporaryKeysRevoked": true,
+    "tokensPersisted": false
+  },
+  "verification": {
+    "uiTestsPassed": 11,
+    "remoteDatabaseRegressionChecksPassed": 20,
+    "serverTypecheck": "passed",
+    "uiTypecheck": "passed",
+    "sharedBuild": "passed",
+    "tokenGates": "passed",
+    "localDatabaseIntegration": "skipped: embedded postgres uv_os_get_passwd ENOENT",
+    "browserQA": "unavailable",
+    "fullRepositoryChecks": "not run: scoped production repair amid unrelated concurrent changes"
+  }
+}

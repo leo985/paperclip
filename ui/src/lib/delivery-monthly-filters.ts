@@ -1,9 +1,9 @@
 import type { DeliveryMonthlyEntries } from "@paperclipai/shared";
 
 type Item = DeliveryMonthlyEntries["items"][number];
-export const monthlyFilterKeys = ["mq", "mOwner", "mStatus", "mProgress", "mSync", "mAdmission", "mWork", "mRisk", "mSort"] as const;
+export const monthlyFilterKeys = ["mq", "mScope", "mOwner", "mAnalysisOwner", "mStatus", "mProgress", "mSync", "mAdmission", "mWork", "mRisk", "mSort"] as const;
 export const monthlyProgressViews = [
-  ["all", "全部进度"], ["completed", "已完成"], ["in_progress", "进行中"], ["not_started", "未开始"], ["unknown", "待确认"],
+  ["all", "不限进度"], ["completed", "已完成"], ["in_progress", "进行中"], ["not_started", "未开始"], ["unknown", "待确认"],
 ] as const;
 export type MonthlyProgress = Exclude<typeof monthlyProgressViews[number][0], "all">;
 /** Qingzhou demand progress, independent of platform execution and acceptance. */
@@ -15,8 +15,8 @@ export function monthlyProgress(item: Item): MonthlyProgress {
   return "unknown";
 }
 export const monthlyRiskViews = [
-  ["all", "全部条目"], ["normal", "正常条目"], ["past_plan", "计划已过待核实"], ["due_week", "本周到期"],
-  ["missing_owner", "责任人缺失"], ["admission", "准入待核验"], ["entry_unconfigured", "准入未配置"], ["missing_date", "计划日期缺失"],
+  ["all", "不限风险"], ["normal", "无上述风险"], ["past_plan", "计划已过待核实"], ["due_week", "本周到期"],
+  ["missing_owner", "责任人缺失"], ["missing_date", "计划日期缺失"],
 ] as const;
 export type MonthlyRisk = Exclude<typeof monthlyRiskViews[number][0], "all" | "normal">;
 const shanghaiDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" });
@@ -35,8 +35,6 @@ export function monthlyRisks(item: Item, now = new Date()): MonthlyRisk[] {
   if (end !== null && end < today) flags.push("past_plan");
   if (end !== null && end >= today && end <= today + 6 - weekday) flags.push("due_week");
   if (!item.owner.trim()) flags.push("missing_owner");
-  if (item.chainAdmission?.state === "unconfigured") flags.push("entry_unconfigured");
-  else if (!item.chainAdmission?.ready) flags.push("admission");
   if (end === null) flags.push("missing_date");
   return flags;
 }
@@ -58,7 +56,7 @@ export function monthlyNextAction(item: Item, now = new Date()) {
 function riskScore(item: Item, now: Date) {
   const risks = monthlyRisks(item, now);
   return (risks.includes("past_plan") ? 16 : 0) + (risks.includes("missing_owner") ? 8 : 0)
-    + (risks.includes("due_week") ? 4 : 0) + (risks.some(risk => risk === "admission" || risk === "entry_unconfigured") ? 2 : 0) + (risks.includes("missing_date") ? 1 : 0);
+    + (risks.includes("due_week") ? 4 : 0) + (risks.includes("missing_date") ? 1 : 0);
 }
 // JSON encoding keeps absent source fields distinct from any real source value.
 export const sourceFilterValue = (value: string) => JSON.stringify(value.trim());
@@ -66,19 +64,45 @@ export function monthlyAdmission(item: Item) {
   return item.chainAdmission?.ready ? "verified" : item.chainAdmission?.state === "unconfigured" ? "unconfigured" : item.snapshotId ? "unchecked" : "unsynced";
 }
 export const monthlySelectedStatuses = (params: URLSearchParams) => [...new Set(params.getAll("mStatus").filter(Boolean))];
+/** Migrate retired shortcuts so saved links never contain invisible filters. */
+export function normalizeMonthlyFilters(params: URLSearchParams) {
+  const next = new URLSearchParams(params);
+  const risk = next.get("mRisk");
+  if (risk === "admission" || risk === "entry_unconfigured") {
+    next.delete("mRisk");
+    if (!next.get("mAdmission")) next.set("mAdmission", risk === "admission" ? "pending" : "unconfigured");
+  }
+  if (next.get("mAdmission") === "unchecked") next.set("mAdmission", "pending");
+  if (next.get("mAdmission") === "unsynced") {
+    next.delete("mAdmission");
+    next.set("mSync", "unsynced");
+  }
+  return next;
+}
+export function clearMonthlyFilters(params: URLSearchParams) {
+  const next = new URLSearchParams(params);
+  monthlyFilterKeys.forEach(key => next.delete(key));
+  return next;
+}
 export function filterMonthlyEntries(items: Item[], params: URLSearchParams, now = new Date()) {
+  params = normalizeMonthlyFilters(params);
   const statuses = monthlySelectedStatuses(params);
   const q = (params.get("mq") ?? "").trim().toLocaleLowerCase();
   return items.filter(item => {
     const owner = params.get("mOwner");
+    const analysisOwner = params.get("mAnalysisOwner");
     const sync = params.get("mSync"), admission = params.get("mAdmission"), work = params.get("mWork");
-    return (!q || `${item.demandNo} ${item.title} ${item.owner}`.toLocaleLowerCase().includes(q))
+    return (params.get("mScope") !== "scheduled" || item.inSchedule !== false)
+      && (params.get("mScope") !== "expected" || item.inExpectedDeliveryMonth === true)
+      && (!q || `${item.demandNo} ${item.title} ${item.owner} ${item.analysisOwner ?? ""}`.toLocaleLowerCase().includes(q))
       && (!owner || sourceFilterValue(item.owner) === owner)
+      && (!analysisOwner || sourceFilterValue(item.analysisOwner ?? "") === analysisOwner)
       && (!statuses.length || statuses.includes(sourceFilterValue(item.sourceStatus)))
       && (!params.get("mProgress") || params.get("mProgress") === "all" || monthlyProgress(item) === params.get("mProgress"))
       && (sync !== "saved" || !!item.snapshotId) && (sync !== "unsynced" || !item.snapshotId)
-      && (!["verified", "unchecked", "unsynced", "unconfigured"].includes(admission ?? "") || monthlyAdmission(item) === admission)
-      && (work !== "has" || item.workCount > 0) && (work !== "none" || item.workCount === 0)
+      && (admission !== "pending" || (!item.chainAdmission?.ready && item.chainAdmission?.state !== "unconfigured"))
+      && (!["verified", "unconfigured"].includes(admission ?? "") || monthlyAdmission(item) === admission)
+      && (work !== "has" || item.workCountKnown !== false && item.workCount > 0) && (work !== "none" || item.workCountKnown !== false && item.workCount === 0)
       && matchesMonthlyRisk(item, params.get("mRisk") ?? "", now);
   }).sort((a, b) => {
     const sort = params.get("mSort") ?? "risk";
@@ -88,8 +112,8 @@ export function filterMonthlyEntries(items: Item[], params: URLSearchParams, now
     return risk || (aDay ?? Infinity) - (bDay ?? Infinity) || a.demandNo.localeCompare(b.demandNo);
   });
 }
-export function monthlySourceOptions(items: Item[], field: "owner" | "sourceStatus") {
-  return [...new Set(items.map(item => item[field].trim()))].sort((a, b) => a.localeCompare(b, "zh-CN"))
+export function monthlySourceOptions(items: Item[], field: "owner" | "analysisOwner" | "sourceStatus") {
+  return [...new Set(items.map(item => (item[field] ?? "").trim()))].sort((a, b) => a.localeCompare(b, "zh-CN"))
     .map(value => ({ key: sourceFilterValue(value), value: sourceFilterValue(value), label: value || "来源未提供" }));
 }
 export function monthlyDetailHref(params: URLSearchParams, projectId: string, snapshotId: string, month: string) {

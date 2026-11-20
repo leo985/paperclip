@@ -1,0 +1,54 @@
+{
+  "release": "20261111-terminal-disconnect",
+  "files": {
+    "dsp7-bridge.zip": "210607581def386309ea5078b5e8e8bb5a169f7c18f4e428ed68175565865d59",
+    "dsp7-bridge-manifest.json": "7589abccf392b58e8d92863bcaeabca5d0e424257ba697e14a32522c1f14f92b"
+  },
+  "expected": {
+    "dsp7-bridge.zip": "21c3b2f324720942103d5b9514e021449dca8a3f49ed01569000a68a84dcc60f",
+    "dsp7-bridge-manifest.json": "1db0f478453090278bfd2bcc11398e4687ff92a1e96a1e9695f0c28cbb68c882"
+  },
+  "changedSources": [
+    "interactive.py",
+    "terminal_display.py",
+    "windows_terminal.py"
+  ],
+  "sha256": "210607581def386309ea5078b5e8e8bb5a169f7c18f4e428ed68175565865d59",
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/terminal-disconnect-20261111/backup-20261111T115605Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "service": "MainPID=280738\nActiveState=active",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "uiEntryUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "timestamp": "2026-11-11T11:56:05.999899+00:00",
+  "localUpgrade": {
+    "status": "blocked",
+    "reason": "launchctl cannot access gui domain: 141 Reentrancy avoided; original files restored, original watcher still running",
+    "recoveryRecordPreserved": true,
+    "rollbackFilesMatch": true,
+    "nextCommand": "harness upgrade --this-seat --config /Users/leo/.config/paperclip-dsp7-bridge/config.json"
+  },
+  "validation": {
+    "terminalTestsPassed": 7,
+    "windowsDiagnosticsTestsPassed": 14,
+    "nativeWindowsTested": false,
+    "productionCancellationTested": false
+  }
+}

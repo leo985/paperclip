@@ -791,12 +791,12 @@ function InboxCollectionToolbar({
   );
 }
 
-export function Inbox() {
+export function Inbox({ embedded = false }: { embedded?: boolean } = {}) {
   const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
-  return streamlinedUiEnabled ? <StreamlinedInbox /> : <LegacyInbox />;
+  return embedded || streamlinedUiEnabled ? <StreamlinedInbox embedded={embedded} /> : <LegacyInbox />;
 }
 
-function StreamlinedInbox() {
+function StreamlinedInbox({ embedded = false }: { embedded?: boolean }) {
   const streamlinedUiEnabled = true;
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -830,7 +830,7 @@ function StreamlinedInbox() {
   const { readItems, markRead: markItemRead, markUnread: markItemUnread } = useReadInboxItems();
   const { allCategoryFilter, allApprovalFilter, issueFilters } = filterPreferences;
 
-  const pathSegment = location.pathname.split("/").pop() ?? "mine";
+  const pathSegment = embedded ? new URLSearchParams(location.search).get("legacyTab") ?? "recent" : location.pathname.split("/").pop() ?? "mine";
   const tab: InboxTab =
     pathSegment === "mine"
     || pathSegment === "recent"
@@ -882,8 +882,8 @@ function StreamlinedInbox() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: uiText("Inbox") }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: embedded ? "工作台" : uiText("Inbox") }]);
+  }, [setBreadcrumbs, embedded]);
 
   useEffect(() => {
     saveLastInboxTab(tab);
@@ -2403,7 +2403,7 @@ function StreamlinedInbox() {
         streamlined={streamlinedUiEnabled}
         ariaLabel={uiText("Inbox controls")}
         context={(
-          <Tabs value={tab} onValueChange={(value) => navigate(`/inbox/${value}`)}>
+          <Tabs value={tab} onValueChange={(value) => { if (embedded) { const next = new URLSearchParams(location.search); next.set("tab", "notifications"); next.set("legacyTab", value); navigate(`/dashboard?${next}`, { replace: true }); } else navigate(`/inbox/${value}`); }}>
             <PageTabBar
               items={[
                 { value: "mine", label: "Mine" },

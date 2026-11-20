@@ -10,6 +10,7 @@ export const attentionApi = {
   list: (companyId: string, options: AttentionFeedQuery = {}) => {
     const params = new URLSearchParams();
     if (options.includeDismissed) params.set("includeDismissed", "true");
+    if (options.includeArchived) params.set("includeArchived", "true");
     if (options.archived) params.set("archived", "true");
     if (options.all) params.set("all", "true");
     if (options.activitySince) params.set("activitySince", options.activitySince);

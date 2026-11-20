@@ -41,6 +41,23 @@ export const deliveryTemplateStageSchema = z
     if (value.review !== "specified_user" && value.reviewerUserId)
       ctx.addIssue({ code: "custom", message: "仅指定人员审核可设置审核人" });
   });
+export const deliveryAutomaticRepairSchema = z.object({
+  mode: z.literal("reuse_existing").optional(),
+  buildObservationUrl: z.string().url().max(2000).refine(value=>{try {const u=new URL(value);return ["http:","https:"].includes(u.protocol)&&!u.username&&!u.password;}catch{return false;}}, "构建回读地址须为不含凭据的 HTTP(S) 地址"),
+  maxCycles: z.number().int().min(1).max(3),
+  jiraProjectKey: z.string().regex(/^[A-Z][A-Z0-9_]*$/).optional(),
+  defectIssueTypeId: z.string().regex(/^\d+$/).optional(),
+  fixIssueTypeId: z.string().regex(/^\d+$/).optional(),
+  reviewIssueTypeId: z.string().regex(/^\d+$/).optional(),
+  retestIssueTypeId: z.string().regex(/^\d+$/).optional(),
+  routes: z.array(z.object({
+    module: z.string().trim().min(1).max(100),
+    developmentSeatId: z.string().uuid(),
+    reviewSeatId: z.string().uuid(),
+    qaSeatId: z.string().uuid(),
+  }).strict().refine(r=>r.developmentSeatId!==r.reviewSeatId,"修复与独立评审必须使用不同席位")).min(1).max(50),
+}).strict().refine(value=>new Set(value.routes.map(r=>r.module)).size===value.routes.length,"模块路由不能重复");
+export type DeliveryAutomaticRepairPolicy = z.infer<typeof deliveryAutomaticRepairSchema>;
 export const deliveryTemplateDefinitionSchema = z
   .object({
     inheritOrganization: z.boolean().optional(),
@@ -54,11 +71,14 @@ export const deliveryTemplateDefinitionSchema = z
         "functional-test": deliveryTemplateStageSchema,
       })
       .strict(),
+    automaticRepair: deliveryAutomaticRepairSchema.optional(),
     codingExecution: z.enum(["parallel", "serial"]),
     waitingNotifications: z.boolean(),
   })
   .strict()
   .superRefine((value, ctx) => {
+    if (value.automaticRepair && (!value.stages["functional-test"].enabled || value.stages["functional-test"].workExecution === "human"))
+      ctx.addIssue({code:"custom",message:"自动修复需要启用 Agent 功能测试"});
     if (!stages.some((stage) => value.stages[stage].enabled))
       ctx.addIssue({ code: "custom", message: "至少启用一个交付阶段" });
     for (const stage of ["analysis", "functional-test"] as const)

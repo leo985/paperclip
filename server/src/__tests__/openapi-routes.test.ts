@@ -725,6 +725,14 @@ describe("openapi routes", () => {
     const spec = buildOpenApiSpec();
     expect(spec.paths["/api/companies/{companyId}/delivery-connections/test"].post).toBeDefined();
     expect(spec.paths["/api/companies/{companyId}/delivery-connections/sync"].post).toBeDefined();
+    const writeback = spec.paths["/api/companies/{companyId}/analysis-executions/{executionId}/qingzhou-writeback"].post;
+    expect(writeback.security).toEqual([{BoardSessionAuth: []}, {BoardApiKeyAuth: []}]);
+    expect(writeback.requestBody.required).toBe(true);
+    const seatAccount = spec.paths["/api/companies/{companyId}/dsp7-seats/{id}/qingzhou-account"];
+    expect(seatAccount.put.security).toEqual([{BoardSessionAuth: []}, {BoardApiKeyAuth: []}]);
+    expect(seatAccount.put.requestBody.required).toBe(true);
+    expect(seatAccount.delete.requestBody.required).toBe(true);
+    expect(spec.paths["/api/companies/{companyId}/dsp7-seats/{id}/qingzhou-account/check"].post.requestBody.required).toBe(true);
     expect(spec.paths["/api/companies/{companyId}/delivery-workflows/{workflowId}/repair"].post.requestBody.required).toBe(true);
     expect(spec.paths["/api/agents/{id}/delivery-runs/{runId}/delivery"].post.security).toEqual([{AgentBearerAuth: []}]);
     expect(spec.paths["/api/companies/{companyId}/management-follow-ups/{issueId}"].put.security).toEqual([{BoardSessionAuth: []}, {BoardApiKeyAuth: []}]);

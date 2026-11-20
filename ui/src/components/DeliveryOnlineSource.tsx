@@ -13,6 +13,7 @@ export function DeliveryOnlineSource({ companyId, projectId, onPlan, onSaved, in
   const [jiraBaseUrl, setJiraBaseUrl] = useState("");
   const [jiraToken, setJiraToken] = useState("");
   const [organizationId, setOrg] = useState("");
+  const [subProductAttribution, setSubProductAttribution] = useState("");
   const [username, setUser] = useState(""); const [password, setPassword] = useState("");
   const [showSingle, setShowSingle] = useState(!!initialDemandNo);
   const [demandNo, setDemand] = useState(initialDemandNo); const [months, setMonths] = useState(new Date().toISOString().slice(0, 7));
@@ -35,14 +36,14 @@ export function DeliveryOnlineSource({ companyId, projectId, onPlan, onSaved, in
       if(!result.items.some(item=>item.id===organizationId))setOrg(result.items.length===1?result.items[0].id:"");
     }catch(e){setOrganizationError(e instanceof Error?e.message:"组织读取失败，请重试");}finally{setOrganizationBusy(false);}
   }
-  useEffect(() => { setJiraBaseUrl(connection.data?.jiraBaseUrl ?? ""); setJiraToken(""); setOrg(connection.data?.organizationId ?? ""); setUser(""); setPassword(""); setManualOrganizations(null);setOrganizationError(""); }, [connection.data?.id, connection.data?.revision]);
+  useEffect(() => { setJiraBaseUrl(connection.data?.jiraBaseUrl ?? ""); setJiraToken(""); setOrg(connection.data?.organizationId ?? ""); setSubProductAttribution(connection.data?.subProductAttribution ?? ""); setUser(""); setPassword(""); setManualOrganizations(null);setOrganizationError(""); }, [connection.data?.id, connection.data?.revision]);
   async function act(operation: "save" | "test" | "sync") {
     setBusy(true); setError(""); setMessage("");
     try {
       if (operation === "save") {
         if(!organizationId||(!selectedOrganization&&(editingCredentials||organizationId!==connection.data?.organizationId)))throw Error("请先读取组织并选择轻舟排期组织");
         if (!!username !== !!password) throw Error("更新凭据时请同时填写账号和密码");
-        const saved = await api.put<DeliveryConnection>(base, { projectId, expectedRevision: connection.data?.revision ?? 0, jira: {baseUrl:jiraBaseUrl.trim(),...(jiraToken.trim()?{token:jiraToken.trim()}:{})}, organizationId, ...(username && password ? { credentials: { username, password } } : {}) });
+        const saved = await api.put<DeliveryConnection>(base, { projectId, expectedRevision: connection.data?.revision ?? 0, jira: {baseUrl:jiraBaseUrl.trim(),...(jiraToken.trim()?{token:jiraToken.trim()}:{})}, organizationId, subProductAttribution: subProductAttribution.trim() || null, ...(username && password ? { credentials: { username, password } } : {}) });
         setUser(""); setPassword(""); qc.setQueryData(["delivery-connection", companyId, projectId], saved); setMessage("来源配置已保存，可按月份浏览组织条目。");
         onSaved?.();
       } else {
@@ -71,8 +72,19 @@ export function DeliveryOnlineSource({ companyId, projectId, onPlan, onSaved, in
           <p className="text-xs text-muted-foreground">PAT 加密保存，不回显。变更 Jira 服务地址时需重新填写 PAT。</p>
           {connection.data?.jiraConnectionMode==="legacy_seat"&&<p className="text-sm text-muted-foreground">检测到旧席位连接。保存后会复制为项目独立凭据，不修改席位原有配置；地址未变时无需重新填写 PAT。</p>}
         </section>
-        <div className="grid gap-3 md:grid-cols-2"><label className="block space-y-2 text-sm">轻舟登录账号<input className={field} value={username} onChange={e => {setUser(e.target.value);setManualOrganizations(null);setOrganizationError("");}} autoComplete="off" /></label><label className="block space-y-2 text-sm">轻舟密码<input className={field} type="password" value={password} onChange={e => {setPassword(e.target.value);setManualOrganizations(null);setOrganizationError("");}} autoComplete="new-password" /></label></div>
-        <p className="text-sm text-muted-foreground">{connection.data?.credentialsConfigured ? "已保存加密凭据；账号和密码均留空可保留原配置。" : "首次配置需要填写轻舟账号和密码，保存后不回显。"}</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="block space-y-2 text-sm">轻舟登录账号
+            <input className={field} value={username} placeholder={connection.data?.qingzhouUsername ?? (connection.data?.credentialsConfigured ? "已配置" : undefined)} onChange={e => {setUser(e.target.value);setManualOrganizations(null);setOrganizationError("");}} autoComplete="off" />
+          </label>
+          <label className="block space-y-2 text-sm">轻舟密码
+            <input className={field} type="password" value={password} placeholder={connection.data?.credentialsConfigured ? "***" : undefined} onChange={e => {setPassword(e.target.value);setManualOrganizations(null);setOrganizationError("");}} autoComplete="new-password" />
+          </label>
+        </div>
+        <p className="text-sm text-muted-foreground">{connection.data?.credentialsConfigured ? "已保存加密凭据。要更换凭据，请同时填写账号和密码。" : "首次配置需要填写轻舟账号和密码。"}</p>
+        <section className="space-y-3" aria-label="月度条目同步范围">
+          <label className="block space-y-2 text-sm">子产品归属（按期望交付月汇总）<input aria-label="月度同步子产品归属" className={field} maxLength={100} value={subProductAttribution} onChange={e=>setSubProductAttribution(e.target.value)} placeholder="例如 DSP" /></label>
+          <p className="text-xs text-muted-foreground">填写轻舟的子产品归属代码，例如 DSP：合并该产品的本组织月度排期与本月期望交付条目，按编号去重，可按分类筛选。期望交付条目跨研发、测试组织，也包括尚未排期的条目。留空沿用单个组织月度排期。</p>
+        </section>
         <section className="space-y-3" aria-label="轻舟排期组织选择">
           <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-sm font-medium">轻舟排期组织</h3><Button type="button" variant="outline" disabled={organizationBusy||savedOrganizations.isFetching||(!connection.data?.credentialsConfigured&&(!username||!password))} onClick={()=>void readOrganizations()}>{organizationBusy||savedOrganizations.isFetching?"正在读取组织…":organizationOptions.length?"刷新组织":"读取组织"}</Button></div>
           <p className="text-xs text-muted-foreground">先填写轻舟账号密码，再读取并选择所属研发组或测试组；已有配置可直接复用保存的凭据。读取组织不会保存账号或修改来源配置。</p>
@@ -102,7 +114,7 @@ export function DeliveryOnlineSource({ companyId, projectId, onPlan, onSaved, in
           <h3 className="text-sm font-medium">补录指定条目</h3>
           <p className="text-sm text-muted-foreground">用于补录月度列表之外的已知条目，或核对跨月排期；日常浏览请使用需求条目的月度排期。</p>
         <div className="grid gap-3 md:grid-cols-2"><label className="block space-y-2 text-sm">轻舟条目号<input className={field} value={demandNo} onChange={e => setDemand(e.target.value)} placeholder="ATS3-00156" /></label><label className="block space-y-2 text-sm">排期查询范围<input className={field} value={months} onChange={e => setMonths(e.target.value)} placeholder="2026-10,2026-11" /></label></div>
-        <p className="text-sm text-muted-foreground">跨月条目可补充全部排期月份，以逗号分隔，最多 12 个月。这里只读取排期，不设置开工时间。</p>
+        <p className="text-sm text-muted-foreground">跨月条目可补充全部排期月份，以逗号分隔，最多 12 个月。配置子产品归属后会读取条目实际研发、测试组织的排期；尚未排期也可保存版本。这里只读取来源，不设置开工时间。</p>
         <div className="flex items-center justify-between"><Button variant="outline" disabled={!connection.data || !demandNo} onClick={() => void act("test")}>读取并核对</Button><Button disabled={!connection.data || !demandNo} onClick={() => void act("sync")}>同步只读版本</Button></div>
           </section>}
         </details>

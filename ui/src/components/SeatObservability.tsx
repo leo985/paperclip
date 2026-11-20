@@ -78,11 +78,11 @@ function WorkScheduleSettings({ companyId, schedule }: { companyId: string; sche
   </details>;
 }
 
-export function SeatObservability({ companyId, onSelectSeat }: { companyId: string; onSelectSeat?: (seatId: string) => void }) {
+export function SeatObservability({ companyId, onSelectSeat, active = true }: { companyId: string; onSelectSeat?: (seatId: string) => void; active?: boolean }) {
   const today = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
   const [period, setPeriod] = useState("week"), [date, setDate] = useState(today);
   const [dimension, setDimension] = useState("work"), [search, setSearch] = useState("");
-  const report = useQuery({ queryKey: ["managed-seat-report", companyId, period, date], queryFn: () => managedSessionsApi.report(companyId, period, date), refetchInterval: 30000, enabled: /^\d{4}-\d{2}-\d{2}$/.test(date) });
+  const report = useQuery({ queryKey: ["managed-seat-report", companyId, period, date], queryFn: () => managedSessionsApi.report(companyId, period, date), refetchInterval: active ? 30000 : false, enabled: active && /^\d{4}-\d{2}-\d{2}$/.test(date) });
   const data = report.data;
   const rows = data?.seats.filter(s => `${s.name} ${s.ownerName ?? "未指定"}`.toLowerCase().includes(search.toLowerCase())) ?? [];
   const onlineHint = data ? `${scheduleLabel(data.workSchedule)}；只累计截至当前、有效心跳覆盖的连接时长，心跳有效期 90 秒；不代表人员工时。` : "";

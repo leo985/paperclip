@@ -1,3 +1,4 @@
+import type { DeliveryStage } from "../delivery-workflows.js";
 import type { ExecutionProjection, ExecutionBlocker } from "./execution-projection.js";
 import type {
   IssueCommentAuthorType,
@@ -901,6 +902,8 @@ export type CompactIssue = Pick<
   | "createdAt"
   | "updatedAt"
 > & {
+  /** Explicit workflow/analysis association; empty means no known delivery stage. */
+  deliveryStages?: DeliveryStage[];
   labelIds?: string[];
   labels?: IssueLabel[];
   blockedBy?: IssueRelationIssueSummary[];

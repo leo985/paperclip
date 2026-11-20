@@ -1,0 +1,62 @@
+{
+  "release": "20261108-intake-dark-button",
+  "status": "deployed",
+  "timestamp": "2026-11-08T02:01:01.024818+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-b78c3b12.js",
+  "uiModule": "DeliveryEntries-0e14baae.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/intake-dark-button-20261108/backup-20261108T020041Z",
+  "serverRestarted": false,
+  "service": "MainPID=65004\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/DeliveryEntryStages.tsx": "86b6ee360c6c7d095135b3c70214e0151bfee70d4ea5eb151432abb554515244"
+  },
+  "verification": {
+    "linkedModules": 676,
+    "change": {
+      "scope": "intake row button only",
+      "before": "outline",
+      "after": "cta",
+      "productionBytesChanged": 4
+    }
+  },
+  "browser-verification": {
+    "label": "接入平台",
+    "variant": "cta",
+    "background": "oklch(0.145 0 0)",
+    "color": "oklch(1 0 0)",
+    "className": "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-(--tp-color-background-color-border-color-box-shadow-opacity) disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-(length:--rad-3) aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-foreground text-background hover:bg-foreground/90 h-10 px-4 py-2 has-[>svg]:px-3",
+    "theme": "",
+    "entry": "http://10.60.43.53:3100/assets/index-b78c3b12.js"
+  },
+  "external-verification": {
+    "verified": [
+      "index.html",
+      "sw.js",
+      "assets/DeliveryEntries-0e14baae.js"
+    ],
+    "failures": []
+  }
+}

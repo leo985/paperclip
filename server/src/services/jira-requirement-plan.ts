@@ -22,6 +22,13 @@ export function jiraPerson(value: any): RequirementItem["assignee"] {
   const login = value?.name ?? value?.accountId;
   return typeof login === "string" && login ? { login, name: String(value.displayName ?? login), email: typeof value.emailAddress === "string" ? value.emailAddress : null } : null;
 }
+export function jiraRequirementOwner(value: unknown): RequirementItem["assignee"] {
+  const owners = Array.isArray(value) ? value : [value];
+  return owners.length === 1 ? jiraPerson(owners[0]) : null;
+}
+export function jiraRequirementOwnerField() {
+  return process.env.PAPERCLIP_JIRA_REQUIREMENT_OWNER_FIELD ?? "customfield_14702";
+}
 export function normalizeRequirement(parent: any, children: any[], ownerField = "customfield_14702") {
   if (!parent?.key || parent.fields?.issuetype?.subtask !== false || !Array.isArray(parent.fields?.subtasks) || !parent.fields.subtasks.length) throw new Error("请选择具有真实子任务的 Jira 主需求");
   const keys = new Set(parent.fields.subtasks.map((item: any) => item.key));
@@ -32,8 +39,7 @@ export function normalizeRequirement(parent: any, children: any[], ownerField = 
     const route = (Object.hasOwn(requirementRoutes, fields.issuetype.name) ? requirementRoutes[fields.issuetype.name] : undefined) ?? { mode: "unmapped" as const, skill: null, note: "未配置执行映射，只纳管，不自动执行" };
     return { key: child.key, summary: String(fields.summary ?? ""), issueType: fields.issuetype.name, status: String(fields.status?.name ?? "未知"), done: fields.status?.statusCategory?.key === "done", assignee: jiraPerson(fields.assignee), ...route };
   }).sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
-  const owners = Array.isArray(parent.fields[ownerField]) ? parent.fields[ownerField] : [parent.fields[ownerField]];
-  const owner = owners.length === 1 ? jiraPerson(owners[0]) : null;
+  const owner = jiraRequirementOwner(parent.fields[ownerField]);
   const snapshot = { key: parent.key as string, summary: String(parent.fields.summary ?? ""), status: String(parent.fields.status?.name ?? "未知"), done: parent.fields.status?.statusCategory?.key === "done", owner, ownerField, children: items };
   return { ...snapshot, fingerprint: createHash("sha256").update(JSON.stringify(snapshot)).digest("hex") };
 }

@@ -1,0 +1,190 @@
+{
+  "release": "20261112-qingzhou-review-loop",
+  "status": "deployed",
+  "deployedAt": "2026-11-12T13:05:28.924536+00:00",
+  "backup": "/home/fg/paperclip/private/qingzhou-loop-20261112/backup",
+  "uiModule": "AnalysisQingzhou-d7626f9b.js",
+  "importsVerified": 7716,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-12T13:04:32.433Z",
+    "completedAt": "2026-11-12T13:05:27.275Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 1703511,
+    "newServerPid": 1868726,
+    "previousServerVersion": "2026.1001.0",
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [
+      "83614a9e-95e1-43af-8fe6-7dd684013ef4"
+    ],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": [
+      {
+        "runId": "83614a9e-95e1-43af-8fe6-7dd684013ef4",
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "agentId": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+        "adapterType": "claude_local",
+        "status": "cancelled",
+        "processPid": null,
+        "processGroupId": null,
+        "issueId": "213d6ba8-9de4-4576-a981-61393d318608",
+        "runtimeMode": "legacy",
+        "nativeSessionId": null,
+        "runnerInstanceId": null,
+        "processStartedAt": null,
+        "classification": "finalized_while_down",
+        "reason": "run_status_cancelled"
+      }
+    ]
+  },
+  "preflightRunIds": [
+    "83614a9e-95e1-43af-8fe6-7dd684013ef4"
+  ],
+  "migrations": [],
+  "clientChanged": false,
+  "filesVerifiedOnServer": 175,
+  "httpVerification": {
+    "filesVerified": 173,
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "anonymousTaskStatus": 403
+  },
+  "finalTask": {
+    "task": [
+      {
+        "id": "213d6ba8-9de4-4576-a981-61393d318608",
+        "state": "running",
+        "active_run_id": "14e772db-bb20-4ae3-ab8d-dfa198a6334b",
+        "phase": "P3",
+        "materials_run_id": "14e772db-bb20-4ae3-ab8d-dfa198a6334b",
+        "materials_input": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6",
+        "document_count": 3,
+        "evidence_count": 28
+      }
+    ],
+    "decisions": [
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "open",
+        "run_id": "14e772db-bb20-4ae3-ab8d-dfa198a6334b",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      },
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "stale",
+        "run_id": "83614a9e-95e1-43af-8fe6-7dd684013ef4",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      },
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "stale",
+        "run_id": "e109a5b1-3a8e-4a07-8b2a-1ead0d06527f",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      }
+    ],
+    "seat": [
+      {
+        "version": "cf5a58d29584d8a1d3088f4538477fc8dd913aead256c8f4b2f7e906068298df"
+      }
+    ]
+  },
+  "sourceReadOnlyCheck": {
+    "checkedAt": "2026-11-12T13:07:55.546Z",
+    "demandNo": "TWGF-00919",
+    "reviewerConfigured": true,
+    "reviewerDistinctFromAnalyst": true,
+    "sourceState": 3,
+    "sourceStateLabel": "待需求分析",
+    "submitReviewTime": null,
+    "analysisContentCharacters": 757,
+    "reviewStages": [
+      {
+        "role": "需求分析人员",
+        "status": 1
+      },
+      {
+        "role": "需求评审人员",
+        "status": 0
+      },
+      {
+        "role": "项目经理验收",
+        "status": 0
+      },
+      {
+        "role": "需求拆分人员",
+        "status": 0
+      },
+      {
+        "role": "创建人",
+        "status": 1
+      },
+      {
+        "role": "项目经理审核",
+        "status": 1
+      }
+    ],
+    "platformState": "running",
+    "localDelivery": false,
+    "writebackStatus": "pending"
+  },
+  "activeRunsAfterRecovery": [
+    {
+      "id": "14e772db-bb20-4ae3-ab8d-dfa198a6334b",
+      "agent_id": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+      "status": "running",
+      "started_at": "2026-11-12T13:07:05.601Z",
+      "updated_at": "2026-11-12T13:07:17.043Z",
+      "task_id": "213d6ba8-9de4-4576-a981-61393d318608",
+      "transport": "outbound",
+      "seat_state": "busy",
+      "last_seen": "2026-11-12T13:07:35.205Z",
+      "error_code": null
+    }
+  ],
+  "verification": {
+    "databaseWritebackTests": 13,
+    "httpLifecycleAndUiTests": 25,
+    "serverTsc": "passed",
+    "uiTypecheck": "passed",
+    "sharedBuild": "passed",
+    "tokenGates": "passed",
+    "fullServerTypecheckCommand": "blocked by missing cargo in runner prerequisite; direct server tsc --noEmit passed",
+    "additionalRouteTests": "2 failures before reaching writeback: by-task and dispatch returned 404; corresponding routes not modified",
+    "browser": "not visually verified",
+    "fullRepoTestsAndBuild": "not run"
+  },
+  "businessAcceptance": "TWGF-00919 remains awaiting human P3 approval; no source write or review submission performed during deployment",
+  "recovery": "Old outbound run ended during restart despite empty lostRunIds; complete process-tree exit and permit revocation verified, then restored same task and re-uploaded unchanged version-bound review materials."
+}

@@ -1,0 +1,156 @@
+{
+  "release": "seat-capability-bootstrap-20261116",
+  "deployedAt": "2026-11-16T10:54:03.642480+00:00",
+  "target": "http://10.60.43.53:3100",
+  "status": "deployed",
+  "filesVerified": 518,
+  "newAssets": 512,
+  "bridgeSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+  "backup": "/home/fg/paperclip/private/seat-capability-bootstrap-20261116/backup",
+  "databaseMigration": false,
+  "envUnchanged": true,
+  "backendPid": 817814,
+  "backendProcessStart": 1794826220.1,
+  "routeInstalledAt": 1794826184.5157464,
+  "backendLoadedAfterInstall": true,
+  "serverRestartedByThisTask": false,
+  "health": "ok",
+  "verification": {
+    "clientTestsPassed": 69,
+    "serverTestsPassed": 11,
+    "candidateRouteTestsPassed": 11,
+    "directServerTypecheck": "passed",
+    "tokenGates": "passed",
+    "externalHttpFilesVerified": 517,
+    "fullRepoChecks": "not run; standard server typecheck preparation blocked by missing cargo"
+  },
+  "seatRollout": {
+    "checkedAt": "2026-11-16T10:57:54.894Z",
+    "rows": [
+      {
+        "id": "e57cf373-83a0-4500-9ea0-6155eaaabf48",
+        "name": "肖玉平",
+        "online": true,
+        "upgrade": {
+          "status": "queued",
+          "message": "管理员已下发，等待电脑连接并空闲后升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:31.750Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "33492334-3570-4379-965c-9b9f0a6a665c",
+        "name": "刘小波",
+        "online": true,
+        "upgrade": {
+          "status": "queued",
+          "message": "管理员已下发，等待电脑连接并空闲后升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:31.825Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "13ffd1f3-b3b8-4cfa-9268-65c7c4160c14",
+        "name": "朱闪闪",
+        "online": true,
+        "upgrade": {
+          "status": "queued",
+          "message": "管理员已下发，等待电脑连接并空闲后升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:31.947Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "96c14f36-2b01-44ff-8695-12b5bf140b56",
+        "name": "陈超",
+        "online": true,
+        "upgrade": {
+          "status": "queued",
+          "message": "管理员已下发，等待电脑连接并空闲后升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:31.524Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "0fb76a79-7810-43f8-966e-b115fe2bc696",
+        "name": "乐夏光",
+        "online": false,
+        "upgrade": null,
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "7748c5d5-7b47-4526-b5c1-a4a20cab59f8",
+        "name": "詹浩",
+        "online": false,
+        "upgrade": {
+          "status": "queued",
+          "message": "管理员已下发，等待电脑连接并空闲后升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:31.882Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "b202796e-689f-4883-908c-d1499ddb796e",
+        "name": "范天星",
+        "online": true,
+        "upgrade": {
+          "status": "claimed",
+          "message": "本机已领取，正在核验空闲并升级",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:32.014Z"
+        },
+        "revision": 0,
+        "development": []
+      },
+      {
+        "id": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+        "name": "李巍",
+        "online": true,
+        "upgrade": {
+          "status": "succeeded",
+          "message": "服务器已收到目标版本的新心跳",
+          "targetSha256": "a14d2db185bb1b80844f63b5a5809dfb8a4d99209bf616ef73fa0654515475d4",
+          "expiresAt": "2026-11-17T10:54:32.082Z"
+        },
+        "revision": 5,
+        "development": [
+          {
+            "roles": [
+              "bug-fix",
+              "code-review",
+              "coding",
+              "system-design"
+            ],
+            "checkedAt": "2026-11-16T10:55:49.769Z"
+          }
+        ]
+      }
+    ]
+  },
+  "preflight": {
+    "activeBefore": [],
+    "backupFile": "/home/fg/paperclip/private/seat-capability-bootstrap-20261116/backup/pre-seat-capability-20261116-104923.sql.gz",
+    "sizeBytes": 15520746,
+    "routeInstalled": true,
+    "routeSha256": "32a587135d715c1729a84f0b7c360fa7cb2888a3644837764142e75a53d31a61",
+    "uiUnchanged": true,
+    "clientsUnchanged": true
+  },
+  "scope": [
+    "Default development first enrollment during setup",
+    "Idle backfill for existing seats after client upgrade",
+    "Machine/runtime-root/revision/activity guards",
+    "Clarified directory versus capability UI copy"
+  ]
+}

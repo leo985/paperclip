@@ -1,6 +1,7 @@
 """Idle-only, version-directory upgrades for existing personal seats."""
 from __future__ import annotations
 import contextlib
+import base64
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,20 @@ import plistlib
 import subprocess
 import sys
 import time
+
+
+def windows_launcher_read(path):
+    from platform_support import powershell
+    result=powershell("$ErrorActionPreference='Stop';$p=$env:PAPERCLIP_LAUNCHER_PATH;if(Test-Path -LiteralPath $p){[Convert]::ToBase64String([IO.File]::ReadAllBytes($p))}else{'ABSENT'}",env=dict(os.environ,PAPERCLIP_LAUNCHER_PATH=str(path)))
+    value=result.stdout.strip()
+    return None if value=='ABSENT' else base64.b64decode(value,validate=True)
+
+
+def windows_launcher_restore(path,data):
+    from platform_support import powershell
+    env=dict(os.environ,PAPERCLIP_LAUNCHER_PATH=str(path),PAPERCLIP_LAUNCHER_DATA='ABSENT' if data is None else base64.b64encode(data).decode('ascii'))
+    powershell("$ErrorActionPreference='Stop';$p=$env:PAPERCLIP_LAUNCHER_PATH;if($env:PAPERCLIP_LAUNCHER_DATA -eq 'ABSENT'){if(Test-Path -LiteralPath $p){Remove-Item -LiteralPath $p}}else{[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($p))|Out-Null;[IO.File]::WriteAllBytes($p,[Convert]::FromBase64String($env:PAPERCLIP_LAUNCHER_DATA))}",env=env)
+    if windows_launcher_read(path)!=data:raise RuntimeError('Windows 命令入口回滚核验失败')
 
 
 def service_file():
@@ -63,9 +78,10 @@ def upgrade_step(stage):
         raise upgrade_subprocess_error(stage,error) from None
 
 
-def assert_idle(b):
+def assert_idle(b, api=None):
     from pilot import ACTIVE, rows, processes_for_run, read_json
-    runs=rows(b.pc.request('GET','/companies/'+b.cfg['company_id']+'/heartbeat-runs?agentId='+b.cfg['agent_id']+'&limit=1000'))
+    api=b.pc if api is None else api
+    runs=rows(api.request('GET','/companies/'+b.cfg['company_id']+'/heartbeat-runs?agentId='+b.cfg['agent_id']+'&limit=1000'))
     if any(r.get('agentId')==b.cfg['agent_id'] and r.get('status') in ACTIVE for r in runs):
         raise RuntimeError('席位有执行中、已排队或等待响应的运行。请待任务结束后重新更新；不会终止 Claude。')
     run_ids={str(r[0]) for r in b.db.execute('SELECT run_id FROM runs')}
@@ -81,7 +97,7 @@ def assert_idle(b):
     intent=Path(b.cfg['database']).parent/'interactive/intents'
     if any(not read_json(p).get('consumed_run_id') and time.time()-p.stat().st_mtime<180 for p in intent.glob('*.json')):
         raise RuntimeError('本机刚收到启动请求，请稍后确认任务状态再更新。')
-    agent=b.pc.request('GET','/agents/'+b.cfg['agent_id'])
+    agent=api.request('GET','/agents/'+b.cfg['agent_id'])
     if agent.get('status')=='running':raise RuntimeError('服务端仍标记席位正在运行，请待运行结束后更新。')
     presence=(agent.get('adapterConfig') or {}).get('dsp7SeatPresence') or {}
     from datetime import datetime, timezone
@@ -164,7 +180,8 @@ def upgrade(config, root, old_bridge, new_bridge, *, install_cli, no_service=Fal
             else:print('服务端已使用本机主动连接，将同步本机旧标记。')
         with upgrade_step('核验本机空闲状态'):assert_idle(b)
         if not recovering and not migration_id and old_bridge.resolve()==new_bridge.resolve() and b.cfg.get('execution_transport')=='outbound':
-            print('本机已是网站当前版本，无需更新。');return
+            install_cli(root,new_bridge,previous_bridge=old_bridge)
+            print('本机已是网站当前版本，命令入口已重新核验。');return
         file=service_file();service_exists=False
         if not no_service:
             if sys.platform=='win32':
@@ -179,11 +196,14 @@ def upgrade(config, root, old_bridge, new_bridge, *, install_cli, no_service=Fal
                 else:known=any(str(candidate/'pilot.py') in text and ' watch' in text for candidate in candidates)
                 if not known:raise RuntimeError('后台服务不是原接入桥管理的服务，请人工核对；未覆盖。')
                 service_exists=True
+        launcher_path=None
         paths=[config]
         if not service_suffix():paths.append(root/'.harness-local.json')
         if file and not no_service:paths.append(file)
         if sys.platform!='win32':paths.append(Path.home()/'.local/bin'/cli_name())
-        else:paths.append(Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ZhiyanSeat'/'bin'/(cli_name()+'.cmd'))
+        else:
+            launcher_path=Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ZhiyanSeat'/'bin'/(cli_name()+'.cmd')
+            paths.append(launcher_path)
         if recovering:
             backup=Path(pending['backup'])
             saved=read_json(backup/'files.json')
@@ -194,8 +214,8 @@ def upgrade(config, root, old_bridge, new_bridge, *, install_cli, no_service=Fal
         else:
             backup=private_directory(config.parent/'upgrade-backups'/(time.strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:8]))
             links={p:os.readlink(p) for p in paths if p.is_symlink()}
-            originals={p:(p.read_bytes() if p.exists() else None) for p in paths}
-            modes={p:p.stat().st_mode & 0o777 for p in paths if p.exists()}
+            originals={p:(windows_launcher_read(p) if p==launcher_path else p.read_bytes() if p.exists() else None) for p in paths}
+            modes={p:(0o600 if p==launcher_path else p.stat().st_mode & 0o777) for p in paths if originals[p] is not None}
             atomic_json(backup/'links.json',{str(p):target for p,target in links.items()})
             atomic_json(backup/'modes.json',{str(p):mode for p,mode in modes.items()})
             for i,(p,data) in enumerate(originals.items()):
@@ -282,7 +302,8 @@ def upgrade(config, root, old_bridge, new_bridge, *, install_cli, no_service=Fal
                         keep_marker=True
                         raise RuntimeError('新版接入服务停止失败，已保留备份与恢复记录，请管理员核对；未启动旧服务。') from None
                 for p,data in originals.items():
-                    if p in links:
+                    if p==launcher_path:windows_launcher_restore(p,data)
+                    elif p in links:
                         temporary=p.with_name(p.name+'.upgrade-restore');temporary.unlink(missing_ok=True);temporary.symlink_to(links[p]);os.replace(temporary,p)
                     elif data is None:p.unlink(missing_ok=True)
                     else:

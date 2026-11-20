@@ -1,0 +1,56 @@
+{
+  "release": "20261109-seat-owner-display",
+  "status": "deployed",
+  "timestamp": "2026-11-09T03:43:50.146554+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-88772b6e.js",
+  "uiModule": "Seats-e0da4d76.js",
+  "filesVerified": 328,
+  "backup": "/home/fg/paperclip/private/seat-owner-display-20261109/backup-20261109T034319Z",
+  "serverRestarted": false,
+  "service": "MainPID=65004\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/SeatOwnerSelect.tsx": "3c10096f20ef50252030811846f3840e89e54d8fb9b16c9f9af2a948c4353d2c",
+    "ui/src/pages/Seats.tsx": "fe94713423930071dc72916be1ae0ee881d4fdbf28fbee34201d8830a7575302",
+    "ui/src/lib/seat-owner-display.ts": "eea54a0bef7699f5dad1a633f0469b6a56e5b97109e4d7d8d8bda7f654c42861"
+  },
+  "verification": {
+    "linkedModules": 673,
+    "scope": "seat owner display only"
+  },
+  "localValidation": {
+    "uiTypecheck": "passed",
+    "uiViteBuild": "passed",
+    "searchableSelectTests": 7,
+    "tokenGates": "passed"
+  },
+  "browserVerification": {
+    "status": "unavailable",
+    "reason": "Ego Lite failed to start; Computer Use service could not start and auth token unavailable"
+  },
+  "externalVerification": {
+    "verified": 328,
+    "failures": []
+  }
+}

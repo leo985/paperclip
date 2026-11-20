@@ -22,6 +22,15 @@ function response(text: string): Row {
   return value;
 }
 const text = (value: unknown): string => typeof value === "string" ? value.slice(0, 500) : "";
+export const isCancelledJiraDeliveryStatus = (status: string) => /作废|取消|^cancel(?:led|ed)$|^void(?:ed)?$/i.test(status.trim());
+const completeJiraStatuses = new Set(["已完成", "完成", "已关闭", "关闭", "已发版", "已发布", "已验收", "done", "closed", "resolved", "released", "accepted"]);
+export const isCompletedJiraDeliveryStatus = (status: string) => completeJiraStatuses.has(status.trim().toLowerCase());
+function calendarDate(value: unknown): string | null {
+  const day = text(value).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const date = new Date(day + "T00:00:00Z");
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day ? day : null;
+}
 const id = (value: unknown): string => {
   if (typeof value !== "string" || !/^\d{1,30}$/.test(value)) throw badRequest("来源编号缺失或不完整，请使用原始 JSON 快照");
   return value;
@@ -73,7 +82,8 @@ function normalize(input: DeliverySnapshotInput, sourceMode: DeliveryPlan["sourc
     jiraRows.set(k,r);
   }
   for (const k of mainKeys) if (!jiraRows.has(k) || jiraRows.get(k)!.fields.issuetype.subtask !== false) throw badRequest("Jira 快照缺少有效主工单 " + k);
-  const scheduled = new Map<string, { parentKey: string; digest: string }>();
+  const scheduled = new Map<string, { parentKey: string; digest: string; dueDate: string | null }>();
+  const mainDeadlines = new Map<string, Set<string>>();
   const differences: DeliveryPlan["differences"] = [];
   for (const raw of input.scheduleJsons) {
     const data = response(raw).data;
@@ -83,6 +93,12 @@ function normalize(input: DeliverySnapshotInput, sourceMode: DeliveryPlan["sourc
     for (const main of roots[0].children ?? []) {
       const k = key(main.issueNo); const mapped = mains.find((m: Row) => m.key === k);
       if (!mapped || id(main.urid) !== mapped.sourceId || main.parentId !== demandId) throw badRequest("排期主工单业务编号不匹配");
+      const mainEnd = calendarDate(main.preEndDate);
+      if (mainEnd) {
+        const dates = mainDeadlines.get(k) ?? new Set<string>();
+        dates.add(mainEnd);
+        mainDeadlines.set(k, dates);
+      }
       const issueUrid = id(main.issueUrid);
       if (main.children !== null && !Array.isArray(main.children)) throw badRequest("排期主工单缺少子工单数组");
       for (const child of main.children ?? []) {
@@ -94,7 +110,7 @@ function normalize(input: DeliverySnapshotInput, sourceMode: DeliveryPlan["sourc
         const digest = JSON.stringify([child.urid, child.parentId, child.status, child.assigneeId, child.preStartDate, child.preEndDate]);
         const prior = scheduled.get(ck);
         if (prior && (prior.parentKey !== k || prior.digest !== digest)) throw badRequest("跨排期上下文内容冲突，请先核对 " + ck);
-        scheduled.set(ck,{parentKey:k,digest});
+        scheduled.set(ck,{parentKey:k,digest,dueDate:calendarDate(child.preEndDate)});
       }
     }
   }
@@ -116,7 +132,25 @@ function normalize(input: DeliverySnapshotInput, sourceMode: DeliveryPlan["sourc
   const content = {demandId,demandNo:input.demandNo,title:text(demand.theme),status:text(demand.demandState_show),...(sourceAnalysis ? {sourceAnalysis} : {}),roles:[{label:"需求分析",name:text(demand.requirementer_show)},{label:"条目研发负责人",name:text(demand.splitter_show)},{label:"需求评审",name:text(demand.reviewer_show)},{label:"条目当前经办人",name:text(demand.assignee_show)}],mains,items,scheduleCount:scheduled.size,differences,sourceMode,executionAllowed:false as const};
   // Raw digests retain provenance for source fields not rendered by this read model.
   const sourceDigests = [input.demandJson,input.analysisJson,...(input.detailJson === undefined ? [] : [input.detailJson]),input.jiraJson,...input.scheduleJsons].map(v=>createHash("sha256").update(v).digest("hex")).sort();
-  return {...content,fingerprint:createHash("sha256").update(JSON.stringify([content,sourceDigests])).digest("hex")};
+  const monthlyChildIssues: NonNullable<DeliveryPlan["monthlyChildIssues"]> = { issues: {} };
+  const demandEnd = calendarDate(demand.estimatedDeliveryDate);
+  for (const item of items) {
+    if (!item.parentKey) continue;
+    const fields = jiraRows.get(item.key)!.fields;
+    const dates = mainDeadlines.get(item.parentKey);
+    const mainEnd = dates?.size === 1 ? [...dates][0] : null;
+    const childSchedule = scheduled.get(item.key);
+    const childEnd = childSchedule?.parentKey === item.parentKey ? childSchedule.dueDate : null;
+    const fallback = (dates?.size ?? 0) > 1 ? null : demandEnd;
+    monthlyChildIssues.issues[item.key] = {
+      dueDate: childEnd ?? mainEnd ?? fallback,
+      deadlineSource: childEnd ? "child" : mainEnd ? "main" : fallback ? "demand" : null,
+      account: text(fields.assignee?.name ?? fields.assignee?.accountId),
+      cancelled: isCancelledJiraDeliveryStatus(item.status),
+      done: fields.status.statusCategory?.key === "done" || isCompletedJiraDeliveryStatus(item.status),
+    };
+  }
+  return {...content,monthlyChildIssues,fingerprint:createHash("sha256").update(JSON.stringify([content,sourceDigests])).digest("hex")};
 }
 
 export function normalizeDeliverySnapshot(input: DeliverySnapshotInput, sourceMode: DeliveryPlan["sourceMode"] = "manual_snapshot"): DeliveryPlan {

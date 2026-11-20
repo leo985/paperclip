@@ -1,5 +1,4 @@
 import { useManagementAccess } from "@/hooks/useManagementAccess";
-import { CollaborationWorkbench } from "../components/CollaborationWorkbench";
 import { uiTextFormat,  uiText } from "@/i18n/interface";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -114,7 +113,7 @@ export function Dashboard() {
   // Organization setup remains available without forcing an agent wizard.
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "我的工作台" }]);
+    setBreadcrumbs([{ label: "工作台" }]);
   }, [setBreadcrumbs]);
 
   const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
@@ -281,7 +280,6 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <CollaborationWorkbench key={selectedCompanyId} projects={projects} projectsError={projectsError} companyId={selectedCompanyId} issues={issues} issuesError={issuesError} pendingApprovals={data ? data.pendingApprovals + data.budgets.pendingApprovals : undefined} />
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {pausedBanner?.kind === "imported" ? (

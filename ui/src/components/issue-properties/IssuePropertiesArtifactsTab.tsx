@@ -356,15 +356,16 @@ function DocumentRow({
  * thread.
  */
 export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDocument }: IssuePropertiesArtifactsTabProps) {
-  const { data: attachments } = useQuery({
+  const attachmentsQuery = useQuery({
     queryKey: queryKeys.issues.attachments(issue.id),
     queryFn: () => issuesApi.listAttachments(issue.id),
   });
-  const { data: workProducts } = useQuery({
+  const workProductsQuery = useQuery({
     queryKey: queryKeys.issues.workProducts(issue.id),
     queryFn: () => issuesApi.listWorkProducts(issue.id),
   });
-  const { data: documents } = useIssueDocuments(issue.id);
+  const documentsQuery = useIssueDocuments(issue.id);
+  const attachments = attachmentsQuery.data, workProducts = workProductsQuery.data, documents = documentsQuery.data;
   const { data: runs } = useQuery({
     queryKey: queryKeys.issues.runs(issue.id),
     queryFn: () => activityApi.runsForIssue(issue.id),
@@ -428,6 +429,12 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink, onOpenDoc
     }))
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
+  const materialError = attachmentsQuery.error ?? workProductsQuery.error ?? documentsQuery.error;
+  const materialPending = attachmentsQuery.isPending || workProductsQuery.isPending || documentsQuery.isPending;
+  if (materialError) {
+    return <div role="alert" className="space-y-2 text-sm text-destructive"><p>交付材料读取失败：{materialError.message}。请重试，不能据此判断暂无成果。</p><button className="underline" onClick={() => { void attachmentsQuery.refetch(); void workProductsQuery.refetch(); void documentsQuery.refetch(); }}>重新读取交付材料</button></div>;
+  }
+  if (materialPending) return <p role="status" className="text-sm text-muted-foreground">正在读取交付材料…</p>;
   if (workProductRows.length === 0 && documentRows.length === 0 && fileRows.length === 0) {
     return (
       <div className="px-1 py-6 text-sm text-muted-foreground">{uiText("No artifacts yet. Work products, documents, and agent-produced files will appear here.")}{" "}</div>

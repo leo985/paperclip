@@ -1,0 +1,73 @@
+{
+  "release": "20261107-seat-consistency",
+  "target": "http://10.60.43.53:3100",
+  "status": "deployed",
+  "timestamp": "20261106T173307Z",
+  "backup": "/home/fg/paperclip/private/seat-consistency-20261107/backup-20261106T173307Z",
+  "files": 4,
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "uiUnchanged": true,
+  "envUnchanged": true,
+  "anonymousCompaniesStatus": 403,
+  "sourceHashes": {
+    "server/src/services/seat-presentation.ts": "fdc809c581d939db6f7fb80712afcb565204dc9e43f2d0b8e648d491e52625e1",
+    "server/src/routes/analysis-executions.ts": "32e90d7a6a5a7ce9b6ea7532eb9394c0f3c1729921d9176f028439edb906ff88",
+    "server/src/routes/analysis-executions.test.ts": "84440e8d98b9e4d45fb68f978b321c830bfefd5159608560d7acac3f45c260ac",
+    "server/src/routes/dsp7-seat-control.ts": "fa9951aa5abcc64856fda68a9d130678ad8fefcd3cc70bbb72ebd6d63e421670",
+    "server/src/routes/dsp7-seats.ts": "c4043c2e144011559c4b1aab5d26f22c361c1e1b02c746131a6d130ffa3021c8"
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "activeBefore": [],
+  "activeAfter": [],
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-06T17:33:07.716Z",
+    "completedAt": "2026-11-06T17:33:40.072Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 64342,
+    "newServerPid": 65004,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "bridgeManifestSha256": "b2963cb889d5dd5a7cc5e6ad44568642d0545ac2d1f0b6072ad3d412d75784bc",
+  "durationSeconds": 36.2,
+  "browserVerification": {
+    "managedCount": 7,
+    "analysisCount": 7,
+    "differences": [],
+    "renamedSeat": "郑华亮的",
+    "dropdown": {
+      "status": "passed",
+      "count": 7,
+      "renamedSeatVisible": true,
+      "oldNameAbsent": true
+    }
+  },
+  "regressionTests": {
+    "passed": 8,
+    "files": 2
+  },
+  "serverTypeScript": "passed before release",
+  "firstAttempt": "rolled back before replacing files: embedded database unavailable to post-stop inspector"
+}

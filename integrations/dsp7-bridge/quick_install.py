@@ -2,6 +2,7 @@
 """Single-command personal seat installer. Standard library; no model/Jira keys uploaded."""
 from __future__ import annotations
 import argparse
+import base64
 from contextlib import contextmanager
 import hashlib
 import importlib.util
@@ -20,7 +21,7 @@ import urllib.parse
 import uuid
 import zipfile
 
-FILES={'device_upgrade.py','seat_remote_upgrade.py','seat_watchdog.py','install_watchdog.py','seat_launch_options.py','seat_profiles.py','harness_repositories.py','delivery_execution.py','harness_routing.py','process_tree.py','harness_launch.py','service_status.py','mac_notifications.py','command_receiver.py','terminal_display.py','seat_lifecycle.py','seat_upgrade.py','jira_workload.py','phase_gate.py','quality_collection.py','managed_sessions.py','session_hook.py','jira_dispatch.py','pilot.py','seats.py','seat_control.py','onboard.py','interactive.py','interactive_wait.py','jira_intake.py','claude-interactive-wrapper','install_launchagent.py','config.example.json','README.md','outbound.py','quick_install.py','install_service.py','platform_support.py','windows_terminal.py','watch_windows.py','harness_entry.py','harness_capabilities.py','analysis_runtime.py','analysis_execution.py','execution_permit.py','install_windows.ps1'}
+FILES={'analysis_qingzhou.py','heartbeat_health.py','harness_auto_registration.py','device_upgrade.py','seat_remote_upgrade.py','seat_watchdog.py','install_watchdog.py','seat_launch_options.py','seat_profiles.py','harness_repositories.py','delivery_execution.py','harness_routing.py','process_tree.py','harness_launch.py','service_status.py','mac_notifications.py','command_receiver.py','terminal_display.py','seat_lifecycle.py','seat_upgrade.py','jira_workload.py','phase_gate.py','quality_collection.py','managed_sessions.py','session_hook.py','jira_dispatch.py','pilot.py','seats.py','seat_control.py','onboard.py','interactive.py','interactive_wait.py','jira_intake.py','claude-interactive-wrapper','install_launchagent.py','config.example.json','README.md','outbound.py','quick_install.py','install_service.py','platform_support.py','windows_terminal.py','watch_windows.py','harness_entry.py','harness_capabilities.py','analysis_runtime.py','analysis_execution.py','execution_permit.py','install_windows.ps1'}
 
 
 @contextmanager
@@ -215,6 +216,85 @@ def installation_error(error):
         return message
     return '接入未完成（'+type(error).__name__+'）。请核对本机配置，已有席位配置保留。'
 
+WINDOWS_INSTALL_CLI = r"""
+$ErrorActionPreference='Stop';
+$stage='FILES';
+try {
+$entry=$env:PAPERCLIP_SEAT_ENTRY;
+$bytes=[Convert]::FromBase64String($env:PAPERCLIP_SEAT_LAUNCHER);
+$old=[Convert]::FromBase64String($env:PAPERCLIP_SEAT_PREVIOUS);
+if(-not (Test-Path -LiteralPath $env:PAPERCLIP_SEAT_PYTHON -PathType Leaf) -or
+   -not (Test-Path -LiteralPath $env:PAPERCLIP_SEAT_SCRIPT -PathType Leaf)){
+    throw 'Seat Python or harness_entry.py is missing'
+};
+$stage='OWNERSHIP';
+if(Test-Path -LiteralPath $entry){
+    $existing=[Convert]::ToBase64String([IO.File]::ReadAllBytes($entry));
+    if($existing -ne [Convert]::ToBase64String($bytes) -and $existing -ne [Convert]::ToBase64String($old)){
+        throw 'Refusing to overwrite an unmanaged seat command'
+    }
+};
+$stage='WRITE';
+[IO.Directory]::CreateDirectory($env:PAPERCLIP_SEAT_BIN) | Out-Null;
+[IO.File]::WriteAllBytes($entry,$bytes);
+if([Convert]::ToBase64String([IO.File]::ReadAllBytes($entry)) -ne $env:PAPERCLIP_SEAT_LAUNCHER){
+    throw 'Seat command readback mismatch'
+};
+# Environment.SetEnvironmentVariable(..., 'User') synchronously broadcasts to
+# every desktop window and can exceed 30 seconds. Commit the raw registry value
+# without broadcasting; preserve expandable references and the existing type.
+$stage='PATH';
+$key=[Microsoft.Win32.Registry]::CurrentUser.CreateSubKey('Environment');
+try {
+    $p=[string]$key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames);
+    if($env:PAPERCLIP_SEAT_BIN -notin ($p -split ';')){
+        $kind=[Microsoft.Win32.RegistryValueKind]::ExpandString;
+        if($key.GetValueNames() -contains 'Path'){$kind=$key.GetValueKind('Path')};
+        $key.SetValue('Path',($p.TrimEnd(';')+';'+$env:PAPERCLIP_SEAT_BIN).TrimStart(';'),$kind)
+    };
+    $saved=[string]$key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames);
+    if($env:PAPERCLIP_SEAT_BIN -notin ($saved -split ';')){throw 'User PATH verification failed'}
+} finally {$key.Dispose()};
+# This child cannot update the parent terminal. Verify discovery locally and
+# print the absolute invocation for that still-open terminal.
+$env:Path=$env:PAPERCLIP_SEAT_BIN+';'+$env:Path;
+$stage='DISCOVERY';
+$resolved=@(Get-Command ([IO.Path]::GetFileName($entry)) -CommandType Application -ErrorAction Stop)[0];
+if($resolved.Path -ne $entry){throw 'Seat command resolves to another path'};
+$stage='EXECUTION';
+# PowerShell's implicit .cmd launch runs cmd.exe AutoRun, which may print a
+# code-page banner (or change the environment) before the probe. /d suppresses
+# AutoRun while still executing the real launcher. Expand the entry only inside
+# cmd's quoted argument so Unicode, spaces, percent and ampersands stay literal.
+$probe=@(& ([IO.Path]::Combine($env:SystemRoot,'System32\cmd.exe')) /d /s /c '""%PAPERCLIP_SEAT_ENTRY%" --verify-seat-launcher"');
+if($LASTEXITCODE -ne 0 -or $probe.Count -ne 1 -or $probe[0] -ne 'PAPERCLIP_SEAT_LAUNCHER_OK'){
+    throw 'Seat command execution verification failed'
+};
+} catch {
+    [Console]::Error.WriteLine('PAPERCLIP_SEAT_CLI_ERROR:'+$stage);
+    exit 1
+}
+"""
+
+
+# Broadcast is advisory: old parent terminals cannot be changed by the installer.
+# Keep this in a separate, bounded child so unresponsive windows never invalidate
+# an already-written and verified launcher or block enrollment.
+WINDOWS_NOTIFY_PATH = r"""
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class SeatEnvironmentNotification {
+    [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    public static extern IntPtr SendMessageTimeout(IntPtr window, uint message,
+        UIntPtr wParam, string lParam, uint flags, uint timeout, out UIntPtr result);
+}
+'@;
+[UIntPtr]$result=[UIntPtr]::Zero;
+[void][SeatEnvironmentNotification]::SendMessageTimeout([IntPtr]0xffff,0x1a,[UIntPtr]::Zero,'Environment',2,100,[ref]$result);
+"""
+
+
 def install_cli(root,bridge,previous_bridge=None):
     if sys.platform=='darwin':
         try:
@@ -225,17 +305,38 @@ def install_cli(root,bridge,previous_bridge=None):
     if sys.platform=='win32':
         from platform_support import private_directory,powershell
         from seat_profiles import cli_name,config_path,service_suffix
-        bin_root=private_directory(Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ZhiyanSeat'/'bin');entry=bin_root/(cli_name()+'.cmd')
+        # Store Python may virtualize LocalAppData writes. The command must be
+        # created and verified in the native shell's filesystem view.
+        bin_root=Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ZhiyanSeat'/'bin'
+        entry=bin_root/(cli_name()+'.cmd')
         def cmd_path(value):return str(value).replace('%','%%')
         environment=('set "DSP7_BRIDGE_CONFIG='+cmd_path(config_path())+'"\r\n') if service_suffix() else ''
         launcher='@echo off\r\nsetlocal DisableDelayedExpansion\r\nchcp 65001 >nul\r\n'+environment+'"'+cmd_path(sys.executable)+'" "'+cmd_path(bridge/'harness_entry.py')+'" %*\r\n'
-        if entry.exists() and entry.read_bytes()!=launcher.encode('utf-8'):
-            old_launcher=launcher.replace(cmd_path(bridge/'harness_entry.py'),cmd_path(previous_bridge/'harness_entry.py')) if previous_bridge else None
-            if old_launcher is None or entry.read_bytes()!=old_launcher.encode('utf-8'):raise RuntimeError('harness.cmd 不是已登记的旧版入口，不覆盖未知命令')
-        entry.write_bytes(launcher.encode('utf-8'))
-        env=dict(os.environ,PAPERCLIP_SEAT_BIN=str(bin_root))
-        powershell("$p=[Environment]::GetEnvironmentVariable('Path','User'); if($env:PAPERCLIP_SEAT_BIN -notin ($p -split ';')){[Environment]::SetEnvironmentVariable('Path',((([string]$p).TrimEnd(';')+';'+$env:PAPERCLIP_SEAT_BIN).TrimStart(';')),'User')}",env=env)
-        print('已安装 '+entry.name+'；请重新打开 PowerShell 后使用 '+cli_name()+'。')
+        old_launcher=launcher.replace(cmd_path(bridge/'harness_entry.py'),cmd_path(previous_bridge/'harness_entry.py')) if previous_bridge else launcher
+        encode=lambda text:base64.b64encode(text.encode('utf-8')).decode('ascii')
+        env=dict(os.environ,PAPERCLIP_SEAT_BIN=str(bin_root),PAPERCLIP_SEAT_ENTRY=str(entry),
+                 PAPERCLIP_SEAT_LAUNCHER=encode(launcher),PAPERCLIP_SEAT_PREVIOUS=encode(old_launcher),
+                 PAPERCLIP_SEAT_PYTHON=sys.executable,PAPERCLIP_SEAT_SCRIPT=str(bridge/'harness_entry.py'))
+        try:
+            powershell(WINDOWS_INSTALL_CLI,env=env)
+        except subprocess.CalledProcessError as error:
+            # Only expose our fixed stage codes, never arbitrary child output.
+            stages={'FILES':'Python 或接入桥文件不可访问','OWNERSHIP':'已有入口与本次或已登记旧版内容不一致，未覆盖',
+                    'WRITE':'入口文件写入或回读失败','PATH':'用户 PATH 保存或回读失败',
+                    'DISCOVERY':'命令搜索结果与安装路径不一致','EXECUTION':'入口启动或探针输出校验失败'}
+            diagnostic=error.stderr or ''
+            if isinstance(diagnostic,bytes):diagnostic=diagnostic.decode('utf-8',errors='replace')
+            stage=next((code for code in stages if 'PAPERCLIP_SEAT_CLI_ERROR:'+code in diagnostic),None)
+            detail=('（'+stage+'）：'+stages[stage]) if stage else ''
+            raise RuntimeError('Windows 命令入口安装或验证失败'+detail+'。已有席位保留，不能视为安装完成。') from None
+        try:
+            powershell(WINDOWS_NOTIFY_PATH,timeout=3)
+        except (subprocess.TimeoutExpired,subprocess.CalledProcessError,OSError):
+            print('提示：用户 PATH 已保存；桌面环境刷新未完成，不影响安装。若新终端仍找不到命令，请注销并重新登录，或使用下面的完整路径。')
+        print('已通过原生 PowerShell 安装并验证 '+entry.name+'，用户 PATH 已配置。')
+        print('当前终端可能尚未刷新 PATH。请完全退出终端后重新打开，或立即执行：')
+        print('& "'+str(entry)+'" doctor')
+
     else:
         import shlex
         from seat_profiles import cli_name,config_path,service_suffix
@@ -263,6 +364,12 @@ def finish_setup(b,bridge,no_service):
             command(b,cli)
     with setup_step('核验席位连接及运行配置'):
         command(b,['seat','check'])
+    from harness_auto_registration import refresh
+    try:
+        with setup_step('登记默认研发 Harness 能力'):
+            refresh(b)
+    except (RuntimeError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+        print('默认研发能力尚未登记：请核对所选目录中的原生技能文件与客户端版本；上线空闲后会自动重试，也可运行 harness capability register 显式登记。')
     if not no_service:
         with setup_step('安装并核验后台自动上线服务'):
             subprocess.run([sys.executable,str(bridge/'install_service.py')],check=True)

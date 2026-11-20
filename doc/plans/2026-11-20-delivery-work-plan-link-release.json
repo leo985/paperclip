@@ -1,0 +1,46 @@
+{
+  "name": "delivery-work-plan-link",
+  "ui": [
+    {
+      "markers": [
+        "function DeliveryWorkflowPanel({",
+        "function DeliveryEntriesPage()",
+        "new URLSearchParams({ projectId, snapshotId, tab: \"work\" }) + \"#delivery-workflow\", children: \"查看交付计划\""
+      ],
+      "replacements": [
+        {
+          "from": "new URLSearchParams({ projectId, snapshotId, tab: \"work\" }) + \"#delivery-workflow\", children: \"查看交付计划\"",
+          "to": "new URLSearchParams({ projectId, snapshotId, tab: \"work\" }) + \"#delivery-workflow\", children: \"交付计划\""
+        },
+        {
+          "from": "\"aria-label\": `查看工单交付计划 ${row.item.key}`",
+          "to": "\"aria-label\": `打开工单交付计划 ${row.item.key}`"
+        },
+        {
+          "from": "children: workflow ? \"查看交付链节点\" : \"查看交付计划\"",
+          "to": "children: workflow ? \"查看交付链节点\" : \"交付计划\""
+        },
+        {
+          "from": "  initialReviewKey = \"\"\n}) {",
+          "to": "  initialReviewKey = \"\",\n  viewPlanRequest\n}) {"
+        },
+        {
+          "from": "  const canShowPlan = (canOpenPlan && workflows.isSuccess) || !!flow?.stages.length;",
+          "to": "  const canShowPlan = (canOpenPlan && workflows.isSuccess) || !!flow?.stages.length;\n  const canViewWithoutGenerating = canShowPlan && (!!savedPlan.data || !canOpenPlan);\n  useEffect(() => {\n    if (viewPlanRequest !== undefined && canViewWithoutGenerating) setExpanded(true);\n  }, [viewPlanRequest, canViewWithoutGenerating]);"
+        },
+        {
+          "from": "  const { hash } = useLocation();\n  const [workflowPanelOpen",
+          "to": "  const { hash, key: locationKey } = useLocation();\n  const viewPlanRequest = hash === \"#delivery-workflow\" ? locationKey : undefined;\n  const [workflowPanelOpen"
+        },
+        {
+          "from": "  const renderedSnapshotId = snapshot?.id;",
+          "to": "  const renderedSnapshotId = snapshot?.id;\n  const workflowReady = !!renderedSnapshotId && workflowQuery.isSuccess;\n  useEffect(() => {\n    if (viewPlanRequest === undefined || !workflowReady) return;\n    setWorkflowPanelOpen(true);\n    const frame = requestAnimationFrame(() => workflowPanelRef.current?.scrollIntoView({ block: \"start\" }));\n    return () => cancelAnimationFrame(frame);\n  }, [viewPlanRequest, workflowReady]);"
+        },
+        {
+          "from": "initialReviewKey: requestedReviewKey }, snapshot.id)",
+          "to": "initialReviewKey: requestedReviewKey, viewPlanRequest }, snapshot.id)"
+        }
+      ]
+    }
+  ]
+}

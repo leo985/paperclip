@@ -1,0 +1,28 @@
+{
+  "deployed": true,
+  "health": "ok",
+  "bridgeSha256": "3342e5b1d6e1ca274fe850b88d9509df48cf3d618ed26b8f24435f8bb1d11bf1",
+  "newAssets": 342,
+  "backup": "/home/fg/paperclip/private/jira-prior-20261116/backup",
+  "dbMigration": false,
+  "httpVerified": [
+    "dsp7-bridge-manifest.json",
+    "dsp7-bridge.zip",
+    "index.html",
+    "assets/DeliveryEntries-0e518280-dar20261116-jprior20261116.js"
+  ],
+  "validation": {
+    "targetedVitest": 31,
+    "priorTakeoverIntegration": 3,
+    "bridgePython": 28,
+    "liveJiraExamples": 4,
+    "serverTypecheck": true,
+    "uiTypecheck": true,
+    "tokenGates": true,
+    "fullBuild": false,
+    "fullTests": false,
+    "integrationBaselineFailures": 3,
+    "additionalIntegrationFailureNotReproducedInBaseline": 1
+  },
+  "seatRollout": "7 requests queued; offline first registration remains pending"
+}

@@ -23,7 +23,7 @@ describe("entry-level admission presentation",()=>{
  it("shows only a summary and overview link in a stage without duplicate registration or dispatch actions",async()=>{
   const node=await mount({compact:true,overviewHref:"/delivery?snapshotId=snapshot&tab=overview#delivery-admission"});
   expect(node.querySelector('[aria-label="编码阶段准入摘要"]')).not.toBeNull();
-  expect(node.textContent).toContain("未登记（历史编码已完成）");
+  expect(node.textContent).toContain("条目新增编码准入 · 待登记");
   expect(node.querySelector("a")?.getAttribute("href")).toBe("/delivery?snapshotId=snapshot&tab=overview#delivery-admission");
   expect(node.querySelector("form")).toBeNull();expect(node.querySelectorAll("a")).toHaveLength(1);expect(post).not.toHaveBeenCalled();
  });
@@ -39,12 +39,37 @@ describe("entry-level admission presentation",()=>{
  it("retains the admission warning for unfinished coding and limits registration to managers",async()=>{
   const unfinished={...snapshot,plan:{...snapshot.plan,items:snapshot.plan.items.map(i=>i.key==="CODE"?{...i,status:"待受理"}:i)}};
   const node=await mount({snapshot:unfinished,canManage:false});
-  expect(node.textContent).toContain("编码阶段准入 · 待核验");expect(node.textContent).toContain("编码待准入");
+  expect(node.textContent).toContain("条目新增编码准入 · 待登记");
+  expect(node.textContent).toContain("CODE · 编码 · 待受理");
   expect(node.textContent).toContain("尚未登记正式结论");expect(node.querySelector("form")).toBeNull();
+ });
+ it("names the entry and keeps each main issue's source work separate from the admission status", async () => {
+  const [coding] = snapshot.plan.items;
+  const multiMain = {
+   ...snapshot,
+   plan: {
+    ...snapshot.plan,
+    mains: [{key:"ATSES-493227",sourceId:"493227",title:"对接 BPM"}],
+    items: [
+     {...coding,parentKey:"ATSES-493227",key:"ATSES-493228",type:"设计评审",status:"已完成"},
+     {...coding,parentKey:"ATSES-494852",key:"ATSES-494854",type:"系统设计",status:"待受理"},
+     {...coding,parentKey:"ATSES-494852",key:"ATSES-494855",status:"待受理"},
+    ],
+   },
+  };
+  const node = await mount({snapshot:multiMain});
+  expect(node.textContent).toContain("登记范围：XLTZ-00008 · 当前来源版本 · 2 张关联主工单");
+  expect(node.querySelector("h2")?.textContent).toBe("条目新增编码准入 · 待登记");
+  const [first, second] = [...node.querySelectorAll("tbody tr")];
+  expect(first?.textContent).toContain("ATSES-493228 · 设计评审 · 已完成");
+  expect(first?.querySelector("td:last-child")?.textContent).toBe("来源未提供");
+  expect(second?.textContent).toContain("ATSES-494854 · 系统设计 · 待受理");
+  expect(second?.textContent).toContain("ATSES-494855 · 编码 · 待受理");
+  expect(second?.querySelector("th a")?.getAttribute("href")).toBe("#delivery-main-snapshot-ATSES-494852");
  });
  it("keeps registered admission results in the compact view",async()=>{
   const node=await mount({compact:true,admission:{...admission,ready:true,reasons:[]}});
-  expect(node.textContent).toContain("编码阶段准入：已登记核验");expect(node.textContent).not.toContain("未登记");
+  expect(node.textContent).toContain("条目新增编码准入 · 已通过");expect(node.textContent).not.toContain("未登记");
  });
  it("recognizes history only from positive completion of every coding child",()=>{
   expect(sourceCodingCompleted(snapshot.plan)).toBe(true);

@@ -7,7 +7,8 @@ import { queryKeys } from "@/lib/queryKeys";
 import { managementRows } from "@/lib/management-work";
 import { ManagementWorkItem } from "@/components/ManagementWorkItem";
 import { CollaborationWorkbench } from "@/components/CollaborationWorkbench";
-import { DeliveryMaterials } from "@/components/DeliveryMaterials";
+import { DeliveryEntryEvidence } from "@/components/DeliveryMaterials";
+import { DeliveryWorkDispatch } from "@/components/DeliveryWorkDispatch";
 import { ProjectReadiness } from "@/components/ProjectReadiness";
 import { DeliveryMonthlyBoard } from "@/components/DeliveryMonthlyBoard";
 
@@ -16,7 +17,18 @@ const project = { id: "project-management-story", companyId, name: "DSP7 银企�
 const task = { id: "task-management-story", identifier: "DSP-491887", companyId, title: "支付权限核验与异常恢复", status: "in_progress", projectId: project.id, assigneeAgentId: "seat-management-story", assigneeUserId: null, updatedAt: new Date(), originKind: "issue" } as unknown as CompactIssue;
 const seat = { agentId: "seat-management-story", name: "研发 Windows 电脑", owner: { id: "management-user", name: "研发负责人" }, isMine: true, online: true, usable: true, runtime: { revision: 1 }, dispatch: null, presence: { state: "idle", activeTaskId: null, lastSeenAt: new Date().toISOString(), checks: [], tasks: [{ taskId: task.id, status: "interrupted", stoppedRunId: "previous-run" }], alerts: [{ id: "attention", taskId: task.id, message: "运行已中断，请核对停止依据与恢复条件。", elapsedMinutes: 20 }] } } as unknown as RegisteredSeat;
 const tasks = [task, { ...task, id: "running-task", identifier: "DSP-491888", title: "银行接口回归验证", assigneeAgentId: null }, { ...task, id: "planned-task", identifier: "DSP-491889", title: "安排下一阶段开发", status: "todo" as const, assigneeAgentId: null }];
-const entry = { snapshot: { id: "snapshot-management", projectId: project.id, collectedAt: new Date().toISOString() }, analyses: [] } as unknown as DeliveryEntryDetail;
+const entry = {
+  snapshot: {
+    id: "snapshot-management",
+    projectId: project.id,
+    plan: {
+      mains: [{ key: "DSP-491887", title: "支付权限核验与异常恢复" }],
+      items: [{ key: "DSP-491888", parentKey: "DSP-491887", title: "银行接口回归验证", type: "功能测试", status: "已完成", assignee: "测试负责人", scheduled: true }],
+    },
+  },
+  tasks: [],
+  analyses: [],
+} as unknown as DeliveryEntryDetail;
 
 function Fixture({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => {
@@ -49,7 +61,14 @@ function Fixture({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={client}><div className="mx-auto max-w-7xl space-y-6 p-4">{children}</div></QueryClientProvider>;
 }
 function ManagementSurface({ surface = "overview" }: { surface?: "overview" | "item" | "materials" | "readiness" | "monthly" }) {
-  return <Fixture>{surface === "overview" ? <CollaborationWorkbench companyId={companyId} projects={[project]} pendingApprovals={2} /> : surface === "item" ? <ManagementWorkItem row={managementRows([task], [seat], new Set())[0]} userNames={new Map()} /> : surface === "materials" ? <DeliveryMaterials companyId={companyId} detail={entry} /> : surface === "readiness" ? <ProjectReadiness project={project} /> : <MonthlyFixture />}</Fixture>;
+  return <Fixture>{surface === "overview" ? <CollaborationWorkbench companyId={companyId} projects={[project]} pendingApprovals={2} /> : surface === "item" ? <ManagementWorkItem row={managementRows([task], [seat], new Set())[0]} userNames={new Map()} /> : surface === "materials" ? <WorkEvidenceFixture /> : surface === "readiness" ? <ProjectReadiness project={project} /> : <MonthlyFixture />}</Fixture>;
+}
+function WorkEvidenceFixture() {
+  const { snapshot } = entry;
+  return <>
+    <DeliveryWorkDispatch plan={snapshot.plan} tasks={entry.tasks} admission={null} projectId={snapshot.projectId} snapshotId={snapshot.id} canManage />
+    <DeliveryEntryEvidence companyId={companyId} detail={entry} records={[]} workflows={[]} workflowState="ready" />
+  </>;
 }
 function MonthlyFixture() {
   const [client] = useState(() => {

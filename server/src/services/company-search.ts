@@ -1,3 +1,4 @@
+import { taskScopeCondition, type PersonalTaskScope } from "./task-access-scope.js";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
@@ -538,7 +539,7 @@ export function companySearchService(db: Db) {
   const extractService = companySearchExtractService(db);
   return {
     extract: extractService.extract,
-    search: async (companyId: string, query: CompanySearchQuery): Promise<CompanySearchResponse> => {
+    search: async (companyId: string, query: CompanySearchQuery, taskScope?: PersonalTaskScope): Promise<CompanySearchResponse> => {
       const taskSearch = parseTaskSearch(query.q);
       const normalizedQuery = taskSearch.normalizedQuery;
       const hasSearchText = normalizedQuery.length > 0;
@@ -568,7 +569,7 @@ export function companySearchService(db: Db) {
       const containsPattern = hasSearchText && tokens.length > 0 ? taskSearch.containsPattern : "__paperclip_no_match__";
       const tokenCount = tokens.length;
 
-      const issueFilters = issueFilterConditions(companyId, query);
+      const issueFilters = [...issueFilterConditions(companyId, query), taskScopeCondition(taskScope)];
       const hasIssueOnlyFilters = issueOnlyFiltersActive(query);
 
       // Scope conditions over precomputed flag columns (alias-qualified).
@@ -717,7 +718,7 @@ export function companySearchService(db: Db) {
         }
 
         const resultRows = await db.execute(sql`
-          ${taskSearchCtes(companyId, taskSearch, scope !== "issues", and(...issueFilters))}
+          ${taskSearchCtes(companyId, taskSearch, scope !== "issues", and(...issueFilters), taskScopeCondition(taskScope))}
           ${sql.join(branches, sql` UNION ALL `)}
         `) as unknown as Array<SearchAggregateRow & Omit<IssueSearchRow, "commentSnippet" | "commentId" | "documentSnippet" | "documentTitle" | "documentKey">>;
 
@@ -907,6 +908,7 @@ export function companySearchService(db: Db) {
         const artifactIssueConditions = [
           eq(issues.companyId, companyId),
           visibleIssueCondition(),
+          taskScopeCondition(taskScope),
           ...artifactIssueFilters,
         ];
         const documentArtifactConditions = [

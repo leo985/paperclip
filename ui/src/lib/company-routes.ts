@@ -6,6 +6,7 @@ const BOARD_ROUTE_ROOTS = new Set([
   "delivery",
   "delivery-chain",
   "delivery-workbench",
+  "delivery-dashboard",
   "analysis-executions",
   "runs",
   "seats",

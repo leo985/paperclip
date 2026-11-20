@@ -1,0 +1,169 @@
+{
+  "release": "20261112-harness-auto-registration",
+  "files": {
+    "dist/routes/harness-capabilities.js": "9892b4db3284d4bee58d3cd372b920e2f959e22ee86395869015ddf72314538b",
+    "ui-dist/dsp7-bridge.zip": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+    "ui-dist/dsp7-bridge-manifest.json": "1eec13fa69006ccfdc823d8f94b7e9e3952769f46b2fce6dc95e24bb7916c2aa",
+    "ui-dist/dsp7-install.py": "c23c9eac8977bba933ad94690f92dd4f645230c5eff443efd898947d5052f6a6"
+  },
+  "expected": {
+    "dist/routes/harness-capabilities.js": "effebcefa4b783cd0997db7ddb7e6dd1be563f276a08f8c5af3173235b148719",
+    "ui-dist/dsp7-bridge.zip": "5fa46e5f08af10479541b8a1b1d91ae286de6bdeabd424757aba08bbf9620526",
+    "ui-dist/dsp7-bridge-manifest.json": "9d0b636fbc6c28d310dff0ea34f9d271cdb91378c707fd87cd98e6943e9952f9",
+    "ui-dist/dsp7-install.py": "fbd327aba798a77553213ba69255df5ee4bf07e17d6d5fd240603030c6d48b3b"
+  },
+  "bridgeSha256": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+  "changedBridgeFiles": [
+    "quick_install.py",
+    "seat_control.py",
+    "harness_auto_registration.py"
+  ],
+  "preservedBridgeFiles": 45,
+  "sourceHashes": {
+    "integrations/dsp7-bridge/harness_auto_registration.py": "baeed04e471ae63a0f75fb39e747e994b3561f3b7680cd13fea4344fd08d79de",
+    "server/src/routes/harness-capabilities.ts": "1297c2bced3979c39143af2d626ff2e3e68d5ae8c213206d1061e7d666732d91"
+  },
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-12T07:46:09.748259+00:00",
+  "backup": "/home/fg/paperclip/private/harness-auto-20261112/backup-20261112T074442Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/harness-auto-20261112/backup-20261112T074442Z/pre-harness-auto-20261112-074442.sql.gz",
+    "sizeBytes": 10050952,
+    "sha256": "ce9d3aaafe9232e648b3b604a8dacc92a341eb6ebb56fdf4490a7786b1bb8549"
+  },
+  "migrations": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-12T07:45:19.744Z",
+    "completedAt": "2026-11-12T07:46:07.572Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 1383506,
+    "newServerPid": 1431408,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "serverRestarted": true,
+  "activeBefore": [],
+  "activeAfter": [],
+  "preservedHashes": {
+    "ui-dist/index.html": "6c181dbc90d1949da37059efbf1c8a99a94b953d5ba7e66ff1120024cbe8321b",
+    "ui-dist/sw.js": "1d8f2647bfffcbaee08fbfc3a5b997d401f297eeed6bf1ddd874eafb16d33b98",
+    "ui-dist/dsp7-install.ps1": "4f0e864f5d6370b9f8cfa9d3a0417ebd46d1e54408828dd4b16005a845d8d1b8",
+    "dist/routes/analysis-executions.js": "529226b587b1ed61a079eeb07232e2e061941ba4edc7ec5815a64112fd04bb87",
+    "dist/services/analysis-execution-resume.js": "e53ea880ab009b91e6ffdd6683733f35a73514656d175cfb0a9227df9ecf2913",
+    "dist/services/analysis-dispatch-state.js": "8412783391893845bbbdbc0c83a0d9962bb6dd94116a5ff7fd2b29f81b99a885"
+  },
+  "envUnchanged": true,
+  "clientDownloadsVerified": true,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "anonymousAccessDenied": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/agents/f38bb5a9-031c-4a4f-b58d-09272e47a966/dsp7-harness-capabilities",
+      "status": 403
+    }
+  ],
+  "durationSeconds": 49.8,
+  "externalResources": {
+    "dsp7-bridge.zip": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+    "dsp7-bridge-manifest.json": "1eec13fa69006ccfdc823d8f94b7e9e3952769f46b2fce6dc95e24bb7916c2aa",
+    "dsp7-install.py": "c23c9eac8977bba933ad94690f92dd4f645230c5eff443efd898947d5052f6a6"
+  },
+  "databaseRegressions": {
+    "checks": [
+      "same identity content auto refresh",
+      "unchanged receipt idempotent",
+      "stale revision rejected",
+      "path changes rejected",
+      "new enrollment rejected",
+      "wrong machine rejected",
+      "delegated run key rejected",
+      "queued run blocks metadata updates",
+      "audits preserve old/new digest without execution grant"
+    ],
+    "transactionRolledBack": true,
+    "providerStarted": false
+  },
+  "clientVerification": {
+    "checkedAt": "2026-11-12T07:48:30.756311+00:00",
+    "seatId": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+    "installedDigest": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+    "upgradeMarkerPresent": false,
+    "lastHeartbeat": "2026-11-12T07:48:14.965784+00:00",
+    "harnessRefresh": {
+      "status": "deferred"
+    },
+    "registryRevision": 4,
+    "localRegistryRevision": 4,
+    "registeredContent": [
+      {
+        "id": "a3713b3459ea36037a160e2b45612967141d341c80f544f53a9253c2537360d2",
+        "kind": "analysis",
+        "contentMatches": true
+      },
+      {
+        "id": "bb35853eda632de60435c1f32ced991569a700151854a4a991d245fc12dc325a",
+        "kind": "qa",
+        "contentMatches": false
+      }
+    ],
+    "serverPresence": {
+      "state": "idle",
+      "lastSeenAt": "2026-11-12T07:48:15.154Z",
+      "bridgeVersion": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+      "acceptingWork": true
+    },
+    "modulePresent": true
+  },
+  "liveApiVerification": {
+    "checkedAt": "2026-11-12T07:49:12.347739+00:00",
+    "actualServiceAutomaticRequestAccepted": true,
+    "authenticatedWithExistingSeatCredential": true,
+    "registryRevisionUnchanged": true,
+    "executionGranted": false
+  },
+  "localUpgradeRecovery": {
+    "initialFailure": "Current exec environment launchctl returned 141: Reentrancy avoided; standard rollback retained recovery marker.",
+    "recovery": "Retried original harness upgrade --this-seat through pre-existing pinned localhost SSH management channel. Standard upgrade completed and cleared marker.",
+    "manualMarkerDeletion": false,
+    "existingSeatIdentityPreserved": true
+  },
+  "knownBoundary": {
+    "qa": "Current QA Harness adds test-case-review role beyond the registered functional-test/test-cases roles. Automatic refresh correctly defers; explicit capability registration is required to accept the new role.",
+    "analysis": "Current registered content matches local files."
+  },
+  "verification": {
+    "candidateBridgeTestsPassed": 34,
+    "installerTestsPassed": 26,
+    "remoteDatabaseChecksPassed": 9,
+    "remoteDatabaseTestWritesRolledBack": true,
+    "liveServiceAutomaticFlagAccepted": true,
+    "browserQA": "not run: no UI changes",
+    "fullRepositoryChecks": "not rerun: scoped backend/client release; earlier targeted server tests and typecheck passed"
+  }
+}

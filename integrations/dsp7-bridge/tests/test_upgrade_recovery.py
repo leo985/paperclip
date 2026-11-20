@@ -80,6 +80,8 @@ class UpgradeRecoveryTests(unittest.TestCase):
             stack.enter_context(patch.object(quick_install,'secure_bundle_directory'))
             idle=stack.enter_context(patch.object(seat_upgrade,'assert_idle',side_effect=RuntimeError('busy') if busy else None))
             migration=stack.enter_context(patch.object(seat_upgrade,'migration_request',side_effect=AssertionError('No transport migration for outbound update')))
+            stack.enter_context(patch.object(seat_upgrade,'windows_launcher_read',side_effect=lambda p:p.read_bytes() if p.exists() else None))
+            stack.enter_context(patch.object(seat_upgrade,'windows_launcher_restore',side_effect=lambda p,data:p.write_bytes(data) if data is not None else p.unlink(missing_ok=True)))
             stack.enter_context(patch.object(seat_upgrade,'windows_service',side_effect=self.service))
             stack.enter_context(patch.object(seat_upgrade.subprocess,'run',side_effect=self.run_service))
             stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
@@ -87,6 +89,18 @@ class UpgradeRecoveryTests(unittest.TestCase):
 
     def perform(self,target=None):
         seat_upgrade.upgrade(self.config,self.root,self.old,target or self.new,install_cli=self.cli,agent_id='seat-one')
+
+    def test_launcher_snapshot_uses_native_view_not_python_filesystem(self):
+        import base64
+        with patch.object(platform_support,'powershell',return_value=SimpleNamespace(stdout=base64.b64encode(b'native launcher').decode())) as shell:
+            self.assertEqual(seat_upgrade.windows_launcher_read(self.home/'not-visible-in-python.cmd'),b'native launcher')
+        self.assertIn('[IO.File]::ReadAllBytes',shell.call_args.args[0])
+
+    def test_launcher_restore_verifies_native_bytes(self):
+        with patch.object(platform_support,'powershell') as shell,patch.object(seat_upgrade,'windows_launcher_read',return_value=b'wrong'):
+            with self.assertRaisesRegex(RuntimeError,'回滚核验失败'):
+                seat_upgrade.windows_launcher_restore(self.bin,b'original')
+        self.assertIn('[IO.File]::WriteAllBytes',shell.call_args.args[0])
 
     def test_outbound_update_with_null_migration_id_resumes_same_seat(self):
         with self.context() as (migration,_):self.perform();migration.assert_not_called()

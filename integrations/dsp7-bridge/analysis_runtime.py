@@ -7,16 +7,21 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 import uuid
 from harness_capabilities import inspect
 from pilot import BridgeError, atomic_json
+
+class AnalysisRuntimeBusy(BridgeError):
+    """Native task lock is occupied; no gate or binding is bypassed."""
+
 
 PHASES = ['P0', 'P1', 'P2', 'P3', 'P4']
 ARTIFACTS = ['intake.md', 'evidence.json', 'requirements.json', 'analysis.md', 'review.json', 'handoff.md', 'state.json']
 
 
 class AnalysisRuntime:
-    def __init__(self, capability, tasks_root, company_id, task_id, revision):
+    def __init__(self, capability, tasks_root, company_id, task_id, revision, demand_no=None):
         for value in (company_id, task_id):
             try:
                 if str(uuid.UUID(value)) != value: raise ValueError()
@@ -31,25 +36,54 @@ class AnalysisRuntime:
             raise BridgeError('分析 Harness 文件或版本已变化，请重新登记能力')
         self.root = Path(current['root'])
         self.tasks_root = Path(tasks_root).expanduser().resolve()
-        self.native_id = 'pc-' + task_id + '-r' + str(revision)
+        platform_id = 'pc-' + task_id + '-r' + str(revision)
+        self.binding_file = self.tasks_root / '.platform-bindings' / (platform_id + '.json')
+        self.location_file = self.binding_file.with_name(platform_id + '.location.json')
+        suffix = '-r' + str(revision) + '-' + task_id
+        if self.location_file.exists() or self.location_file.is_symlink():
+            if self.location_file.is_symlink() or self.location_file.parent.is_symlink():
+                raise BridgeError('分析任务位置登记越界')
+            location = json.loads(self.location_file.read_text(encoding='utf-8'))
+            native = location.get('nativeId', '')
+            if (location.get('companyId') != company_id or location.get('taskId') != task_id
+                    or location.get('revision') != revision or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,99}', native)
+                    or not native.endswith(suffix)):
+                raise BridgeError('分析任务位置登记身份无效')
+            self.native_id = native
+        elif self.binding_file.exists() or (self.tasks_root / ('analysis-' + platform_id)).exists():
+            # Existing tasks keep their native identity and approval fingerprint.
+            self.native_id = platform_id
+        elif demand_no:
+            if not isinstance(demand_no, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,39}', demand_no):
+                raise BridgeError('轻舟条目编号不能用于安全的分析目录名')
+            self.native_id = demand_no + suffix
+        else:
+            self.native_id = platform_id
         self.folder = self.tasks_root / ('analysis-' + self.native_id)
+        # Platform identity is stable and independent of native display naming.
         self.binding = {'protocolVersion': 1, 'companyId': company_id, 'taskId': task_id,
-                        'revision': revision, 'nativeId': self.native_id, 'profile': current['profile'],
+                        'revision': revision, 'nativeId': platform_id, 'profile': current['profile'],
                         'repository': current['repository']}
         self.profile = current['profile']
-        self.binding_file = self.tasks_root / '.platform-bindings' / (self.native_id + '.json')
 
     def _call(self, command, *args):
-        try:
-            result = subprocess.run([sys.executable, str(self.root / 'harness/scripts/analysis.py'),
-                                     '--tasks-root', str(self.tasks_root), command, *args],
-                                    cwd=self.root, capture_output=True, text=True, timeout=30)
-        except (subprocess.TimeoutExpired, OSError) as exc:
-            raise BridgeError('分析 Harness 原生接口不可用') from exc
-        if result.returncode:
-            # Domain stderr may contain local input. Keep it local, not in a
-            # server-bound receipt, and do not treat an unavailable task as done.
-            raise BridgeError('分析 Harness ' + command + ' 失败，请检查本机原生状态')
+        for attempt in range(5):
+            try:
+                result = subprocess.run([sys.executable, str(self.root / 'harness/scripts/analysis.py'),
+                                         '--tasks-root', str(self.tasks_root), command, *args],
+                                        cwd=self.root, capture_output=True, text=True, timeout=30)
+            except (subprocess.TimeoutExpired, OSError) as exc:
+                raise BridgeError('分析 Harness 原生接口不可用') from exc
+            if not result.returncode:
+                break
+            # The native read-only status also takes .lock. An observer and
+            # Stop relay can collide. Never remove that lock or retry writes.
+            busy = command == 'status' and '任务正在写入或有遗留 .lock' in result.stderr
+            if not busy:
+                raise BridgeError('分析 Harness ' + command + ' 失败，请检查本机原生状态')
+            if attempt == 4:
+                raise AnalysisRuntimeBusy('分析任务锁暂被占用；保留原锁并稍后重试')
+            time.sleep(.1 * (attempt + 1))
         if len(result.stdout) > 1024 * 1024:
             raise BridgeError('分析 Harness 响应超过大小限制')
         return result.stdout.strip()
@@ -75,6 +109,10 @@ class AnalysisRuntime:
         if not existed and self.binding_file.exists():
             raise BridgeError('已有平台绑定但分析目录丢失，请核实后恢复，不能重新初始化')
         if not existed:
+            if self.native_id != self.binding['nativeId']:
+                self.binding_file.parent.mkdir(parents=True, exist_ok=True)
+                atomic_json(self.location_file, {'companyId': self.binding['companyId'],
+                    'taskId': self.binding['taskId'], 'revision': self.binding['revision'], 'nativeId': self.native_id})
             self._call('init', self.native_id, '--title', title, '--profile', self.profile)
             self.binding_file.parent.mkdir(parents=True, exist_ok=True)
             if self.binding_file.parent.is_symlink():
@@ -82,7 +120,7 @@ class AnalysisRuntime:
             atomic_json(self.binding_file, self.binding)
         self._assert_binding()
         snapshot = self.status()
-        return {'binding': self.binding, 'cwd': str(self.root), 'taskDirectory': str(self.folder),
+        return {'binding': self.binding, 'cwd': str(self.root), 'taskDirectory': str(self.folder), 'nativeTaskId': self.native_id,
                 'skill': 'analysis-resume' if existed else ('dsp-requirements-analysis' if self.profile == 'dsp' else 'requirements-analysis'),
                 'snapshot': snapshot, 'executionGranted': False}
 
@@ -106,7 +144,23 @@ class AnalysisRuntime:
                 'gateErrors': errors, 'localCompleted': state['status'] == 'completed' and not errors,
                 'formalPublication': 'unverified'}
 
-    def delivery(self):
+    def export_report(self, content, demand_no=None):
+        self._assert_binding()
+        label = demand_no or self.native_id
+        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,99}', label):
+            raise BridgeError('分析报告文件名无效')
+        path = self.folder / (label + '-需求分析.md')
+        if path.is_symlink():raise BridgeError('分析报告导出路径越界')
+        raw = content.encode('utf-8')
+        if (self.folder / 'analysis.md').read_bytes() != raw:
+            raise BridgeError('分析报告已变化，不能导出旧版本')
+        temporary = path.with_name(path.name + '.tmp')
+        if temporary.is_symlink():raise BridgeError('分析报告临时路径越界')
+        temporary.write_bytes(raw)
+        temporary.replace(path)
+        return path
+
+    def delivery(self, include_content=False):
         snapshot = self.status()
         if not snapshot['localCompleted']:
             raise BridgeError('分析原生阶段或门禁未通过，不能登记本地交付')
@@ -115,6 +169,14 @@ class AnalysisRuntime:
             raise BridgeError('分析输入指纹无效')
         artifacts = [{'path': name, 'sha256': hashlib.sha256((self.folder / name).read_bytes()).hexdigest()}
                      for name in ARTIFACTS]
+        content = {}
+        if include_content:
+            raw = (self.folder / 'analysis.md').read_bytes()
+            if not raw.strip() or len(raw) > 120000:
+                raise BridgeError('轻舟分析正文为空或超过 120 KB，请整理 analysis.md 后重新核验')
+            content['analysisMarkdown'] = raw.decode('utf-8')
+            if hashlib.sha256(raw).hexdigest() != next(item['sha256'] for item in artifacts if item['path'] == 'analysis.md'):
+                raise BridgeError('分析正文在采集时已变化，请重新核验')
         # Revalidate after reading the manifest: an edit during collection must
         # not turn an obsolete approval into a delivery receipt.
         after = self.status()
@@ -122,5 +184,5 @@ class AnalysisRuntime:
                 or any(hashlib.sha256((self.folder / item['path']).read_bytes()).hexdigest() != item['sha256'] for item in artifacts)):
             raise BridgeError('分析交付采集时材料已变化，请重新核验')
         # Native input fingerprint excludes the handoff; index it independently.
-        return {**snapshot, 'inputDigest': fingerprint, 'artifacts': artifacts,
+        return {**snapshot, **content, 'inputDigest': fingerprint, 'artifacts': artifacts,
                 'handoffDigest': next(item['sha256'] for item in artifacts if item['path'] == 'handoff.md')}

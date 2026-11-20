@@ -1,3 +1,7 @@
+import { deliveryRepairCandidates } from "../services/delivery-entry-scope.js";
+import { readDeliveryWorkflowInbox, deliveryWorkflowForTask, deliveryWorkflowParticipant, deliveryWorkflowHref, deliveryWorkflowActions } from "../services/delivery-workflow-actions.js";
+import { startAutomaticDeliveryWorkflow } from "../services/delivery-automatic-plan.js";
+import { generateAndSaveDeliveryPlan, getSavedDeliveryPlan } from "../services/delivery-plan-previews.js";
 import { readDeliveryJiraAssignments, deliverySeatMatchesAssignee } from "../services/delivery-seat-assignment.js";
 import {
   readyDeliveryStages,
@@ -23,6 +27,8 @@ import { z } from "zod";
 import {
   DELIVERY_STAGE_MAX_RESUMES,
   deliveryWorkflowStartSchema,
+  deliveryAutomaticPlanSchema,
+  deliveryAutomaticStartSchema,
   deliveryReviewDigest,
   deliveryRepairStartSchema,
   deliveryStageReceiptSchema,
@@ -40,6 +46,7 @@ import {
   deliveryDigest,
   validateStageReceipt,
   assertHumanReviewScope,
+  assertHistoricalVerificationSource,
   stageKind,
 } from "../services/delivery-workflows.js";
 import { resolveHarnessRoute } from "../services/harness-execution-routing.js";
@@ -181,9 +188,52 @@ export function deliveryWorkflowRoutes(db: Db) {
       ),
     );
   });
+  router.get(base + "/pending-actions", async (req,res)=>{
+    const c=board(req),manager=isSeatManager(req,c);
+    const scope=req.query.scope??"mine";
+    if(scope!=="mine"&&scope!=="company")throw badRequest("待办范围无效");
+    if(scope==="company"&&!manager)throw forbidden("需要组织管理员权限");
+    res.setHeader("Cache-Control","no-store");
+    res.json(await readDeliveryWorkflowInbox(db,c,req.actor.userId??"local-board",scope==="company",manager));
+  });
+  router.get(base + "/for-task/:taskId", async(req,res)=>{
+    const c=board(req);if(!uuid.safeParse(req.params.taskId).success)throw badRequest("任务编号无效");
+    const flow=await deliveryWorkflowForTask(db,c,String(req.params.taskId));
+    if(flow&&!isSeatManager(req,c)&&!deliveryWorkflowParticipant(flow,req.actor.userId??"local-board"))throw notFound("交付流程不存在或未获授权");
+    const stage=flow?.stages.find(s=>s.taskId===req.params.taskId);
+    res.setHeader("Cache-Control","no-store");
+    res.json(flow&&stage?{workflowId:flow.id,demandNo:flow.demandNo,state:flow.state,stage,href:deliveryWorkflowHref(flow,stage.taskId),actions:deliveryWorkflowActions(flow).filter(a=>a.taskId===stage.taskId&&a.ownerUserId===(req.actor.userId??"local-board")&&(isSeatManager(req,c)||!["accept","recovery"].includes(a.kind)))}:null);
+  });
+  router.get(base + "/plan", async (req, res) => {
+    const c = board(req, true);
+    const snapshotId = uuid.safeParse(req.query.snapshotId);
+    if (!snapshotId.success) throw badRequest("请选择条目版本");
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await getSavedDeliveryPlan(db, c, snapshotId.data));
+  });
   router.get(base + "/:workflowId", async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     res.json(await record(req));
+  });
+  router.post(base + "/plan", async (req, res) => {
+    const c = board(req, true);
+    const p = deliveryAutomaticPlanSchema.safeParse(req.body);
+    if (!p.success || containsCredential(JSON.stringify(p.data))) throw badRequest("自动计划参数无效或包含凭据");
+    res.setHeader("Cache-Control", "no-store");
+    res.json((await generateAndSaveDeliveryPlan(db, c, req.actor.userId ?? "local-board", p.data)).plan);
+  });
+  router.post(base + "/plan/initial", async (req, res) => {
+    const c = board(req, true);
+    const p = deliveryAutomaticPlanSchema.safeParse(req.body);
+    if (!p.success || containsCredential(JSON.stringify(p.data))) throw badRequest("自动计划参数无效或包含凭据");
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await generateAndSaveDeliveryPlan(db, c, req.actor.userId ?? "local-board", p.data, true));
+  });
+  router.post(base + "/automatic-start", async (req, res) => {
+    const c = board(req, true);
+    const p = deliveryAutomaticStartSchema.safeParse(req.body);
+    if (!p.success || containsCredential(JSON.stringify(p.data))) throw badRequest("请查看计划并明确授权启动，参数不能包含凭据");
+    res.status(201).json(await startAutomaticDeliveryWorkflow(db, c, req.actor.userId ?? "local-board", p.data));
   });
   router.post(base, async (req, res) => {
     const c = board(req, true);
@@ -321,9 +371,14 @@ export function deliveryWorkflowRoutes(db: Db) {
       )
         throw forbidden("只有该席位负责人或管理员可以核验评审");
       if (s.executionMode === "human") {
-        await assertHumanReviewScope(tx as unknown as Db,fresh,s);
+        const latest = await assertHumanReviewScope(tx as unknown as Db,fresh,s);
         const formal=new URL(p.data.reference);
         if(formal.pathname!=="/browse/"+s.jiraKey)throw conflict("请引用当前真实评审工单的正式结论链接");
+        if (s.historicalVerification) {
+          if (p.data.decision !== "approve")
+            throw conflict("历史交付只登记已核验的正式结论");
+          await assertHistoricalVerificationSource(tx as unknown as Db, fresh, s, latest, formal);
+        }
         if(p.data.decision==="approve") {
           if (!s.reviewWorkKeys) {
             if (!p.data.manualDelivery) throw badRequest("人工工作单须填写交付版本和正式材料链接");
@@ -335,7 +390,7 @@ export function deliveryWorkflowRoutes(db: Db) {
             s.manualDelivery=p.data.manualDelivery;
           } else if(p.data.manualDelivery) throw badRequest("评审节点仅登记正式评审结论");
           s.state="done";
-          await tx.update(issues).set({status:"done",updatedAt:new Date()}).where(and(eq(issues.id,s.taskId),eq(issues.companyId,f.companyId)));
+          await tx.update(issues).set({status:"done",completedAt:new Date(),updatedAt:new Date()}).where(and(eq(issues.id,s.taskId),eq(issues.companyId,f.companyId)));
         }
       } else {
         await assertDeliveryRun(tx as unknown as Db,f.companyId,s.seatId,s.runId!);
@@ -345,11 +400,13 @@ export function deliveryWorkflowRoutes(db: Db) {
         by: req.actor.userId ?? "local-board",
         at: new Date().toISOString(),
       };
+      const pauses = p.data.decision === "reject" && fresh.config.template?.definition.stages[s.stage].rejectionHandling !== "automatic_rework";
+      if (pauses && fresh.config.entryScope && s.parentKey) s.branchBlocked = true;
       await tx
         .update(deliveryWorkflows)
         .set({
           stages: fresh.stages,
-          state: p.data.decision === "reject" && fresh.config.template?.definition.stages[s.stage].rejectionHandling !== "automatic_rework" ? "blocked" : "active",
+          state: pauses && !s.branchBlocked ? "blocked" : "active",
           message:
             p.data.decision === "reject"
               ? (fresh.config.template?.definition.stages[s.stage].rejectionHandling === "automatic_rework" ? "评审退回，等待调度原执行人修改：" : "评审退回，已暂停，等待手动发起返工：") + p.data.note
@@ -375,11 +432,12 @@ export function deliveryWorkflowRoutes(db: Db) {
     await db.transaction(async tx=>{
       const [fresh]=await tx.select().from(deliveryWorkflows).where(and(eq(deliveryWorkflows.id,f.id),eq(deliveryWorkflows.companyId,f.companyId))).for("update");
       const stage=fresh.stages.find(s=>s.taskId===parsed.data.taskId);
-      if(fresh.state!=="blocked"||stage?.review?.decision!=="reject"||deliveryReviewDigest(stage)!==parsed.data.digest)throw conflict("退回状态或版本已变化，请刷新");
+      if((fresh.state!=="blocked" && !(fresh.state === "active" && stage?.branchBlocked))||stage?.review?.decision!=="reject"||deliveryReviewDigest(stage)!==parsed.data.digest)throw conflict("退回状态或版本已变化，请刷新");
       if(!isSeatManager(req,f.companyId)&&stage.review.by!==req.actor.userId)throw forbidden("请由原评审人或组织管理员发起返工");
-      await assertWorkflowSource(tx as unknown as Db,fresh);
+      await assertWorkflowSource(tx as unknown as Db,fresh,stage);
       if(stage.reviewerUserId)await assertTemplateReviewer(tx as unknown as Db,f.companyId,stage.reviewerUserId);
-      await tx.update(deliveryWorkflows).set({state:"active",message:"已确认返工，等待旧进程停止核验后派回原执行人",updatedAt:new Date()}).where(eq(deliveryWorkflows.id,f.id));
+      delete stage.branchBlocked;
+      await tx.update(deliveryWorkflows).set({stages:fresh.stages,state:"active",message:"已确认返工，等待旧进程停止核验后派回原执行人",updatedAt:new Date()}).where(eq(deliveryWorkflows.id,f.id));
       await workflowAudit(tx as unknown as Db,f.companyId,req.actor.userId??"local-board","delivery.review.rework.requested",f.id,parsed.data);
     });
     res.json({received:true});
@@ -405,11 +463,11 @@ export function deliveryWorkflowRoutes(db: Db) {
         .for("update");
       if (
         fresh.state !== "acceptance" ||
-        fresh.fingerprint !== p.data.fingerprint ||
+        (fresh.config.entryScope ? fresh.config.entryScope.acceptanceDigest : fresh.fingerprint) !== p.data.fingerprint ||
         fresh.stages.some((s) => s.state !== "done")
       )
         throw conflict("尚未满足验收条件或输入已变化");
-      await assertWorkflowSource(tx as unknown as Db, fresh);
+      await assertWorkflowSource(tx as unknown as Db, fresh, undefined, true);
       const acceptance = {
         reference: p.data.reference,
         note: p.data.note,
@@ -506,6 +564,21 @@ export function deliveryWorkflowRoutes(db: Db) {
       );
     res.json({ received: true, executionStopVerified: false });
   });
+  router.post(base + "/:workflowId/automatic-repair/recheck", async (req,res)=>{
+    const f=await record(req);board(req,true);
+    const parsed=z.object({expectedReceiptDigest:z.string().regex(/^[a-f0-9]{64}$/)}).strict().safeParse(req.body);
+    if(!parsed.success) throw badRequest("请指定当前失败版本");
+    await db.transaction(async tx=>{
+      const [fresh]=await tx.select().from(deliveryWorkflows).where(and(eq(deliveryWorkflows.companyId,f.companyId),eq(deliveryWorkflows.id,f.id))).for("update");
+      const failed=deliveryRepairCandidates(fresh.stages, !!fresh.config.entryScope).find(s=>s.receiptDigest===parsed.data.expectedReceiptDigest);
+      if(fresh.state!==(fresh.config.entryScope ? "active" : "blocked") || !fresh.config.automaticRepairAuthorized || !failed?.automaticRepair || failed.receiptDigest!==parsed.data.expectedReceiptDigest) throw conflict("失败版本或自动修复状态已变化");
+      await assertWorkflowSource(tx as unknown as Db,fresh,failed);
+      if(!failed.automaticRepair.operations.length) delete failed.automaticRepair;
+      else {failed.automaticRepair.status="provisioning";delete failed.automaticRepair.message;}
+      await tx.update(deliveryWorkflows).set({stages:fresh.stages,message:"已请求重新核对自动修复；不重复提交结果不确定的建单",updatedAt:new Date()}).where(eq(deliveryWorkflows.id,f.id));
+      await workflowAudit(tx as unknown as Db,f.companyId,req.actor.userId??"local-board","delivery.automatic_repair.recheck_requested",f.id,parsed.data);
+    });res.json({received:true});
+  });
   router.post(base + "/:workflowId/repair", async (req, res) => {
     const flow = await record(req);
     board(req, true);
@@ -557,7 +630,7 @@ export function deliveryWorkflowRoutes(db: Db) {
         stage.ownerUserId !== req.actor.userId
       )
         throw forbidden("只有席位负责人或管理员可以确认启动");
-      await assertWorkflowSource(tx as unknown as Db, fresh);
+      await assertWorkflowSource(tx as unknown as Db, fresh, stage);
       stage.startApprovedBy = req.actor.userId ?? "local-board";
       await tx
         .update(deliveryWorkflows)
@@ -725,6 +798,7 @@ export function deliveryWorkflowRoutes(db: Db) {
           )
       : [];
     res.json({
+      automaticRepairPolicy:s.flow.config.automaticRepairAuthorized ? s.flow.config.template?.definition.automaticRepair : undefined,
       analysis: analysis
         ? { publication: analysis.publication, delivery: analysis.delivery }
         : null,
@@ -732,7 +806,7 @@ export function deliveryWorkflowRoutes(db: Db) {
       demandNo: s.flow.demandNo,
       stage: s.stage,
       delegatedReviewKeys: s.flow.stages.filter(node=>node.reviewWorkKeys?.includes(s.stage.jiraKey??"" )).map(node=>node.jiraKey),
-      environmentReference: s.flow.config.environmentReference,
+      environmentReference: s.stage.environmentReference ?? s.flow.config.environmentReference,
       upstream: s.flow.stages
         .filter((s) => s.state === "done" && ancestors.has(s.taskId))
         .map((s) => ({
@@ -742,9 +816,10 @@ export function deliveryWorkflowRoutes(db: Db) {
           jiraKey:s.jiraKey,
           executionMode:s.executionMode,
           manualDelivery:s.manualDelivery,
+          priorCompletion:s.priorCompletion,
           review: s.review,
         })),
-      snapshotId: s.flow.snapshotId,
+      snapshotId: (s.stage.parentKey && s.flow.config.entryScope?.branches[s.stage.parentKey]?.snapshotId) || s.flow.snapshotId,
     });
   });
   router.post(cb + "/question", async (req, res) => {

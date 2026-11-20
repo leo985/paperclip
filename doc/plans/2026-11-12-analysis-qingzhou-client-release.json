@@ -1,0 +1,185 @@
+{
+  "release": "20261112-analysis-qingzhou-client",
+  "files": {
+    "dist/routes/analysis-executions.js": "3280cddc2fb084b2c373e08ca3bdf9439d2308ab4e21278bfaf25a0449dc9e9e",
+    "dist/middleware/http-log-policy.js": "5410d5361749fba369639e5343b0f9f529db0cd6ca33bafeeb2ef02ca59da467",
+    "dist/services/analysis-qingzhou-credentials.js": "3250ed74ade1d55db1621523d866f8c179c98aa53d5e776ea1f1ef2b0c526784",
+    "ui-dist/dsp7-bridge.zip": "6b53494c9f75823b5004c55bbc64b3f66eadb6163775e12744057b2a02716b86",
+    "ui-dist/dsp7-bridge-manifest.json": "420c2ff1a63d654a319cedd6253e8eef9aa13a7e88757f8ea68d31a0ebd1ad1c",
+    "ui-dist/dsp7-install.py": "87e37d3c37382dd5fdfd63fed9ffd695c174c547601721d608329b74eba58559"
+  },
+  "expected": {
+    "dist/routes/analysis-executions.js": "529226b587b1ed61a079eeb07232e2e061941ba4edc7ec5815a64112fd04bb87",
+    "dist/middleware/http-log-policy.js": "a7f3da7da7da3dc285b3c2e1bba59b1466936e0f9adbd19d398f30f42bd4d705",
+    "dist/services/analysis-qingzhou-credentials.js": null,
+    "ui-dist/dsp7-bridge.zip": "1e37508281d2996ffaa689458e293e882bbc0dfa9031805f4693d4bbff11270f",
+    "ui-dist/dsp7-bridge-manifest.json": "1eec13fa69006ccfdc823d8f94b7e9e3952769f46b2fce6dc95e24bb7916c2aa",
+    "ui-dist/dsp7-install.py": "c23c9eac8977bba933ad94690f92dd4f645230c5eff443efd898947d5052f6a6"
+  },
+  "bridgeSha256": "6b53494c9f75823b5004c55bbc64b3f66eadb6163775e12744057b2a02716b86",
+  "changedBridgeFiles": [
+    "analysis_execution.py",
+    "quick_install.py",
+    "analysis_qingzhou.py"
+  ],
+  "preservedBridgeFiles": 46,
+  "sourceHashes": {
+    "integrations/dsp7-bridge/analysis_qingzhou.py": "793e00603b9b6d610c0fadd0374f48e959fc3ae66dbbe51c0b149687a34693c3",
+    "server/src/services/analysis-qingzhou-credentials.ts": "2c6a5071d2991fe1a2939fa758fd328439e569bc3b07328254435acce1066563"
+  },
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-12T08:27:38.609106+00:00",
+  "backup": "/home/fg/paperclip/private/analysis-qingzhou-20261112/backup-20261112T082641Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/analysis-qingzhou-20261112/backup-20261112T082641Z/pre-analysis-qingzhou-20261112-082641.sql.gz",
+    "sizeBytes": 10851290,
+    "sha256": "eefd0ef5da3dec738b3e31420ca30ea3bee613c3c96b7aa0e20f063a9bcb5ac1"
+  },
+  "migrations": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-12T08:27:04.427Z",
+    "completedAt": "2026-11-12T08:27:36.421Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 1431408,
+    "newServerPid": 1499984,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "serverRestarted": true,
+  "activeBefore": [],
+  "activeAfter": [],
+  "preservedHashes": {
+    "ui-dist/index.html": "6c181dbc90d1949da37059efbf1c8a99a94b953d5ba7e66ff1120024cbe8321b",
+    "ui-dist/sw.js": "1d8f2647bfffcbaee08fbfc3a5b997d401f297eeed6bf1ddd874eafb16d33b98",
+    "ui-dist/dsp7-install.ps1": "4f0e864f5d6370b9f8cfa9d3a0417ebd46d1e54408828dd4b16005a845d8d1b8",
+    "dist/routes/harness-capabilities.js": "9892b4db3284d4bee58d3cd372b920e2f959e22ee86395869015ddf72314538b",
+    "dist/services/analysis-execution-resume.js": "e53ea880ab009b91e6ffdd6683733f35a73514656d175cfb0a9227df9ecf2913",
+    "dist/services/analysis-dispatch-state.js": "8412783391893845bbbdbc0c83a0d9962bb6dd94116a5ff7fd2b29f81b99a885"
+  },
+  "envUnchanged": true,
+  "clientDownloadsVerified": true,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "anonymousAccessDenied": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/agents/f38bb5a9-031c-4a4f-b58d-09272e47a966/dsp7-harness-capabilities",
+      "status": 403
+    }
+  ],
+  "durationSeconds": 34.1,
+  "verification": {
+    "serverAndLogPolicyTests": 13,
+    "pythonAnalysisTests": 20,
+    "candidateBundleTests": 28,
+    "serverTypecheck": "passed",
+    "regression": {
+      "checks": [
+        "authorized bound run receives device bootstrap",
+        "foreign demand rejected",
+        "wrong lease rejected",
+        "wrong machine rejected",
+        "delegated model key rejected",
+        "missing account does not borrow project credentials",
+        "frozen delivery rejected",
+        "revoked permit rejected",
+        "authorization audit contains no credential"
+      ],
+      "transactionRolledBack": true,
+      "providerStarted": false,
+      "credentialPrintedOrPersisted": false
+    },
+    "externalDownloads": {
+      "dsp7-bridge.zip": "6b53494c9f75823b5004c55bbc64b3f66eadb6163775e12744057b2a02716b86",
+      "dsp7-bridge-manifest.json": "420c2ff1a63d654a319cedd6253e8eef9aa13a7e88757f8ea68d31a0ebd1ad1c",
+      "dsp7-install.py": "87e37d3c37382dd5fdfd63fed9ffd695c174c547601721d608329b74eba58559"
+    },
+    "collection": {
+      "records": 17,
+      "uniqueFiles": 9,
+      "uniqueAttachments": 8,
+      "allHashesValid": true,
+      "totalBytes": 9090544,
+      "groups": {
+        "demandAttachmentDtoList": 0,
+        "bankApiDocAttachmentDtoList": 7,
+        "bankTestEnvAttachmentDtoList": 1,
+        "create": 8,
+        "analysis": 0
+      },
+      "errors": []
+    },
+    "runtime": {
+      "task": [
+        {
+          "id": "213d6ba8-9de4-4576-a981-61393d318608",
+          "state": "running",
+          "active_run_id": "475646b9-3977-4664-8749-956ca6796bc8",
+          "updated_at": "2026-11-12T08:32:05.886Z"
+        }
+      ],
+      "runs": [
+        {
+          "id": "475646b9-3977-4664-8749-956ca6796bc8",
+          "status": "running",
+          "error_code": null,
+          "started_at": "2026-11-12T08:29:29.700Z",
+          "finished_at": null
+        }
+      ],
+      "permits": [
+        {
+          "run_id": "475646b9-3977-4664-8749-956ca6796bc8",
+          "renewed_at": "2026-11-12T08:32:06.092Z",
+          "expires_at": "2026-11-12T08:33:06.092Z",
+          "revoked_at": null
+        }
+      ],
+      "auth": [
+        {
+          "action": "analysis.qingzhou.collection_authorized",
+          "created_at": "2026-11-12T08:30:09.695Z",
+          "run_id": "475646b9-3977-4664-8749-956ca6796bc8",
+          "account_revision": "3"
+        }
+      ]
+    }
+  },
+  "localClient": {
+    "upgraded": true,
+    "bridgeDirectory": "/Users/leo/.local/share/paperclip/bridge/6b53494c9f75823b",
+    "nativeTaskPreserved": true,
+    "accountRevision": 3
+  },
+  "limitations": [
+    "Full repository tests and build were not run; scoped verification used.",
+    "Browser verification was not run.",
+    "Analysis was still running at verification; business Q1 resolution and analysis completion are not claimed.",
+    "Other clients require upgrade; global automatic upgrade remains disabled."
+  ]
+}

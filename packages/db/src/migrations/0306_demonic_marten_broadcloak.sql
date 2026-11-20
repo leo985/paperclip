@@ -1,0 +1,1 @@
+ALTER TABLE "delivery_connections" ADD COLUMN "monthly_sync" jsonb;

@@ -1,3 +1,4 @@
+import { taskScopeCondition, type PersonalTaskScope } from "./task-access-scope.js";
 import { documentService } from "./documents.js";
 import { parseTaskSearch, taskSearchCtes, taskSearchScore } from "./task-search.js";
 import { createdFromIssueCondition } from "./issue-creation-origin.js";
@@ -1731,6 +1732,8 @@ export function parseStatusFilter(
 }
 
 export interface IssueFilters {
+  /** Server-resolved authorization boundary; never populated from query parameters. */
+  taskScope?: PersonalTaskScope;
   attention?: "blocked";
   status?: string | readonly string[];
   /**
@@ -6124,6 +6127,7 @@ async function blockedInboxIssueConditions(
   const conditions = [
     eq(issues.companyId, companyId),
     visibleIssueCondition(),
+    taskScopeCondition(filters?.taskScope),
     notInArray(issues.status, [...BLOCKED_INBOX_TERMINAL_STATUSES]),
   ];
   const touchedByUserId = filters?.touchedByUserId?.trim() || undefined;
@@ -7783,6 +7787,7 @@ export function issueService(db: Db) {
       const conditions = [
         eq(issues.companyId, companyId),
         visibleIssueCondition(),
+        taskScopeCondition(filters?.taskScope),
       ];
       if (!filters?.q?.trim()) conditions.push(isNull(issues.conversationAgentId));
       if (filters?.afterId) conditions.push(gt(issues.id, filters.afterId));
@@ -7937,7 +7942,7 @@ export function issueService(db: Db) {
       const issueSource = db.select(issueListSelect).from(issues);
       const searchedSource = hasSearch
         ? issueSource.innerJoin(sql`(
-            ${taskSearchCtes(companyId, taskSearch, true, and(...conditions))}
+            ${taskSearchCtes(companyId, taskSearch, true, and(...conditions), taskScopeCondition(filters?.taskScope))}
             SELECT m.id, ${taskSearchScore(taskSearch)} AS score FROM matched m
           ) task_search`, sql`task_search.id = ${issues.id}`)
         : issueSource;
@@ -8112,7 +8117,7 @@ export function issueService(db: Db) {
         return countBlockedInboxIssues(db, companyId, filters);
       }
 
-      const conditions = [eq(issues.companyId, companyId), visibleIssueCondition()];
+      const conditions = [eq(issues.companyId, companyId), visibleIssueCondition(), taskScopeCondition(filters?.taskScope)];
       if (!filters?.q?.trim()) conditions.push(isNull(issues.conversationAgentId));
       const statuses = parseStatusFilter(filters?.status);
       if (statuses.length === 1)

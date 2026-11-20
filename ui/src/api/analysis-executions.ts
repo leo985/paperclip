@@ -1,7 +1,9 @@
 import { api } from "./client";
-import type { AnalysisExecution, AnalysisDecision } from "@paperclipai/shared";
+import type { AnalysisExecution, AnalysisDecision, AnalysisPendingAction, AnalysisQingzhouOptions, AnalysisTaskDetail } from "@paperclipai/shared";
+export type AnalysisDetail = AnalysisTaskDetail;
 const base = (c: string) => `/companies/${c}/analysis-executions`;
 export const analysisApi = {
+  pendingActions: (c: string) => api.get<AnalysisPendingAction[]>(base(c) + "/pending-actions"),
   list: (c: string, projectId: string, page = 1) =>
     api.get<{ items: AnalysisExecution[]; hasMore: boolean }>(
       base(c) +
@@ -20,11 +22,9 @@ export const analysisApi = {
       }>
     >(base(c) + "/seats"),
   detail: (c: string, id: string) =>
-    api.get<{
-      execution: AnalysisExecution;
-      decisions: AnalysisDecision[];
-      run: { id: string; status: string; error: string | null } | null;
-    }>(base(c) + "/" + id),
+    api.get<AnalysisDetail>(base(c) + "/" + id),
+  forTask: (c: string, id: string) =>
+    api.get<{ analysis: AnalysisDetail | null }>(base(c) + "/by-task/" + encodeURIComponent(id)),
   create: (c: string, input: unknown) =>
     api.post<AnalysisExecution>(base(c), input),
   dispatch: (c: string, id: string, requestId: string) =>
@@ -38,5 +38,7 @@ export const analysisApi = {
     }),
   publication: (c: string, id: string, input: unknown) =>
     api.post(base(c) + `/${id}/publication`, input),
+  qingzhouWriteback: (c: string, id: string, options?: AnalysisQingzhouOptions) =>
+    api.post(base(c) + `/${id}/qingzhou-writeback`, { options }),
   stop: (c: string, id: string) => api.post(base(c) + `/${id}/stop`, {}),
 };

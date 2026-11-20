@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeliveryEntryDetail, DeliveryStageRecord, DeliveryWorkflow, DeliveryMonthlyEntries, Project } from "@paperclipai/shared";
-import { DeliveryMaterials } from "./DeliveryMaterials";
+import { DeliveryEntryEvidence, deliveryEvidenceRecords, type DeliveryEvidenceState } from "./DeliveryMaterials";
+import { DeliveryWorkDispatch } from "./DeliveryWorkDispatch";
 import { ProjectReadiness } from "./ProjectReadiness";
 import { DeliveryMonthlyBoard } from "./DeliveryMonthlyBoard";
 const mocks = vi.hoisted(() => ({ analysis: vi.fn(), get: vi.fn(), post: vi.fn(), seats: vi.fn() }));
@@ -13,7 +14,13 @@ vi.mock("@/lib/router", () => import("react-router-dom"));
 vi.mock("@/api/analysis-executions", () => ({ analysisApi: { detail: mocks.analysis } }));
 vi.mock("@/api/client", () => ({ api: { get: mocks.get, post: mocks.post } }));
 vi.mock("@/api/dsp7-seats", () => ({ dsp7SeatsApi: { list: mocks.seats } }));
-const detail = { snapshot: { id: "snapshot", projectId: "p1", collectedAt: "2026-10-27" }, analyses: [] } as unknown as DeliveryEntryDetail;
+const detail = {
+  snapshot: {
+    id: "snapshot", projectId: "p1", collectedAt: "2026-10-27",
+    plan: { mains: [], items: [{ key: "DSP-1", parentKey: "DSP-10", type: "系统设计", status: "已完成" }] },
+  },
+  analyses: [],
+} as unknown as DeliveryEntryDetail;
 const stage: DeliveryStageRecord = { stage: "design", taskId: "t1", seatId: "s1", ownerUserId: "u1", jiraKey: "DSP-1", dispatchId: "d1", state: "done", runId: "r1", capabilityId: null, registryRevision: null, inputDigest: "input", receiptDigest: "receipt", receipt: { protocolVersion: 1, taskId: "t1", runId: "r1", stage: "design", jiraKey: "DSP-1", inputDigest: "input", stateDigest: "state", trackerReceiptId: "tracker", jiraReference: "https://jira.example.com/DSP-1", artifacts: [{ path: "design.md", sha256: "hash" }] }, review: { decision: "approve", digest: "receipt", reference: "https://jira.example.com/review", note: "", by: "u1", at: "2026-10-27" }, message: null };
 let cleanup: (() => void) | undefined;
 beforeEach(() => { vi.resetAllMocks(); mocks.get.mockResolvedValue(null); mocks.seats.mockResolvedValue([]); });
@@ -24,7 +31,15 @@ async function mount(element: React.ReactNode, client = new QueryClient({ defaul
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 25)); });
   cleanup = () => { root.unmount(); client.clear(); node.remove(); }; return node;
 }
-function materials(record = stage) { return <DeliveryMaterials companyId="c1" detail={detail} workflow={{ stages: [record] } as DeliveryWorkflow} />; }
+function workAndEvidence(entry = detail, workflows: DeliveryWorkflow[] = [], workflowState: DeliveryEvidenceState = "ready") {
+  const records = deliveryEvidenceRecords(workflows);
+  const { snapshot } = entry;
+  return <>
+    <DeliveryWorkDispatch plan={snapshot.plan} tasks={[]} admission={null} projectId={snapshot.projectId} snapshotId={snapshot.id} canManage records={records} workflowState={workflowState} />
+    <DeliveryEntryEvidence companyId="c1" detail={entry} records={records} workflows={workflows} workflowState={workflowState} />
+  </>;
+}
+function materials(record = stage) { return workAndEvidence(detail, [{ stages: [record] } as DeliveryWorkflow]); }
 function SearchNavigation() {
   const location=useLocation(),navigate=useNavigate();
   return <><output aria-label="当前查询参数">{location.search}</output><button onClick={()=>navigate("?month=2026-10&mq=需求")}>打开历史关键词</button><button onClick={()=>navigate(-1)}>返回上次筛选</button></>;
@@ -76,16 +91,53 @@ describe("management evidence and scheduling interactions", () => {
   it("shows a matching approved receipt as stage evidence without inferring formal acceptance", async () => {
     const node = await mount(materials()); expect(node.textContent).toContain("本阶段已核验交付"); expect(node.textContent).toContain("尚未登记正式验收结论");
   });
+  it("keeps each main issue's attachments and review conclusions with the correct Jira child", async () => {
+    const withTwoParents = {
+      ...detail,
+      snapshot: {
+        ...detail.snapshot,
+        plan: { ...detail.snapshot.plan, items: [
+          ...detail.snapshot.plan.items,
+          { key: "DSP-2", parentKey: "DSP-20", type: "代码评审", status: "已完成", title: "代码评审", assignee: "", scheduled: true },
+          { key: "DSP-3", parentKey: "DSP-20", type: "功能测试", status: "待受理", title: "功能测试", assignee: "", scheduled: false },
+        ] },
+      },
+    };
+    const secondRecord: DeliveryStageRecord = {
+      ...stage, stage: "coding", intent: "code-review", taskId: "t2", jiraKey: "DSP-2", receipt: null, receiptDigest: null, review: null,
+      priorCompletion: { stage: "coding", jiraKey: "DSP-2", source: "jira", version: "version-2", artifactReferences: [],
+        reviewReference: "https://jira.example.com/browse/DSP-2", by: "u1", at: "2026-10-27", snapshotId: "snapshot",
+        jiraEvidence: { status: "已完成", updated: "2026-10-27", reviewResult: "代码评审：通过", artifacts: [], comments: [] } },
+    };
+    const workflows = [{ stages: [stage] }, { stages: [secondRecord] }] as DeliveryWorkflow[];
+    const node = await mount(workAndEvidence(withTwoParents, workflows));
+    const first = node.querySelector('[aria-label="主工单 DSP-10"]')!;
+    const second = node.querySelector('[aria-label="主工单 DSP-20"]')!;
+    expect(first.textContent).toContain("design.md");
+    expect(first.textContent).not.toContain("代码评审：通过");
+    expect(second.textContent).toContain("Jira 结果描述：代码评审：通过");
+    expect(second.textContent).toContain("已复用历史交付");
+    expect(second.textContent).toContain("待受理");
+    const reviewRow = [...second.querySelectorAll("tbody tr")].find(row => row.textContent?.includes("DSP-2 ·"));
+    expect(reviewRow?.textContent).toContain("Jira 结果描述：代码评审：通过");
+    expect(second.querySelectorAll("tbody tr")).toHaveLength(2);
+    expect(second.textContent).not.toContain("design.md");
+    expect(second.querySelector('a[href="https://jira.example.com/browse/DSP-2"]')).not.toBeNull();
+  });
+
   it("does not report missing acceptance when workflow records cannot be read", async () => {
-    const node = await mount(<DeliveryMaterials companyId="c1" detail={detail} workflowState="unavailable" />);
+    const node = await mount(workAndEvidence(detail, [], "unavailable"));
     expect(node.textContent).toContain("正式验收记录待核实"); expect(node.textContent).not.toContain("尚未登记正式验收结论");
     expect(node.textContent).toContain("流程交付回执待核实");
+    const analysisLink = node.querySelector<HTMLAnchorElement>('a[href*="stage=analysis"]');
+    expect(analysisLink?.hash).toBe("#delivery-entry-analysis");
+    expect(analysisLink?.search).not.toContain("tab=analysis");
   });
   it("reads independent analysis only when expanded and surfaces an authorization failure", async () => {
     mocks.analysis.mockRejectedValue(new Error("403"));
-    const node = await mount(<DeliveryMaterials companyId="c1" detail={{ ...detail, analyses: [{ id: "a1", title: "分析修订", revision: 1 }] as DeliveryEntryDetail["analyses"] }} />);
+    const node = await mount(workAndEvidence({ ...detail, analyses: [{ id: "a1", title: "分析修订", revision: 1 }] as DeliveryEntryDetail["analyses"] }));
     expect(mocks.analysis).not.toHaveBeenCalled();
-    const target = node.querySelector('details')!;
+    const target = node.querySelector<HTMLDetailsElement>('[aria-label="条目级需求分析材料"] details')!;
     await act(async () => { target.open = true; target.dispatchEvent(new Event("toggle")); });
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 25)); });
     expect(mocks.analysis).toHaveBeenCalledWith("c1", "a1"); expect(node.textContent).toContain("材料索引读取失败或无访问权限");

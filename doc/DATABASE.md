@@ -547,3 +547,38 @@ in the target organization, enabled DingTalk source, active person and matching 
 模板 stages JSON 新增可选 `entryChecks` 检查项数组；只有首个启用阶段的配置参与条目入口核验。已有工作流固定原模板并保留已准入状态。检查结果随 `delivery.workflow.started` 活动记录保存，不增加表或列，无需 SQL 迁移。旧模板可读但不自动补齐入口条件；新模板发布需明确配置开始节点检查项。
 
 交付链席位归属策略存于现有 `delivery_workflows.config` JSON：新流程保存 `seatAssignment: "jira_assignee"`，`workSeats` 保存按工单的显式席位选择，节点中的 `seatId` 固定实际席位。无需数据库迁移；旧流程缺少该标记时沿用原策略。
+
+### 分析轻舟回写（2026-11-10）
+
+迁移 `0303_flawless_stranger` 为 `analysis_executions` 增加可空 `qingzhou_writeback` JSONB，记录保存参数、状态、来源与版本摘要和回读核验时间；旧记录保持空值。冻结的 `delivery` JSON 可附带与 `analysis.md` 文件指纹匹配的正文，供自动保存与失败重试。成功不改写正式 `publication`。正文受分析任务原有组织和负责人访问控制；活动日志仅存版本与结果，不含正文或凭据。
+
+### 席位轻舟账号（2026-11-11）
+
+迁移 `0304_lazy_the_call` 新增 `seat_qingzhou_accounts`，按组织和席位唯一保存用户名、公司加密凭据引用、配置修订及登录检查状态；密码仅进入 `company_secrets` 的加密版本。移除绑定保留修订墓碑并撤销其凭据，避免旧页面恢复已删除的配置。组织或席位删除级联清除绑定；不复制或自动绑定项目来源账号。分析回写回执增加凭据来源、执行席位和账号修订字段，旧回执继续可读。席位账号配置、检查、移除及同席位分析回写共用事务锁；活动日志不记录密码或 token。
+
+
+### 项目月度来源归集（2026-11-11）
+
+`delivery_connections.sub_product_attribution` 为可空的轻舟子产品归属代码。设置后，月度查询合并本组织排期与该产品期望本月交付的条目；空值保留原组织排期模式。变更沿用来源配置 revision 与公司/项目权限核验，迁移只添加可空列，不自动改变现有项目归集范围。
+
+
+`delivery_connections.monthly_sync` 为可空 JSONB，按组织项目连接保存每日同步开关、北京时间、下次运行和最近运行结果。空值表示未开启。数据库行锁保证多个服务实例只有一个能领取同一次定时任务，运行 ID 和租约用于确认快照写入权限及识别中断任务。
+
+### 交付实例已有成果（2026-11-16）
+
+现有 `delivery_workflows.config` JSON 新增可选 `priorCompletions`；阶段 JSON 新增可选 `priorCompletion`，保存版本、成果及正式结论引用、功能测试全部通过数量（仅功能测试）、确认人、时间与来源快照 ID。已有节点保留 `done`，设备回执和运行 ID 保持空值。启动、完成态任务及活动审计同事务提交，无新增表或列，无需 SQL 迁移；旧流程语义不变。
+
+自动计划可以在阶段 JSON 中记录 `historicalVerification` 或 `deferredPriorCompletion`。前者复用人工核验状态和正式结论记录，后者在依赖完成后按授权的 Jira 成果版本回读，核验成功才写入 `priorCompletion`。两者在核验之前保持非完成态。条目级实例的配置 JSON 通过可选的 `entryScope.ignoredParentKeys` 保存管理员确认排除的主单。原有实例缺少该字段时继续核对所有主单。无需迁移。
+
+条目范围的 `entryScope.branches[parentKey].skipTestCases` 可记录启动时授权跳过测试用例阶段，分支范围摘要按剩余工单计算。无需迁移。
+
+`delivery_plan_previews` 按组织、项目、来源和条目号保存一份最近生成的自动计划及其输入，记录生成所用的来源快照。重新生成更新同一条记录，生成事件仅审计快照和计划摘要。
+
+
+### 自动修复持久化（2026-11-16）
+
+自动修复使用既有模板与工作流 JSON，不增加表或列，无 SQL 迁移。模板 `automaticRepair` 保存模块路由和构建观察策略；实例 `automaticRepairAuthorized` 与服务端派生 `automaticRepairGrant` 固定授权和账号身份。失败阶段 `automaticRepair` 保存每次外部建单的 pending／creating／created 意图、稳定标记、领取时间和回读工单号；调用 Jira 前先独立提交 creating，避免事务回滚后盲目重复外部写入。修复历史保留原失败及防重记录，阶段 `automaticRepairGenerated` 标识自动节点，`expectedBuild` 固定重测构建。回执可附带绑定正式附件指纹的 `failureReport`、`build`，独立代码评审支持具名报告中的 rejected 及修改说明。活动日志记录每次编排状态与管理员重新核对操作。旧 JSON 缺省语义不变。
+
+### 条目交付分支
+
+条目实例沿用公司、项目、条目编号唯一约束。现有配置 JSON 的 `entryScope` 保存 Jira 来源、按主单登记的范围摘要和快照、显式前置主单及启动请求授权。节点 JSON 保存分支阻塞、适用环境引用和实际启动授权人。范围调整重用现有任务，并在节点历史及活动记录保留变更和旧证据。无需新增数据库列。

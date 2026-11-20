@@ -60,6 +60,19 @@ describe("isPrivateWebhookHttpRequest", () => {
 });
 
 describe("isSecretSensitiveHttpRequest", () => {
+  it("protects device-only analysis collection credentials, including rejected methods", () => {
+    for (const method of ["POST", "GET", "DELETE"]) {
+      expect(isSecretSensitiveHttpRequest(method, "/api/agents/s/analysis-runs/r/qingzhou-credentials")).toBe(true);
+    }
+    expect(isSecretSensitiveHttpRequest("POST", "/api/agents/s/analysis-runs/r/context")).toBe(false);
+  });
+  it("protects seat Qingzhou credentials on configuration and login-check failures", () => {
+    for (const method of ["GET", "PUT", "POST", "DELETE"]) {
+      expect(isSecretSensitiveHttpRequest(method, "/api/companies/c/dsp7-seats/s/qingzhou-account")).toBe(true);
+      expect(isSecretSensitiveHttpRequest(method, "/api/companies/c/dsp7-seats/s/qingzhou-account/check")).toBe(true);
+    }
+    expect(isSecretSensitiveHttpRequest("PUT", "/api/companies/c/dsp7-seats/s/qingzhou-account-extra")).toBe(false);
+  });
   it("identifies credential-bearing chat setup mutations", () => {
     expect(
       isSecretSensitiveHttpRequest(

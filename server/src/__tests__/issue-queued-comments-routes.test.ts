@@ -1,3 +1,5 @@
+import * as deliveryTaskActions from "../services/delivery-workflow-actions.js";
+import { conflict } from "../errors.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import { runningProcesses } from "../adapters/index.js";
 import { randomUUID } from "node:crypto";
@@ -93,6 +95,22 @@ describeEmbeddedPostgres("issue queued-comment routes", () => {
     testApp.use(errorHandler);
     return testApp;
   }
+
+  it("keeps workflow comments readable while refusing standalone release", async () => {
+    const seeded = await seedQueue();
+    const guard = vi.spyOn(deliveryTaskActions, "assertNoDeliveryTaskLifecycle")
+      .mockRejectedValue(conflict("交付链节点由实例管理"));
+    try {
+      const comments = await request(app(seeded.companyId, "queue-owner", {agentId:seeded.agentId,runId:seeded.runId})).get(`/api/issues/${seeded.issueId}/comments`);
+      expect(comments.status).toBe(200);
+      expect(guard).not.toHaveBeenCalled();
+      const released = await request(app(seeded.companyId, "queue-owner", {agentId:seeded.agentId,runId:seeded.runId})).post(`/api/issues/${seeded.issueId}/release`).send({});
+      expect(released.status).toBe(409);
+      expect(guard).toHaveBeenCalledWith(db, seeded.companyId, seeded.issueId);
+    } finally {
+      guard.mockRestore();
+    }
+  });
 
   async function seedQueue() {
     const companyId = randomUUID();

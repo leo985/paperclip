@@ -4,6 +4,44 @@ const credentials = async () => ({ username: "test-user", password: "fixture-pas
 const success = (data: Record<string, unknown> = {}) => new Response(JSON.stringify({ success: true, code: "0", ...data }));
 const authenticated = () => new Response(JSON.stringify({ accessToken: "fixture-token" }));
 describe("Qingzhou read-only source client", () => {
+  it("reads every delivery-month page with a stable product and date filter", async () => {
+    const rows=Array.from({length:101},(_,i)=>({urid:String(200+i),demandNo:`TWGF-${i}`,subProductAttribution:"DSP",estimatedDeliveryDate:"2026-11-01"}));
+    const fetcher=vi.fn(async(url:string,init?:RequestInit)=>{
+      if(url.includes("/auth/login"))return authenticated();
+      const body=init!.body as URLSearchParams;
+      expect(body.get("estimatedDeliveryDate")).toBe("2026-11-01,2026-11-30");
+      expect(body.get("subProductAttribution")).toBe("DSP");expect(body.get("sortName")).toBe("urid");
+      const page=Number(body.get("pageNum"));return success({total:101,rows:rows.slice((page-1)*100,page*100)});
+    });
+    expect(await qingzhouClient({credentials,fetch:fetcher as typeof fetch}).deliveryMonthDemands("2026-11","DSP")).toHaveLength(101);
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+  it("rejects ignored product/month filters, repeated pages and inconsistent totals", async()=>{
+    const good={urid:"200",demandNo:"TWGF-00919",subProductAttribution:"DSP",estimatedDeliveryDate:"2026-11-01"};
+    for(const pages of [
+      [{total:1,rows:[{...good,subProductAttribution:"ATS"}]}],
+      [{total:1,rows:[{...good,estimatedDeliveryDate:"2026-10-01"}]}],
+      [{total:2,rows:[good]},{total:2,rows:[good]}],
+      [{total:2,rows:[good]},{total:3,rows:[]}],
+      [{total:2,rows:[good]},{total:2,rows:[]}],
+    ]) {
+      const fetcher=vi.fn().mockResolvedValueOnce(authenticated());for(const page of pages)fetcher.mockResolvedValueOnce(success(page));
+      await expect(qingzhouClient({credentials,fetch:fetcher}).deliveryMonthDemands("2026-11","DSP")).rejects.toBeInstanceOf(QingzhouReadError);
+    }
+  });
+  it("saves analysis using multipart dotted DTO fields and never retries ambiguous writes", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(authenticated()).mockRejectedValueOnce(new Error("lost response private-token"));
+    const client = qingzhouClient({ credentials, fetch: fetcher });
+    await expect(client.saveAnalysis("1828643972046290945", {theme:"主题", "demandAnalysisDto.analysisResult":"<pre>分析</pre>"})).rejects.toMatchObject({code:"connection_unavailable"});
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    const [url, request] = fetcher.mock.calls[1]!;
+    expect(new URL(url).searchParams.get("uc")).toBe("UC_PROJ2_DEMAND_SPLIT_ANALYZE");
+    expect(request.body).toBeInstanceOf(FormData);
+    expect(request.body.get("urid")).toBe("1828643972046290945");
+    expect(request.body.get("demandAnalysisDto.analysisResult")).toBe("<pre>分析</pre>");
+    expect(request.headers["Content-Type"]).toBeUndefined();
+    expect(request.redirect).toBe("error");
+  });
   it("uses the existing login form contract and preserves 19-digit source identifiers", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(authenticated()).mockResolvedValueOnce(new Response('{"success":true,"code":"0","total":1,"rows":[{"demandNo":"ATS3-00156","urid":1828643972046290945}]}'));
     const client = qingzhouClient({ credentials, fetch: fetcher });

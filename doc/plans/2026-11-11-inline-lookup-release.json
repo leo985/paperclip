@@ -1,0 +1,47 @@
+{
+  "release": "20261111-inline-lookup",
+  "status": "deployed",
+  "timestamp": "2026-11-11T09:07:11.299935+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-1347cb0f.js",
+  "uiModule": "DeliveryEntries-5d0cccbd.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/inline-lookup-20261111/backup-20261111T090647Z",
+  "serverRestarted": false,
+  "service": "MainPID=280738\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/DeliveryMonthlyBoard.tsx": "dfece20a2eaa1f4c6e9aa7961cf9b00d190661fff5d7c4d6fc266236ed718a25",
+    "ui/src/components/DeliveryDemandLookup.tsx": "d26ea32a45d36fd3c710fde64c318baec73120f052bdb4a32bc332ade5441b8c",
+    "ui/src/pages/DeliveryEntries.tsx": "7b762b5d80f1286e7c29671bd78806ea0b9ca2314a1cc6114fa5749e1fa4ca3e"
+  },
+  "verification": {
+    "relatedTestsPassed": 15,
+    "uiTypecheckPassed": true,
+    "tokenGatesPassed": true,
+    "artifactPageRerenders": 8,
+    "artifactCategoryFilterRenderPassed": true,
+    "httpAssetHashVerified": true,
+    "browserVerification": "unavailable: browser connector auth token unavailable"
+  }
+}

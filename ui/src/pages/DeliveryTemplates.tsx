@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   DELIVERY_STAGE_LABELS,
+  DELIVERY_STAGES,
   DELIVERY_ENTRY_CHECKS,
   type DeliveryEntryCheck,
   deliverySequenceLabel,
@@ -19,13 +20,7 @@ import { accessApi } from "@/api/access";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 const field = "rounded-md border border-border bg-background p-2 text-sm";
-const order = [
-  "analysis",
-  "design",
-  "coding",
-  "test-cases",
-  "functional-test",
-] as const;
+const order = DELIVERY_STAGES;
 export function DeliveryTemplates() {
   const { selectedCompanyId: c } = useCompany();
   const { canManage } = useManagementAccess();
@@ -89,7 +84,7 @@ export function DeliveryTemplates() {
   if (!c) return <p>请先选择组织。</p>;
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-6">
-      <h1 className="text-xl font-semibold">交付链</h1>
+      <h1 className="text-xl font-semibold">AI交付链</h1>
       <p className="text-sm text-muted-foreground">
         组织默认流程自动用于新建交付。项目可覆盖；已启动流程固定使用原模板版本。所有流程最后都需要人工验收。
       </p>
@@ -172,6 +167,24 @@ export function DeliveryTemplates() {
               }
             />
           </label>
+          <fieldset disabled={!canManage} className="space-y-3 rounded-lg border border-border p-4">
+            <legend className="px-2">测试失败自动修复</legend>
+            <label className="flex items-center gap-2"><input type="checkbox" aria-label="启用测试失败自动修复" checked={!!value.automaticRepair} onChange={e=>setDraft({...value,inheritOrganization:false,automaticRepair:e.target.checked?{mode:"reuse_existing",maxCycles:3,buildObservationUrl:"",routes:[]}:undefined})}/>按模块路由复用原编码、代码评审和功能测试任务返工</label>
+            {value.automaticRepair && <>
+              <p className="text-sm text-muted-foreground">实例启动时一次授权。正常产品缺陷自动闭环；达到轮数或预算上限、跨模块归属不明确、环境／用例问题时转人工处理。最终验收仍由人工完成。</p>
+              <p className="text-sm text-muted-foreground">使用条目拆分时已有的工单和节点，不创建缺陷单、修复单、重测单或额外代码评审单。模块路由必须对应原执行席位；无法唯一定位时转人工核对。</p>
+              <label className="block space-y-2 text-sm">测试环境构建回读地址<Input required type="url" aria-label="测试环境构建回读地址" value={value.automaticRepair.buildObservationUrl} onChange={e=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,buildObservationUrl:e.target.value}})}/></label>
+              <p className="text-sm text-muted-foreground">该接口返回当前部署的 version 和 environmentReference；不携带 Jira 凭据。修复席位按已有部署流程交付新构建，回读一致后才允许重测。</p>
+              <label className="block space-y-2 text-sm">最多自动修复轮数<Input required type="number" min={1} max={3} aria-label="最多自动修复轮数" value={value.automaticRepair.maxCycles} onChange={e=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,maxCycles:Number(e.target.value)}})}/></label>
+              {value.automaticRepair.routes.map((route,index)=><div key={index} className="space-y-2 rounded-md border border-border p-3">
+                <label className="block space-y-2 text-sm">模块标识<Input required aria-label={`自动修复模块 ${index+1}`} value={route.module} onChange={e=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,routes:value.automaticRepair!.routes.map((r,i)=>i===index?{...r,module:e.target.value}:r)}})}/></label>
+                {([ ["developmentSeatId","原编码席位","coding"], ["reviewSeatId","原代码评审席位","code-review"], ["qaSeatId","原功能测试席位","functional-test"] ] as const).map(([key,label,role])=><label key={key} className="block space-y-2 text-sm">{label}<select required aria-label={`自动${label} ${index+1}`} className={field+" w-full"} value={route[key]} onChange={e=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,routes:value.automaticRepair!.routes.map((r,i)=>i===index?{...r,[key]:e.target.value}:r)}})}><option value="">选择该模块经办人的席位</option>{seats.data?.filter(s=>s.domains.some(d=>d.roles.includes(role))).map(s=><option key={s.id} value={s.id} disabled={key==="reviewSeatId"&&s.id===route.developmentSeatId}>{s.name}</option>)}</select></label>)}
+                <Button type="button" variant="ghost" onClick={()=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,routes:value.automaticRepair!.routes.filter((_,i)=>i!==index)}})}>移除模块路由</Button>
+              </div>)}
+              <Button type="button" variant="outline" onClick={()=>setDraft({...value,inheritOrganization:false,automaticRepair:{...value.automaticRepair!,routes:[...value.automaticRepair!.routes,{module:"",developmentSeatId:"",reviewSeatId:"",qaSeatId:""}]}})}>添加自动修复模块路由</Button>
+              {!value.automaticRepair.routes.length&&<p role="status" className="text-sm">至少配置一个模块路由；模块标识须与结构化测试缺陷一致。</p>}
+            </>}
+          </fieldset>
           {entryStage && <fieldset disabled={!canManage} className="space-y-3 rounded-lg border border-border p-4">
             <legend className="px-2">交付链准入 · 开始节点：{DELIVERY_STAGE_LABELS[entryStage]}</legend>
             <p className="text-sm text-muted-foreground">选择进入本交付链前必须满足的明确条件，所选条件全部满足才能启动。仅使用开始节点的配置；后续阶段继续执行各自门禁。</p>

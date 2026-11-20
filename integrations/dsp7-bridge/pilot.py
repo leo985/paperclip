@@ -20,6 +20,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+# Helpers import this module by name even when launchd starts pilot.py directly.
+# Keep one module (and one BridgeError class) so scoped API denials are caught.
+if __name__ == '__main__':
+    sys.modules['pilot'] = sys.modules[__name__]
+
 DEFAULT_CONFIG = Path(os.environ.get('DSP7_BRIDGE_CONFIG') or Path.home()/'.config/paperclip-dsp7-bridge/config.json')
 ACTIVE = {'queued','running','scheduled_retry'}
 TERMINAL = {'succeeded','failed','cancelled','timed_out'}
@@ -722,7 +727,11 @@ Jira: {self.jira_config()[0]}/browse/{pilot['jira_key']}
             errors.append({'platform_dispatch_error':str(e)})
         from seat_control import tick as seat_tick
         try:seat_tick(self)
-        except (BridgeError,ValueError,OSError,subprocess.SubprocessError):errors.append({"seat_control_error":"席位心跳或请求处理失败，请核对本机登记与服务器连接"})
+        except (BridgeError,ValueError,OSError,subprocess.SubprocessError) as error:
+            from heartbeat_health import failure
+            try:diagnostic=failure(self,error)
+            except (OSError,ValueError,BridgeError):diagnostic={}
+            errors.append({"seat_control_error":"席位心跳或请求处理失败，请执行 harness doctor 查看阶段与错误码", "diagnostic":diagnostic})
         from jira_intake import process_requests
         try:process_requests(self)
         except (BridgeError,ValueError,OSError) as e:errors.append({"web_intake_error":str(e)})
@@ -971,6 +980,10 @@ def main():
                         from seat_lifecycle import finish_offline
                         if finish_offline(b):
                             print('席位已空闲，接入服务安全下线。恢复：harness online',flush=True);return
+                        from heartbeat_health import recover_if_requested
+                        if recover_if_requested(b):
+                            print(json.dumps({'at':now(),'heartbeat_recovery':'idle_restart_ready'}),flush=True)
+                            raise SystemExit(75)
                         errors=b.tick()
                         if finish_offline(b):
                             print('席位已空闲，接入服务安全下线。恢复：harness online',flush=True);return

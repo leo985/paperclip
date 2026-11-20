@@ -2,6 +2,11 @@
 import subprocess
 import sys
 from pathlib import Path
+# Installer probe checks the real cmd -> Python -> bridge path without loading
+# credentials, contacting the server, or requiring first enrollment to finish.
+if sys.argv[1:] == ['--verify-seat-launcher']:
+    print('PAPERCLIP_SEAT_LAUNCHER_OK')
+    raise SystemExit(0)
 from seat_profiles import route_cli
 try:sys.argv=[sys.argv[0],*route_cli(sys.argv[1:])]
 except (RuntimeError,OSError,ValueError) as e:

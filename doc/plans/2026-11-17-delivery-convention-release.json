@@ -1,0 +1,48 @@
+{
+  "release": "delivery-convention-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-17T02:25:58.690216+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-convention-20261117/backup",
+  "uiOnly": false,
+  "serverRestarted": true,
+  "databaseBackup": {
+    "activeRuns": 0,
+    "backupFile": "/home/fg/paperclip/private/delivery-convention-20261117/backup/pre-delivery-convention-20261117-022412.sql.gz",
+    "sizeBytes": 16233325,
+    "prunedCount": 0
+  },
+  "backendPidBefore": 1206433,
+  "backendPidAfter": 1788815,
+  "health": "ok",
+  "httpFilesVerified": 346,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "66f78b1eccae5e9709d2e3f7570f51b8e85ee68bff06b055e95a7da10cbce281",
+  "swSha256": "ed7842b74a93e18b8e533fcda9991007905748b4bef7f842269b96e06880446d",
+  "verification": {
+    "targetedTestsPassed": 39,
+    "serverTypecheck": "passed",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "apiContracts": 147,
+    "unauthenticatedAutomaticStartHttpStatus": 403,
+    "browser": {
+      "advancedRemoved": true,
+      "reviewSelectorsRemoved": true,
+      "environmentHidden": true,
+      "missingReviewShown": true,
+      "startDisabled": true
+    },
+    "realDeliveryWorkflowStarted": false,
+    "fullRepositoryChecks": "Not rerun; known missing cargo blocks repository build/typecheck workflow"
+  },
+  "finalUiRelease": "doc/plans/2026-11-17-delivery-materials-release.json",
+  "sourceSha256": {
+    "server/src/services/delivery-automatic-selection.ts": "c29b5bcb6fda8778a927c014b06b555ed87fe5b7d7768956f44945d1e73d0a96",
+    "server/src/services/delivery-work-plan.ts": "be5551176a77d337ca69b8cdb2b14de68675fd8fd76406e3a211988367a5e7c0",
+    "ui/src/components/DeliveryWorkflowPanel.tsx": "dff695846138830557d07255e45dc1412af7f26e0c4c04982c9b378bc8ba4491",
+    "ui/src/components/AutomaticDeliveryStart.tsx": "07fe9953e038bc7c22b9f3470dfac10857f83af14a05afe8dd3dd84bba5e2e7b"
+  }
+}

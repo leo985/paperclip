@@ -14,6 +14,16 @@ describe("delivery source normalization",()=>{
   it("deduplicates month contexts and explains void and unscheduled issues without executing",()=>{
     const p=normalizeDeliverySnapshot(fixture());expect(p.scheduleCount).toBe(1);expect(p.items).toHaveLength(3);expect(p.differences.map(d=>d.code).sort()).toEqual(["jira_only","void"]);expect(p.executionAllowed).toBe(false);
   });
+  it("recognizes a custom Jira Done status on the child independently of its parent", () => {
+    const input = fixture();
+    const jira = JSON.parse(input.jiraJson);
+    jira.issues[0].fields.status = { name: "研发中", statusCategory: { key: "indeterminate" } };
+    jira.issues[2].fields.status = { name: "测试通过待上线", statusCategory: { key: "done" } };
+    input.jiraJson = JSON.stringify(jira);
+    const facts = normalizeDeliverySnapshot(input).monthlyChildIssues!.issues;
+    expect(facts["ATSES-1"]).toBeUndefined();
+    expect(facts["ATSES-3"]).toMatchObject({ done: true, dueDate: null });
+  });
   it("ignores unlinked Qingzhou child placeholders while preserving real children of a void main",()=>{
     const input=fixture();
     input.scheduleJsons=input.scheduleJsons.map(raw=>{const value=JSON.parse(raw);const main=value.data[0].children[0];main.status="已作废";main.children.push(...[null,"","  ",undefined].map(issueNo=>({issueNo,status:"待受理"})));return JSON.stringify(value);});

@@ -1,3 +1,4 @@
+import { personalTaskScope, taskScopeAllows } from "./task-access-scope.js";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
@@ -1663,6 +1664,13 @@ export function authorizationService(db: Db | DbTransaction) {
           action: input.action,
           reason: "allow_instance_admin",
           explanation: "Allowed because the actor is an instance admin.",
+        });
+      }
+      if (["issue:read", "issue:comment", "issue:mutate"].includes(input.action) && input.resource.type === "issue") {
+        const scope = await personalTaskScope(db, input.actor, companyId);
+        if (!taskScopeAllows(scope, input.resource)) return deny({
+          action: input.action, reason: "deny_missing_grant",
+          explanation: "普通成员只能访问分配给本人或本人所属席位的 AI 任务。",
         });
       }
       // What instance-admin elevation used to give cloud tenant users is

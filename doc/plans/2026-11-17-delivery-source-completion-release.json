@@ -1,0 +1,35 @@
+{
+  "release": "delivery-source-completion-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-17T02:05:52.559476+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-source-completion-20261117/backup",
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1206433,
+  "backendPidAfter": 1206433,
+  "health": "ok",
+  "httpFilesVerified": 344,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "f7ff4c64564d0c94127c4f6e7e64092fd5555a6e3952a7ad41d8c024ab835dc6",
+  "swSha256": "49442e9fa48aaca868deab511132109f9b716ff2e4d631e2204d098135d63c0c",
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/delivery?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=734bc43a-37c4-4c38-9a51-5e0bb253f08b&tab=work&reviewKey=ATSES-516505#delivery-workflow",
+    "manualCompletionCheckboxes": 0,
+    "completionModeSelectors": 0,
+    "manualCompletionText": false,
+    "completedWorkAutoReused": true,
+    "startedExecution": false
+  },
+  "verification": {
+    "uiTests": 20,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "externalEntryHashes": "passed",
+    "scopedUiGlobals": "passed",
+    "fullRepositoryChecks": "not run; UI-only correction"
+  },
+  "behavior": "Remove manual prior-completion checkboxes and reuse/rerun selectors. Pending Jira work cannot be marked complete in the UI. Completed Jira work reuses historical delivery automatically, with server-side evidence verification unchanged."
+}

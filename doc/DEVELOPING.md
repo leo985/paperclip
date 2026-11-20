@@ -1668,3 +1668,20 @@ Template forms live at `/company/settings/delivery`; delivery snapshots resolve 
 ### 评审返工（2026-11-05）
 
 交付评审退回测试覆盖多轮版本绑定、旧结论失效、并行依赖闭包和旧进程停止。新增 `/companies/:companyId/delivery-workflows/:workflowId/rework` 仅接受当前退回 taskId/digest，限原评审人或组织管理员；无数据库迁移。
+
+### Fast delivery-chain simulation
+
+Run `pnpm delivery:simulate` for a disposable PostgreSQL rehearsal of DSP delivery planning, seat selection, questions, human decisions, parallel joins, rework, QA repair and acceptance. External execution and Jira are mocked; production is untouched. Reports and per-step events are written under `data/delivery-simulations/`. See [the simulation contract](plans/2026-11-18-delivery-chain-simulation.md) for scope and limitations.
+
+### 智研协同平台内网增量发布
+
+在仓库根目录执行当前清单的预检或发布。默认清单覆盖「精确查询打开条目详情」。依赖已安装的 pnpm 工作区、Python 3.9+、Paramiko，以及本机 `~/.ssh/server_config.json` 已登记的 `fg@10.60.43.53:5033` 连接。SSH 校验本机 `known_hosts`。
+
+```sh
+scripts/deploy-intranet.py --check
+scripts/deploy-intranet.py
+```
+
+发布其他改动时，复制 `scripts/intranet-release/delivery-lookup-detail.json` 并更新清单，通过 `scripts/deploy-intranet.py <清单路径>` 执行。后端清单可指定单个 HTTP handler，也可指定完整服务或共享模块。前端以现网入口可达的资源为基线，清单通过稳定文本定位资源，再指定替换的组件或精确片段。词条或组件定位匹配数量发生变化时，脚本会停止，以便核对现网文件并更新清单。
+
+脚本在远端私有目录保存候选文件、校验清单及发布回执。预检校验候选脚本和后端模块加载，无线上安装和重启。正式发布核对基线，备份被替换文件。后端变更还会检查正在执行的 heartbeat 并备份数据库，再重启服务。脚本校验页面及更新资源的 HTTP 响应和 SHA-256。验证失败时恢复被替换文件并校验回滚。远端发布进程独立于终端连接；断线后从脚本打印的目录查看 `job.json`、`deployment.log` 及 `release.json` 或 `rollback.json`。数据库迁移、依赖安装和席位客户端分发应按各自发布流程处理。

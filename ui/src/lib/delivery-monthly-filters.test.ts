@@ -1,8 +1,55 @@
 import { describe, expect, it } from "vitest";
 import type { DeliveryMonthlyEntries, DeliveryChainAdmission } from "@paperclipai/shared";
-import { filterMonthlyEntries, monthlyDetailHref, monthlySourceOptions, sourceFilterValue, managementToday, monthlyRisks, monthlyNextAction, monthlyProgress, monthlyProgressViews, monthlyFilterKeys } from "./delivery-monthly-filters";
+import { normalizeMonthlyFilters, clearMonthlyFilters, filterMonthlyEntries, monthlyDetailHref, monthlySourceOptions, sourceFilterValue, managementToday, monthlyRisks, monthlyNextAction, monthlyProgress, monthlyProgressViews, monthlyFilterKeys } from "./delivery-monthly-filters";
 const item: DeliveryMonthlyEntries["items"][number] = {demandNo:"ATS3-00001",title:"权限管理",owner:"李巍",sourceStatus:"开发中",startDate:"2026-10-01",endDate:"2026-10-31",workCount:2,snapshotId:null,admission:null};
 describe("monthly delivery filters",()=>{
+  it("filters overlapping schedule/delivery memberships and does not label unknown work counts as zero work",()=>{
+    const scheduled={...item,demandNo:"SCHED-1",inSchedule:true,inExpectedDeliveryMonth:false};
+    const both={...item,demandNo:"BOTH-1",inSchedule:true,inExpectedDeliveryMonth:true};
+    const expected={...item,demandNo:"TWGF-00919",inSchedule:false,inExpectedDeliveryMonth:true,workCount:0,workCountKnown:false};
+    const rows=[scheduled,both,expected];
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mScope:"scheduled"})).map(x=>x.demandNo).sort()).toEqual(["BOTH-1","SCHED-1"]);
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mScope:"expected"})).map(x=>x.demandNo).sort()).toEqual(["BOTH-1","TWGF-00919"]);
+    expect(filterMonthlyEntries(rows,new URLSearchParams())).toHaveLength(3);
+    expect(filterMonthlyEntries([expected],new URLSearchParams({mWork:"none"}))).toEqual([]);
+    expect(clearMonthlyFilters(new URLSearchParams({mScope:"expected",month:"2026-11"})).toString()).toBe("month=2026-11");
+  });
+  it("combines analysis owner with other filters across the entire month and preserves it in links",()=>{
+    const rows=Array.from({length:25},(_,index)=>({...item,demandNo:`ATS3-${index}`,analysisOwner:index===24?" 分析人员 ":"其他分析人员"}));
+    const params=new URLSearchParams({projectId:"p",month:"2026-10",mAnalysisOwner:sourceFilterValue("分析人员"),mOwner:sourceFilterValue(item.owner),mStatus:sourceFilterValue(item.sourceStatus)});
+    expect(filterMonthlyEntries(rows,params).map(row=>row.demandNo)).toEqual(["ATS3-24"]);
+    expect(new URLSearchParams(monthlyDetailHref(params,"p","s","2026-10").split("?")[1]).get("mAnalysisOwner")).toBe(params.get("mAnalysisOwner"));
+    expect(clearMonthlyFilters(params).toString()).toBe("projectId=p&month=2026-10");
+    params.set("mOwner",sourceFilterValue("其他负责人"));
+    expect(filterMonthlyEntries(rows,params)).toEqual([]);
+  });
+  it("offers distinct missing analysis owners, trims and deduplicates options, and searches names",()=>{
+    const rows=[item,{...item,demandNo:"2",analysisOwner:" "},{...item,demandNo:"3",analysisOwner:"来源未提供"},{...item,demandNo:"4",analysisOwner:" 分析人员 "},{...item,demandNo:"5",analysisOwner:"分析人员"}];
+    expect(monthlySourceOptions(rows,"analysisOwner")).toHaveLength(3);
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mAnalysisOwner:sourceFilterValue("")}))).toEqual([rows[1],rows[0]]);
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mAnalysisOwner:sourceFilterValue("来源未提供")}))).toEqual([rows[2]]);
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mq:"分析人员"}))).toHaveLength(2);
+  });
+  it("migrates retired shortcuts into visible admission and sync controls",()=>{
+    expect(normalizeMonthlyFilters(new URLSearchParams({mRisk:"entry_unconfigured"})).toString()).toBe("mAdmission=unconfigured");
+    expect(normalizeMonthlyFilters(new URLSearchParams({mRisk:"admission"})).toString()).toBe("mAdmission=pending");
+    expect(normalizeMonthlyFilters(new URLSearchParams({mAdmission:"unchecked"})).get("mAdmission")).toBe("pending");
+    const oldSync=new URLSearchParams({mAdmission:"unsynced",mSync:"saved",month:"2026-11"});
+    const migrated=normalizeMonthlyFilters(oldSync);
+    expect(migrated.has("mAdmission")).toBe(false);
+    expect(migrated.get("mSync")).toBe("unsynced");
+    expect(migrated.get("month")).toBe("2026-11");
+    expect(oldSync.get("mSync")).toBe("saved");
+    expect(filterMonthlyEntries([item],oldSync)).toEqual([item]);
+  });
+  it("clears every filter including repeated statuses while preserving navigation context",()=>{
+    const params=new URLSearchParams({projectId:"p",month:"2026-11",view:"monthly",mRisk:"past_plan",mSort:"start",mAdmission:"pending",mq:"权限"});
+    params.append("mStatus",sourceFilterValue("开发中"));params.append("mStatus",sourceFilterValue("已完成"));
+    const cleared=clearMonthlyFilters(params);
+    expect([...cleared.keys()]).toEqual(["projectId","month","view"]);
+    expect(params.getAll("mStatus")).toHaveLength(2);
+  });
+
   it("partitions source progress without treating cancellation, closure or unknown states as completion",()=>{
     expect(monthlyProgress({...item,sourceStatus:"全部交付"})).toBe("completed");
     expect(monthlyProgress({...item,sourceStatus:"部分交付"})).toBe("in_progress");
@@ -28,18 +75,18 @@ describe("monthly delivery filters",()=>{
     const rows=[normal,{...normal,demandNo:"missing-owner",owner:""},{...normal,demandNo:"past-and-owner",owner:"",endDate:"2026-10-01"},{...normal,demandNo:"due",endDate:"2026-10-31"},{...normal,demandNo:"date",endDate:""},{...normal,demandNo:"admission",chainAdmission:undefined},{...normal,demandNo:"unconfigured",chainAdmission:{...normal.chainAdmission,state:"unconfigured",ready:false} as DeliveryChainAdmission}];
     expect(monthlyRisks(normal,now)).toEqual([]);
     const params=new URLSearchParams({mRisk:"normal"});
-    expect(filterMonthlyEntries(rows,params,now)).toEqual([normal]);
+    expect(filterMonthlyEntries(rows,params,now).map(row=>row.demandNo)).toEqual(["admission",normal.demandNo,"unconfigured"]);
     params.set("mOwner",sourceFilterValue("其他人"));
     expect(filterMonthlyEntries(rows,params,now)).toEqual([]);
     expect(new URLSearchParams(monthlyDetailHref(new URLSearchParams({mRisk:"normal"}),"p","s","2026-10").split("?")[1]).get("mRisk")).toBe("normal");
   });
   it("uses chain admission independently of coding evidence and distinguishes unconfigured templates",()=>{
     const codingReady={...item,snapshotId:"s",admission:{ready:true,reasons:[],analysisExecutionId:null,evidence:null}};
-    expect(monthlyRisks(codingReady)).toContain("admission");
+    expect(filterMonthlyEntries([codingReady],new URLSearchParams({mAdmission:"pending"}))).toEqual([codingReady]);
     const admitted={...codingReady,chainAdmission:{state:"admitted",ready:true,template:null,startStage:null,checks:[],reasons:[]} as DeliveryChainAdmission};
     expect(monthlyRisks(admitted)).not.toContain("admission");
     const unconfigured={...codingReady,chainAdmission:{...admitted.chainAdmission,state:"unconfigured",ready:false} as DeliveryChainAdmission};
-    expect(monthlyRisks(unconfigured)).toContain("entry_unconfigured");
+    expect(filterMonthlyEntries([unconfigured],new URLSearchParams({mAdmission:"pending"}))).toEqual([]);
     expect(monthlyRisks(unconfigured)).not.toContain("admission");
     expect(filterMonthlyEntries([unconfigured,admitted],new URLSearchParams({mAdmission:"unconfigured"}))).toEqual([unconfigured]);
   });
@@ -51,7 +98,7 @@ describe("monthly delivery filters",()=>{
   });
   it("keeps unverified records distinct from checked admission and unsynced entries",()=>{
     const rows=[item,{...item,demandNo:"ATS3-2",snapshotId:"snapshot-2",chainAdmission:{ready:false,state:"blocked",template:null,startStage:"analysis",checks:[],reasons:["待核对"]} as DeliveryChainAdmission,admission:{ready:false,reasons:["待核对"],analysisExecutionId:null,evidence:null}},{...item,demandNo:"ATS3-3",snapshotId:"snapshot-3",chainAdmission:{ready:true,state:"ready",template:null,startStage:"analysis",checks:[],reasons:[]} as DeliveryChainAdmission,admission:{ready:true,reasons:[],analysisExecutionId:null,evidence:null}}];
-    expect(filterMonthlyEntries(rows,new URLSearchParams({mAdmission:"unchecked"})).map(i=>i.demandNo)).toEqual(["ATS3-2"]);
+    expect(filterMonthlyEntries(rows,new URLSearchParams({mAdmission:"pending"})).map(i=>i.demandNo)).toEqual(["ATS3-00001","ATS3-2"]);
     expect(filterMonthlyEntries(rows,new URLSearchParams({mAdmission:"verified"})).map(i=>i.demandNo)).toEqual(["ATS3-3"]);
     expect(filterMonthlyEntries(rows,new URLSearchParams({mAdmission:"unsynced"}))).toEqual([item]);
   });

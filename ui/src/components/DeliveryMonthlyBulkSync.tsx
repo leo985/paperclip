@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError } from "@/api/client";
 import { Button } from "@/components/ui/button";
 
-type Receipt = { ok: boolean; message: string };
-export function DeliveryMonthlyBulkSync({ month, disabled, readMonth, syncEntry, onBusyChange }: {
-  month: string; disabled: boolean;
+type Receipt = { ok: boolean; message: string; existing?: boolean };
+export function DeliveryMonthlyBulkSync({ month, disabled, readMonth, syncEntry, onBusyChange, scopeLabel }: {
+  month: string; disabled: boolean; scopeLabel?: string;
   readMonth: () => Promise<string[]>;
   syncEntry: (demandNo: string) => Promise<{ existing?: boolean }>;
   onBusyChange: (busy: boolean) => void;
@@ -24,6 +24,8 @@ export function DeliveryMonthlyBulkSync({ month, disabled, readMonth, syncEntry,
   const completed = keys.filter(key => receipts[key]).length;
   const success = keys.filter(key => receipts[key]?.ok).length;
   const failed = completed - success;
+  const added = keys.filter(key => receipts[key]?.ok && receipts[key]?.existing === false).length;
+  const unchanged = keys.filter(key => receipts[key]?.ok && receipts[key]?.existing === true).length;
   const remaining = keys.filter(key => !receipts[key]?.ok);
 
   async function run(retry?: string[]) {
@@ -48,7 +50,7 @@ export function DeliveryMonthlyBulkSync({ month, disabled, readMonth, syncEntry,
         setCurrent(key);
         try {
           const result = await execute(key);
-          if (alive.current) setReceipts(previous => ({...previous,[key]:{ok:true,message:result.existing?"来源无变化，保留已有版本":"已同步最新来源版本"}}));
+          if (alive.current) setReceipts(previous => ({...previous,[key]:{ok:true,existing:result.existing,message:result.existing?"来源无变化，保留已有版本":"已同步最新来源版本"}}));
         } catch (cause) {
           if (alive.current) setReceipts(previous => ({...previous,[key]:{ok:false,message:cause instanceof Error?cause.message:"同步失败"}}));
           // Re-authentication/source revision errors affect the whole queue.
@@ -67,9 +69,10 @@ export function DeliveryMonthlyBulkSync({ month, disabled, readMonth, syncEntry,
     }
   }
   return <section className="space-y-3" aria-label="同步本月全部条目">
-    <div className="flex flex-wrap items-center gap-3"><Button type="button" disabled={disabled||running} onClick={()=>void run()}>{status==="reading"?"正在读取本月完整清单…":running?"正在同步本月全部…":"一键同步本月全部条目"}</Button><span className="text-xs text-muted-foreground">重新读取 {month} 的完整条目清单，逐条更新其 Jira 主单、子单及来源快照；覆盖已纳管条目，不受搜索、筛选、分页或勾选 20 条限制。不派单。</span></div>
+    <div className="flex flex-wrap items-center gap-3"><Button type="button" disabled={disabled||running} onClick={()=>void run()}>{status==="reading"?"正在读取本月完整清单…":running?"正在同步本月全部…":"一键同步本月全部条目"}</Button><span className="text-xs text-muted-foreground">重新读取 {month} 的{scopeLabel??"完整条目"}清单，逐条更新其 Jira 主单、子单及来源快照；包含已纳管条目，不受搜索、筛选、分页或勾选 20 条限制。不派单。</span></div>
     {status!=="idle"&&<div className="space-y-3 rounded-lg border border-border p-4" aria-label="本月全部同步进度">
       <p role="status" className="text-sm">{status==="reading"?"正在读取本月完整清单，尚未开始同步。":`${month} · ${status==="running"?"同步中":status==="stopped"?"已停止后续同步":status==="error"?"未能开始同步":"本轮同步结束"} · 已处理 ${completed}/${keys.length} · 成功 ${success} · 失败 ${failed} · 未处理 ${keys.length-completed}`}{current?` · 正在处理 ${current}`:""}</p>
+      {completed>0&&<p className="text-sm">新增来源版本 {added} · 来源未变化 {unchanged}。新增来源版本包含首次导入和已有条目的来源更新。</p>}
       {keys.length>0&&<progress aria-label="本月同步进度" value={completed} max={keys.length} className="w-full"/>}
       {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
       {status==="done"&&!keys.length&&<p className="text-sm">本月没有条目，无需同步。</p>}

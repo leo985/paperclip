@@ -19,6 +19,7 @@ export const managedPartSchema = z.object({ contentId: z.string().max(160).min(1
 export const managedManifestSchema = z.object({
   contentId: z.string().min(1).max(160), revision: z.string().min(1).max(64),
   kind: z.enum(["user", "assistant", "tool_call", "tool_result", "terminal", "attachment", "control", "compaction"]),
+  inputSource: z.enum(["harness", "manual", "unknown"]).optional(),
   parentStreamId: z.string().max(160).nullable(), messageId: z.string().max(200), toolCallId: z.string().max(200).nullable(),
   name: z.string().max(200).nullable(), mime: z.string().max(150).nullable(),
   parts: z.number().int().min(0).max(50000), bytes: z.number().int().min(0).max(100 * 1024 * 1024), sha256: z.string().regex(/^[a-f0-9]{64}$/),

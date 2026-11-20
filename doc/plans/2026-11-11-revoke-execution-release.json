@@ -1,0 +1,57 @@
+{
+  "release": "20261111-revoke-execution",
+  "status": "deployed",
+  "timestamp": "2026-11-11T10:49:31.617998+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-1204670a.js",
+  "uiModule": "Dsp7ExecutionStatus-470fd52c.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/revoke-execution-20261111/backup-20261111T104904Z",
+  "serverRestarted": false,
+  "service": "MainPID=280738\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/Dsp7ExecutionStatus.tsx": "74612a51adcaa412f8573d59960b11c8142118499c5fe4fb9d4bf10c26e84457",
+    "ui/src/components/Dsp7ExecutionStatus.test.tsx": "e1ba21ffe10882aa721dfeddbbc132dfa42f8ba5ce99ce9144b2520c551c7b15",
+    "ui/src/components/Dsp7ExecutionStatus.revoke.test.tsx": "85f2c18380e68bf7ccde3c619928dee6294d6303d0f1ecb7fa4626b95f56c7f9"
+  },
+  "externalVerification": {
+    "hashedUrls": [
+      "http://10.60.43.53:3100/assets/Dsp7ExecutionStatus-470fd52c.js",
+      "http://10.60.43.53:3100/index.html"
+    ]
+  },
+  "verification": {
+    "uiTestsPassed": 13,
+    "existingCancelRunRouteTest": "passed",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "linkedModules": 673
+  },
+  "scope": "Admin revoke control in task execution panel; confirmation cancels only this platform issue via existing cancellation API.",
+  "limitations": [
+    "Authenticated browser unavailable; permission and confirmation behavior verified with component interaction tests.",
+    "No production task was cancelled during verification."
+  ]
+}

@@ -96,6 +96,14 @@ def command(argv):
                 healthy=json.load(response).get('status')=='ok'
             print('网站网络：'+('正常' if healthy else '网站健康状态异常'))
         except Exception:print('网站网络：无法连接，请检查网络、VPN 或代理设置')
+        from heartbeat_health import diagnose
+        health=diagnose(b)
+        age=health['heartbeatAgeSeconds']
+        print('席位心跳：'+('无成功上报记录' if age is None else str(age)+' 秒前成功上报'+('（已过期）' if age>=90 or age < -5 else '')))
+        if health['consecutiveFailures']:
+            print('心跳诊断：阶段='+str(health['stage'])+'，连续失败='+str(health['consecutiveFailures'])+'，HTTP='+str(health['httpStatus'] or '无'))
+            if health['httpStatus'] in (401,403):print('请核对本席位授权；自动恢复不会扩大权限或重新登记。')
+        if health['recovery']:print('心跳安全恢复：'+health['recovery'])
         from seat_control import inspect_configuration
         checks=inspect_configuration(b)
         for item in checks:print(('通过' if item['status']=='pass' else '失败' if item['status']=='fail' else '提示')+' · '+item['label']+'：'+item['message'])

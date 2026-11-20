@@ -9,12 +9,39 @@ import { useManagementAccess } from "@/hooks/useManagementAccess";
 const quote = (value: string) => "'" + value.replace(/'/g, "'\\''") + "'";
 const psQuote = (value: string) => "'" + value.replace(/'/g, "''") + "'";
 
-export function SeatClientUpgrade({ companyId, seat }: { companyId: string; seat: RegisteredSeat }) {
+type SeatPlatform = "unix" | "windows";
+
+function rememberedPlatform(key: string): SeatPlatform | null {
+  try {
+    const value = localStorage.getItem(key);
+    return value === "unix" || value === "windows" ? value : null;
+  } catch { return null; }
+}
+
+function registeredPlatform(seat: RegisteredSeat): SeatPlatform {
+  // Use the target seat's paths, never the operator's browser OS or seat name.
+  const paths = [seat.runtime?.harnessRoot, seat.runtime?.claudeCommand, seat.runtime?.claudeSettingsFile];
+  return paths.some(path => path && /^(?:[a-z]:[\\/]|\\\\)/i.test(path)) ? "windows" : "unix";
+}
+
+export function SeatClientUpgrade({ companyId, seat, active = true }: { companyId: string; seat: RegisteredSeat; active?: boolean }) {
   const { canManage } = useManagementAccess();
   const [requestBusy, setRequestBusy] = useState(false);
   const [requestError, setRequestError] = useState("");
-  const upgrade = useQuery({ queryKey: ["seat-client-upgrade", companyId, seat.agentId], queryFn: () => dsp7SeatsApi.upgradeStatus(companyId, seat.agentId), enabled: seat.canConfigure, refetchInterval: 5000 });
-  const [platform, setPlatform] = useState("unix");
+  const upgrade = useQuery({ queryKey: ["seat-client-upgrade", companyId, seat.agentId], queryFn: () => dsp7SeatsApi.upgradeStatus(companyId, seat.agentId), enabled: active && seat.canConfigure, refetchInterval: active ? 5000 : false });
+  const platformKey = `paperclip:seat-upgrade-platform:${companyId}:${seat.agentId}`;
+  const [platformChoices, setPlatformChoices] = useState<Record<string, SeatPlatform>>({});
+  const [platformSaveError, setPlatformSaveError] = useState<string | null>(null);
+  const platform = platformChoices[platformKey] ?? rememberedPlatform(platformKey) ?? registeredPlatform(seat);
+  function selectPlatform(value: string) {
+    if (value !== "unix" && value !== "windows") return;
+    setPlatformChoices(previous => ({ ...previous, [platformKey]: value }));
+    setCopyStatus("");
+    try {
+      localStorage.setItem(platformKey, value);
+      setPlatformSaveError(null);
+    } catch { setPlatformSaveError(platformKey); }
+  }
   const [expanded, setExpanded] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
   const manifest = useQuery({
@@ -26,7 +53,8 @@ export function SeatClientUpgrade({ companyId, seat }: { companyId: string; seat
       if (!value || typeof value !== "object" || !("sha256" in value) || typeof value.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(value.sha256)) throw new Error("客户端版本信息无效");
       return value.sha256;
     },
-    refetchInterval: 60000,
+    enabled: active,
+    refetchInterval: active ? 60000 : false,
   });
   const legacy = seat.executionTransport === "ssh";
   const migrating = ["prepared", "rolled_back"].includes(seat.migrationState ?? "");
@@ -70,7 +98,8 @@ export function SeatClientUpgrade({ companyId, seat }: { companyId: string; seat
     {expanded && seat.canConfigure && <div className="space-y-3">
       <p className="text-sm text-muted-foreground">在“{seat.name}”对应的电脑、原注册用户下执行，无需新接入码。保留席位身份、仓库、Jira 及模型配置；有执行中或等待响应的会话时会拒绝更新，请处理结束后重试。</p>
       {legacy && <p className="text-sm text-muted-foreground">当前为旧 SSH 接入。此命令会同时将原席位迁移为本机主动连接，无需重新注册；切换期间暂停派工，保留原负责人和历史工单。</p>}
-      <label className="block text-sm">这台电脑的系统<select className="mt-1 block w-full rounded-md border border-input bg-background p-2 text-sm" value={platform} onChange={event => { setPlatform(event.target.value); setCopyStatus(""); }}><option value="unix">macOS／Linux（终端）</option><option value="windows">Windows（PowerShell）</option></select></label>
+      <label className="block text-sm">这台电脑的系统<select className="mt-1 block w-full rounded-md border border-input bg-background p-2 text-sm" value={platform} onChange={event => selectPlatform(event.target.value)}><option value="unix">macOS／Linux（终端）</option><option value="windows">Windows（PowerShell）</option></select></label>
+      {platformSaveError === platformKey && <p role="alert" className="text-sm text-destructive">当前浏览器无法保存系统选择，下次打开时请重新确认。</p>}
       <Button variant="outline" disabled={!manifest.data} onClick={() => void copy()}>复制更新命令</Button>
       {copyStatus && <p role="status" className="text-sm">{copyStatus}</p>}
       <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-3 text-xs"><code>{command}</code></pre>

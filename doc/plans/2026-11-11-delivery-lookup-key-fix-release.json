@@ -1,0 +1,47 @@
+{
+  "release": "20261111-delivery-lookup-key-fix",
+  "status": "deployed",
+  "timestamp": "2026-11-11T08:43:13.517508+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-c17decd4.js",
+  "uiModule": "DeliveryEntries-d8807597.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/delivery-lookup-fix-20261111/backup-20261111T084237Z",
+  "serverRestarted": false,
+  "service": "MainPID=280738\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/pages/DeliveryEntries.tsx": "4aee9ce0bbaa40c66b0f6e6f09e474f6e959eb40b05f04dc75f3c5e335c383b2"
+  },
+  "verification": {
+    "pageTestsPassed": 4,
+    "regressionReproducedBeforeFix": true,
+    "artifactPageRerenders": 8,
+    "lookupCountCorrect": true,
+    "monthlyBoardCountCorrect": true,
+    "duplicateKeyWarnings": 0,
+    "deployedModuleHttpHashVerified": true,
+    "tokenGatesPassed": true,
+    "browserVerification": "not run; ego lite startup failed in previous deployment"
+  }
+}

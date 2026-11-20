@@ -1,0 +1,194 @@
+{
+  "release": "20261112-task-access-scope",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-12T03:20:00.597703+00:00",
+  "backup": "/home/fg/paperclip/private/task-access-scope-20261112/backup-20261112T031654Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/task-access-scope-20261112/backup-20261112T031654Z/pre-task-access-scope-20261112-031654.sql.gz",
+    "sizeBytes": 9646951,
+    "sha256": "193873ed9a45c23e15e117119d1467481e80a4cb30ece572aa99fe57b2c94ef9"
+  },
+  "migrations": [],
+  "filesVerified": 179,
+  "httpFilesVerified": 171,
+  "entry": "index-59e619de.js",
+  "uiModules": {
+    "taskStages": "UnifiedTaskDetail-c6e88e70.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "forcedDeviceUpgrade": false,
+  "bridgeUnchanged": true,
+  "envUnchanged": true,
+  "authenticatedSeatAccountReads": [],
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/issues?view=compact",
+      "status": 401
+    }
+  ],
+  "activeBefore": [],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-12T03:19:21.379Z",
+    "completedAt": "2026-11-12T03:19:48.825Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 1141251,
+    "newServerPid": 1198827,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "ui/src/lib/issueDetailBreadcrumb.ts": "11341ccf3e5f4184209e955dd50b79d48aecf3bc7dfc4c95e5393ebaa72ab4f7",
+    "ui/src/api/analysis-executions.ts": "9862c3ae086dcff27a2528f50957953486616c0e0ce2df000f2cc3d0401dd73e",
+    "ui/src/api/managed-sessions.ts": "30a47185637573e95189c6da188448f6c1a433bc2fb3e5e48a80586d7a13f29a",
+    "ui/src/components/task-detail/TaskSessionSelection.tsx": "6031230a18749b44e71757b53c3fa815e63a3e5fc42dabffd64a2efed4f3a110",
+    "ui/src/components/HarnessExecutionOverview.tsx": "24ae325af2949cf49e9d3e5420ff339b022db2571f94f1e28f624f0b9cae90d8",
+    "ui/src/components/ManagedSessionPanel.tsx": "d7d79af703daaa984433064ec2adb4ea039a94f9fdfa9a5e89fab5114e2d927d",
+    "ui/src/components/task-detail/TaskIdentitySummary.tsx": "9d6fe0264a72333e4eb6a924fa94485d7bef44dae8e430234ede0108e26e2d71",
+    "ui/src/components/task-detail/TaskDetailLayout.tsx": "a4aee069a57250d0a18eaf3cf2aa286c2784baa09b98aa56517b7f6b559392e7",
+    "ui/src/components/AnalysisQingzhouWriteback.tsx": "7ef56d6c63398552ca949f21a790566b08e57baab532699cccec3187e8d7ff3d",
+    "ui/src/components/task-detail/AnalysisTaskDetail.tsx": "aa1279c9c85f53bae0c81be919d260fd0f7a84d015731b503913c86441c7e2c9",
+    "ui/src/components/task-detail/TaskExecutionDetail.tsx": "f6c27932d639be7b33bad634e92eacb21ba4acb9598707329a0fd87a69345b38",
+    "ui/src/lib/recent-tasks.ts": "15048cac8e6975590e0e782a0dc8b91b523bf9b6e4b074dd761c5bd384cd475f",
+    "ui/src/pages/UnifiedTaskDetailPage.tsx": "b91f1aaf6ff5f7c422273ef3e5d7931223f9566c90cc21dbfdc1649d059fddf0",
+    "ui/src/pages/AnalysisExecutions.tsx": "995babc85869bacc1f51d3a6d28b0056aca6bd96ac40d7dbd23002565a04b14f",
+    "ui/src/lib/task-delivery-stage.ts": "cd84267a7e2cd82a1b9b122904fcaa452e638a582adbdbc5322bb7779b31465c",
+    "ui/src/components/TaskCollections.tsx": "d1c940ec242b75a79dbc3c0c8f00af64f5d68b45eb15148e6636109b0f68e3c9",
+    "ui/src/lib/issue-management.ts": "40aa997c103be8c6def7a305d797a617d8772282d892d1c2986d4321544d433a",
+    "ui/src/hooks/useManagementIssues.ts": "f80b59139813b16e8063d92bd95a192ead896287ffa7e749e052059239879155",
+    "ui/src/components/IssueManagement.tsx": "0907e98e43f20a2c5335f418c631d9cb91b875b38528f524cfd98711ac83e54c",
+    "server/src/services/authorization.ts": "55332857f5c35245a699160f5cafb63fd335b88f609f01f821cda5f7cedb80ce",
+    "server/src/services/issues.ts": "28c5a13ca0d50d00430cbe7f09391bf86ad617f7fb210e65e31aab499fef1ca5",
+    "server/src/services/company-search.ts": "f3c3e18900bfd8e95189410d37b2e3692215659aa4c16bd4d0ec3183a5476106",
+    "server/src/services/company-search-extract.ts": "d0bddf1f8acb81e4aac201251bf2b73bdc66c6dec0ca56825a108f1c545f62f0",
+    "server/src/services/task-search.ts": "d63f410146132806eff2b312cf81201af6653b61dc3f3b0b34b6f5c14cde97b9",
+    "server/src/services/task-access-scope.ts": "012fc60dbed26ed675e83e77a286b7874d3688d210a4a247ff181c8bdf5aec35"
+  },
+  "durationSeconds": 39.2,
+  "limitations": [
+    "Browser functional QA unavailable in this environment; read-only route and resource checks performed."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "externalHttpVerified": [
+    "index.html",
+    "sw.js",
+    "assets/index-59e619de.js",
+    "assets/UnifiedTaskDetail-c6e88e70.js"
+  ],
+  "compiledUiRuntime": {
+    "linkedModules": 510,
+    "hookIdentity": true,
+    "compiledProviderConsumerRender": true,
+    "dialogContextDefinitionModules": 1,
+    "browserVerified": false
+  },
+  "roleScopeSmoke": {
+    "mode": "live",
+    "injectedTestActor": true,
+    "databaseConnectionsReadOnly": true,
+    "mutationsPerformed": false,
+    "checks": [
+      {
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "role": "operator",
+        "organizationRows": 13,
+        "personalRows": 0,
+        "ownedSeats": 0,
+        "detailDenied": 403,
+        "paginationScoped": true,
+        "spoofedFilterCannotBroaden": true,
+        "etagRevalidated": true,
+        "searchScoped": true,
+        "extractScoped": true,
+        "countScoped": true,
+        "positiveSeatProjection": true,
+        "crossCompanyDenied": true
+      },
+      {
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "role": "operator",
+        "organizationRows": 13,
+        "personalRows": 0,
+        "ownedSeats": 0,
+        "detailDenied": 403,
+        "paginationScoped": true,
+        "spoofedFilterCannotBroaden": true,
+        "etagRevalidated": true,
+        "searchScoped": true,
+        "extractScoped": true,
+        "countScoped": true,
+        "positiveSeatProjection": true,
+        "crossCompanyDenied": true
+      },
+      {
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "role": "operator",
+        "organizationRows": 13,
+        "personalRows": 0,
+        "ownedSeats": 0,
+        "detailDenied": 403,
+        "paginationScoped": true,
+        "spoofedFilterCannotBroaden": true,
+        "etagRevalidated": true,
+        "searchScoped": true,
+        "extractScoped": true,
+        "countScoped": true,
+        "positiveSeatProjection": true,
+        "crossCompanyDenied": true
+      },
+      {
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "role": "operator",
+        "organizationRows": 13,
+        "personalRows": 0,
+        "ownedSeats": 0,
+        "detailDenied": 403,
+        "paginationScoped": true,
+        "spoofedFilterCannotBroaden": true,
+        "etagRevalidated": true,
+        "searchScoped": true,
+        "extractScoped": true,
+        "countScoped": true,
+        "positiveSeatProjection": true,
+        "crossCompanyDenied": true
+      }
+    ]
+  },
+  "localVerification": {
+    "uiAndScopeTestsPassed": 33,
+    "queryTestsPassed": 6,
+    "skippedIntegrationTests": 101,
+    "uiTypecheck": true,
+    "serverTypecheck": true,
+    "tokenGates": true,
+    "repositoryWideChecks": false
+  }
+}

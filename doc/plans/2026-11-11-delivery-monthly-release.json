@@ -1,0 +1,168 @@
+{
+  "release": "20261111-delivery-monthly",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-11T08:26:01.320049+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-monthly-20261111/backup-20261111T082345Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/delivery-monthly-20261111/backup-20261111T082345Z/pre-startup-retry-20261111-082345.sql.gz",
+    "sizeBytes": 8808384,
+    "sha256": "5736823c538173f025b64e07384678cbf1dffbcdb8f6b62905a364a248ef82f7"
+  },
+  "migrations": [
+    {
+      "tag": "0305_magenta_jackpot",
+      "when": 1794383935231,
+      "sha256": "208a5b226eed86ef4676b7450d14080760c2e43dceda3f7f3dbaa1f993971024"
+    }
+  ],
+  "filesVerified": 337,
+  "httpFilesVerified": 329,
+  "entry": "index-7ee9a156.js",
+  "uiModules": {
+    "deliveryEntries": "DeliveryEntries-88f36a6f.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": true,
+  "clientChanged": false,
+  "forcedDeviceUpgrade": false,
+  "bridgeUnchanged": true,
+  "envUnchanged": true,
+  "authenticatedSeatAccountReads": [],
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/dsp7-seats/00000000-0000-4000-8000-000000000001/qingzhou-account",
+      "status": 403
+    }
+  ],
+  "activeBefore": [
+    {
+      "id": "fbca214e-9394-4b43-a48e-467c7727f147",
+      "agent_id": "f38bb5a9-031c-4a4f-b58d-09272e47a966",
+      "status": "running",
+      "started_at": "2026-11-11T07:21:00.624Z",
+      "updated_at": "2026-11-11T07:21:08.471Z",
+      "task_id": "f264dbf4-8678-4e64-9dbd-421943a9ae18",
+      "transport": "outbound",
+      "seat_state": "waiting_decision",
+      "last_seen": "2026-11-11T08:23:38.173Z",
+      "error_code": null
+    }
+  ],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-11T08:25:11.865Z",
+    "completedAt": "2026-11-11T08:25:55.607Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 214258,
+    "newServerPid": 280738,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "ui/src/lib/delivery-monthly-filters.ts": "cb811752771a54601171f9af17e359ad80ab4cb8c1483675686731735fc2e08d",
+    "ui/src/components/DeliveryMonthlyBoard.tsx": "ac5d580ce7ffd0d88e047d365ede37489b984eec33b692930a84dbe32af02117",
+    "ui/src/components/DeliveryMonthlyBulkSync.tsx": "1a7f38f5a58b11f83808a9ba4c703c99c004d0df511d3078358e68e6e058751b",
+    "ui/src/pages/DeliveryEntries.tsx": "a6b79a2831ed0f23c27816dbe9c7871a6db4662f079ae6ef4faa0e18ec3cfc09",
+    "ui/src/components/DeliveryDemandLookup.tsx": "b729b3608a249d0d07badd252857bf5f68b8d537924039bf8222a49e6d5ba9c3",
+    "ui/src/components/DeliveryOnlineSource.tsx": "bc53bf3d5eeddddebfd8e76840b8abd42d0895e55878698136f202011f812890",
+    "server/src/routes/delivery-connections.ts": "8c4f040eeeee0253ee25026359ac9e4dbd9fa428c306e8bb06a48d0203e24037",
+    "server/src/services/delivery-demand-lookup.ts": "8d4a756e1e4480ba3ed1d0a5dd3c02146a62b09c61ae3aa132f1599014ffc2dd",
+    "server/src/services/delivery-monthly.ts": "2e2dea1b617cb73f378e32159afcb1bada9fd698e6e9c17a2f3d37c0f8631450",
+    "server/src/services/delivery-source-reader.ts": "3059605f69886fcc748992873833d8737eee89dcfb4deb91ba0853d14d981012",
+    "server/src/services/qingzhou-client.ts": "23349de41bfcf0ef0befde784eaef3845d5ed7c3a308e5d57828bb5cdea622de",
+    "packages/db/src/schema/delivery_connections.ts": "efd918c98659e9d769bddd3573c7286cb5a688a62837e91b817c530c30436b7d"
+  },
+  "durationSeconds": 49.5,
+  "limitations": [
+    "User authorized interruption of run fbca214e-9394-4b43-a48e-467c7727f147; manual resume required.",
+    "Deployed route verification used an injected authorized board actor; browser verification unavailable.",
+    "Bulk sync was not executed; saved snapshots remained unchanged."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "verification": {
+    "deployedRouteSmoke": true,
+    "injectedTestActor": true,
+    "productScopeSavedThroughRoute": true,
+    "configRevision": 4,
+    "month": "2026-11",
+    "total": 123,
+    "scheduled": 46,
+    "expected": 92,
+    "both": 15,
+    "exactLookup": {
+      "demandNo": "TWGF-00919",
+      "title": "通威41-德意志德国区域直联接口开发DSP",
+      "sourceStatus": "待需求分析",
+      "owner": "0018-杨东斌",
+      "analysisOwner": "111111-dspba",
+      "collectedAt": "2026-11-11T08:26:20.232Z",
+      "snapshotId": null
+    },
+    "twgf": {
+      "demandNo": "TWGF-00919",
+      "title": "通威41-德意志德国区域直联接口开发DSP",
+      "owner": "0018-杨东斌",
+      "analysisOwner": "111111-dspba",
+      "sourceStatus": "待需求分析",
+      "startDate": "",
+      "endDate": "",
+      "workCount": 0,
+      "workCountKnown": false,
+      "snapshotId": null,
+      "admission": null,
+      "expectedDeliveryDate": "2026-11-01",
+      "inSchedule": false,
+      "inExpectedDeliveryMonth": true
+    },
+    "snapshotsBefore": 164,
+    "snapshotsAfter": 164,
+    "permissionDenialVerified": true,
+    "revisionConflictVerified": true
+  },
+  "localVerification": {
+    "relatedTestsPassed": 97,
+    "dbBackedRouteTestsSkipped": 18,
+    "reason": "embedded Postgres uv_os_get_passwd ENOENT",
+    "relevantTypechecksPassed": true,
+    "tokenGatesPassed": true,
+    "uiBuildPassed": true,
+    "fullWorkspaceTypecheck": "blocked: cargo not installed",
+    "deployedUiBundleStaticRender": {
+      "categoryControls": true,
+      "expectedEntryVisible": true,
+      "scheduledFilterExcludesExpectedOnly": true
+    },
+    "browserVerification": "unavailable: ego lite failed to start"
+  },
+  "authorization": {
+    "deploy": true,
+    "interruptActiveSession": true,
+    "manualResumeRequired": true
+  }
+}

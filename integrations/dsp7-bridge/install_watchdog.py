@@ -114,6 +114,13 @@ def install(root):
     updater.chmod(0o600)
     os.replace(updater, directory / 'remote_upgrade.py')
     settings = {'config': str(config), 'bridge': str(root), 'python': sys.executable, 'installed_at': time.time()}
+    # Reusing a service must not continually renew the startup grace period.
+    try:
+        previous = json.loads((directory / 'settings.json').read_text(encoding='utf-8'))
+        if all(previous.get(k) == settings[k] for k in ('config', 'bridge', 'python')):
+            settings['installed_at'] = previous['installed_at']
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
     write_json(directory / 'settings.json', settings)
     for name in ('scheduler.log', 'scheduler.error.log'):
         file = directory / name

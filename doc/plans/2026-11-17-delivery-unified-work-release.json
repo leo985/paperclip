@@ -1,0 +1,51 @@
+{
+  "release": "delivery-unified-work-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-16T16:04:43.971280+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-unified-work-20261117/backup",
+  "httpFilesVerified": 344,
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1045579,
+  "backendPidAfter": 1045579,
+  "health": "ok",
+  "bridgeAndEnvironmentUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "f32d2dea290ba5fc5b22d88e734ea95a23673b44127134a0bd880bff09bd1106",
+  "swSha256": "0aa83fa13358d4c5e28cb9987ce7904554fa08b7ba52345656645c4f0c28f352",
+  "externalHttpVerified": true,
+  "changes": [
+    "One unified parent/subtask execution view; removed duplicate source tree and repeated linked task list",
+    "Default all children includes unscheduled QA; pending/linked/ended filters retained",
+    "Existing platform task links, unmatched tasks and source difference explanations preserved"
+  ],
+  "verification": {
+    "vitest": "14 tests passed in 2 files",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "fullRepositoryChecks": "not run: scoped UI-only change"
+  },
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/delivery?view=saved&q=LYYL-00021&snapshotId=2b9a5fa4-270c-4d1e-8da5-2a6f4882dc57&tab=work",
+    "unifiedTables": 1,
+    "duplicateTree": 0,
+    "repeatedTaskHeading": false,
+    "qaKeys": [
+      {
+        "key": "ATSES-515838",
+        "shown": true
+      },
+      {
+        "key": "ATSES-519022",
+        "shown": true
+      }
+    ],
+    "selectedScope": "全部子单（9）"
+  },
+  "skills": [
+    "/Users/leo/.codex/skills/remote-server-admin/SKILL.md",
+    "/Users/leo/.agents/skills/ego-browser/SKILL.md"
+  ]
+}

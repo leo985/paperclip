@@ -1,0 +1,183 @@
+{
+  "release": "20261111-seat-qingzhou-accounts",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-11T01:40:53.336339+00:00",
+  "backup": "/home/fg/paperclip/private/qingzhou-accounts-20261111/backup-20261111T013730Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/qingzhou-accounts-20261111/backup-20261111T013730Z/pre-qingzhou-20261111-013730.sql.gz",
+    "sizeBytes": 8203523,
+    "sha256": "616fef43f700c0b72437c7f81ec9d1ebbe83cc80db6560945f9fa56306536376"
+  },
+  "migrations": {
+    "applied": [
+      {
+        "tag": "0303_flawless_stranger",
+        "when": 1794318896959,
+        "sha256": "78c9b2843f671c594f3e3f340268e4117b229d77c5a9b71ef50ef6722a651002"
+      },
+      {
+        "tag": "0304_lazy_the_call",
+        "when": 1794359409009,
+        "sha256": "1aca0d4563f882ebbbef37066b515e1c6f8eb696f537c52c213da24646945506"
+      }
+    ],
+    "schema": [
+      {
+        "table_name": "analysis_executions",
+        "column_name": "qingzhou_writeback",
+        "data_type": "jsonb"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "company_id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "seat_id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "username",
+        "data_type": "text"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "credential_secret_id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "revision",
+        "data_type": "integer"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "last_check_status",
+        "data_type": "text"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "last_checked_at",
+        "data_type": "timestamp with time zone"
+      },
+      {
+        "table_name": "seat_qingzhou_accounts",
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone"
+      }
+    ]
+  },
+  "filesVerified": 350,
+  "httpFilesVerified": 333,
+  "entry": "index-dd38c77c.js",
+  "uiModules": {
+    "seats": "Seats-ed76909a.js",
+    "analysis": "AnalysisExecutions-bb0918d8.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": true,
+  "clientChanged": true,
+  "forcedDeviceUpgrade": false,
+  "bridgeSha256": "aef9f5daf4822ddb8298a20e8983219a5285c969111aa53f9b5f199735e3b939",
+  "envUnchanged": true,
+  "authenticatedSeatAccountReads": [],
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/dsp7-seats/00000000-0000-4000-8000-000000000001/qingzhou-account",
+      "status": 403
+    }
+  ],
+  "activeBefore": [],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-11T01:39:34.790Z",
+    "completedAt": "2026-11-11T01:40:46.022Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 65004,
+    "newServerPid": 4148161,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "ui/src/components/SeatQingzhouAccount.tsx": "11eff00d133b94d23a10beb2e2a57210a6246cc2d89431c9af600993e91db4b7",
+    "ui/src/pages/AnalysisExecutions.tsx": "1b4a7272490f199810fca028b2f076a6eed22a75ad889f2d20f7e77d3ae0ecc8",
+    "ui/src/api/analysis-executions.ts": "f0ea3d9f3d516c584b6a6aef997ca20039c822196a5b78e9d63e3d34039959b3",
+    "ui/src/components/AnalysisQingzhouWriteback.tsx": "7ef56d6c63398552ca949f21a790566b08e57baab532699cccec3187e8d7ff3d",
+    "server/src/services/analysis-qingzhou-writeback.ts": "5edf9dc7e8bcf6c5d9e0a87e2677fc749ad99a43b3aa550c1e9e7ee6c51e2493",
+    "server/src/services/seat-qingzhou.ts": "6f219279ce3c39b1f86092f1523701c7df50c24f627210851485fd7ddfece5d8",
+    "server/src/routes/dsp7-seat-qingzhou.ts": "8fde3c104284a5346d26ca441a2db2a1a73de76f5ffebcba82b1b65015f6b1dc",
+    "server/src/routes/dsp7-seat-control.ts": "74d021d76acfc080485e600b3621eeaa5fa165f2c8342bf18e9b462406d793b0",
+    "server/src/routes/analysis-executions.ts": "7899d1419fdce08e23ba5acd3a038e56350780bb446fb2ce03db23bcf89f6a68",
+    "server/src/services/analysis-executions.ts": "8a1a1f7c2dcc57b0986ceab7f0bc0cc9ae6376a572a9980227bba98fe19dc6ae",
+    "server/src/services/qingzhou-client.ts": "c60e3c12f844e33d55b44594c65a9e3b9f7496b49c2f8a3ecd94537c95dee75a",
+    "server/src/middleware/http-log-policy.ts": "b834a154cafc0656a646a9ddf15a9009232b49b18270d0a23b6fffbdd57f24c8",
+    "packages/shared/src/analysis-executions.ts": "bd6bcefa450e88e627cba09301c8e87d0df2174da688f4e802383beb477f13e0",
+    "packages/shared/src/seat-qingzhou.ts": "5e75a4f116048db8e543a2c4ee9dc853f71d803f0c617914b1929432f2c84eb2",
+    "packages/db/src/schema/analysis_executions.ts": "8460389fa5223093a9c1daa3915c3e181db5943d13dd8489a66e82c83bf6e83d",
+    "packages/db/src/schema/seat_qingzhou_accounts.ts": "176ba127e28bbe24b194ab2854a7de06941965fc3e85a7ae81816eef46c14505",
+    "integrations/dsp7-bridge/analysis_runtime.py": "d17117bd1e4df253019c77652e98fb8365e583dc4681e61926986da30607b7c1",
+    "integrations/dsp7-bridge/analysis_execution.py": "280c4b19597c64954e2fb6136e22c1197f6e0d38490619a2ddb9a14834e7277e"
+  },
+  "durationSeconds": 78.5,
+  "limitations": [
+    "No live Qingzhou content write was triggered; account credentials must be configured per seat.",
+    "Browser services unavailable in this agent environment; UI static dependencies and HTTP hashes verified.",
+    "Existing seat clients require update to upload analysis Markdown.",
+    "Authenticated HTTP/UI flow was not verified; deployed route/database read-only smoke used an injected test actor."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "postDeployVerification": {
+    "migrationStatus": "upToDate",
+    "latestAppliedMigration": "0304_lazy_the_call.sql",
+    "readOnlyDeployedRouteSmoke": {
+      "injectedTestActor": true,
+      "seatReads": 3,
+      "permissionDenials": 6,
+      "secretFieldsAbsent": true,
+      "noStore": true,
+      "mutationsPerformed": false
+    },
+    "accountRows": 0
+  },
+  "externalVerification": {
+    "health": "ok",
+    "entryAndModuleAndBridgeManifestHashes": true
+  },
+  "authenticatedHttpVerification": {
+    "status": "unavailable",
+    "reason": "Existing stored management sign-in returned HTTP 401; no authenticated browser session was available."
+  }
+}

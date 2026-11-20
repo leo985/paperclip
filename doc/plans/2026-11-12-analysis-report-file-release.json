@@ -1,0 +1,92 @@
+{
+  "release": "20261112-analysis-report-file",
+  "uiModule": "AnalysisReview-6a8b3f95.js",
+  "bridgeSha256": "cf5a58d29584d8a1d3088f4538477fc8dd913aead256c8f4b2f7e906068298df",
+  "changedBridgeFiles": [
+    "analysis_execution.py",
+    "analysis_runtime.py"
+  ],
+  "preservedBridgeFiles": 47,
+  "serverRestarted": false,
+  "migrations": [],
+  "status": "deployed",
+  "deployedAt": "2026-11-12T11:22:42.216928+00:00",
+  "backup": "/home/fg/paperclip/private/analysis-report-20261112/backup",
+  "autoUpgradeEnabled": false,
+  "httpVerification": {
+    "filesVerified": 174,
+    "health": {
+      "status": "ok",
+      "deploymentMode": "authenticated",
+      "deploymentExposure": "private",
+      "localAiLoginSupported": true,
+      "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+      "bootstrapStatus": "ready",
+      "bootstrapInviteActive": false,
+      "databaseBackup": {
+        "enabled": true,
+        "status": "ok",
+        "warnings": []
+      }
+    },
+    "anonymousTaskStatus": 403
+  },
+  "taskVerification": {
+    "task": [
+      {
+        "id": "213d6ba8-9de4-4576-a981-61393d318608",
+        "state": "running",
+        "active_run_id": "83614a9e-95e1-43af-8fe6-7dd684013ef4",
+        "phase": "P3",
+        "materials_run_id": "83614a9e-95e1-43af-8fe6-7dd684013ef4",
+        "materials_input": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6",
+        "document_count": 3,
+        "evidence_count": 28
+      }
+    ],
+    "decisions": [
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "open",
+        "run_id": "83614a9e-95e1-43af-8fe6-7dd684013ef4",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      },
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "stale",
+        "run_id": "e109a5b1-3a8e-4a07-8b2a-1ead0d06527f",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      },
+      {
+        "key": "P3-review",
+        "kind": "review",
+        "status": "stale",
+        "run_id": "0813f7d8-6259-4f3b-9d66-a054704cf0a6",
+        "input_digest": "d802ebdafe582be4f68e5d97f6ac947b19dd5b3e1b535d94e91526d3f5a367b6"
+      }
+    ],
+    "seat": [
+      {
+        "version": "cf5a58d29584d8a1d3088f4538477fc8dd913aead256c8f4b2f7e906068298df"
+      }
+    ]
+  },
+  "report": {
+    "name": "TWGF-00919-需求分析.md",
+    "bytes": 28276,
+    "sha256": "9cffeaabcb810145a0aa600428b33e7dbb0911958ca7bd563f213766f100e724",
+    "matchesNativeAnalysis": true,
+    "legacyTaskDirectoryPreserved": true
+  },
+  "verification": {
+    "pythonAnalysisTests": 31,
+    "candidatePythonAnalysisTests": 31,
+    "uiTests": 10,
+    "uiTypecheck": "passed",
+    "tokenGates": "passed",
+    "browser": "blocked: Codex auth token unavailable",
+    "fullRepoTestsAndBuild": "not run; scoped production baseline patch"
+  }
+}

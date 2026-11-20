@@ -6,6 +6,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { activityLog, agents, analysisExecutions, companies, companySecrets, createDb, deliveryConnections, deliverySnapshots, issues, projects, type Db } from "@paperclipai/db";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../__tests__/helpers/embedded-postgres.js";
 import { deliveryConnectionRoutes } from "./delivery-connections.js";
+import { createDeliveryMonthlyScheduler, nextDeliveryMonthlySync } from "../services/delivery-monthly-schedule.js";
+import { createDeliverySourceOperations } from "../services/delivery-source-operations.js";
 import { normalizeDeliverySnapshot } from "../services/delivery-intake.js";
 import { fixture } from "../services/delivery-intake.fixture.js";
 import { badRequest } from "../errors.js";
@@ -16,6 +18,11 @@ import { annotateMonthlyDelivery } from "../services/delivery-monthly-annotation
 import { deliveryAdmission, latestDeliverySnapshots } from "../services/delivery-admission.js";
 import { deliveryChainAdmission } from "../services/delivery-chain-admission.js";
 const support = await getEmbeddedPostgresTestSupport();
+it("calculates the next daily run in Shanghai across midnight and month boundaries", () => {
+  expect(nextDeliveryMonthlySync("06:00", new Date("2026-11-30T16:00:00Z"))).toBe("2026-11-30T22:00:00.000Z");
+  expect(nextDeliveryMonthlySync("06:00", new Date("2026-11-30T22:00:00Z"))).toBe("2026-12-01T22:00:00.000Z");
+});
+
 (support.supported ? describe : describe.skip)("online delivery connection routes", () => {
   let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>, db: ReturnType<typeof createDb>;
   beforeAll(async () => { database = await startEmbeddedPostgresTestDatabase("delivery-source-"); db = createDb(database.connectionString); });
@@ -45,15 +52,132 @@ const support = await getEmbeddedPostgresTestSupport();
       await duringRead?.();
       return { plan: normalizeDeliverySnapshot({ ...fixture(), projectId }, "online_readonly"), collectedAt: fixture().collectedAt };
     };
-    function app(actor: Record<string, unknown> = { type: "board", source: "local_implicit", userId: "admin" }, read = reader, monthly = async (input: any) => { expect(input.organizationId).toBe("123"); expect(input.month).toBe("2026-10"); expect(await input.credentials()).toEqual({username:"test-user",password:"test-password"}); return {month:input.month,collectedAt:new Date().toISOString(),items:[{demandNo:"ATS3-00156",title:"Monthly",owner:"Owner",sourceStatus:"",startDate:"",endDate:"",workCount:2,snapshotId:null,admission:null}],executionAllowed:false as const}; }) {
+    function app(actor: Record<string, unknown> = { type: "board", source: "local_implicit", userId: "admin" }, read = reader, monthly = async (input: any) => { expect(input.organizationId).toBe("123"); expect(input.month).toBe("2026-10"); expect(await input.credentials()).toEqual({username:"test-user",password:"test-password"}); return {month:input.month,collectedAt:new Date().toISOString(),items:[{demandNo:"ATS3-00156",title:"Monthly",owner:"Owner",sourceStatus:"",startDate:"",endDate:"",workCount:2,snapshotId:null,admission:null}],executionAllowed:false as const}; }, demand = async (input: any) => {
+      expect(await input.credentials()).toEqual({username:"test-user",password:"test-password"});
+      return {demandNo:input.demandNo,title:"未排期条目",sourceStatus:"待需求分析",owner:"拆分人员",analysisOwner:"分析人员",collectedAt:new Date().toISOString()};
+    }) {
       const app = express();app.use(express.json());app.use((req, _res, next) => { Object.assign(req, { actor });next(); });
-      app.use(deliveryConnectionRoutes(db, read, secrets, monthly, async input => {expect(await input.credentials()).toEqual({username:"test-user",password:"test-password"});return {items:[{id:"123",name:"研发七组",code:"D7",kinds:["researchGroup"]}],collectedAt:new Date().toISOString()};}));app.use((error: any, _req: any, res: any, _next: any) => res.status(error.status ?? 500).json({ error: error.message }));return app;
+      app.use(deliveryConnectionRoutes(db, read, secrets, monthly, async input => {expect(await input.credentials()).toEqual({username:"test-user",password:"test-password"});return {items:[{id:"123",name:"研发七组",code:"D7",kinds:["researchGroup"]}],collectedAt:new Date().toISOString()};}, demand));app.use((error: any, _req: any, res: any, _next: any) => res.status(error.status ?? 500).json({ error: error.message }));return app;
     }
     const base = `/companies/${companyId}/delivery-connections`;
     const save = { projectId, expectedRevision: 0, jiraAgentId: agentId, organizationId: "123", credentials: { username: "test-user", password: "test-password" } };
     const sync = { projectId, expectedRevision: 1, demandNo: "ATS3-00156", months: ["2026-10"] };
-    return { companyId, projectId, agentId, jiraSecretId, config, base, app, save, sync, reads: () => reads, change: (fn: () => Promise<void>) => { duringRead = fn; } };
+    return { companyId, projectId, agentId, jiraSecretId, config, base, app, save, sync, reader, secrets, reads: () => reads, change: (fn: () => Promise<void>) => { duringRead = fn; } };
   }
+  it("saves an administrator's schedule and syncs the current Beijing month once across workers", async () => {
+    const f = await seed();
+    const app = f.app();
+    const url = f.base + "/monthly-schedule";
+    const settings = { projectId: f.projectId, enabled: true, time: "06:00" };
+    expect((await request(app).get(url).query({ projectId: f.projectId })).body).toMatchObject({
+      enabled: false, time: "06:00", timezone: "Asia/Shanghai", nextRunAt: null, lastRun: null,
+    });
+    expect((await request(app).put(url).send(settings)).status).toBe(409);
+    const member = f.app({ type: "board", source: "session", companyIds: [f.companyId], memberships: [] });
+    expect((await request(member).get(url).query({ projectId: f.projectId })).status).toBe(403);
+    expect((await request(member).put(url).send(settings)).status).toBe(403);
+    expect((await request(app).put(f.base).send(f.save)).status).toBe(200);
+    expect((await request(app).put(url).send({ ...settings, time: "24:00" })).status).toBe(400);
+    const saved = await request(app).put(url).send(settings);
+    expect(saved.status).toBe(200);
+    expect(saved.body).toMatchObject({ enabled: true, time: "06:00", timezone: "Asia/Shanghai", lastRun: null });
+    expect(saved.body.nextRunAt).toMatch(/T22:00:00\.000Z$/);
+    const [[connection], [audit]] = await Promise.all([
+      db.select().from(deliveryConnections).where(eq(deliveryConnections.projectId, f.projectId)),
+      db.select().from(activityLog).where(eq(activityLog.action, "delivery.monthly_sync.schedule_updated")),
+    ]);
+    expect(connection!.revision).toBe(1);
+    expect(audit).toMatchObject({ actorId: "admin", entityId: connection!.id });
+
+    // 06:00 on December 1 in Shanghai is still November in UTC.
+    const now = new Date("2026-11-30T22:00:00Z");
+    await db.update(deliveryConnections).set({ monthlySync: { ...saved.body, nextRunAt: now.toISOString() } })
+      .where(eq(deliveryConnections.id, connection!.id));
+    const entry: DeliveryMonthlyEntries["items"][number] = {
+      demandNo: f.sync.demandNo, title: "Monthly", owner: "Owner", sourceStatus: "",
+      startDate: "", endDate: "", workCount: 2, snapshotId: null, admission: null,
+    };
+    const monthly = vi.fn(async ({ month, credentials }: { month: string; credentials: () => Promise<unknown> }) => {
+      expect(month).toBe("2026-12");
+      expect(await credentials()).toEqual(f.save.credentials);
+      return {
+        month, collectedAt: now.toISOString(), executionAllowed: false as const,
+        items: [entry, entry, { ...entry, demandNo: "ATS3-00157" }],
+      };
+    });
+    const reader = vi.fn(async (input: Parameters<typeof f.reader>[0]) => {
+      expect(input.months).toEqual(["2026-12"]);
+      if (input.demandNo === "ATS3-00157") throw new QingzhouReadError("connection_unavailable");
+      return f.reader(input);
+    });
+    const source = createDeliverySourceOperations(db, reader, f.secrets, monthly);
+    await Promise.all([
+      createDeliveryMonthlyScheduler(db, source, () => now)(),
+      createDeliveryMonthlyScheduler(db, source, () => now)(),
+    ]);
+    expect(monthly).toHaveBeenCalledTimes(1);
+    expect(reader).toHaveBeenCalledTimes(2);
+    const after = await request(app).get(url).query({ projectId: f.projectId });
+    expect(after.body).not.toHaveProperty("leaseUntil");
+    expect(after.body).toMatchObject({
+      nextRunAt: "2026-12-01T22:00:00.000Z",
+      lastRun: { month: "2026-12", status: "partial", total: 2, succeeded: 1, failed: 1 },
+    });
+    expect(await db.select().from(deliverySnapshots).where(eq(deliverySnapshots.companyId, f.companyId))).toHaveLength(1);
+    const disabled = await request(app).put(url).send({ ...settings, enabled: false });
+    expect(disabled.body).toMatchObject({ enabled: false, nextRunAt: null, lastRun: after.body.lastRun });
+  });
+  it("looks up an exact unscheduled demand without monthly or Jira reads or creating a snapshot", async () => {
+    const f=await seed(), app=f.app(); await request(app).put(f.base).send(f.save);
+    const response=await request(app).post(f.base+"/lookup").send({projectId:f.projectId,expectedRevision:1,demandNo:" twgf-00919 "});
+    expect(response.status).toBe(200);expect(response.headers["cache-control"]).toBe("no-store");
+    expect(response.body).toMatchObject({demandNo:"TWGF-00919",title:"未排期条目",snapshotId:null});
+    expect(JSON.stringify(response.body)).not.toMatch(/test-password|test-user|SecretId/);
+    expect(f.reads()).toBe(0);expect(await db.select().from(deliverySnapshots).where(eq(deliverySnapshots.companyId,f.companyId))).toHaveLength(0);
+    expect((await request(app).post(f.base+"/lookup").send({projectId:f.projectId,expectedRevision:1,demandNo:"TWGF"})).status).toBe(400);
+    expect((await request(app).post(f.base+"/lookup").send({projectId:f.projectId,expectedRevision:2,demandNo:"TWGF-00919"})).status).toBe(409);
+    const member=f.app({type:"board",source:"session",companyIds:[f.companyId],memberships:[]});
+    expect((await request(member).post(f.base+"/lookup").send({projectId:f.projectId,expectedRevision:1,demandNo:"TWGF-00919"})).status).toBe(403);
+    const other=await seed();
+    expect((await request(app).post(f.base+"/lookup").send({projectId:other.projectId,expectedRevision:1,demandNo:"TWGF-00919"})).status).toBe(403);
+  });
+  it("links only the latest matching version in each live project of the same company", async () => {
+    const f = await seed(), foreign = await seed(), app = f.app();
+    await request(app).put(f.base).send(f.save);
+    const otherProject = randomUUID(), archivedProject = randomUUID();
+    await db.insert(projects).values([
+      { id: otherProject, companyId: f.companyId, name: "基础平台" },
+      { id: archivedProject, companyId: f.companyId, name: "已归档", archivedAt: new Date() },
+    ]);
+    const id = randomUUID();
+    const snapshot = (companyId: string, projectId: string, version: number, snapshotId = randomUUID()) => ({
+      id: snapshotId, companyId, projectId, sourceOrigin: "https://proj.fingard.com:1888", demandNo: "TWGF-00919",
+      fingerprint: String(version), collectedAt: new Date(`2026-11-0${version}T00:00:00Z`),
+      createdByUserId: "admin", plan: normalizeDeliverySnapshot({ ...fixture(), projectId }, "online_readonly"),
+    });
+    await db.insert(deliverySnapshots).values([
+      snapshot(f.companyId, otherProject, 1), snapshot(f.companyId, otherProject, 2, id),
+      snapshot(f.companyId, archivedProject, 2), snapshot(foreign.companyId, foreign.projectId, 2),
+    ]);
+    const payload = { projectId: f.projectId, expectedRevision: 1, demandNo: "TWGF-00919" };
+    const lookedUp = await request(app).post(f.base + "/lookup").send(payload);
+    expect(lookedUp.status, lookedUp.text).toBe(200);
+    expect(lookedUp.body).toMatchObject({ snapshotId: null, savedEntries: [{ projectId: otherProject, projectName: "基础平台", snapshotId: id }] });
+    const current = snapshot(f.companyId, f.projectId, 3);
+    await db.insert(deliverySnapshots).values(current);
+    const saved = await request(app).post(f.base + "/lookup").send(payload);
+    expect(saved.body.snapshotId).toBe(current.id);
+    expect(saved.body.savedEntries).toHaveLength(2);
+  });
+
+  it("rejects lookup results if source configuration changes during the read", async () => {
+    const f=await seed();await request(f.app()).put(f.base).send(f.save);
+    const app=f.app(undefined,undefined,undefined,async(input:any)=>{
+      await db.update(deliveryConnections).set({revision:2}).where(eq(deliveryConnections.projectId,f.projectId));
+      return {demandNo:input.demandNo,title:"旧配置结果",sourceStatus:"",owner:"",analysisOwner:"",collectedAt:new Date().toISOString()};
+    });
+    expect((await request(app).post(f.base+"/lookup").send({projectId:f.projectId,expectedRevision:1,demandNo:"TWGF-00919"})).status).toBe(409);
+  });
   it("blocks unauthorized mutation and cross-company reads before network access", async () => {
     const f = await seed();
     const member = f.app({ type: "board", source: "session", companyIds: [f.companyId], memberships: [] });
@@ -61,15 +185,39 @@ const support = await getEmbeddedPostgresTestSupport();
     const outsider = f.app({ type: "board", source: "session", companyIds: [] });
     expect((await request(outsider).get(f.base + "?projectId=" + f.projectId)).status).toBe(403);expect(f.reads()).toBe(0);
   });
-  it("keeps credentials out of responses, preserves omitted credentials and rejects stale saves", async () => {
+  it("shows the saved Qingzhou username to managers, preserves omitted credentials and rejects stale saves", async () => {
     const f = await seed(), app = f.app();
     const saved = await request(app).put(f.base).send(f.save);
-    expect(saved.status).toBe(200);expect(saved.body.credentialsConfigured).toBe(true);expect(JSON.stringify(saved.body)).not.toMatch(/test-password|credentialSecretId|test-user/);
+    expect(saved.status).toBe(200);
+    expect(saved.body).toMatchObject({ credentialsConfigured: true, qingzhouUsername: "test-user" });
+    const member = f.app({ type: "board", source: "session", companyIds: [f.companyId], memberships: [] });
+    const managerRead = await request(app).get(f.base).query({ projectId: f.projectId });
+    expect(managerRead.status).toBe(200);
+    expect(managerRead.body.qingzhouUsername).toBe("test-user");
+    const memberRead = await request(member).get(f.base).query({ projectId: f.projectId });
+    expect(memberRead.status).toBe(200);
+    expect(memberRead.body).not.toHaveProperty("qingzhouUsername");
+    for (const response of [saved, managerRead, memberRead]) {
+      expect(JSON.stringify(response.body)).not.toMatch(/test-password|credentialSecretId/);
+    }
     expect((await request(app).put(f.base).send(f.save)).status).toBe(409);
     const { credentials: _omit, ...next } = f.save;
-    expect((await request(app).put(f.base).send({ ...next, expectedRevision: 1 })).status).toBe(200);
+    const retained = await request(app).put(f.base).send({ ...next, expectedRevision: 1 });
+    expect(retained.status).toBe(200);
+    expect(retained.body.qingzhouUsername).toBe("test-user");
     expect((await request(app).post(f.base + "/test").send({ ...f.sync, expectedRevision: 2 })).status).toBe(200);
     expect(await db.select().from(deliverySnapshots).where(eq(deliverySnapshots.companyId, f.companyId))).toHaveLength(0);
+  });
+  it("persists product scope, forwards it to monthly reads and preserves it when omitted",async()=>{
+    const f=await seed();
+    const app=f.app(undefined,undefined,async input=>{
+      expect(input.subProductAttribution).toBe("DSP");
+      return {month:input.month,collectedAt:new Date().toISOString(),items:[],executionAllowed:false as const};
+    });
+    expect((await request(app).put(f.base).send({...f.save,subProductAttribution:"DSP"})).body.subProductAttribution).toBe("DSP");
+    expect((await request(app).post(f.base+"/monthly").send({projectId:f.projectId,expectedRevision:1,month:"2026-11"})).status).toBe(200);
+    expect((await request(app).put(f.base).send({...f.save,expectedRevision:1})).body.subProductAttribution).toBe("DSP");
+    expect((await request(app).put(f.base).send({...f.save,expectedRevision:2,subProductAttribution:null})).body.subProductAttribution).toBe(null);
   });
   it("tests without saving then deduplicates online snapshots and audits checks", async () => {
     const f = await seed(), app = f.app();await request(app).put(f.base).send(f.save);
@@ -99,11 +247,33 @@ const support = await getEmbeddedPostgresTestSupport();
     const f=await seed(),app=f.app();await request(app).put(f.base).send(f.save);
     const monthly={projectId:f.projectId,expectedRevision:1,month:"2026-10"};
     const r=await request(app).post(f.base+"/monthly").send(monthly);expect(r.status).toBe(200);expect(r.body.items).toHaveLength(1);expect(r.body.executionAllowed).toBe(false);expect(JSON.stringify(r.body)).not.toMatch(/test-password|test-jira-pat|credentialSecretId/);
+    expect(r.headers["server-timing"]).toContain("annotation;dur=");
+    expect(r.headers["server-timing"]).toContain("total;dur=");
     await request(app).post(f.base+"/sync").send(f.sync);
     const managed=await request(app).post(f.base+"/monthly").send(monthly);expect(managed.body.items[0].snapshotId).toBeTruthy();expect(managed.body.items[0].admission.ready).toBe(false);
     expect((await request(app).post(f.base+"/monthly").send({...monthly,month:"2026-13"})).status).toBe(400);
     expect((await request(app).post(f.base+"/monthly").send({...monthly,expectedRevision:2})).status).toBe(409);
     expect((await request(f.app({type:"board",source:"session",companyIds:[]})).post(f.base+"/monthly").send(monthly)).status).toBe(403);
+  });
+
+  it("rejects a monthly read when credentials change during the source read", async () => {
+    const f = await seed();
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const source = vi.fn(async (input: any) => {
+      await held;
+      return { month: input.month, collectedAt: new Date().toISOString(), items: [], executionAllowed: false as const };
+    });
+    const app = f.app(undefined, undefined, source);
+    await request(app).put(f.base).send(f.save);
+    const body = { projectId: f.projectId, expectedRevision: 1, month: "2026-10" };
+    const first = request(app).post(f.base + "/monthly").send(body).then(r => r);
+    await vi.waitFor(() => expect(source).toHaveBeenCalledTimes(1));
+    const [connection] = await db.select().from(deliveryConnections).where(eq(deliveryConnections.projectId, f.projectId));
+    await db.update(companySecrets).set({ latestVersion: 2 }).where(eq(companySecrets.id, connection!.credentialSecretId));
+    release(); expect((await first).status).toBe(409);
+    expect((await request(app).post(f.base + "/monthly").send(body)).status).toBe(200);
+    expect(source).toHaveBeenCalledTimes(2);
   });
 
   it("batches month annotations with the same current decisions as individual reads", async () => {

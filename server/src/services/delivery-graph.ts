@@ -1,4 +1,7 @@
 import type { DeliveryStageRecord } from "@paperclipai/shared";
+export const isHistoricalDelivery = (stage: DeliveryStageRecord) =>
+  !!(stage.priorCompletion || stage.historicalVerification || stage.deferredPriorCompletion);
+
 /** Legacy rows without graph metadata keep their original sequential semantics. */
 export function readyDeliveryStages(
   stages: DeliveryStageRecord[],
@@ -8,7 +11,7 @@ export function readyDeliveryStages(
   );
   return stages.filter(
     (s, index) =>
-      s.state !== "done" &&
+      s.state !== "done" && !s.branchBlocked &&
       (s.dependsOn ?? stages.slice(0, index).map((x) => x.taskId)).every((id) =>
         done.has(id),
       ),
@@ -49,4 +52,27 @@ export function deliveryAncestors(
   }
   visit(taskId);
   return result;
+}
+
+/** Reorder independent branches after an authorized dependency change. */
+export function orderDeliveryGraph(stages: DeliveryStageRecord[]) {
+  const byId = new Map(stages.map(stage => [stage.taskId, stage]));
+  const ordered: DeliveryStageRecord[] = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  function visit(stage: DeliveryStageRecord) {
+    if (visited.has(stage.taskId)) return;
+    if (visiting.has(stage.taskId)) throw Error("交付流程依赖形成环");
+    visiting.add(stage.taskId);
+    for (const id of stage.dependsOn ?? []) {
+      const upstream = byId.get(id);
+      if (!upstream) throw Error("交付流程前置节点不存在");
+      visit(upstream);
+    }
+    visiting.delete(stage.taskId);
+    visited.add(stage.taskId);
+    ordered.push(stage);
+  }
+  for (const stage of stages) visit(stage);
+  return ordered;
 }

@@ -7,7 +7,9 @@ import { isSeatManager, seatOwnerId } from "./dsp7-seat-owners.js";
 import { badRequest, forbidden } from "../errors.js";
 import { executionIntervals, unionMs } from "../services/managed-sessions.js";
 import { seatOnlineIntervals, worktimeFor, type TimeInterval } from "../services/seat-worktime.js";
+import { intervalOverlapMs } from "../services/interval-overlap.js";
 import { qualityFor } from "../services/delivery-insights.js";
+import { readSeatMonthlyReport } from "../services/seat-monthly-report.js";
 
 export function periodBounds(period:string,date:string) {
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw badRequest("请选择有效日期");
@@ -24,6 +26,17 @@ export function periodBounds(period:string,date:string) {
 }
 export function managedReportRoutes(db:Db) {
   const router=Router();
+  router.get("/companies/:companyId/managed-seat-report/monthly-delivery", async (req, res) => {
+    const companyId = String(req.params.companyId);
+    assertBoard(req);
+    assertCompanyAccess(req, companyId);
+    const { month } = req.query;
+    if (typeof month !== "string") throw badRequest("请选择有效月份");
+    periodBounds("month", month + "-01");
+    const report = await readSeatMonthlyReport(db, companyId, month, isSeatManager(req, companyId), req.actor.userId);
+    res.setHeader("Cache-Control", "no-store");
+    res.json(report);
+  });
   router.put("/companies/:companyId/managed-seat-report/work-schedule", async (req, res) => {
     const companyId = String(req.params.companyId);
     assertBoard(req); assertCompanyAccess(req, companyId);
@@ -73,8 +86,8 @@ export function managedReportRoutes(db:Db) {
         const intervals=ownSessions.flatMap(s=>executionIntervals(s,events.filter(e=>e.sessionId===s.id).map(e=>({...e,occurredAt:e.occurredAt.toISOString(),observedAt:e.observedAt.toISOString()}))));
         const executing=intervals.filter(i=>i.state==="executing"),waiting=intervals.filter(i=>i.state==="waiting");
         const idle=seatSamples.flatMap((s,i)=>s.ownerUserId===ownerId&&s.state==="idle"&&!s.taskId?[{start:s.at.getTime(),end:Math.min(s.through.getTime()+90000,seatSamples[i+1]?.at.getTime()??now)}]:[]);
-        const executingMs=unionMs(executing,from,now),waitingMs=Math.max(0,unionMs(waiting,from,now)-unionMs(waiting.flatMap(w=>executing.map(e=>({start:Math.max(w.start,e.start),end:Math.min(w.end,e.end)}))),from,now));
-        const idleMs=Math.max(0,unionMs(idle,from,now)-unionMs(idle.flatMap(i=>[...executing,...waiting].map(b=>({start:Math.max(i.start,b.start),end:Math.min(i.end,b.end)}))),from,now));
+        const executingMs=unionMs(executing,from,now),waitingMs=Math.max(0,unionMs(waiting,from,now)-intervalOverlapMs(waiting,executing,from,now));
+        const idleMs=Math.max(0,unionMs(idle,from,now)-intervalOverlapMs(idle,[...executing,...waiting],from,now));
         const observable=Math.max(0,now-from),unknownMs=Math.max(0,observable-executingMs-waitingMs-idleMs);
         const ownFacts=facts.filter(f=>f.seatId===seat.id&&f.ownerUserId===ownerId);
         const deliveries=ownFacts.filter(f=>f.kind==="delivered");
@@ -93,10 +106,10 @@ export function managedReportRoutes(db:Db) {
     }
     for(const [ownerId,intervals] of personIntervals){
       const executingMs=unionMs(intervals.executing,from,now);
-      const overlap=unionMs(intervals.waiting.flatMap(w=>intervals.executing.map(e=>({start:Math.max(w.start,e.start),end:Math.min(w.end,e.end)}))),from,now);
+      const overlap=intervalOverlapMs(intervals.waiting,intervals.executing,from,now);
       const waitingMs=Math.max(0,unionMs(intervals.waiting,from,now)-overlap);
       const busy=[...intervals.executing,...intervals.waiting];
-      const idleMs=Math.max(0,unionMs(intervals.idle,from,now)-unionMs(intervals.idle.flatMap(i=>busy.map(b=>({start:Math.max(i.start,b.start),end:Math.min(i.end,b.end)}))),from,now));
+      const idleMs=Math.max(0,unionMs(intervals.idle,from,now)-intervalOverlapMs(intervals.idle,busy,from,now));
       report.people.push({ownerUserId:ownerId,name:owners.find(o=>o.id===ownerId)?.name??ownerId,...worktimeFor(intervals.online,workSchedule,intervals.from,now),executingMs,waitingMs,idleMs,unknownMs:Math.max(0,now-from-executingMs-waitingMs-idleMs)});
     }
     res.setHeader("Cache-Control","no-store");res.json(report);

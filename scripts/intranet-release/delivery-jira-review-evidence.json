@@ -1,0 +1,28 @@
+{
+  "name": "delivery-jira-review-evidence",
+  "backend": [
+    {
+      "source": "server/src/services/delivery-prior-jira.ts",
+      "target": "@paperclipai/server/dist/services/delivery-prior-jira.js"
+    },
+    {
+      "source": "server/src/services/delivery-automatic-plan.ts",
+      "target": "@paperclipai/server/dist/services/delivery-automatic-plan.js"
+    }
+  ],
+  "ui": [
+    {
+      "markers": [
+        "查看节点明细",
+        "s.priorCompletion.passedTests !== void 0"
+      ],
+      "replacements": [
+        {
+          "from": "                  ] }),\n                  s.priorCompletion.passedTests !== void 0 && /* @__PURE__ */ jsxs(\"p\", { children: [",
+          "to": "                  ] }),\n                  s.priorCompletion.jiraEvidence?.reviewResult && /* @__PURE__ */ jsxs(\"p\", { children: [\"Jira 结果描述：\", s.priorCompletion.jiraEvidence.reviewResult] }),\n                  s.priorCompletion.passedTests !== void 0 && /* @__PURE__ */ jsxs(\"p\", { children: [",
+          "alreadyApplied": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "release": "seat-platform-20261116",
+  "status": "deployed",
+  "deployedAt": "2026-11-16T08:42:09.695448+00:00",
+  "target": "http://10.60.43.53:3100",
+  "backup": "/home/fg/paperclip/private/seat-platform-20261116-0842/backup",
+  "filesVerified": 172,
+  "serverRestarted": false,
+  "pid": "670184",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "anonymousCompaniesStatus": 403,
+  "clientUnchanged": true,
+  "envUnchanged": true,
+  "databaseChanged": false,
+  "semanticScope": [
+    "SeatClientUpgrade system preference persistence and registered-path detection"
+  ],
+  "assetReferencesRewritten": 170,
+  "externalHttpVerification": {
+    "verified": 172,
+    "failures": []
+  },
+  "verification": {
+    "sourceAndProductionComponentTests": 24,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "fullRepoChecks": "not rerun; scoped frontend patch"
+  },
+  "browserVerification": {
+    "seat": "乐夏光",
+    "afterReload": "windows",
+    "powershell": true
+  }
+}

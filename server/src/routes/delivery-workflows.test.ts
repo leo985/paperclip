@@ -36,10 +36,20 @@ const wakes = vi.hoisted(() => ({ call: vi.fn(), cancel: vi.fn() }));
 vi.mock("../services/heartbeat.js", () => ({
   heartbeatService: () => ({ wakeup: wakes.call, cancelRun: wakes.cancel }),
 }));
+const priorJira=vi.hoisted(()=>({read:vi.fn()}));
+vi.mock("../services/delivery-prior-jira.js",()=>({readJiraPriorCompletion:priorJira.read}));
 const jiraAssignments=vi.hoisted(()=>({accounts:new Map<string,string>()}));
 vi.mock("../services/delivery-seat-assignment.js",async original=>({
   ...await original<typeof import("../services/delivery-seat-assignment.js")>(),
   readDeliveryJiraAssignments:async(_db:unknown,_c:string,_p:string,keys:string[])=>new Map(keys.map(key=>[key,{account:jiraAssignments.accounts.get(key)??"owner",displayName:"负责人",origin:"http://jira.fingard.com:6001"}]))
+}));
+const autoJira=vi.hoisted(()=>({created:new Map<string,string>(),posts:0,timeout:false,hide:false}));
+vi.mock("../services/delivery-repair-jira.js",async original=>({
+  ...await original<typeof import("../services/delivery-repair-jira.js")>(),
+  repairJiraClient:async()=>({origin:"http://jira.fingard.com:6001",
+    find:async(spec:any)=>autoJira.hide?null:autoJira.created.get(spec.marker)??null,
+    create:async(spec:any)=>{autoJira.posts++;const key="AUTO-"+(100+autoJira.posts);autoJira.created.set(spec.marker,key);jiraAssignments.accounts.set(key,spec.account);if(autoJira.timeout)throw Error("Jira 建单结果不确定");return key;},
+  }),
 }));
 import { deliveryWorkflowRoutes } from "./delivery-workflows.js";
 import {
@@ -258,6 +268,85 @@ const support = await getEmbeddedPostgresTestSupport();
           .where(eq(deliveryWorkflows.id, id))
       )[0]!;
     }
+    it("refuses substitute Jira creation when an existing workflow lacks its original coding and review nodes",async()=>{
+      autoJira.created.clear();autoJira.posts=0;autoJira.timeout=false;autoJira.hide=false;
+      const projectId=randomUUID(),snapshot=randomUUID(),dev=randomUUID(),review=randomUUID(),qa=randomUUID();
+      await db.insert(projects).values({id:projectId,companyId:c,name:"Automatic repair"});
+      for(const [id,account] of [[dev,"auto-dev"],[review,"auto-review"],[qa,"auto-qa"]])await db.insert(agents).values({id,companyId:c,name:account,role:"engineer",status:"idle",adapterType:"claude_local",adapterConfig:{...cfg,dsp7JiraDispatch:{...cfg.dsp7JiraDispatch,projectId,jiraAssignee:account},dsp7SeatPresence:{...cfg.dsp7SeatPresence,capabilities:["delivery-flow-v1","delivery-work-review-v1","delivery-executor-v1","delivery-rework-v1","delivery-auto-repair-v1", "delivery-reuse-repair-v1"]}}});
+      const definition=structuredClone(DEFAULT_DELIVERY_TEMPLATE);for(const [key,policy] of Object.entries(definition.stages))policy.enabled=key==="functional-test";
+      definition.stages["functional-test"].entryChecks=["title"];
+      definition.automaticRepair={maxCycles:2,jiraProjectKey:"AUTO",defectIssueTypeId:"1",fixIssueTypeId:"2",reviewIssueTypeId:"3",retestIssueTypeId:"4",buildObservationUrl:"https://env.example/version",routes:[{module:"payments",developmentSeatId:dev,reviewSeatId:review,qaSeatId:qa}]};
+      await db.insert(deliveryWorkflowTemplates).values({companyId:c,projectId,scopeKey:projectId,revision:1,definition,createdBy:"local-board"});
+      const source={...plan,demandNo:"AUTOMATIC-1",items:[{...plan.items[3],key:"AUTO-1",parentKey:"AUTO-0"}]};
+      jiraAssignments.accounts.set("AUTO-1","auto-qa");
+      await db.insert(deliverySnapshots).values({id:snapshot,companyId:c,projectId,sourceOrigin:"https://proj.fingard.com:1888",demandNo:source.demandNo,fingerprint,collectedAt:new Date(),createdByUserId:"local-board",plan:source});
+      const input={...config,requestId:randomUUID(),snapshotId:snapshot,analysisSeatId:"",developmentSeatId:"",qaSeatId:qa,testExecutionKey:"AUTO-1"};
+      const denied=await request(app()).post(base).send(input);expect(denied.status).toBe(409);expect(denied.body.error).toContain("授权");
+      const started=await request(app()).post(base).send({...input,automaticRepairAuthorized:true});expect(started.status,JSON.stringify(started.body)).toBe(201);
+      const id=started.body.id;const current=await flow(id);const stage=current.stages[0];
+      const [run]=await db.insert(heartbeatRuns).values({companyId:c,agentId:qa,status:"succeeded"}).returning();
+      stage.runId=run.id;stage.state="review";stage.receiptDigest="c".repeat(64);
+      stage.receipt={protocolVersion:1,taskId:stage.taskId,runId:run.id,stage:"functional-test",jiraKey:"AUTO-1",inputDigest:stage.inputDigest,stateDigest:"a".repeat(64),trackerReceiptId:"42",jiraReference:"http://jira.fingard.com:6001/browse/AUTO-1",artifacts:[{path:"execution-records.md",sha256:"b".repeat(64)}],testResults:{total:1,passed:0,failed:1,blocked:0,skipped:0,testedVersion:"bad-build",sourcePath:"execution-records.md",sourceSha256:"b".repeat(64)},failureReport:{sourcePath:"delivery-failures.json",sourceSha256:"d".repeat(64),defects:[{caseId:"C1",module:"payments",kind:"product",summary:"failure",steps:"reproduce",expected:"success",actual:"failed"}]}};
+      await db.insert(seatExecutionPermits).values({companyId:c,agentId:qa,taskId:stage.taskId,runId:run.id,machineId:mid,leaseHash:"auto-fixture",expiresAt:new Date(Date.now()+60000),treeStopVerifiedAt:new Date()});
+      await db.update(deliveryWorkflows).set({stages:current.stages,state:"blocked"}).where(eq(deliveryWorkflows.id,id));
+      await reconcileDeliveryWorkflow(db,id);
+      const stopped=await flow(id);
+      expect(stopped.state).toBe("blocked");expect(stopped.message).toContain("原编码单");
+      expect(autoJira.posts).toBe(0);expect(stopped.stages).toHaveLength(1);
+      expect(stopped.stages[0].taskId).toBe(stage.taskId);
+    });
+    it.each(["manual","jira"] as const)("takes over only unfinished parallel coding work and preserves completed branches (%s)",async mode=>{
+      const projectId=randomUUID(),snapshot=randomUUID(),seat=randomUUID(),prefix=mode==="jira"?"JPART":"MPART";
+      await db.insert(projects).values({id:projectId,companyId:c,name:"Partial coding "+mode});
+      await db.insert(agents).values({id:seat,companyId:c,name:"Partial coding seat",role:"engineer",status:"idle",adapterType:"claude_local",adapterConfig:{...cfg,dsp7JiraDispatch:{...cfg.dsp7JiraDispatch,projectId}}});
+      const definition=structuredClone(DEFAULT_DELIVERY_TEMPLATE);
+      for(const [kind,policy] of Object.entries(definition.stages))policy.enabled=kind==="coding";
+      Object.assign(definition.stages.coding,{taskSequence:"work_only",review:"none",entryChecks:["title"]});
+      await db.insert(deliveryWorkflowTemplates).values({companyId:c,projectId,scopeKey:projectId,revision:1,definition,createdBy:"local-board"});
+      const source={...plan,demandNo:"PARTIAL-"+snapshot,items:[{...plan.items[1],key:prefix+"-1",parentKey:prefix+"-100",status:"已完成"},{...plan.items[1],key:prefix+"-2",parentKey:prefix+"-100"}]};
+      await db.insert(deliverySnapshots).values({id:snapshot,companyId:c,projectId,sourceOrigin:"https://proj.fingard.com:1888",demandNo:source.demandNo,fingerprint,collectedAt:new Date(),createdByUserId:"local-board",plan:source});
+      const evidence={stage:"coding",jiraKey:prefix+"-1",version:"prior-v1",artifactReferences:["https://jira.example/secure/attachment/1/old.md"],reviewReference:"https://jira.example/browse/"+prefix+"-1"};
+      const previous=priorJira.read.getMockImplementation();priorJira.read.mockImplementation(async()=>evidence);
+      try {
+        const input={...config,requestId:randomUUID(),snapshotId:snapshot,analysisSeatId:"",developmentSeatId:seat,qaSeatId:"",workTasks:[{stage:"coding",jiraKey:prefix+"-1",seatId:""},{stage:"coding",jiraKey:prefix+"-2",seatId:seat}],priorCompletions:[mode==="jira"?{stage:"coding",jiraKey:prefix+"-1",source:"jira"}:evidence]};
+        const started=await request(app()).post(base).send(input);expect(started.status,started.text).toBe(201);
+        const current=await flow(started.body.id);expect(current.stages[0].state).toBe("done");expect(current.stages[0].runId).toBeNull();
+        await reconcileDeliveryWorkflow(db,current.id);const live=await flow(current.id);
+        expect(live.stages[0].runId).toBeNull();expect(live.stages[1].runId,live.message??"").toBeTruthy();expect(live.stages[1].seatId).toBe(seat);
+        expect(live.config.template?.definition).toEqual(definition);
+      } finally {if(previous)priorJira.read.mockImplementation(previous);else priorJira.read.mockReset();}
+    });
+    it("takes over an instance with verified prior work without seats or reruns and keeps the template", async () => {
+      const projectId=randomUUID(), snapshot=randomUUID();
+      await db.insert(projects).values({id:projectId,companyId:c,name:"Midstream takeover"});
+      const definition=structuredClone(DEFAULT_DELIVERY_TEMPLATE);
+      for(const [key,policy] of Object.entries(definition.stages)) policy.enabled=["analysis","design"].includes(key);
+      definition.stages.analysis.entryChecks=["title"];
+      definition.stages.design.taskSequence="work_then_review";
+      definition.stages.design.reviewExecution="human";
+      definition.stages.design.reviewExecutorUserId="local-board";
+      await db.insert(deliveryWorkflowTemplates).values({companyId:c,projectId,scopeKey:projectId,revision:1,definition,createdBy:"local-board"});
+      const source={...plan,demandNo:"TAKEOVER-1",items:[{...plan.items[0],key:"TAKE-1",status:"已完成"},{...plan.items[0],key:"TAKE-2",type:"设计评审",status:"待受理"}]};
+      await db.insert(deliverySnapshots).values({id:snapshot,companyId:c,projectId,sourceOrigin:"https://proj.fingard.com:1888",demandNo:source.demandNo,fingerprint,collectedAt:new Date(),createdByUserId:"local-board",plan:source});
+      const evidence={version:"v1",artifactReferences:["https://docs.example/result"],reviewReference:"https://docs.example/approval"};
+      const input={...config,requestId:randomUUID(),snapshotId:snapshot,analysisSeatId:"",developmentSeatId:"",qaSeatId:"",designKey:"TAKE-1",reviewTasks:[{stage:"design",jiraKey:"TAKE-2",workKeys:["TAKE-1"]}],priorCompletions:[{...evidence,stage:"analysis",jiraKey:null},{...evidence,stage:"design",jiraKey:"TAKE-1",reviewReference:"https://jira.example/browse/TAKE-1"}]};
+      const missingEvidence=await request(app()).post(base).send({...input,priorCompletions:[{...input.priorCompletions[0],artifactReferences:[]}]});expect(missingEvidence.status).toBe(400);
+      const orphan=await request(app()).post(base).send({...input,analysisSeatId:sid,priorCompletions:[input.priorCompletions[1]]});expect(orphan.status).toBe(409);expect(orphan.body.error).toContain("前置");
+      const duplicate=await request(app()).post(base).send({...input,priorCompletions:[...input.priorCompletions,input.priorCompletions[0]]});expect(duplicate.status).toBe(409);
+      const unfinished=await request(app()).post(base).send({...input,priorCompletions:[...input.priorCompletions,{...evidence,stage:"design",jiraKey:"TAKE-2",reviewReference:"https://jira.example/browse/TAKE-2"}]});expect(unfinished.status).toBe(409);expect(unfinished.body.error).toContain("尚未完成");
+      const unauthorized=await request(app(false,"outsider",c,false)).post(base).send(input);expect(unauthorized.status).toBe(403);
+      const started=await request(app()).post(base).send(input);expect(started.status,JSON.stringify(started.body)).toBe(201);
+      const id=started.body.id;expect(started.body.config.template.definition).toEqual(definition);
+      expect(started.body.stages.map((s:any)=>s.state)).toEqual(["done","done","pending"]);
+      expect(started.body.stages[0]).toMatchObject({seatId:"",runId:null,receipt:null,priorCompletion:{by:"local-board",snapshotId:snapshot}});
+      const repeat=await request(app()).post(base).send(input);expect(repeat.body.id).toBe(id);
+      const priorWakes=wakes.call.mock.calls.length;
+      await reconcileDeliveryWorkflow(db,id);
+      const current=await flow(id);expect(current.stages[2].state).toBe("review");expect(current.stages[2].inputDigest).toMatch(/^[a-f0-9]{64}$/);
+      expect(wakes.call.mock.calls.length).toBe(priorWakes);
+      expect((await db.select().from(analysisExecutions).where(eq(analysisExecutions.id,current.stages[0].taskId)))).toHaveLength(0);
+      expect((await db.select().from(issues).where(eq(issues.id,current.stages[1].taskId)))[0].status).toBe("done");
+    });
     it("binds current Jira assignees on the server and refuses a later owner change without transferring",async()=>{
       const projectId=randomUUID(),snapshot=randomUUID(),seatId=randomUUID();
       await db.insert(projects).values({id:projectId,companyId:c,name:"Owner binding"});
@@ -325,10 +414,11 @@ const support = await getEmbeddedPostgresTestSupport();
           )
         ).status,
       ).toBe(403);
+      const initialWakes = wakes.call.mock.calls.length;
       await reconcileDeliveryWorkflow(db, id);
-      expect(wakes.call).toHaveBeenCalledTimes(1);
+      expect(wakes.call).toHaveBeenCalledTimes(initialWakes + 1);
       await reconcileDeliveryWorkflow(db, id);
-      expect(wakes.call).toHaveBeenCalledTimes(1);
+      expect(wakes.call).toHaveBeenCalledTimes(initialWakes + 1);
       const [analysis] = await db
         .select()
         .from(analysisExecutions)
@@ -377,7 +467,7 @@ const support = await getEmbeddedPostgresTestSupport();
           .set({
             adapterConfig: {
               ...cfg,
-              dsp7SeatPresence: { ...cfg.dsp7SeatPresence, state: "busy" },
+              dsp7SeatPresence: { ...cfg.dsp7SeatPresence, state: "busy", acceptingWork: false },
             },
           })
           .where(eq(agents.id, sid));
@@ -588,7 +678,7 @@ const support = await getEmbeddedPostgresTestSupport();
       ).toBe(200);
       expect((await flow(id)).state).toBe("completed");
       await reconcileDeliveryWorkflow(db, id);
-      expect(wakes.call).toHaveBeenCalledTimes(5);
+      expect(wakes.call).toHaveBeenCalledTimes(initialWakes + 5);
     }, 30000);
 
     async function freshCase(n: number) {
@@ -701,7 +791,7 @@ const support = await getEmbeddedPostgresTestSupport();
         ).toBe("in_review");
       }
     });
-    it("atomically creates a bounded independent repair chain pinned to the failed report", async () => {
+    it("refuses manual replacement tickets without an existing-task repair policy", async () => {
       const { id } = await freshCase(30);
       const current = await flow(id);
       current.stages.slice(0, 4).forEach((stage) => {
@@ -775,209 +865,11 @@ const support = await getEmbeddedPostgresTestSupport();
         qaSeatId: sid,
       };
       const endpoint = base + "/" + id + "/repair";
-      expect(
-        (
-          await request(app(false, "other", c, false))
-            .post(endpoint)
-            .send(input)
-        ).status,
-      ).toBe(403);
-      expect(
-        (
-          await request(app())
-            .post(endpoint)
-            .send({ ...input, reviewSeatId: sid })
-        ).status,
-      ).toBe(400);
-      expect(
-        (
-          await request(app())
-            .post(endpoint)
-            .send({ ...input, expectedReceiptDigest: "0".repeat(64) })
-        ).status,
-      ).toBe(409);
-      const before = wakes.call.mock.calls.length;
-      const responses = await Promise.all([
-        request(app()).post(endpoint).send(input),
-        request(app()).post(endpoint).send(input),
-      ]);
-      expect(responses.map((response) => response.status).sort()).toEqual([
-        200, 409,
-      ]);
-      const repaired = await flow(id),
-        chain = repaired.stages.slice(-3);
-      expect(repaired.state).toBe("active");
-      expect(chain.map((stage) => stage.intent)).toEqual([
-        "bugfix",
-        "code-review",
-        "retest",
-      ]);
-      expect(chain[0].seatId).not.toBe(chain[1].seatId);
-      expect(
-        chain.every(
-          (stage) =>
-            stage.state === "pending" &&
-            stage.receipt === null &&
-            stage.repairFailure?.receiptDigest === failed.receiptDigest,
-        ),
-      ).toBe(true);
-      expect(chain[2].repairHistory?.[0].receipt).toEqual(failed.receipt);
-      expect(wakes.call.mock.calls.length).toBe(before);
-      for (const intent of ["bugfix", "code-review", "retest"]) {
-        await reconcileDeliveryWorkflow(db, id);
-        const live = (await flow(id)).stages.find(
-          (stage) => stage.intent === intent,
-        )!;
-        expect(live.runId).toBeTruthy();
-        await db
-          .insert(seatExecutionPermits)
-          .values({
-            companyId: c,
-            agentId: live.seatId,
-            taskId: live.taskId,
-            runId: live.runId!,
-            machineId: mid,
-            leaseHash: createHash("sha256").update(lease).digest("hex"),
-            expiresAt: new Date(Date.now() + 600000),
-          });
-        const callback = `/agents/${live.seatId}/delivery-runs/${live.runId}/delivery`;
-        const receipt: DeliveryStageReceipt = {
-          protocolVersion: 1,
-          taskId: live.taskId,
-          runId: live.runId!,
-          stage: live.stage,
-          jiraKey: live.jiraKey!,
-          inputDigest: live.inputDigest,
-          stateDigest: "a".repeat(64),
-          trackerReceiptId: "42",
-          jiraReference: "https://jira.example/browse/" + live.jiraKey,
-          artifacts: [
-            {
-              path: intent === "retest" ? "execution-records.md" : "report.md",
-              sha256: "b".repeat(64),
-            },
-          ],
-          ...(intent === "code-review"
-            ? {
-                codeReview: {
-                  decision: "passed" as const,
-                  reviewedVersionDigest: "d".repeat(64),
-                  sourcePath: "report.md",
-                  sourceSha256: "b".repeat(64),
-                },
-              }
-            : {}),
-          ...(intent === "retest"
-            ? {
-                testResults: {
-                  total: 1,
-                  passed: 1,
-                  failed: 0,
-                  blocked: 0,
-                  skipped: 0,
-                  testedVersion: "fixed-build",
-                  sourcePath: "execution-records.md" as const,
-                  sourceSha256: "b".repeat(64),
-                },
-              }
-            : {}),
-        };
-        if (intent === "code-review") {
-          expect(
-            (
-              await request(app(true, "local-board", c, true, live.seatId))
-                .post(callback)
-                .send({
-                  ...machine,
-                  seat_id: live.seatId,
-                  receipt: { ...receipt, codeReview: undefined },
-                })
-            ).status,
-          ).toBe(409);
-          expect(
-            (
-              await request(app(true))
-                .post(callback)
-                .send({ ...machine, seat_id: live.seatId, receipt })
-            ).status,
-          ).toBe(403);
-        }
-        const received = await request(
-          app(true, "local-board", c, true, live.seatId),
-        )
-          .post(callback)
-          .send({ ...machine, seat_id: live.seatId, receipt });
-        expect(received.status, JSON.stringify(received.body)).toBe(200);
-        await db
-          .update(heartbeatRuns)
-          .set({ status: "succeeded" })
-          .where(eq(heartbeatRuns.id, live.runId!));
-        await reconcileDeliveryWorkflow(db, id);
-        expect(
-          (await flow(id)).stages.find((stage) => stage.taskId === live.taskId)!
-            .state,
-        ).not.toBe("done");
-        await db
-          .update(seatExecutionPermits)
-          .set({ treeStopVerifiedAt: new Date() })
-          .where(eq(seatExecutionPermits.runId, live.runId!));
-        await reconcileDeliveryWorkflow(db, id);
-        expect(
-          (await flow(id)).stages.find((stage) => stage.taskId === live.taskId)!
-            .state,
-        ).toBe("done");
-      }
-      await reconcileDeliveryWorkflow(db, id);
-      expect((await flow(id)).state).toBe("acceptance");
-      // A failed retest retains the original failure and may reuse the same
-      // explicitly selected Jira defect after native reopening, without creating
-      // a duplicate Jira defect or losing prior receipts.
-      const failedAgain = await flow(id),
-        last = failedAgain.stages.at(-1)!;
-      last.state = "review";
-      last.receipt = {
-        ...last.receipt!,
-        testResults: { ...last.receipt!.testResults!, passed: 0, failed: 1 },
-      };
-      last.receiptDigest = "e".repeat(64);
-      await db
-        .update(issues)
-        .set({ status: "in_review" })
-        .where(eq(issues.id, last.taskId));
-      await db
-        .update(deliveryWorkflows)
-        .set({ stages: failedAgain.stages, state: "blocked" })
-        .where(eq(deliveryWorkflows.id, id));
-      const nextRound = await request(app())
-        .post(endpoint)
-        .send({ ...input, expectedReceiptDigest: last.receiptDigest });
-      expect(nextRound.status, JSON.stringify(nextRound.body)).toBe(200);
-      const secondRound = await flow(id);
-      expect(secondRound.stages.at(-1)!.repairHistory).toHaveLength(2);
-      expect(secondRound.stages.at(-1)!.repairHistory![0].receipt).toEqual(
-        failed.receipt,
-      );
-      // Once the third failed round is stored, a fourth cannot create any tasks.
-      const cappedChain = secondRound.stages.slice(-3),
-        retest = cappedChain[2];
-      retest.state = "review";
-      retest.runId = run.id;
-      retest.receipt = failed.receipt;
-      retest.receiptDigest = failed.receiptDigest;
-      retest.repairHistory = Array.from({ length: 3 }, (_, index) => ({
-        ...retest.repairHistory![0],
-        attempt: index + 1,
-      }));
-      cappedChain.slice(0, 2).forEach((stage) => {
-        stage.state = "done";
-      });
-      await db
-        .update(deliveryWorkflows)
-        .set({ stages: secondRound.stages, state: "blocked" })
-        .where(eq(deliveryWorkflows.id, id));
-      const capped = await request(app()).post(endpoint).send(input);
-      expect(capped.status).toBe(409);
-      expect(capped.body.error).toContain("三轮");
+      const before = await db.select().from(issues).where(eq(issues.companyId,c));
+      const denied=await request(app()).post(endpoint).send(input);
+      expect(denied.status).toBe(409);expect(denied.body.error).toContain("策略");
+      expect(await db.select().from(issues).where(eq(issues.companyId,c))).toEqual(before);
+      expect((await flow(id)).stages.map(s=>s.taskId)).toEqual(current.stages.map(s=>s.taskId));
     });
     it("bounds explicit resumes and clears stale evidence without dispatching automatically", async () => {
       const { id } = await freshCase(4);
@@ -1079,7 +971,7 @@ const support = await getEmbeddedPostgresTestSupport();
         .set({
           adapterConfig: {
             ...cfg,
-            dsp7SeatPresence: { ...cfg.dsp7SeatPresence, state: "busy" },
+            dsp7SeatPresence: { ...cfg.dsp7SeatPresence, state: "busy", acceptingWork: false },
           },
         })
         .where(eq(agents.id, sid));
@@ -1530,6 +1422,11 @@ const support = await getEmbeddedPostgresTestSupport();
       for(let index=0;index<5;index++) {
         await reconcileDeliveryWorkflow(db,id);const f=await flow(id),stage=f.stages[index];
         expect(stage.executionMode).toBe("human");expect(stage.state).toBe("review");expect(stage.runId).toBeNull();expect(stage.receipt).toBeNull();
+        const inbox=await request(app()).get(base+"/pending-actions");
+        expect(inbox.status,inbox.text).toBe(200);
+        const actions=inbox.body.actions.filter((a:any)=>a.workflowId===id);
+        expect(actions).toHaveLength(1);expect(actions[0].taskId).toBe(stage.taskId);
+        expect(actions[0].kind).toBe(stage.reviewWorkKeys?"review":"work");
         const payload={taskId:stage.taskId,digest:stage.inputDigest,decision:"approve",reference:`https://jira.example/browse/${stage.jiraKey}`,note:"人工核对当前交付版本与正式材料"};
         const evidence={version:"release-manual-1",artifactReferences:["https://jira.example/secure/attachment/1/report.md"],...(stage.stage==="functional-test"?{testResults:{total:2,passed:2,failed:0,blocked:0,skipped:0}}:{})};
         if(!stage.reviewWorkKeys) {
@@ -1538,6 +1435,8 @@ const support = await getEmbeddedPostgresTestSupport();
         }
         if(stage.stage==="functional-test")expect((await request(app()).post(base+`/${id}/review`).send({...payload,manualDelivery:{...evidence,testResults:{total:2,passed:1,failed:1,blocked:0,skipped:0}}})).status).toBe(409);
         const done=await request(app()).post(base+`/${id}/review`).send({...payload,...(!stage.reviewWorkKeys?{manualDelivery:evidence}:{})});expect(done.status,JSON.stringify(done.body)).toBe(200);
+        const after=await request(app()).get(base+"/pending-actions");
+        expect(after.body.actions.some((a:any)=>a.taskId===stage.taskId)).toBe(false);
       }
       await reconcileDeliveryWorkflow(db,id);expect((await flow(id)).state).toBe("acceptance");expect(wakes.call.mock.calls.length).toBe(before);
     },30000);

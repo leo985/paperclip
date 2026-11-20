@@ -73,6 +73,14 @@ class InstallWatchdogTests(unittest.TestCase):
         commands = [call.args[0] for call in run.call_args_list]
         self.assertFalse(any('kickstart' in cmd or 'bootout' in cmd or 'bootstrap' in cmd for cmd in commands))
 
+    def test_reusing_same_bridge_does_not_reset_startup_grace(self):
+        with patch.object(installer, 'install_mac'), patch.object(sys, 'platform', 'darwin'), \
+             patch.object(installer.time, 'time', side_effect=[100, 500]), contextlib.redirect_stdout(None):
+            installer.install(self.root)
+            installer.install(self.root)
+        settings = json.loads((self.directory / 'settings.json').read_text())
+        self.assertEqual(settings['installed_at'], 100)
+
     def test_mac_foreign_timer_is_not_overwritten(self):
         folder = self.home / 'Library/LaunchAgents'
         folder.mkdir(parents=True)

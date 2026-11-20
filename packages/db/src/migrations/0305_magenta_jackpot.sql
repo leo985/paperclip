@@ -1,0 +1,1 @@
+ALTER TABLE "delivery_connections" ADD COLUMN "sub_product_attribution" text;

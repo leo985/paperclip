@@ -1,10 +1,12 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { activityLog, analysisExecutions, deliverySnapshots, type Db } from "@paperclipai/db";
 import type { DeliveryAdmission } from "@paperclipai/shared";
 import { conflict } from "../errors.js";
 
-export async function latestDeliverySnapshots(db: Db, companyId: string, projectId: string) {
+export async function latestDeliverySnapshots(db: Db, companyId: string, projectId: string, demandNos?: string[]) {
+  if (demandNos && !demandNos.length) return [];
   return db.select().from(deliverySnapshots).where(and(eq(deliverySnapshots.companyId,companyId),eq(deliverySnapshots.projectId,projectId),
+    demandNos ? inArray(deliverySnapshots.demandNo, demandNos) : undefined,
     sql`not exists (select 1 from delivery_snapshots n where n.company_id = ${companyId} and n.project_id = ${projectId} and n.source_origin = ${deliverySnapshots.sourceOrigin} and n.demand_no = ${deliverySnapshots.demandNo} and (n.collected_at,n.created_at,n.id) > (${deliverySnapshots.collectedAt},${deliverySnapshots.createdAt},${deliverySnapshots.id}))`));
 }
 export async function deliveryAdmission(db: Db, snapshot: typeof deliverySnapshots.$inferSelect): Promise<DeliveryAdmission> {

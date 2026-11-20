@@ -1,19 +1,76 @@
 // @vitest-environment jsdom
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DeliveryEntryDetail, DeliveryStageRecord, DeliveryWorkflow, DeliveryWorkItem } from "@paperclipai/shared";
-import { deliveryEntryStageRows, sourceAnalysisRoleName, sourceEntryStage, sourceAnalysisStatus, sourceDesignStatus, sourceCodingStatus } from "@/lib/delivery-entry-stages";
+import { deliveryEntryStageRows, sourceAnalysisRoleName, sourceEntryStage, sourceAnalysisStatus, sourceDesignStatus, sourceCodingStatus, type EntryStageId } from "@/lib/delivery-entry-stages";
 import { DeliveryEntryStages } from "./DeliveryEntryStages";
 vi.mock("@/lib/router",()=>({Link:({to,children,...props}:{to:string;children:ReactNode})=><a href={to} {...props}>{children}</a>}));
 const item=(key:string,type:string,extra:Partial<DeliveryWorkItem>={}):DeliveryWorkItem=>({key,type,parentKey:"MAIN-1",title:key+" 标题",status:"待受理",assignee:"研发甲",scheduled:true,...extra});
 const detail:DeliveryEntryDetail={snapshot:{id:"snapshot-1",projectId:"project-1",demandNo:"ATS3-00156",collectedAt:"2026-10-26",createdAt:"2026-10-26",sourceOrigin:"qingzhou",plan:{demandId:"1",demandNo:"ATS3-00156",title:"条目",status:"开发中",roles:[],mains:[],scheduleCount:1,differences:[],fingerprint:"test",sourceMode:"online_readonly",executionAllowed:false,items:[item("MAIN-1","产品功能需求",{parentKey:null}),item("DESIGN-1","系统设计"),item("CODE-1","编码",{status:"已完成"}),item("REVIEW-1","代码评审"),item("CASE-1","测试用例设计"),item("CASE-REVIEW-1","测试用例评审"),item("QA-1","功能测试"),item("OTHER-1","发布支持")]}},admission:{ready:false,reasons:[],analysisExecutionId:null,evidence:null},analyses:[{id:"analysis-old",title:"旧版分析",state:"published",revision:1,activeRunId:null,updatedAt:"2026-10-25"},{id:"analysis-new",title:"新版分析",state:"waiting",revision:2,activeRunId:null,updatedAt:"2026-10-26"}],tasks:[{id:"code-task",jiraKey:"CODE-1",title:"编码执行",status:"done",runStatus:"succeeded",updatedAt:"2026-10-26"},{id:"qa-task",jiraKey:"QA-1",title:"功能测试执行",status:"in_progress",runStatus:"running",updatedAt:"2026-10-26"}]};
 let cleanup:(()=>void)|undefined;
 afterEach(()=>{cleanup?.();cleanup=undefined;});
-function mount(extra:Partial<Parameters<typeof DeliveryEntryStages>[0]>={}) {const node=document.createElement("div");document.body.append(node);const root=createRoot(node);flushSync(()=>root.render(<DeliveryEntryStages detail={detail} canManage {...extra}/>));cleanup=()=>{flushSync(()=>root.unmount());node.remove();};return node;}
+type StageFixture = { detail: DeliveryEntryDetail; workflow?: DeliveryWorkflow; selectedStage?: EntryStageId; onSelectStage?: (stage: EntryStageId) => void };
+function StageOverview({ detail, workflow, selectedStage, onSelectStage }: StageFixture) {
+  const [selected, setSelected] = useState(selectedStage);
+  return <DeliveryEntryStages
+    snapshot={detail.snapshot}
+    stages={deliveryEntryStageRows(detail, workflow)}
+    workflow={workflow}
+    canManage
+    selectedStage={selected}
+    onSelectStage={onSelectStage ?? setSelected}
+  />;
+}
+function mount(extra: Partial<StageFixture> = {}) {
+  const node = document.createElement("div");
+  document.body.append(node);
+  const root = createRoot(node);
+  flushSync(() => root.render(<StageOverview detail={detail} {...extra} />));
+  cleanup = () => { flushSync(() => root.unmount()); node.remove(); };
+  return node;
+}
 const record=(stage:DeliveryStageRecord["stage"],jiraKey:string|null,state:DeliveryStageRecord["state"]):DeliveryStageRecord=>({stage,jiraKey,state,taskId:stage+"-task",seatId:"seat-1",ownerUserId:"owner",dispatchId:"dispatch",runId:null,capabilityId:null,registryRevision:null,inputDigest:"a".repeat(64),receipt:null,receiptDigest:null,review:null,message:null});
 describe("entry stage delivery overview",()=>{
+ it("shows Jira parents above delivery stages and links child rows back to their parent",()=>{
+  const node=mount({selectedStage:"design"});
+  const mains=node.querySelector('[aria-label="关联主工单"]')!;
+  const stages=node.querySelector('[aria-label="选择条目交付阶段"]')!;
+  expect(mains.compareDocumentPosition(stages)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const link=node.querySelector<HTMLAnchorElement>('tbody a[href^="#delivery-main-"]')!;
+  expect(link.textContent).toBe("主单：MAIN-1");
+  expect(node.querySelector('[id="'+link.getAttribute("href")!.slice(1)+'"]')?.textContent).toContain("MAIN-1 · 产品功能需求");
+ });
+ it("routes a design row to the instance plan without single-ticket intake",()=>{
+  const node=mount({selectedStage:"design"});
+  const link=node.querySelector<HTMLAnchorElement>('a[aria-label="打开工单交付计划 DESIGN-1"]');
+  expect(link?.textContent).toBe("交付计划");
+  const url=new URL(link!.href);expect(url.pathname).toBe("/delivery");
+  expect(Object.fromEntries(url.searchParams)).toEqual({projectId:"project-1",snapshotId:"snapshot-1",tab:"work"});
+  expect(node.textContent).toContain("查看计划不会启动执行");
+ });
+ it("does not offer intake for ended and review tickets",()=>{
+  const copy={...detail,snapshot:{...detail.snapshot,plan:{...detail.snapshot.plan,items:[item("ENDED-1","系统设计",{status:"已完成"}),item("REVIEW-1","设计评审"),item("DESIGN-1","系统设计")]}}};
+  const node=mount({detail:copy,selectedStage:"design"});
+  expect(node.querySelector('a[href^="/jira-intake?"]')).toBeNull();
+  expect(node.textContent).toContain("查看来源历史");
+  expect(node.textContent).not.toContain("此类型暂不支持接入执行");
+  expect(node.textContent).toContain("交付计划");
+ });
+ it.each(["task","workflow"])("keeps the original %s link instead of offering duplicate intake",(kind)=>{
+  const workflow=kind==="workflow"?{stages:[record("design","DESIGN-1","running")]} as DeliveryWorkflow:undefined;
+  const copy=kind==="task"?{...detail,tasks:[...detail.tasks,{...detail.tasks[0],id:"design-task",jiraKey:"DESIGN-1",status:"cancelled"}]}:detail;
+  const node=mount({detail:copy,workflow,selectedStage:"design"});
+  expect(node.querySelector('a[href^="/jira-intake?"]')).toBeNull();
+  expect(node.querySelector('a[href="/issues/design-task"]')).not.toBeNull();
+ });
+ it.each([false,true])("respects coding admission before offering row intake (ready=%s)",(ready)=>{
+  const copy={...detail,tasks:[],admission:{...detail.admission!,ready},snapshot:{...detail.snapshot,plan:{...detail.snapshot.plan,items:[item("CODE-READY","前端编码")]}}};
+  const node=mount({detail:copy,selectedStage:"coding"});
+  expect(node.querySelector('a[aria-label="打开工单交付计划 CODE-READY"]')).not.toBeNull();
+  expect(node.querySelector('a[href^="/jira-intake?"]')).toBeNull();
+ });
  it("uses Qingzhou source analysis independently of local tasks and never infers approval from development",()=>{
   const plan=detail.snapshot.plan;
   const stages=[{role:"需求分析人员",status:"已处理"},{role:"需求评审人员",status:"已处理"}];
@@ -31,16 +88,16 @@ describe("entry stage delivery overview",()=>{
   const copy={...detail,analyses:[],snapshot:{...detail.snapshot,plan:{...detail.snapshot.plan,roles:[{label:"需求分析",name:"张三"},{label:"需求评审",name:"李四"}],sourceAnalysis:{sourceStatus:"待开发",analysisSaved:true,reviewStages:[{role:"需求分析人员",status:"已处理"},{role:"需求评审人员",status:"已处理"}]}}}};
   const stage=deliveryEntryStageRows(copy)[0];expect(stage.statusTone).toBe("succeeded");expect(stage.analyses).toHaveLength(0);
   expect(sourceAnalysisRoleName(copy.snapshot.plan,"需求分析人员")).toBe("张三");expect(sourceAnalysisRoleName(copy.snapshot.plan,"需求评审人员")).toBe("李四");
-  const node=mount({detail:copy});expect(node.textContent).toContain("需求分析人员（张三） · 已处理");expect(node.textContent).toContain("需求评审人员（李四） · 已处理");expect(node.textContent).toContain("完成依据：轻舟分析与评审记录");
+  const node=mount({detail:copy,selectedStage:"analysis"});expect(node.textContent).toContain("需求分析人员（张三） · 已处理");expect(node.textContent).toContain("需求评审人员（李四） · 已处理");expect(node.textContent).toContain("完成依据：轻舟分析与评审记录");
  });
  it("shows old source snapshots as unknown while preserving local execution",()=>{
-  const node=mount();const card=node.querySelector('[aria-label="选择条目交付阶段"] button');
+  const node=mount({selectedStage:"analysis"});const card=node.querySelector('[aria-label="选择条目交付阶段"] button');
   expect(card?.textContent).toContain("待核对");expect(card?.textContent).toContain("平台分析：待处理／核验");
   expect(node.textContent).toContain("请重新同步来源");
  });
  it("shows source review facts with no Jira analysis subtask or local analysis",()=>{
   const copy={...detail,analyses:[],snapshot:{...detail.snapshot,plan:{...detail.snapshot.plan,sourceAnalysis:{sourceStatus:"待开发",analysisSaved:true,reviewStages:[{role:"需求负责人",status:"通过"}]}}}};
-  const node=mount({detail:copy});const card=node.querySelector('[aria-label="选择条目交付阶段"] button');
+  const node=mount({detail:copy,selectedStage:"analysis"});const card=node.querySelector('[aria-label="选择条目交付阶段"] button');
   expect(card?.textContent).toContain("评审记录：通过");expect(card?.textContent).toContain("完成依据：轻舟分析与评审记录");
   expect(card?.textContent).not.toContain("待安排");expect(card?.textContent).not.toContain("核验交付 0");
   expect(node.querySelector('[aria-label="轻舟需求分析与评审"]')?.textContent).toContain("需求负责人（未提供负责人） · 通过");
@@ -144,7 +201,7 @@ describe("entry stage delivery overview",()=>{
   const testing=deliveryEntryStageRows(detail,workflow)[3];expect(testing.rows).toHaveLength(4);expect(testing.verified).toBe(1);expect(testing.attention).toBe(1);expect(testing.statusLabel).toBe("待测试");expect(testing.executionLabel).toBe("待处理／核验");
  });
  it("switches stage content and exposes task / conversation links while preserving unknown children",()=>{
-  const node=mount();expect(node.textContent).toContain("新版分析 · 修订 2 · 最新");
+  const node=mount();expect(node.textContent).not.toContain("新版分析 · 修订 2 · 最新");
   const buttons=[...node.querySelectorAll<HTMLButtonElement>('[aria-label="选择条目交付阶段"] button')];flushSync(()=>buttons[2].click());
   expect(node.querySelector('[aria-label="所选条目阶段"]')?.textContent).toContain("REVIEW-1");expect(node.querySelector('[aria-label="所选条目阶段"]')?.textContent).not.toContain("QA-1");expect(node.querySelector('a[href="/issues/code-task"]')).not.toBeNull();expect(node.textContent).toContain("OTHER-1");
   flushSync(()=>buttons[3].click());expect(node.querySelectorAll("tbody tr")).toHaveLength(3);expect(node.querySelector('[aria-label="所选条目阶段"]')?.textContent).toContain("CASE-REVIEW-1");

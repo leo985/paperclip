@@ -67,15 +67,10 @@ describe("management overview interactions", () => {
     state.manager = false; state.issues = [{ ...issue, assigneeAgentId: "other-seat" }];
     const node = await mount(); expect(node.querySelector("h1")?.textContent).toBe("我的工作台"); expect(node.querySelectorAll("article")).toHaveLength(0);
   });
-  it("merges task alerts in the inbox and filters without changing the task", async () => {
-    const node = await mount("/?scope=company&projectId=p1", true);
-    expect(node.querySelectorAll('[aria-label="工单待处理清单"] article')).toHaveLength(1);
-    expect(node.textContent?.match(/请核对当前输入/g)).toHaveLength(1);
-    expect(node.textContent).toContain("归档或已读不会解决工单");
-    const select = node.querySelector<HTMLSelectElement>('select[aria-label="待处理事项类型"]')!;
-    await act(async () => { select.value = "offline"; select.dispatchEvent(new Event("change", { bubbles: true })); });
-    expect(node.querySelectorAll('[aria-label="工单待处理清单"] article')).toHaveLength(0);
+  it("redirects the old inbox into the workbench without changing the task or project", async () => {
+    const node = await mount("/inbox?scope=company&projectId=p1", true);
     expect(issue.status).toBe("in_progress");
     expect(node.querySelector("output")?.textContent).toContain("projectId=p1");
+    expect(node.querySelector("output")?.textContent).toContain("tab=organization");
   });
 });

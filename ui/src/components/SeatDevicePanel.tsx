@@ -20,7 +20,7 @@ export function SeatDevicePanel({ companyId, seat, busy, active, onCheck, onRefr
       <div className="space-y-1 rounded-md bg-muted p-3"><p className="text-xs text-muted-foreground">登录后自动上线</p><p className="text-sm font-medium">{!autostart ? "尚未核验" : autostart.status === "pass" ? "检查通过" : "需要检查"}</p></div>
       <div className="space-y-1 rounded-md bg-muted p-3"><p className="text-xs text-muted-foreground">最近设备检查</p><p className="text-sm font-medium">{checks.length ? `${passed.length} 项通过 · ${concerns.length} 项需查看` : "尚无检查结果"}</p></div>
     </div>
-    <SeatClientUpgrade companyId={companyId} seat={seat} />
+    <SeatClientUpgrade companyId={companyId} seat={seat} active={active} />
     <SeatClaudeLaunchSettings companyId={companyId} seat={seat} />
     <HarnessCapabilities companyId={companyId} agentId={seat.agentId} canConfigure={seat.canConfigure} active={active} defaultRoot={seat.runtime?.harnessRoot} runtime={seat.runtime} />
     <details className="rounded-md border border-border p-3 text-sm"><summary className="cursor-pointer font-medium">Claude 与设备运行配置 · {seat.runtime?.claudeVersion ?? "待登记"}</summary><div className="mt-3 space-y-3"><dl className="grid gap-3 break-all md:grid-cols-2">

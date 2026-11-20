@@ -1,3 +1,4 @@
+import { TaskCollections } from "@/components/TaskCollections";
 import { IssueManagement } from "../components/IssueManagement";
 import { uiText } from "@/i18n/interface";
 import { useEffect, useMemo, useCallback, useRef, useState } from "react";
@@ -257,5 +258,6 @@ function LegacyIssuesPage() {
 
 export function Issues() {
   const { enabled } = useStreamlinedUiEnabled();
-  return enabled ? <IssueManagement /> : <LegacyIssuesPage />;
+  const [params] = useSearchParams();
+  return <TaskCollections>{enabled || !!params.get("taskType") ? <IssueManagement /> : <LegacyIssuesPage />}</TaskCollections>;
 }

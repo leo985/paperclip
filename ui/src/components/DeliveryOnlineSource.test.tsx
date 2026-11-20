@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DeliveryOnlineSource } from "./DeliveryOnlineSource";
 function render(configured: boolean, seats: unknown[] = []) {
   const cache = new QueryClient();
-  cache.setQueryData(["delivery-connection", "company", "project"], configured ? { id: "source", revision: 1, jiraAgentId: null, jiraBaseUrl:"http://jira.fingard.com:6001", jiraCredentialsConfigured:true,jiraConnectionMode:"project", organizationId: "123", credentialsConfigured: true, lastCheckStatus: "authentication_required" } : null);
+  cache.setQueryData(["delivery-connection", "company", "project"], configured ? { id: "source", revision: 1, jiraAgentId: null, jiraBaseUrl:"http://jira.fingard.com:6001", jiraCredentialsConfigured:true,jiraConnectionMode:"project", organizationId: "123", credentialsConfigured: true, qingzhouUsername: "test-user", lastCheckStatus: "authentication_required" } : null);
   cache.setQueryData(["delivery-source-agents", "company"], seats);
   return renderToStaticMarkup(<QueryClientProvider client={cache}><DeliveryOnlineSource companyId="company" projectId="project" onPlan={() => {}} /></QueryClientProvider>);
 }
@@ -15,5 +15,9 @@ describe("delivery online source UI", () => {
   it("explains retained encrypted credentials and uses project Jira credentials without a seat selector", () => {
     const html = render(true, [{ id: "seat", name: "当前项目席位", adapterConfig: { dsp7Seat: {}, dsp7JiraDispatch: { projectId: "project" } } }, { id: "other", name: "其他项目席位", adapterConfig: { dsp7Seat: {}, dsp7JiraDispatch: { projectId: "other" } } }]);
     expect(html).toContain("已保存加密凭据");expect(html).toContain("需要核对账号凭据");expect(html).not.toContain("当前项目席位");expect(html).not.toContain("其他项目席位");expect(html).toContain('type="password"');
+    expect(html).toContain('placeholder="test-user"');
+    expect(html).toContain('placeholder="***"');
+    expect(html).not.toContain('value="***"');
+    expect(render(false)).not.toContain('placeholder="***"');
   });
 });

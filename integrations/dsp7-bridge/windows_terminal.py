@@ -137,6 +137,8 @@ def attach(run_id):
                 elif 0xD800<=ord(char)<=0xDBFF:
                     pair=char+msvcrt.getwch();char=pair.encode('utf-16','surrogatepass').decode('utf-16')
                 if char:send({'op':'input','data':base64.b64encode(char.encode('utf-8')).decode()})
+    except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):
+        pass
     finally:
         try:
             sys.stdout.write(CLEANUP.decode('ascii'));sys.stdout.flush()

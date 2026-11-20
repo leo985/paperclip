@@ -80,12 +80,18 @@ def flush_exit_receipts(b):
     root = Path(b.cfg['database']).parent / 'outbound'
     # Immutable checkpoints precede final settlement. Bounded retries never
     # overwrite or delete a newer observation while an older upload is pending.
-    files = sorted(root.glob('*/usage-checkpoints/*.json'))[:40] + sorted(root.glob('*/usage-receipt.json'))[:20] + sorted(root.glob('*/exit-receipt.json'))[:20]
+    files = sorted(root.glob('*/startup-failure.json'))[:20] + sorted(root.glob('*/usage-checkpoints/*.json'))[:40] + sorted(root.glob('*/usage-receipt.json'))[:20] + sorted(root.glob('*/exit-receipt.json'))[:20]
     for file in files:
         if time.monotonic()>=deadline:break
         try:
             receipt = read_json(file)
             run_id = str(uuid.UUID(receipt['runId']))
+            if file.name == 'startup-failure.json':
+                body = {**identity(b), 'lease': receipt['lease'], 'sequence': 1, 'result': receipt['result']}
+                if receipt.get('permitProtocol') == 1: body['permitProtocol'] = 1
+                response = seat_api(b).request('POST', '/agents/' + b.cfg['agent_id'] + '/dsp7-outbound-runs/' + run_id, body, timeout=max(.1,min(5,deadline-time.monotonic())))
+                if isinstance(response,dict) and response.get('alive') is True and response.get('sequence') == 1: file.unlink()
+                continue
             checkpoint = file.parent.name == 'usage-checkpoints'
             usage = checkpoint or file.name == 'usage-receipt.json'
             body = {**identity(b), 'lease': receipt['lease']}
@@ -114,6 +120,29 @@ def poll(b):
     log.close();worker.stdin.write(json.dumps(packet,ensure_ascii=False).encode());worker.stdin.close()
     b.event('_seat','outbound_worker_started',{'run_id':packet['runId'],'pid':worker.pid})
 
+def record_startup_failure(packet, folder, error):
+    # Only preflight failures before any heartbeat or spawn have an unambiguous
+    # first receipt. Never reuse sequence 1 after a possibly delivered request.
+    if (folder/'launch-attempt.json').exists() or packet.get('_receipt_attempted'):
+        return
+    # Exception text can include local input or API responses. Only these fixed
+    # diagnostics are allowed into the server-bound receipt; traceback stays local.
+    known = {
+        'Harness 仓库、profile、文件或版本已变化，请空闲时重新登记',
+        'Harness 路由版本已变化，请重新核验授权',
+        '分析 Harness 文件或版本已变化，请重新登记能力',
+        '本机 Claude 版本、配置或 Harness 路径已变化，请运行 harness seat register 刷新',
+        '席位正在升级，未启动任务',
+        '本机已暂停新运行，请执行 harness online 恢复',
+    }
+    detail = str(error) if isinstance(error, BridgeError) and str(error) in known else '请查看本机 worker.log 中的具体原因'
+    receipt = {'runId': packet['runId'], 'lease': packet['lease'],
+               'result': {'exitCode': 1, 'signal': None, 'timedOut': False,
+                          'errorMessage': '本机启动校验失败，未启动 Claude：' + detail}}
+    if packet.get('permit'): receipt['permitProtocol'] = 1
+    atomic_json(folder/'startup-failure.json', receipt)
+
+
 def run(config_path):
     own_process_job()
     packet=json.loads(sys.stdin.buffer.read(10*1024*1024+1));b=Bridge(config_path)
@@ -121,14 +150,16 @@ def run(config_path):
     folder=Path(b.cfg['database']).parent/'outbound'/run_id
     try:
         _run(b,packet,config_path)
-    except BaseException:
+    except BaseException as error:
         # Setup/version failures occur before the launch try/finally. They also
         # need a durable no-start receipt, but never fabricate one after spawn.
+        if isinstance(error, Exception):
+            record_startup_failure(packet, folder, error)
         if packet.get('permit') and not (folder/'launch-attempt.json').exists():
             from process_tree import ProcessTree
             tree=ProcessTree(run_id);tree.attach(None)
             atomic_json(folder/'exit-receipt.json',{'runId':run_id,'lease':packet['lease'],'treeProof':tree.proof()})
-            flush_exit_receipts(b)
+        flush_exit_receipts(b)
         raise
 
 
@@ -195,6 +226,7 @@ def _run(b,packet,config_path):
         if chunk:body.update(stream=stream,chunk=chunk)
         if result:body['result']=result
         request_started=time.monotonic()
+        packet['_receipt_attempted']=True
         response=api.request('POST',endpoint,body)
         if not response.get('alive'):raise BridgeError('服务端运行或租约已结束，停止本机对应进程')
         if guard: guard.renew(response.get('permit'),request_started)
@@ -271,4 +303,7 @@ if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('action',choices=['run']);parser.add_argument('--config',type=Path,default=DEFAULT_CONFIG);args=parser.parse_args()
     try:run(args.config)
-    except (BridgeError,OSError,ValueError,KeyboardInterrupt):print('本机执行监督器已停止；请核对运行状态与本机报告，不自动重试。',file=sys.stderr);sys.exit(2)
+    except (BridgeError,OSError,ValueError,KeyboardInterrupt):
+        import traceback
+        traceback.print_exc()
+        print('本机执行监督器已停止；请核对运行状态与本机报告，不自动重试。',file=sys.stderr);sys.exit(2)

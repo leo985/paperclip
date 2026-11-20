@@ -11,7 +11,7 @@ Source inputs: `GOAL.md`, `PRODUCT.md`, `SPEC.md`, `DATABASE.md`, current monore
 This document is the concrete, build-ready V1 contract.
 When there is a conflict, `SPEC-implementation.md` controls V1 behavior.
 
-Seat service recovery: `harness service install` installs a per-seat, current-user timer on macOS, Windows and Linux, alongside the login service. Every 60 seconds it checks the local watcher lock and the timestamp recorded after a successful seat heartbeat. A stopped watcher or heartbeat at least 90 seconds old may invoke the existing `harness online` for that exact configuration; all attempts are spaced at least 300 seconds apart. Startup gets a 90-second grace period. Explicit offline intent and upgrade markers/locks suppress recovery, including offline intent arriving during recovery. Recovery must not force-restart processes, clear execution protection, alter dispatch/approval policy or claim that a stale heartbeat proves a task stopped. Repeated installs reuse matching timers and reject conflicting identity/path/schedule. Timers and their local status/action logs are isolated by seat configuration, contain no credentials, survive bridge replacement and use the current configured bridge after rollback. Sleep, shutdown, logout and network outages are outside the online guarantee.
+Seat service recovery: `harness service install` installs a per-seat, current-user timer on macOS, Windows and Linux, alongside the login service. Every 60 seconds it checks the local watcher lock and the timestamp recorded after a successful seat heartbeat. A stopped watcher or heartbeat at least 90 seconds old may invoke the existing `harness online` for that exact configuration; all attempts are spaced at least 300 seconds apart. Startup gets a 90-second grace period. Explicit offline intent and upgrade markers/locks suppress recovery, including offline intent arriving during recovery. Recovery must not force-restart processes, clear execution protection, alter dispatch/approval policy or claim that a stale heartbeat proves a task stopped. Repeated installs reuse matching timers and reject conflicting identity/path/schedule. Timers and their local status/action logs are isolated by seat configuration, contain no credentials, survive bridge replacement and use the current configured bridge after rollback. Sleep, shutdown, logout and network outages are outside the online guarantee. A supported watcher with stale heartbeats may consume a seat-bound recovery request at a loop boundary and exit cooperatively for its existing service supervisor to restart, only after obtaining upgrade/operator/delivery locks and positively verifying both server and local idle state, no pending commands or live wrappers, and no offline/upgrade intent. Unknown idle state preserves the process. Restarts are spaced at least 300 seconds apart and limited to three per hour. Credential-free diagnostics retain the failing stage, error type, HTTP status and consecutive failure count; doctor displays heartbeat age and recovery status. An unresponsive watcher is never force-killed.
 
 Administrator-controlled client upgrades: publishing a package never authorizes an upgrade. A company/instance administrator explicitly targets one seat and the current published SHA-256 through the board. Durable, audited requests expire after 24 hours and can be cancelled before claim. An independently scheduled, seat-authenticated client claims only an authorized request, pins the installer digest, and retains local/server idle and execution-lock gates. Busy/offline seats wait; failed or unknown attempts are not blindly replayed. Successful installation remains verifying until a fresh target-version heartbeat arrives. Unsupported clients require one initial local upgrade. Publication manifests always disable legacy automatic-update policies.
 
@@ -1739,7 +1739,7 @@ Jira 主需求作为交付协调容器，负责人取研发负责人字段；子
 
 项目准备区区分已保存配置与实际连接验证；席位接单准备缺项不授予逐单执行权限。执行记录用工单、席位、负责人和失败摘要提供上下文，仅搜索最近 50 次运行，关联元数据未完整时明确提示。列表不读取受管会话正文。
 
-条目材料按阶段索引产物路径与指纹、正式来源引用及核验入口。阶段回执必须匹配当前任务、运行、Jira 工单与输入版本，设计和测试用例还需匹配当前回执版本的正式评审；分析材料按独立修订按需读取。阶段交付与正式验收分别展示。费用、会话缺口与未分类任务保留数据质量说明，不以未知计零，不虚构延期率或人员绩效归因。
+条目材料按 Jira 主工单分组，在各自子工单下展示产物路径、指纹、正式材料链接和评审／测试结论。经核对的历史 Jira「结果描述」单独列为结论证据。阶段回执必须匹配当前任务、运行、Jira 工单与输入版本，设计和测试用例还需匹配当前回执版本的正式评审；分析材料按独立修订按需读取。阶段交付与正式验收分别展示。费用、会话缺口与未分类任务保留数据质量说明，不以未知计零，不虚构延期率或人员绩效归因。
 
 ### Management coordination follow-up (2026-10-30)
 
@@ -1757,9 +1757,9 @@ Delivery task reports include observed phase timing segments, clipped to the rep
 
 功能测试回执新增可选兼容字段 `testResults`；新提交的功能测试回执必须提供该字段，其他阶段不得提供。字段绑定原生 `证据` 中的用例总数及通过／失败／阻塞／跳过数、明确的 `环境信息.被测版本`、`execution-records.md` 的路径与 SHA-256。Bridge 对账逐条记录与原生计数，拒绝未知结果、重复用例、记录版本变化和计数缺失；服务端校验汇总与回执产物指纹。流程只有全部用例通过才自动进入待验收；失败、阻塞、跳过或旧回执缺少结果均转阻塞，保留报告及未完成任务，不自动重跑有副作用的测试，也不将报告完成等同测试通过。带缺陷上线及豁免不由此自动批准。
 
-确认的功能测试失败可由组织管理员针对当前失败回执指纹配置一轮修复链，显式指定已有缺陷、独立评审、重测三个真实工单及其席位。修复和评审必须使用不同席位；接口不在 Jira 创建或改派工单，也不替代原生的真实工单类型、父单和状态门禁。每轮依次运行原生 bugfix、code-review、execution，使用新的平台任务、派发和独立 CLI 会话，经过原有预算、公司权限、席位独占及进程树退出校验。修复需要本机重新登记 `bug-fix` 能力；安装包更新不等于设备已升级或能力已登记。
+功能测试失败按项目策略复用原编码、原代码评审和原功能测试工单返工。保留原任务、原生工作流和执行席位；每轮仅生成新派发和运行、归档旧证据，经预算、权限、真实 Jira 身份及进程退出核验后继续。原编码按 coding/feature 工作流修改，原代码评审及功能测试按原流程复审/回归，不切换为新的 bugfix、修复或重测工单身份。
 
-每个修复环节输入绑定原失败回执及上游交付指纹。独立评审必须有原生 `评审结果=passed`、`交付状态=completed`、真实 Jira 完成核验、非空被审版本及已索引评审报告；其回执绑定被审版本指纹和报告指纹，修复席位不能代交评审回执。重测仍须逐条对账及全部通过，之后才进入待正式验收。失败证据和原平台任务保留，可从修复历史访问；每次失败后需重新明确授权，最多三轮，不无限生成修复任务。缺环境、记录不完整、跳过或缺少失败证据不自动转成产品缺陷。已有原生 completed 历史不能直接改标签重跑；须按原生流程核对和恢复，不手改原生状态跳阶段。
+每个修复环节输入绑定原失败回执及上游交付指纹。独立评审必须有原生 `评审结果=passed`、`交付状态=completed`、真实 Jira 完成核验、非空被审版本及已索引评审报告；其回执绑定被审版本指纹和报告指纹，修复席位不能代交评审回执。重测仍须逐条对账及全部通过，之后才进入待正式验收。失败证据和原平台任务保留，可从修复历史访问；根据实例已固定的返工授权自动或人工办理，最多三轮，不新建执行任务。缺环境、记录不完整、跳过或缺少失败证据不自动转成产品缺陷。已有原生 completed 历史不能直接改标签重跑；须按原生流程核对和恢复，不手改原生状态跳阶段。
 
 
 ## Harness 管理执行仓库（2026-11-03）
@@ -1844,3 +1844,135 @@ Agent 节点仍要求对应领域原生能力、租约、进程停止和正式�
 月度排期在风险筛选上方提供全部进度、已完成、进行中、未开始与待确认，依据轻舟条目的 sourceStatus 精确映射，不使用日期、工单数或平台执行状态推断。显式完成、发布、上线、验收状态归为已完成；待需求分析等初始状态归为未开始；分析、评审、研发及后续等待、打回、挂起状态归为进行中；作废、关闭、缺失及未识别状态归为待确认。各组互斥且覆盖完整列表，来源完成不代表平台正式交付核验通过。进度计数应用其他明细筛选，但忽略风险选择；风险计数应用当前进度。所有筛选在分页前执行，URL 保留 mProgress，清除筛选一并移除。
 
 线上轻舟条目状态使用“全部交付”“部分交付”“待开发”时，分别归入已完成、进行中、进行中。排期接口缺失状态时，复用按需求编号的精确查询补齐 demandState_show，去重并与责任人补查合并；来源明确为空的需求拆分人员不因补状态而被替换。
+
+月度排期支持独立的“条目分析负责人”搜索筛选，取轻舟 `requirementer_show`，与来源负责人 `splitter_show` 分开；缺失值可单独筛选，不以拆分人员或经办人兜底。排期省略该字段时复用按条目编号的精确查询，与负责人、状态补查合并去重；明确为空时保留空值，读取失败报错。条件在整月数据上组合后分页，URL 参数 `mAnalysisOwner` 随详情往返及刷新保留，清除筛选或切换项目时移除。
+
+### 分析正文自动回写轻舟（2026-11-10）
+
+关联已纳管轻舟条目的分析完成 P0–P4 及当前版本真人质量评审后，接入桥上传与冻结文件指纹一致的 `analysis.md` 正文；平台使用同组织中执行席位独立配置的轻舟账号，按轻舟 multipart 分析保存协议自动更新正文，回读一致才登记成功。席位负责人或管理员可在接单设置保存、更换、检查登录或移除账号；密码通过加密凭据库保存，接口不回显，凭据不下发席位或模型。未配置或凭据失效时保留本地交付并提示修复后重试，不借用项目来源账号。项目来源凭据继续用于项目同步。其余原始材料留在本机，正文上限 120 KB。保存保留已有业务字段，缺失共性/工时/日期有界面明确的可修改默认值；轻舟仍按自身规则校验分析负责人并可能重新分配评审人。未绑定条目的独立分析不触发上传或回写。
+
+回写状态与本地交付、正式发布分别保存；失败保留成果，可由管理员重试。重试先回读，已一致不重复写入；上次失败后来源正文变化、旧修订、未确认项目归属及已结束条目不自动覆盖。正文回读一致后，使用轻舟保存后返回的评审人调用申请评审，并再次核验正文、评审人与“分析完成待评审”状态；保存成功和提交成功分别记录，失败可从未完成步骤重试。申请评审不代替轻舟业务审签，不自动放行交付链。具体协议与发布要求见 [分析自动回写](plans/2026-11-10-analysis-qingzhou-writeback.md)。
+
+
+### 按条目编号精确查询（2026-11-11）
+
+需求条目页在月度排期和已纳管列表提供按完整条目编号精确查询。选择项目后，组织管理员使用该项目保存的轻舟凭据直接读取基本信息，不受排期月份、列表筛选或是否已纳管限制；来源可见范围由该账号权限决定。返回编号、名称、来源状态、拆分人员、条目分析负责人和当前组织各未归档项目中同来源的最新已保存版本入口，不返回原始报文或凭据。查询不保存快照或派单。结果可直接进入已保存的条目详情；本组织没有已保存版本时，用户可按查询月份手动同步并打开详情，也可以补录其他排期月份。来源配置或凭据在查询期间变化时拒绝旧结果。
+
+需求条目详情的「工单与执行」按主工单分组，在对应子工单行内显示交付材料、正式结论及核验状态。条目级需求分析材料和正式验收记录在同一视图内单独展示。旧的「交付物与核验」链接继续打开该视图。 在线 Jira 快照中的已完成评审单可查看 Jira「结果描述」原文及来源链接，平台核验状态独立显示。
+
+
+### 月度排期与期望交付分类（2026-11-11）
+
+月度列表支持合并“本组织已排期”和“本月期望交付”两类条目，并按完整编号去重；条目可同时属于两类。组织来源配置新增可选 `subProductAttribution`（轻舟子产品归属代码，例如 DSP）：配置后，按该产品期望交付月份跨研发、测试组织补齐条目，并核对本组织排期条目的产品归属；留空保留原单组织排期模式。分类筛选在分页前生效，与其他筛选组合，URL 保留 `mScope`；清除筛选和切换项目会清除分类。整月同步重新读取合并清单，不受分类筛选限制。单条同步核对产品归属，读取配置组织及条目实际研发、测试、拆分组织的排期，允许尚未排期条目保存完整来源/Jira 版本。期望交付月份不等于实际交付完成，未读取工单数显示待核对，不能当作零工单。
+
+项目来源配置接口仅向组织管理员返回已保存的轻舟登录账号 `qingzhouUsername`。密码保存在加密凭据库，界面根据 `credentialsConfigured` 在密码框显示 `***`。
+
+定时整月同步由组织管理员经 `GET / PUT /companies/:companyId/delivery-connections/monthly-schedule` 按项目配置，默认关闭。每日按北京时间调度，运行时按北京时间确定当月，重读完整月度清单，逐条复用普通来源快照同步。调度器持久化下次运行时间和最近一次结果，服务器恢复后处理逾期的待运行计划。执行中断时保留已提交快照及最近进度，等待下次日程。定时同步仅保存来源快照，配置的修改和快照写入均记入活动日志。
+
+### 统一任务详情（2026-11-11）
+
+`/issues/:issueId` 默认使用统一任务详情；分析详情通过公司范围的只读 `analysis-executions/by-task/:executionId` 识别，只有明确不存在分析记录才返回 null 并使用通用工单展示。分析记录继续限负责人或组织管理员；拒绝或查询失败不得作为不存在处理。查询不派单、不写状态、不改变审批或预算。原分析详情端点与新入口共用读取／权限规则，响应使用 `AnalysisTaskDetail` 合同。
+
+公共分区为概况、待处理与执行操作、进度与门禁、交付成果、会话与执行记录。分析专属的决策、修订、原生快照、回写、发布保留；研发／测试保留原派单、恢复、撤销与受管会话，阶段观察不代表门禁通过。`detailView=collaboration` 保留完整原任务界面，旧深链接保留目标。旧分析链接进入同一任务并保留返回条件。分析流程协议仍为当前 P0–P4，本次不宣称可自动适配任意原生流程。逐项验收对照见 [统一任务详情](plans/2026-11-11-unified-task-detail.md)。
+
+### 任务入口归并（2026-11-12）
+
+侧栏仅保留“任务”入口。任务页复用 AI 交付链的 `DELIVERY_STAGES` 和 `DELIVERY_STAGE_LABELS`，提供全部任务、需求分析、研发设计、编码与代码评审、测试用例、功能测试及其他任务筛选；环节、项目和任务状态条件可以组合，切换环节保留其他筛选。所有环节使用同一任务列表及统一详情。新建分析／新修订保留原表单与接口；其他交付环节通过需求条目安排任务，不绕过交付链准入。
+
+Compact 任务响应新增可选 `deliveryStages`，服务端仅为当前用户可见任务按组织范围查询分析记录与交付链阶段关联；不根据标题猜测，也不把席位能力或运行阶段当作业务环节。评审任务归入对应环节，修复／重测使用其真实阶段，重复关联去重。明确无关联的任务才归入其他任务；缺少投影或读取失败必须显示异常。无数据库迁移、权限扩大或客户端协议变更。旧 `/analysis-executions` 链接和 `taskType=analysis` 保持兼容，保留项目、来源、任务和修订上下文。
+
+### AI task visibility (2026-11-12)
+
+The AI任务 collection defaults organization owners/admins and instance administrators to organization scope, with an optional personal view. Other human members are restricted to tasks assigned to themselves or their currently owned registered DSP7 seats. Members without a seat retain directly assigned tasks. This boundary applies before task pagination and search aggregation, and also to task detail access and analysis-task legacy endpoints; URL filters cannot widen it. Existing company boundaries and agent authorization continue to apply.
+
+### Unified workbench and task actions (2026-11-13)
+
+`/dashboard` is the unified 工作台. Default view is personal pending actions, with personal task progress, manager-only organization overview, notification/history, and secondary organization diagnostics. Old `/inbox` collection routes redirect while retaining project, scope, filters and historical notification context. AI任务 remains the lifecycle collection and unified task-detail entry point. Scope preferences are shared per user/company and clamped to personal for non-managers.
+
+`GET /companies/:companyId/analysis-executions/pending-actions` returns compact current-run open question/review metadata, excluding report bodies, delivered/finished tasks, and replaced or non-running runs. Company access and existing personal-task authorization apply before returning rows. Task/run/question-key identity deduplicates versions. Existing attention sources support `includeArchived=true` in addition to `includeDismissed=true` so archived notifications cannot hide still-active business actions from the workbench; feed defaults and underlying retention remain unchanged.
+
+Personal actions follow explicit analysis ownership, named interaction recipients, direct assignment and currently owned seats. Unassigned organization actions appear only in organization scope. Offline active tasks aggregate by device; absent execution evidence is a watch item. Partial reads are labeled and never presented as a confirmed empty list. Action counts and task counts are distinct. All resolutions retain existing detail pages, authorization, version checks and audit paths. No database migration or client upgrade is required.
+
+### 受管会话输入来源（2026-11-12）
+
+会话记录区分 Harness 注入、手动输入和来源未记录。原生 user 角色不代表人工输入：启动器对实际生成的首条提示词登记哈希，采集器优先核对该摘要及技能 isMeta/sourceToolUseID 标记，再使用原生 human/typed 来源。清单可选 inputSource=harness/manual/unknown，保存在原有私有会话 JSON 中，不进入 Telemetry 或 run log；旧客户端仍可上传不带该字段的清单。历史技能包装及已知分析启动包装可由页面识别，其他历史输入不得猜测为人工。
+
+AskUserQuestion 的题目、候选项和实际 answers 保留脱敏记录及 toolCallId 关联，答复标为“手动输入 · 选项答复”；“仅人机问答”也包含该工具的问题与答复。旧记录只在原生明确返回已答复标记时认定为手动答复。未采集、未完成或纯终端权限选择不得编造结果。来源标识仅供查看，不授予执行或审批权限。新增来源字段需先发布服务端解析与页面，再更新席位采集客户端。
+
+### 月度交付读取性能（2026-11-13）
+
+月度读取并行获取期望交付与组织排期树；需求补查保留有界并发。来源结果按公司、项目、连接修订、凭据版本、组织、产品及月份隔离，最多缓存 30 秒、32 份且序列化内容合计不超过 8 MiB。认证会话最多 32 个、存活不超过 10 分钟；来源读取最多同时执行 4 个、排队 12 个，相同进行中查询共享来源读取。失败不缓存，已发出的读取收尾后才释放并发额度。
+
+`POST /api/companies/:companyId/delivery-connections/monthly` 支持可选 `forceRefresh: true`。网页“刷新条目”绕过结果缓存及之前的进行中读取，旧请求不得覆盖刷新结果。缓存保留真实 `collectedAt`，每次请求独立核验访问权限、项目及凭据版本，并重新加载本地快照、分析、工作流和准入事实；缓存不授予执行权限。`Server-Timing` 返回各读取阶段及准入计算耗时和来源缓存命中标记，不包含凭据或业务正文。
+
+
+### 交付实例中途介入（2026-11-16）
+
+评审配置入口优先显示当前评审及被审工作；同主工单且对应类型唯一时自动关联，多个候选由管理员选择。其他阶段配置与派单说明折叠展示，校验发现折叠区域有必填项时自动展开。此入口仍启动完整交付链，页面与按钮明确说明范围，不跳过其他阶段准入。
+
+一键交付配置中，所选 Jira 子工单已完成时默认复用已有交付，无需重复勾选；管理员可明确选择“重新执行”，恢复该节点执行配置；须先在 Jira 重开工单并刷新来源，已结束工单不能直接启动重跑。移除工单或停用阶段后不提交其已有交付记录。默认复用只减少配置操作，启动时仍核验最新来源状态、成果及前置节点；条目级分析仍须手工确认，功能测试仍须填写全部通过的测试总数。
+
+项目模板保持标准流程。管理员启动单个条目时，可按工作单／评审单登记此前已完成的节点。Jira 子工单自动读取当前完成状态、附件和评论，并按附件内容指纹生成交付版本，无需手填三个链接字段；条目级分析仍手工提供交付版本、成果链接和正式完成依据；来源快照中的 Jira 子单须处于完成状态，取消／作废不算完成。条目级分析由管理员确认正式成果。已有节点的依赖也须登记完成；并行阶段允许部分工单已完成，其余继续执行。功能测试只允许登记全部通过的结果和测试总数。
+
+流程保留全部模板节点及其绑定关系。已有交付记录确认人、时间、来源快照，创建完成态任务但不创建席位运行或伪造设备回执；已有成果参与下游输入摘要并通过上下文交接。未完成节点仍遵守原有准入、席位、评审和最终验收规则。模板不变，其他条目不受影响。Jira 已有交付由项目连接只读回读，限定同源附件、禁止重定向，最多 20 个附件、单件 10 MiB、合计 50 MiB；读取期间来源变化则拒绝。工作单须有附件，评审单可用完整评论作为历史记录，不自动推定本次评审通过。后续席位下载附件至本次执行目录并校验指纹，Agent 从本地原件读取成果；不自动解压或执行附件内容。手工登记仍以管理员具名确认为依据；退回涉及已有交付时明确阻塞，须先在来源流程处理，不能自动重跑。
+
+
+### 席位研发能力首次登记与补登记（2026-11-16）
+
+席位接入并核验运行配置后，从用户已选择并登记的默认研发目录校验原生技能并登记研发能力。已有席位升级后在空闲心跳中补齐缺失的研发能力；只使用设备登记的原目录，服务端核对机器身份、执行环境、登记修订和活动运行。能力清单由本机文件校验产生，不根据目录名称推断；缺少技能、目录不一致、运行中或网络失败时保留明确提示并在空闲时重试。已登记的能力身份与角色变更仍需人工登记，分析及测试套件不自动发现。登记不授权执行。
+
+
+### 测试失败自动修复（2026-11-16）
+
+项目／组织交付模板可配置 `automaticRepair`：模块对应的原编码／原代码评审／原功能测试席位、构建回读地址和最多 1–3 轮。实例启动须确认复用原任务返工授权，固定策略版本、Jira 来源、席位账号与负责人。2026-11-19 按 DSP 现有工单约定收口：不再配置或使用额外缺陷、修复、评审、重测建单类型；旧字段仅兼容读取，不授予建单能力。
+
+Agent 功能测试提交 `delivery-failures.json` 正式附件，逐条对应失败用例，包含模块、问题类别、复现步骤、预期／实际结果。产品缺陷自动按模块派发；环境／用例问题、跨模块归属、未配置模块或轮数／预算上限会显示明确的人工待处理原因。当前一次测试报告须归属于一个模块；跨模块报告先人工拆分测试范围。
+
+调度器按缺陷模块定位同主工单下唯一的原编码任务及覆盖它的原代码评审任务，复用当前失败的原功能测试任务。保持 Jira 工单号、Paperclip 任务 ID、原生工作流、父单和席位不变；新增派发/运行和返工历史，不新增 Jira 单或 Paperclip 节点。无法唯一定位、原任务来源/负责人变化或旧进程未核验停止时转人工核对。功能测试的当前轮依赖原代码评审再次完成；未涉及的编码分支及用例任务保留。
+
+自动执行顺序为修复 → 独立代码评审 → 修复构建核验 → 重测。独立评审退回携带正式报告和修改说明，按原生返工协议返回修复席位，退回同样受轮数限制。所有原生门禁、租约、预算和进程停止核验继续生效。
+
+修复席位通过项目已有构建／部署流程交付新版本及 `delivery-build.json` 正式附件；平台不预设生产部署命令。QA 客户端只访问策略固定的构建回读接口，不转发 Jira 凭据，不跟随重定向。接口返回 `{ "version": "build-2", "environmentReference": "本实例测试环境引用" }`。修复版本须区别于失败版本，开始及完成重测时均回读一致，测试报告也须登记相同版本。缺少可自动执行的构建部署流程或回读接口时会停下请求处理，不推定已部署。
+
+所有测试通过后进入既有人工正式验收。启用前须更新并刷新登记支持 `delivery-reuse-repair-v1` 的席位客户端，使用原生返工协议重新办理原编码、代码评审和功能测试任务，保留历轮统计及正式证据。平台已封禁旧自动修复 Jira 建单入口；Jira 原单的附件、评论和必要状态流转仍按原生流程执行。本地模拟不替代真实席位联调。
+
+
+### 交付链自动启动计划（2026-11-17）
+
+启动交付链默认由服务端读取最新 Jira 子单，按项目已发布模板纳入全部对应工作单及评审单、生成依赖、按精确经办人账号与领域能力匹配席位，并核验已有交付。用户查看计划后一次授权启动；多主工单、评审关联歧义、测试环境/历史结果或席位缺失时仅补充实例例外。项目模板不因本次中途接入而变更。原人工启动、人工评审、预算停止及最终验收策略继续生效。
+
+自动计划将缺少附件和评论的历史独立评审，以及缺少报告或全部通过用例数的历史功能测试，登记为待核验节点。到达节点后由本次启动授权人核对同源 Jira 工单的正式结论。评审登记结论及核验说明，历史功能测试另登记正式报告、被测版本及可对账的全部通过数量。已核验的下游历史材料在前置完成后按启动授权的版本重新读取，再登记完成。身份、来源状态、附件完整性等读取异常仍按原规则阻塞。尚未完成的 Jira 测试采用模板规定的执行方式，测试报告和通过数随执行结果提交。
+
+管理员可勾选一个或多个已就绪主工单授权启动。其余主工单可待补齐后追加，或经单独确认排除出本次交付及验收范围。已启动的主工单继续纳入验收。只保存忽略范围时不创建或派发节点。范围选择绑定计划摘要及授权请求，变化写入活动记录。待补齐的主单仍影响验收，明确忽略的主单无需生成节点。
+
+管理员可在自动计划中按未启动主单选择忽略测试用例阶段。授权后为该主单固定跳过范围，将用例编写及评审子单排除出启动和验收范围，并重算功能测试的前置依赖。若用例阶段原为开始节点，其准入检查随计划中的开始节点继续生效。已启动分支的用例范围沿用原授权。
+
+计划节点返回实时 Jira 经办人显示名，缺少显示名时使用账号，两者均空时显示未分配。计划表在席位待匹配时展示该信息。
+
+交付计划图使用节点依赖及已确认的主工单前置关系布局。结束日期使用快照中的排期截止事实，区分子单、主单和条目期望来源，缺失时显示待定。横向位置表示依赖顺序。节点标记 Jira 进度，已有交付仍需核验时显示待核验。
+
+交付计划生成后保存其内容和生成选项。再次打开条目只读取已保存的计划，选择重新生成会替换旧计划。若来源快照或已授权的交付范围变化，页面仍显示保存的计划，并提示重新生成后再授权。启动接口重新计算并比对计划摘要，事务内核对来源、席位授权/Harness 登记与历史成果版本；任何变化要求重新查看计划。相同授权请求重试幂等，失败回滚，保留组织隔离及活动任务防重。详见 `doc/plans/2026-11-17-delivery-automatic-start.md`。
+
+### 交付链节点与个人待办闭环（2026-11-17）
+
+条目列表以交付链实例作为统一执行入口。工作台从实例投影当前可办理动作：人工交付、正式评审、Agent 成果核验、业务答复、启动确认及受治理的恢复/验收。未满足前置的节点只可查看；任务存在不等于允许执行。个人待办按实际操作人员过滤，组织待办需管理员权限；分析发布保留现有专用待办。任务页提供经公司及实例参与者授权的实例/节点关联，办理动作回到具体节点执行，并校验当前成果版本。普通任务状态、执行人更新及抢先领取不能绕过实例控制。详见 `doc/plans/2026-11-17-delivery-workflow-closure.md`。
+
+### 交付链快速演练与返工确认（2026-11-18）
+
+本地 `pnpm delivery:simulate` 使用隔离数据库及模拟外部执行验证真实编排接口，不将线上节点全局切为模拟。返工后的启动确认须等待当前输入摘要准备完成；确认与派发共享摘要生成规则。普通独立代码评审拒绝记录正式修改意见，按模板选择自动派回原研发任务/席位或暂停并人工发起返工；节点累计返工达到 3 轮后，自动代码评审转人工处理。详见 `doc/plans/2026-11-18-delivery-chain-simulation.md`。
+
+### 席位月度交付报表
+
+`GET /api/companies/:companyId/managed-seat-report/monthly-delivery?month=YYYY-MM` 返回组织内已同步的 Jira 子工单及可见席位。按轻舟项目排期与期望交付月确定条目归属，未保存归月证据的旧快照兼容原截止月筛选。截止日优先采用子工单自己的有效排期，其次取所属主工单排期或条目期望交付日。已经归月但无可靠截止日的子工单仍计入进度，单独提示数据缺口。完成以该子工单在最新 Jira 快照中的状态为准，取消、作废排除。未归属席位可由管理员查看。月报字段存于现有快照 JSON，旧快照可通过重新同步补齐，来源指纹与已有交付授权保持有效。
+
+「席位看板」使用独立的组织路由，旧席位月报链接跳转到新入口。接口返回可见席位的负责人标识、子工单类型和主工单编号，以及该子工单关联交付链节点的中断信号。月报归属合并该子工单的交付链执行席位、Jira 经办人及 Jira 研发负责人。后两者使用同 Jira 实例的席位账号配置或当前组织成员的有效目录账号，按员工消除同人多席位歧义。账号匹配不改变派单规则。研发负责人字段沿用 `PAPERCLIP_JIRA_REQUIREMENT_OWNER_FIELD`，在线重同步补齐该字段且不把它纳入交付准入的来源指纹。跨员工协作可进入各员工进度，组织汇总按项目和子工单编号去重。中断、到期和资料缺口可以重叠，风险队列按工单去重。
+
+### 条目级多主工单交付
+
+历史评审可复用已完成的 Jira 评审单中明确通过的「结果描述」。平台核对该字段的名称、工单身份和来源版本，并将结论纳入交付指纹。该字段有值但未明确通过时，节点等待人工核验。已完成的 Jira 人工功能测试也可用该字段的明确测试通过结论复用。缺少附件或用例计数时，平台保留原文和来源版本。Agent 功能测试仍走结构化执行回执及报告指纹核验。
+
+已启动的交付计划按实例节点展示最新执行状态。依赖图以灰色标记未开始、蓝色标记进行中、绿色标记已完成，阻塞或中断另行标记。进度随实例刷新更新，未绑定实例节点的计划项仍显示 Jira 来源状态。
+
+自动计划按主工单预览就绪、阻塞、执行中和已核验状态。启动接口接受本次授权的主单集合，事务中重新核验来源、固定模板、人员、已有证据和授权摘要；补启动及重复请求沿用同一实例。节点按主单分别编排，需求分析为共享节点。可为待启动的主单显式登记一个前置主单，前置正式核验后才允许授权，已授权关系随节点依赖固定。
+
+条目同步后的新增主单可单独启动。新增子工单可经管理员确认纳入已启动分支，并核验受影响节点的旧进程停止后重开交付和评审，保留原任务及旧证据。涉及已授权工单移除、改型或无法安全重开的历史交付时提示核对正式来源。分支内的暂停和测试失败不暂停无关主单。正式验收要求所有当前主单范围已授权、全部节点通过，提交须绑定当前范围和全部节点的交付版本摘要，并重新读取 Jira 子工单范围。可完整对应原主单的旧实例可接续，原验收记录在接续活动中保留。

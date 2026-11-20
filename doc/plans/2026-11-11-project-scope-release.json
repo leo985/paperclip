@@ -1,0 +1,46 @@
+{
+  "release": "20261111-project-scope",
+  "status": "deployed",
+  "timestamp": "2026-11-11T09:09:49.170492+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-fac68852.js",
+  "uiModule": "DeliveryEntries-dae346a2.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/project-scope-20261111/backup-20261111T090928Z",
+  "serverRestarted": false,
+  "service": "MainPID=280738\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/pages/DeliveryEntries.tsx": "1f3c65b63191bf244aa06d5b24f5829e470646f68e6b8243f7bad85d985fa662"
+  },
+  "verification": {
+    "pageTestsPassed": 5,
+    "uiTypecheckPassed": true,
+    "tokenGatesPassed": true,
+    "artifactPageRerenders": 8,
+    "redundantSingleProjectSelectorAbsent": true,
+    "staleCrossCompanyProjectParameterTestPassed": true,
+    "liveDspActiveProjectCount": 1,
+    "httpAssetHashVerified": true
+  }
+}

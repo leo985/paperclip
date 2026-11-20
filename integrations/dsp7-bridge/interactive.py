@@ -370,7 +370,16 @@ def wrapper(args):
             from analysis_execution import prompt as analysis_prompt
             prompt=analysis_prompt(analysis_context)
         else:prompt=task_prompt(pilot['jira_key'],clean_prompt(prompt,platform_dispatch=bool(d.get('platform_dispatch'))),context)
-        command=claude_argv(executable,[*cli_args,prompt+('' if managed else '\n\n本次为研发人员可见的交互会话。在领域操作前 inspect、claim；正式需求确认仍在 Jira。'+instruction+' 不要绕过领域门禁。')])
+        initial_prompt=prompt+('' if managed else '\n\n本次为研发人员可见的交互会话。在领域操作前 inspect、claim；正式需求确认仍在 Jira。'+instruction+' 不要绕过领域门禁。')
+        try:
+            from managed_sessions import Collector, sha
+            collector=Collector(b.cfg,run_id)
+            try:
+                with collector.db:collector.setmeta('injected_prompt_sha256',sha(initial_prompt))
+            finally:collector.db.close()
+        except Exception:
+            pass  # Missing provenance stays unknown; collection cannot block domain work.
+        command=claude_argv(executable,[*cli_args,initial_prompt])
         env=dict(os.environ)
         for name in ('TERM','TERM_PROGRAM','COLORTERM'):env.pop(name,None)
         env.update(terminal_env);env.setdefault('TERM','xterm-256color')
@@ -574,9 +583,21 @@ def attach(run_id):
                 data=os.read(sys.stdin.fileno(),65536)
                 if not data or b'\x1d' in data:break
                 send({'op':'input','data':base64.b64encode(data).decode()})
+    except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):
+        # Cancellation may close the broker between select() and input/resize.
+        # It is an ended connection, not a failed task or a reason to retry.
+        pass
     finally:
-        with contextlib.suppress(OSError):sys.stdout.buffer.write(CLEANUP);sys.stdout.buffer.flush()
-        termios.tcsetattr(sys.stdin.fileno(),termios.TCSADRAIN,old);signal.signal(signal.SIGWINCH,prev);s.close()
+        try:
+            with contextlib.suppress(OSError):
+                sys.stdout.buffer.write(CLEANUP);sys.stdout.buffer.flush()
+                termios.tcdrain(sys.stdout.fileno())
+        finally:
+            try:
+                # Drop mouse/capability replies queued while raw mode was active.
+                termios.tcsetattr(sys.stdin.fileno(),termios.TCSAFLUSH,old)
+            finally:
+                signal.signal(signal.SIGWINCH,prev);s.close()
         if viewer:
             with contextlib.suppress(OSError):viewer.unlink()
         print('\n终端连接已结束。查看 harness status 或运行报告确认结果。')

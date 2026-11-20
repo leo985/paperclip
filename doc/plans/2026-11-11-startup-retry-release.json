@@ -1,0 +1,108 @@
+{
+  "release": "20261111-startup-retry",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-11T07:03:14.848245+00:00",
+  "backup": "/home/fg/paperclip/private/startup-retry-20261111/backup-20261111T070117Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/startup-retry-20261111/backup-20261111T070117Z/pre-startup-retry-20261111-070117.sql.gz",
+    "sizeBytes": 8440949,
+    "sha256": "6b63932d4077925f955e45c201c8b4e662e028199fcdc7ac71d227fd971e0c68"
+  },
+  "migrations": [],
+  "filesVerified": 331,
+  "httpFilesVerified": 329,
+  "entry": "index-2b674df1.js",
+  "uiModules": {
+    "executionStatus": "Dsp7ExecutionStatus-42442498.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "forcedDeviceUpgrade": false,
+  "bridgeUnchanged": true,
+  "envUnchanged": true,
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/dsp7-seats/00000000-0000-4000-8000-000000000001/qingzhou-account",
+      "status": 403
+    }
+  ],
+  "activeBefore": [],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-11T07:02:10.589Z",
+    "completedAt": "2026-11-11T07:03:07.461Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 4148161,
+    "newServerPid": 198928,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "ui/src/components/Dsp7ExecutionStatus.tsx": "0d1df5218f6fffe0dcd987307837425f1eb0f24b4fe8392a0c72469fd61a2a09",
+    "server/src/routes/dsp7-jira-dispatch.ts": "d4f1016676c1f17cd2474dc6f96f0794c5bf43f9b1449818f1153810b06bb5f9",
+    "server/src/services/seat-startup-retry.ts": "7002d2340d37a45d51d3d3ab32df0ba6830e32ed9457e91cbd05d83a6cabb9c6"
+  },
+  "durationSeconds": 64.2,
+  "limitations": [
+    "No task was restarted as part of deployment; local startup success requires a real seat retry.",
+    "Read-only route smoke injected a test actor; authenticated browser flow was not verified."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "externalVerification": {
+    "health": "ok",
+    "hashedUrls": [
+      "http://10.60.43.53:3100/assets/Dsp7ExecutionStatus-42442498.js",
+      "http://10.60.43.53:3100/index.html"
+    ]
+  },
+  "readOnlyRouteSmoke": {
+    "mode": "live",
+    "injectedTestActor": true,
+    "mutationsPerformed": false,
+    "tasks": [
+      {
+        "identifier": "DSP-11",
+        "status": "in_progress",
+        "phase": "startup_failed",
+        "canRetryStartup": false,
+        "retryStartupBlockedReason": "尚未确认本机旧执行已经停止，请稍后刷新或在任务页处理"
+      }
+    ]
+  },
+  "localValidation": {
+    "relatedRegressionTests": "passed",
+    "serverDirectTypecheck": "passed",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "standardServerTypecheck": "blocked: missing cargo",
+    "databaseIntegrationTests": "skipped by embedded PostgreSQL support detection"
+  }
+}

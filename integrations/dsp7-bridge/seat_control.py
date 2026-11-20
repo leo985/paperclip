@@ -324,7 +324,7 @@ def collect(b,checks,folder):
         representative=next((run for run in active_runs if run['state']=='waiting_decision'),active_runs[0])
         active=representative['taskId'];run_id=representative['runId']
         if state not in ('config_error','error'):state=representative['state']
-    return {'activeRuns':active_runs,'acceptingWork':not offline_requested(b),'bridgeVersion':bridge_version(),'capabilities':['seat-concurrency-v1','seat-admin-upgrade-v1','seat-launch-options-v1','managed-session-v1','harness-repository-management-v1','full-visible-text','phase-gate-v1','jira-workload-v1','seat-rule-intake-v1','platform-dispatch-v1','execution-recovery-v1','native-wait-v1','seat-auto-retry-v1','command-longpoll-v1','analysis-execution-v1','delivery-flow-v1','delivery-work-review-v1','delivery-executor-v1','delivery-rework-v1']+(['harness-root-launch-v1'] if b.cfg.get('claude_launch_mode','harness-root-v1')=='harness-root-v1' else ['harness-source-launch-compat-v1']),'checkedAt':now(),'revision':(b.cfg.get('seat_runtime') or {}).get('revision'),'state':state,'activeTaskId':active,'runId':run_id,'checks':checks,'alerts':alerts[:20],'tasks':tasks,'autoPermit':auto},registered
+    return {'activeRuns':active_runs,'acceptingWork':not offline_requested(b),'bridgeVersion':bridge_version(),'capabilities':['seat-concurrency-v1','seat-admin-upgrade-v1','seat-launch-options-v1','managed-session-v1','harness-repository-management-v1','full-visible-text','phase-gate-v1','jira-workload-v1','seat-rule-intake-v1','platform-dispatch-v1','execution-recovery-v1','native-wait-v1','seat-auto-retry-v1','command-longpoll-v1','analysis-execution-v1','delivery-flow-v1','delivery-work-review-v1','delivery-executor-v1','delivery-rework-v1','delivery-auto-repair-v1','delivery-reuse-repair-v1']+(['harness-root-launch-v1'] if b.cfg.get('claude_launch_mode','harness-root-v1')=='harness-root-v1' else ['harness-source-launch-compat-v1']),'checkedAt':now(),'revision':(b.cfg.get('seat_runtime') or {}).get('revision'),'state':state,'activeTaskId':active,'runId':run_id,'checks':checks,'alerts':alerts[:20],'tasks':tasks,'autoPermit':auto},registered
 
 def refresh_registration(b,checks,state,stamp=None):
     """Recover runtime drift, with bounded retries and a fresh post-save check."""
@@ -361,6 +361,7 @@ def refresh_registration(b,checks,state,stamp=None):
 
 
 def tick(b):
+    b._seat_heartbeat_stage='configuration'
     folder=setup(b);path=folder/'state.json';old=read_json(path) if path.is_file() else {}
     if time.time()-old.get('checkedEpoch',0)>=60:
         checks=inspect_configuration(b);old.update(checks=checks,checkedEpoch=time.time())
@@ -368,22 +369,35 @@ def tick(b):
     checks=[c for c in (old.get('checks') or []) if c['id'] not in ('dingtalk','dingtalk_current')]
     checks=refresh_registration(b,checks,old)
     old['checks']=checks;atomic_json(path,old)
+    b._seat_heartbeat_stage='collection'
     presence,registered=collect(b,checks,folder)
     if presence['state']=='config_error':once_notice(b,'configuration:'+str((b.cfg.get('seat_runtime') or {}).get('revision'))+':'+str(int(time.time()/600)),'Paperclip：配置已变化','本机检查未通过，请打开席位管理页查看并刷新登记')
     presence['checkedAt']=dt.datetime.fromtimestamp(old.get('checkedEpoch',time.time()),dt.timezone.utc).isoformat()
+    b._seat_heartbeat_stage='repositories'
     from harness_repositories import public_inventory
     if time.time()-old.get('repositoriesEpoch',0)>=60:
         old.update(repositories=public_inventory(b),repositoriesEpoch=time.time())
         atomic_json(path,old)
     presence['repositories']=old.get('repositories',[])
+    b._seat_heartbeat_stage='heartbeat_request'
     heartbeat_started=now()
     api=seat_api(b);response=api.request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-seat-heartbeat',{**identity(b),**presence})
     b.cfg['_dispatch_rule']=response.get('dispatch')
     old.update(policy=response['policy'],dispatch=response.get('dispatch'),lastHeartbeat=now());atomic_json(path,old)
+    from heartbeat_health import success
+    success(b)
+    b._seat_heartbeat_stage='commands'
     process_commands(b,response,reconcile_before=heartbeat_started)
     if checks!=presence['checks']:
         presence['checks']=checks;presence['checkedAt']=now()
         if all(c['status']!='fail' for c in checks) and presence['state']=='config_error':presence['state']='idle'
+        api.request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-seat-heartbeat',{**identity(b),**presence})
+    # Publish liveness first; optional repository inspection must not postpone it.
+    b._seat_heartbeat_stage='harness_registration'
+    from harness_auto_registration import refresh_when_idle
+    refresh_when_idle(b, presence, old)
+    atomic_json(path,old)
+    if presence['checks']!=checks:
         api.request('POST','/agents/'+b.cfg['agent_id']+'/dsp7-seat-heartbeat',{**identity(b),**presence})
     # Native authorized jobs (including analysis without a Jira pilot) are
     # received by the regular watcher. The server grants each exact run lease.

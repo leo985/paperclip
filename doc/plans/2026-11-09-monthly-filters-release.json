@@ -1,0 +1,92 @@
+{
+  "release": "20261109-monthly-filters-v2",
+  "status": "deployed",
+  "timestamp": "2026-11-09T01:27:29.172739+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-596f9f61.js",
+  "uiModule": "DeliveryEntries-d2ae6897.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/monthly-filters-20261109/backup-20261109T012704Z",
+  "serverRestarted": false,
+  "service": "MainPID=65004\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/lib/delivery-monthly-filters.ts": "693508e9476dd3d962a9fbaa071be730c1b4e998e772ed17673d86cd15bc70b0",
+    "ui/src/components/DeliveryMonthlyBoard.tsx": "c13bacf1cc68854bba483e725e0c9b1979b17931fafd0a0734acce7c0997fc03"
+  },
+  "verification": {
+    "linkedModules": 676,
+    "scope": "monthly filters only"
+  },
+  "browser-verification": {
+    "source": {
+      "url": "?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&month=2026-11&mStatus=%22%E5%BE%85%E5%BC%80%E5%8F%91%22",
+      "status": "2026-11 · 显示 41 / 45 个条目 · 读取于 2026/11/9 09:27:52"
+    },
+    "cleared": {
+      "url": "?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&month=2026-11",
+      "status": "2026-11 · 显示 45 / 45 个条目 · 读取于 2026/11/9 09:27:52"
+    },
+    "legacy": {
+      "url": "?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&month=2026-11&mAdmission=unconfigured",
+      "admission": "unconfigured",
+      "status": "2026-11 · 显示 27 / 45 个条目 · 读取于 2026/11/9 09:29:06"
+    },
+    "final": {
+      "url": "?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&month=2026-11",
+      "entry": "http://10.60.43.53:3100/assets/index-596f9f61.js",
+      "sections": [
+        "来源进度",
+        "风险提醒",
+        "详细筛选"
+      ],
+      "risk": "数量沿用其他筛选条件不限风险 45无上述风险 8计划已过待核实 25本周到期 11责任人缺失 0计划日期缺失 1",
+      "admission": [
+        "全部准入情况",
+        "未配置准入规则",
+        "可进入或已进入交付链",
+        "开始节点条件待核验"
+      ],
+      "sync": [
+        "全部同步情况",
+        "尚未同步",
+        "已纳管"
+      ],
+      "status": "2026-11 · 显示 45 / 45 个条目 · 读取于 2026/11/9 09:29:06"
+    }
+  },
+  "external-verification": {
+    "verified": [
+      "index.html",
+      "sw.js",
+      "assets/DeliveryEntries-d2ae6897.js"
+    ],
+    "failures": []
+  },
+  "localValidation": {
+    "tests": 20,
+    "uiTypecheck": "passed",
+    "tokenGates": "passed"
+  },
+  "releaseCorrection": "Initial entry was restored after browser found stale dependency references; final graph rebuilt from live reachable assets and verified in browser."
+}

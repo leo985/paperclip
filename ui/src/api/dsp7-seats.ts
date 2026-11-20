@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { SeatUpgradeRequest, SeatLaunchOptions, SeatDingtalkTarget, SeatNotificationGroup } from "@paperclipai/shared";
+import type { SeatUpgradeRequest, SeatLaunchOptions, SeatDingtalkTarget, SeatNotificationGroup, SeatQingzhouAccount, SeatQingzhouSave } from "@paperclipai/shared";
 export interface JiraDispatchRule {jiraBaseUrl:string;jiraPatConfigured?:boolean;credentials?:{token:string};enabled:boolean;intakePaused?:boolean;jiraAssignee:string;jiraProjectKey:string;projectId:string;workspaceId?:string;readyStatuses:string[];issueTypes:string[];revision?:number;ownerUserId?:string}
 export interface JiraIntakeSnapshot {jiraKey:string;summary:string;status:string;issueType:string;assignee:string|null;assigneeName:string|null;jiraUpdatedAt:string|null;checkedAt:string;eligible:boolean;reasons:string[];ruleRevision:number}
 export interface SeatRuntime { environmentId:string;claudeCommand:string;claudeVersion:string;claudeSettingsFile:string|null;configurationSource:"local-default"|"local-settings-file";harnessRoot:string;settingsDigest:string|null;revision:number;checkedAt:string }
@@ -14,7 +14,7 @@ export interface SeatCommand { commandId:string;agentId:string;kind:"check"|"ref
 const base=(companyId:string,id:string)=>`/companies/${companyId}/dsp7-seats/${id}`;
 export interface NotificationContact {externalId:string;corpId:string;name:string;organization:string;departments:string[];userId:string|null}
 export interface SeatStartupProgress {stage:string;startedAt:string;elapsedSeconds:number;steps:Array<{stage:string;at:string;elapsedSeconds:number}>}
-export interface PlatformDispatchStatus {startup?:SeatStartupProgress|null;taskId:string;phase:string;message?:string|null;canResume?:boolean;resumeBlockedReason?:string|null;authorized:boolean;authorizationId:string|null}
+export interface PlatformDispatchStatus {startup?:SeatStartupProgress|null;taskId:string;phase:string;message?:string|null;canRetryStartup?:boolean;retryStartupBlockedReason?:string|null;canResume?:boolean;resumeBlockedReason?:string|null;authorized:boolean;authorizationId:string|null}
 export interface JiraIntakePreview {jiraKey:string;status:string;issueType:string;summary:string;readyStatuses:string[];revision:number}
 export interface JiraPreview {actorName:string;statuses:string[];verifiedAt:string;matches:{total:number;issues:Array<{key:string;summary:string;status:string}>}|null}
 export interface SeatBot {id:string;name:string;corpId:string;appKey:string;robotCode:string;enabled:boolean;secretConfigured:boolean}
@@ -24,6 +24,10 @@ function upgradeRequestId() {
  return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join("-");
 }
 export const dsp7SeatsApi={
+ qingzhouAccount:(companyId:string,id:string)=>api.get<SeatQingzhouAccount>(`${base(companyId,id)}/qingzhou-account`),
+ saveQingzhouAccount:(companyId:string,id:string,value:SeatQingzhouSave)=>api.put<SeatQingzhouAccount>(`${base(companyId,id)}/qingzhou-account`,value),
+ checkQingzhouAccount:(companyId:string,id:string,expectedRevision:number)=>api.post<SeatQingzhouAccount & {error?:string}>(`${base(companyId,id)}/qingzhou-account/check`,{expectedRevision}),
+ removeQingzhouAccount:(companyId:string,id:string,expectedRevision:number)=>api.delete<SeatQingzhouAccount>(`${base(companyId,id)}/qingzhou-account`,{expectedRevision}),
  saveConcurrency:(companyId:string,id:string,maxConcurrentRuns:number)=>api.put<{maxConcurrentRuns:number}>(`${base(companyId,id)}/concurrency`,{maxConcurrentRuns}),
  upgradeStatus:(companyId:string,id:string)=>api.get<SeatUpgradeRequest|null>(`${base(companyId,id)}/client-upgrade`),
  requestUpgrade:(companyId:string,id:string,targetSha256:string)=>api.post<SeatUpgradeRequest>(`${base(companyId,id)}/client-upgrade`,{requestId:upgradeRequestId(),targetSha256}),

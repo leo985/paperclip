@@ -10,6 +10,7 @@ describe("company routes", () => {
   it("preserves organization and filters for the delivery workbench", () => {
     expect(applyCompanyPrefix("/delivery-workbench?projectId=p&view=reports", "DSP")).toBe("/DSP/delivery-workbench?projectId=p&view=reports");
     expect(toCompanyRelativePath("/DSP/delivery-workbench?view=reports")).toBe("/delivery-workbench?view=reports");
+    expect(applyCompanyPrefix("/delivery-dashboard?month=2026-11", "DSP")).toBe("/DSP/delivery-dashboard?month=2026-11");
     expect(applyCompanyPrefix("/delivery-chain", "DSP")).toBe("/DSP/delivery-chain");
     expect(toCompanyRelativePath("/DSP/delivery-chain")).toBe("/delivery-chain");
   });

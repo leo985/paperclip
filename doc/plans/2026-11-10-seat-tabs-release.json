@@ -1,0 +1,55 @@
+{
+  "release": "20261110-seat-tabs",
+  "status": "deployed",
+  "timestamp": "2026-11-10T00:41:43.904653+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-feaa0d62.js",
+  "uiModule": "Seats-a0be38ff.js",
+  "filesVerified": 328,
+  "backup": "/home/fg/paperclip/private/seat-tabs-20261110/backup-20261110T004120Z",
+  "serverRestarted": false,
+  "service": "MainPID=65004\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/pages/Seats.tsx": "225a29df5f5a8817af14ffbb04f04af6e2c96b3e5b2652a55b2afd8c90ae5065"
+  },
+  "verification": {
+    "linkedModules": 673,
+    "scope": "seat tab selection only"
+  },
+  "externalVerification": {
+    "verified": 328,
+    "failures": []
+  },
+  "localValidation": {
+    "uiTypecheck": "passed",
+    "relatedTests": 11,
+    "tokenGates": "passed",
+    "tabSelectionAndSeatSwitching": "passed",
+    "reloadAndInvalidTabFallback": "passed"
+  },
+  "browserVerification": {
+    "status": "unavailable",
+    "reason": "Ego Lite failed to start"
+  }
+}

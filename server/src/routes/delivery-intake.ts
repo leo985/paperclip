@@ -10,6 +10,8 @@ import { isSeatManager } from "./dsp7-seat-owners.js";
 import { badRequest, conflict, forbidden, notFound } from "../errors.js";
 import { compareDeliveryPlans } from "../services/delivery-snapshot-comparison.js";
 import { normalizeDeliverySnapshot } from "../services/delivery-intake.js";
+import { readDeliveryJiraReviewResults } from "../services/delivery-jira-review-results.js";
+
 const snapshotInput = z.object({
   projectId:z.string().uuid(), sourceOrigin:z.literal("https://proj.fingard.com:1888"),
   demandNo:z.string().regex(/^[A-Z][A-Z0-9]*-\d+$/), collectedAt:z.string().datetime({offset:true}),
@@ -57,6 +59,13 @@ export function deliveryIntakeRoutes(db: Db) {
     const [snapshot]=await db.select().from(deliverySnapshots).where(and(eq(deliverySnapshots.companyId,companyId),eq(deliverySnapshots.id,String(req.params.snapshotId))));
     if(!snapshot)throw notFound("条目版本不存在或无权访问");
     await project(companyId,snapshot.projectId);
+    const query = z.object({ jiraReviewResults: z.literal("1").optional() }).safeParse(req.query);
+    if (!query.success) throw badRequest("条目查询参数无效");
+    if (query.data.jiraReviewResults) {
+      res.setHeader("Cache-Control", "no-store");
+      res.json(await readDeliveryJiraReviewResults(db, companyId, snapshot.projectId, snapshot.plan));
+      return;
+    }
     const analyses=await db.select({id:analysisExecutions.id,title:analysisExecutions.title,state:analysisExecutions.state,revision:analysisExecutions.revision,activeRunId:analysisExecutions.activeRunId,updatedAt:analysisExecutions.updatedAt}).from(analysisExecutions).where(and(eq(analysisExecutions.companyId,companyId),eq(analysisExecutions.projectId,snapshot.projectId),eq(analysisExecutions.demandNo,snapshot.demandNo))).orderBy(desc(analysisExecutions.updatedAt));
     // Match registered Jira identity, never fuzzy-match a task title.
     const keys=new Set(snapshot.plan.items.map(i=>i.key));
@@ -143,7 +152,15 @@ export function deliveryIntakeRoutes(db: Db) {
       const [p]=await tx.select().from(projects).where(and(eq(projects.id,data.projectId),eq(projects.companyId,companyId))).for("update");
       if(!p||p.archivedAt) throw forbidden("项目不可用");
       const [prior]=await tx.select().from(deliverySnapshots).where(and(eq(deliverySnapshots.companyId,companyId),eq(deliverySnapshots.projectId,data.projectId),eq(deliverySnapshots.sourceOrigin,data.sourceOrigin),eq(deliverySnapshots.demandNo,data.demandNo),eq(deliverySnapshots.fingerprint,fingerprint)));
-      if(prior)return {snapshot:prior,existing:true};
+      if (prior) {
+        if (!prior.plan.monthlyChildIssues && plan.monthlyChildIssues) {
+          const [snapshot] = await tx.update(deliverySnapshots)
+            .set({ plan: { ...prior.plan, monthlyChildIssues: plan.monthlyChildIssues } })
+            .where(and(eq(deliverySnapshots.companyId, companyId), eq(deliverySnapshots.id, prior.id))).returning();
+          return { snapshot, existing: true };
+        }
+        return { snapshot: prior, existing: true };
+      }
       const [saved]=await tx.insert(deliverySnapshots).values({companyId,projectId:data.projectId,sourceOrigin:data.sourceOrigin,demandNo:data.demandNo,fingerprint,collectedAt:new Date(data.collectedAt),createdByUserId:req.actor.userId??"local-board",plan}).returning();
       await tx.insert(activityLog).values({companyId,actorType:"user",actorId:req.actor.userId??"local-board",action:"delivery.snapshot.imported",entityType:"delivery_snapshot",entityId:saved.id,details:{projectId:data.projectId,demandNo:data.demandNo,fingerprint,executionGranted:false,sourceMode:"manual_snapshot"}});
       return {snapshot:saved,existing:false};

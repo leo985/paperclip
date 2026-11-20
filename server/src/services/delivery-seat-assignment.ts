@@ -12,6 +12,20 @@ export async function readDeliveryJiraAssignments(db: Db, companyId: string, pro
   const result = new Map<string, DeliveryJiraAssignment>();
   if (!keys.length) return result;
   if (keys.length > 1000 || keys.some(key => !/^[A-Z][A-Z0-9_]*-\d+$/.test(key))) throw conflict("工单查询范围无效");
+  const {origin, token} = await deliveryJiraCredentials(db, companyId, projectId);
+  const unique=[...new Set(keys)];
+  for (let offset=0;offset<unique.length;offset+=50) {
+    const batch=unique.slice(offset,offset+50),url=new URL('/rest/api/2/search',origin);
+    url.search=new URLSearchParams({jql:`key in (${batch.map(k=>'"'+k+'"').join(',')}) ORDER BY key ASC`,fields:'assignee',maxResults:'50',startAt:'0'}).toString();
+    let reply:Response;try{reply=await fetch(url,{headers:{Authorization:'Bearer '+token,Accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(15000)});}catch{throw conflict("无法读取 Jira 经办人，请稍后重试");}
+    if(!reply.ok)throw conflict("读取 Jira 经办人失败，请核对项目连接与权限");
+    const page=await reply.json() as {total:number;startAt:number;issues:Array<{key:string;fields:{assignee:{name?:string;accountId?:string;displayName?:string}|null}}>};
+    if(!Array.isArray(page.issues)||page.startAt!==0||page.total!==batch.length||page.issues.length!==batch.length||new Set(page.issues.map(i=>i.key)).size!==batch.length||page.issues.some(i=>!batch.includes(i.key)))throw conflict("Jira 工单经办人未完整返回，请核对工单访问权限");
+    for(const row of page.issues)result.set(row.key,{account:row.fields.assignee?.name??row.fields.assignee?.accountId??'',displayName:row.fields.assignee?.displayName??'',origin});
+  }
+  return result;
+}
+export async function deliveryJiraCredentials(db: Db, companyId: string, projectId: string) {
   const [connection] = await db.select().from(deliveryConnections).where(and(eq(deliveryConnections.companyId,companyId),eq(deliveryConnections.projectId,projectId)));
   if (!connection) throw conflict("请先配置项目 Jira 来源");
   let baseUrl=connection.jiraBaseUrl, secretId=connection.jiraSecretId;
@@ -24,17 +38,7 @@ export async function readDeliveryJiraAssignments(db: Db, companyId: string, pro
   const origin=new URL(baseUrl).origin;
   if (!(process.env.PAPERCLIP_JIRA_ALLOWED_ORIGINS??"http://jira.fingard.com:6001").split(",").map(v=>v.trim()).includes(origin)) throw conflict("Jira 来源地址不受信任");
   const token=await secretService(db).resolveSecretValue(companyId,secretId,"latest");
-  const unique=[...new Set(keys)];
-  for (let offset=0;offset<unique.length;offset+=50) {
-    const batch=unique.slice(offset,offset+50),url=new URL('/rest/api/2/search',origin);
-    url.search=new URLSearchParams({jql:`key in (${batch.map(k=>'"'+k+'"').join(',')}) ORDER BY key ASC`,fields:'assignee',maxResults:'50',startAt:'0'}).toString();
-    let reply:Response;try{reply=await fetch(url,{headers:{Authorization:'Bearer '+token,Accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(15000)});}catch{throw conflict("无法读取 Jira 经办人，请稍后重试");}
-    if(!reply.ok)throw conflict("读取 Jira 经办人失败，请核对项目连接与权限");
-    const page=await reply.json() as {total:number;startAt:number;issues:Array<{key:string;fields:{assignee:{name?:string;accountId?:string;displayName?:string}|null}}>};
-    if(!Array.isArray(page.issues)||page.startAt!==0||page.total!==batch.length||page.issues.length!==batch.length||new Set(page.issues.map(i=>i.key)).size!==batch.length||page.issues.some(i=>!batch.includes(i.key)))throw conflict("Jira 工单经办人未完整返回，请核对工单访问权限");
-    for(const row of page.issues)result.set(row.key,{account:row.fields.assignee?.name??row.fields.assignee?.accountId??'',displayName:row.fields.assignee?.displayName??'',origin});
-  }
-  return result;
+  return {origin,token};
 }
 export function deliverySeatMatchesAssignee(seat: Seat, projectId:string, assignment:DeliveryJiraAssignment) {
   const rule=seat.adapterConfig.dsp7JiraDispatch as {projectId?:string;jiraBaseUrl?:string;jiraAssignee?:string;enabled?:boolean;intakePaused?:boolean}|undefined;

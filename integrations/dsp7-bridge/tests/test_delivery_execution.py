@@ -17,6 +17,59 @@ class DeliveryExecutionTest(unittest.TestCase):
   text=delivery.prompt(c)
   self.assertIn('REV-2',text);self.assertIn('不得初始化、流转、上传、计时或上报这些独立评审单',text)
   self.assertIn('保留当前工作单自身技术质量检查',text)
+ def test_auto_repair_observes_only_the_pinned_environment_without_jira_credentials(self):
+  build={'version':'build-2','environmentReference':'https://env.example/build','observationUrl':'https://env.example/version'}
+  policy={'buildObservationUrl':build['observationUrl']}
+  class Response:
+   def __enter__(self):return self
+   def __exit__(self,*args):pass
+   def read(self,*args):return json.dumps({'version':'build-2','environmentReference':build['environmentReference']}).encode()
+  opener=SimpleNamespace(open=lambda req,**kwargs:Response())
+  with patch.object(delivery.urllib.request,'build_opener',return_value=opener):
+   delivery.verify_build_observation(build,policy,build['environmentReference'])
+   with self.assertRaisesRegex(BridgeError,'不一致'):delivery.verify_build_observation({**build,'version':'old'},policy,build['environmentReference'])
+  with self.assertRaisesRegex(BridgeError,'授权不一致'):delivery.verify_build_observation({**build,'observationUrl':'https://evil.example'},policy,build['environmentReference'])
+ def test_auto_repair_requires_uploaded_failure_records_and_exact_failed_case_identity(self):
+  (self.ticket/'execution-records.md').write_text('| 用例ID | 结果 |\n|---|---|\n| C1 | Failed |\n| C2 | Passed |\n')
+  atomic_json(self.ticket/'delivery-failures.json',{'defects':[{'caseId':'C1','module':'payments','kind':'product'}]})
+  artifacts=[{'path':'delivery-failures.json','sha256':hashlib.sha256((self.ticket/'delivery-failures.json').read_bytes()).hexdigest(),'downloadUrl':'https://jira.example/secure/attachment/1/failures.json'}]
+  c={**self.c,'automaticRepairPolicy':{'buildObservationUrl':'https://env.example/version'}}
+  result=delivery.automatic_evidence(c,self.state,self.ticket,artifacts,{'failed':1})
+  self.assertEqual(result['failureReport']['defects'][0]['caseId'],'C1')
+  with self.assertRaisesRegex(BridgeError,'正式附件'):delivery.automatic_evidence(c,self.state,self.ticket,[],{'failed':1})
+  atomic_json(self.ticket/'delivery-failures.json',{'defects':[{'caseId':'WRONG'}]})
+  artifacts[0]['sha256']=hashlib.sha256((self.ticket/'delivery-failures.json').read_bytes()).hexdigest()
+  with self.assertRaisesRegex(BridgeError,'逐条对应'):delivery.automatic_evidence(c,self.state,self.ticket,artifacts,{'failed':1})
+ def test_auto_repair_requires_a_new_observed_build_and_matching_retest_version(self):
+  build={'version':'build-2','environmentReference':'https://env.example/build','observationUrl':'https://env.example/version'}
+  atomic_json(self.ticket/'delivery-build.json',build)
+  artifacts=[{'path':'delivery-build.json','sha256':hashlib.sha256((self.ticket/'delivery-build.json').read_bytes()).hexdigest(),'downloadUrl':'https://jira.example/secure/attachment/2/build.json'}]
+  c={**self.c,'stage':{**self.stage,'intent':'bugfix','automaticRepairGenerated':True,'repairFailure':{'receipt':{'testResults':{'testedVersion':'build-1'}}}},'automaticRepairPolicy':{'buildObservationUrl':build['observationUrl']},'environmentReference':build['environmentReference']}
+  with patch.object(delivery,'verify_build_observation') as observe:
+   result=delivery.automatic_evidence(c,self.state,self.ticket,artifacts,None)
+   self.assertEqual(result['build']['version'],'build-2');observe.assert_called_once()
+   c['stage']['intent']='retest';c['stage']['expectedBuild']=build
+   with self.assertRaisesRegex(BridgeError,'实际修复构建'):delivery.automatic_evidence(c,self.state,self.ticket,[],{'failed':0,'testedVersion':'build-1'})
+   delivery.automatic_evidence(c,self.state,self.ticket,[],{'failed':0,'testedVersion':'build-2'})
+ def test_reused_coding_task_collects_build_without_switching_to_bugfix_identity(self):
+  build={'version':'build-2','environmentReference':'https://env.example/build','observationUrl':'https://env.example/version'}
+  atomic_json(self.ticket/'delivery-build.json',build)
+  artifacts=[{'path':'delivery-build.json','sha256':hashlib.sha256((self.ticket/'delivery-build.json').read_bytes()).hexdigest(),'downloadUrl':'https://jira.example/secure/attachment/2/build.json'}]
+  stage={**self.stage,'stage':'coding','repairReused':True,'repairFailure':{'receipt':{'testResults':{'testedVersion':'build-1'}}}}
+  c={**self.c,'stage':stage,'automaticRepairPolicy':{'buildObservationUrl':build['observationUrl']},'environmentReference':build['environmentReference']}
+  with patch.object(delivery,'verify_build_observation'):
+   result=delivery.automatic_evidence(c,self.state,self.ticket,artifacts,None)
+  self.assertEqual(result['build']['version'],'build-2');self.assertNotIn('intent',stage)
+ def test_reused_work_keeps_its_native_workflow_and_ticket_binding(self):
+  import harness_routing
+  bridge=SimpleNamespace(cfg={'company_id':'company'},config_path=self.root/'config.json')
+  guard=SimpleNamespace(resolve=lambda *a:{'status':'ready','target':{'父工单号':None}})
+  packet={'runId':'run','lease':'lease','executionRoute':{}}
+  for kind,workflow in [('coding','feature'),('functional-test','execution')]:
+   stage={**self.stage,'stage':kind,'taskId':kind,'repairReused':True}
+   with patch.object(delivery,'api_call',return_value={'stage':stage}),patch.object(harness_routing,'resolve_route',return_value={'root':str(self.root)}),patch.object(delivery,'load_module',return_value=guard):
+    prepared=delivery.prepare(bridge,packet,self.root/'outbound')
+   self.assertEqual(prepared['workflow'],workflow);self.assertNotIn('intent',prepared['stage'])
  def test_human_review_node_is_never_executed_by_a_device(self):
   bridge=SimpleNamespace(cfg={'company_id':'company'},config_path=self.root/'config.json')
   with patch.object(delivery,'api_call',return_value={'stage':{**self.stage,'executionMode':'human'}}):
@@ -167,6 +220,24 @@ class DeliveryExecutionTest(unittest.TestCase):
    with patch.object(delivery.urllib.request,'build_opener',return_value=opener),self.assertRaises(BridgeError):
     delivery.verify_upstream_artifacts([{'receipt':invalid}],guard)
    opener.open.assert_not_called()
+ def test_downloads_prior_jira_attachments_to_generated_local_paths(self):
+  from unittest.mock import Mock
+  data=b'historical deliverable'
+  artifact={'path':'../../escape.zip','sha256':hashlib.sha256(data).hexdigest(),'downloadUrl':'https://jira.example/secure/attachment/1/result.zip'}
+  source={'jiraKey':'TEST-1','priorCompletion':{'source':'jira','reviewReference':'https://jira.example/browse/TEST-1','jiraEvidence':{'artifacts':[artifact],'comments':[]}}}
+  class Response:
+   def __enter__(self):return self
+   def __exit__(self,*args):pass
+   def read(self,*args):return data
+  guard=SimpleNamespace(credentials=lambda:('https://jira.example','private'),NoRedirect=object)
+  with patch.object(delivery.urllib.request,'build_opener',return_value=SimpleNamespace(open=Mock(return_value=Response()))):
+   delivery.verify_upstream_artifacts([source],guard,self.root)
+  local=Path(artifact['localPath'])
+  self.assertTrue(local.is_relative_to((self.root/'jira-upstream/TEST-1').resolve()))
+  self.assertEqual(local.read_bytes(),data)
+  artifact['sha256']='0'*64
+  with patch.object(delivery.urllib.request,'build_opener',return_value=SimpleNamespace(open=Mock(return_value=Response()))),self.assertRaises(BridgeError):
+   delivery.verify_upstream_artifacts([source],guard,self.root)
  def test_test_summary_requires_native_counts_version_and_matching_case_records(self):
   records=self.ticket/'execution-records.md'
   records.write_text('| 用例ID | 结果 |\n|---|---|\n| TC-1 | Passed |\n| TC-2 | Failed |\n')

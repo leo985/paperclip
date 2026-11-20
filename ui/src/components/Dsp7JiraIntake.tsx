@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { HARNESS_REPOSITORY_MANAGEMENT_CAPABILITY, type HarnessManagedJiraIntake, type Project } from "@paperclipai/shared";
 import { dsp7SeatsApi } from "../api/dsp7-seats";
+import { deliveryWorkflowApi } from "../api/delivery-workflows";
 import { agentsApi } from "../api/agents";
 import { issuesApi } from "../api/issues";
 import { Button } from "./ui/button";
@@ -14,22 +15,43 @@ import { executionMessage } from "../lib/dsp7-execution";
 import { Link } from "../lib/router";
 
 /** Uses authenticated task creation; no local paths or credentials are sent to a browser-side executor. */
-export function Dsp7JiraIntake({ project, initialSeatId = "", initialJiraKey = "" }: { project: Project; initialSeatId?: string; initialJiraKey?: string }) {
+export function Dsp7JiraIntake({ project, initialSeatId = "", initialJiraKey = "", snapshotId = "" }: { project: Project; initialSeatId?: string; initialJiraKey?: string; snapshotId?: string }) {
   const { canOperate, loading: accessLoading } = useManagementAccess();
   const [open, setOpen] = useState(Boolean(initialSeatId || initialJiraKey));
   const [execution, setExecution] = useState<"dispatch"|"register">("dispatch");
   const [jira, setJira] = useState(initialJiraKey);
-  const [seatId, setSeatId] = useState(initialSeatId);
+  const [seatChoice, setSeatChoice] = useState({ key: "", id: initialSeatId });
   const storageKey = `dsp7-intake:${project.companyId}:${project.id}`;
   const [taskId, setTaskId] = useState<string | null>(() => { try { return localStorage.getItem(storageKey); } catch { return null; } });
   const agentQuery = useQuery({ queryKey: ["dsp7-intake-agents", project.companyId], queryFn: () => agentsApi.list(project.companyId) });
   const agents = agentQuery.data;
   const registry = useQuery({ queryKey: ["dsp7-registered-seats", project.companyId], queryFn: () => dsp7SeatsApi.list(project.companyId), retry: false });
+  const jiraKey = jira.trim().toUpperCase();
+  const validJiraKey = /^[A-Z][A-Z0-9_]*-\d+$/.test(jiraKey);
+  const matchOwner = !!snapshotId && !initialSeatId;
+  const matchKey = `${project.companyId}:${project.id}:${snapshotId}:${jiraKey}`;
+  const ownerSeats = useQuery({
+    queryKey: ["jira-intake-owner-seats", project.companyId, project.id, snapshotId, jiraKey],
+    queryFn: () => deliveryWorkflowApi.seats(project.companyId, snapshotId, [jiraKey]),
+    enabled: canOperate && matchOwner && validJiraKey,
+    retry: false,
+    refetchInterval: 15000,
+  });
+  const seats = (agents ?? []).filter((agent) => registry.data?.some(seat => seat.agentId === agent.id) && agent.adapterConfig?.dsp7WebJiraIntake === true && agent.adapterConfig?.dsp7Seat && !["terminated", "paused", "pending_approval"].includes(agent.status));
+  const ownerCandidates = seats.filter(agent => ownerSeats.data?.some(seat => seat.id === agent.id && seat.jiraKeys?.includes(jiraKey)) && registry.data?.find(seat => seat.agentId === agent.id)?.dispatch?.projectId === project.id);
+  const choices = matchOwner ? ownerCandidates : seats;
+  const chosenId = seatChoice.key === matchKey ? seatChoice.id : initialSeatId;
+  const seatId = matchOwner ? ownerSeats.isSuccess ? choices.find(seat => seat.id === chosenId)?.id ?? (choices.length === 1 ? choices[0]!.id : "") : "" : chosenId;
   const selectedSeat = registry.data?.find(item => item.agentId === seatId);
-  const seats = (agents ?? []).filter((agent) => registry.data?.some(seat => seat.agentId === agent.id) && agent.adapterConfig?.dsp7WebJiraIntake === true && agent.adapterConfig?.dsp7Seat && agent.status !== "terminated" && agent.status !== "paused");
+  async function verifyOwnerSeat() {
+    if (!matchOwner) return;
+    const fresh = await ownerSeats.refetch();
+    if (fresh.error) throw fresh.error;
+    if (!fresh.data?.some(seat => seat.id === seatId && seat.jiraKeys?.includes(jiraKey))) throw new Error("Jira 工单负责人或席位配置已变化，请核对最新匹配结果后重新确认");
+  }
   const checkKey = `${seatId}:${project.id}:${jira.trim().toUpperCase()}`;
   const preview = useMutation({
-    mutationFn: async (key: string) => ({ key, result: await dsp7SeatsApi.previewIntake(project.companyId, seatId, { jiraKey: jira.trim().toUpperCase(), projectId: project.id }) }),
+    mutationFn: async (key: string) => { await verifyOwnerSeat(); return { key, result: await dsp7SeatsApi.previewIntake(project.companyId, seatId, { jiraKey, projectId: project.id }) }; },
   });
   const currentPreview = preview.data?.key === checkKey ? preview.data.result : null;
   const seatRule = selectedSeat?.dispatch;
@@ -55,7 +77,8 @@ export function Dsp7JiraIntake({ project, initialSeatId = "", initialJiraKey = "
       const key = jira.trim().toUpperCase();
       if (task && task.description?.includes('"jira_key":"'+key+'"')) throw new Error("此工单已接入，请在下方原任务卡片查看进度或恢复执行，无需再次派单");
       if (!/^[A-Z][A-Z0-9_]*-\d+$/.test(key)) throw new Error("请输入有效的 Jira 子工单号");
-      if (!seatId) throw new Error("请选择执行席位");
+      if (!seatId) throw new Error(matchOwner ? "尚未匹配到唯一的工单负责人席位，请核对匹配结果" : "请选择执行席位");
+      await verifyOwnerSeat();
       if (!selectedSeat?.usable) throw new Error("所选席位需要在本机执行 harness seat register/check 刷新登记");
       await dsp7SeatsApi.verify(project.companyId, selectedSeat);
       // Reconcile a lost create response or a repeated click before creating another request.
@@ -110,7 +133,8 @@ export function Dsp7JiraIntake({ project, initialSeatId = "", initialJiraKey = "
         <h4 className="font-medium">{taskId ? "接入其他 Jira 工单" : "接入 Jira 工单"}</h4>
         {taskId && <p className="text-sm text-muted-foreground">此表单用于接入其他工单；当前任务请在下方卡片查看或恢复。</p>}
         <label className="block text-sm space-y-1"><span>Jira 子工单号</span><Input value={jira} onChange={(event) => setJira(event.target.value)} placeholder="ATSES-XXXXX" required /></label>
-        <label className="block text-sm space-y-1"><span>执行席位</span><select className="w-full rounded-md border border-input bg-background p-2" value={seatId} onChange={(event) => setSeatId(event.target.value)} required><option value="">请选择执行电脑／研发席位</option>{seats.map((agent) => <option key={agent.id} value={agent.id}>{seatName(agent)}</option>)}</select></label>
+        {matchOwner && (!validJiraKey ? <p className="text-sm text-muted-foreground">填写有效 Jira 子工单号后自动匹配负责人席位。</p> : ownerSeats.isPending || registry.isPending || agentQuery.isPending ? <p role="status" className="text-sm text-muted-foreground">正在按 Jira 工单负责人匹配席位…</p> : ownerSeats.isError || agentQuery.isError || registry.isError ? <p role="alert" className="text-sm text-destructive">负责人席位匹配失败：{(ownerSeats.error ?? agentQuery.error ?? registry.error)?.message}<Button type="button" variant="ghost" onClick={() => { void ownerSeats.refetch(); void registry.refetch(); void agentQuery.refetch(); }}>重试匹配</Button></p> : !choices.length ? <p role="alert" className="text-sm text-destructive">工单负责人未配置本项目可接单的授权席位，请在席位管理核对负责人、Jira 账号映射和接单设置。</p> : choices.length === 1 ? <p role="status" className="text-sm">已按工单负责人自动匹配执行席位：{selectedSeat?.name ?? seatName(choices[0]!)}</p> : <p className="text-sm text-muted-foreground">工单负责人有多个匹配席位，请选择本次执行的电脑。</p>)}
+        {(!matchOwner || choices.length > 1) && <label className="block text-sm space-y-1"><span>执行席位</span><select aria-label="执行席位" className="w-full rounded-md border border-input bg-background p-2" value={seatId} onChange={(event) => setSeatChoice({key:matchKey,id:event.target.value})} required><option value="">请选择执行电脑／研发席位</option>{choices.map((agent) => <option key={agent.id} value={agent.id}>{registry.data?.find(seat=>seat.agentId===agent.id)?.name ?? seatName(agent)}</option>)}</select></label>}
         {selectedSeat && <p className="text-xs text-muted-foreground">{selectedSeat.environmentName} · {selectedSeat.runtime?.claudeVersion ?? "未登记 Claude"} · {selectedSeat.message}</p>}
         {registry.error && <p role="alert" className="text-sm text-destructive">{registry.error.message}</p>}
         {seatId && <div className="space-y-2 rounded-md bg-muted p-3 text-sm">

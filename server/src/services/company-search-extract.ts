@@ -1,3 +1,4 @@
+import { taskScopeCondition, type PersonalTaskScope } from "./task-access-scope.js";
 import { and, asc, desc, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
 import type { SQL, SQLWrapper } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
@@ -151,7 +152,7 @@ function extractMatches(sources: ExtractSource[], query: CompanySearchExtractQue
 
 export function companySearchExtractService(db: Db) {
   return {
-    extract: async (companyId: string, query: CompanySearchExtractQuery): Promise<CompanySearchExtractResponse> => {
+    extract: async (companyId: string, query: CompanySearchExtractQuery, taskScope?: PersonalTaskScope): Promise<CompanySearchExtractResponse> => {
       const containsPattern = `%${escapeLikePattern(query.contains)}%`;
       const urlPattern = urlContainsPattern(query.contains);
       const scopeConditions: SQL[] = [];
@@ -196,6 +197,7 @@ export function companySearchExtractService(db: Db) {
       const conditions: SQL[] = [
         eq(issues.companyId, companyId),
         visibleIssueCondition(),
+        taskScopeCondition(taskScope),
         or(...scopeConditions)!,
       ];
       if (query.status.length > 0) conditions.push(inArray(issues.status, query.status));

@@ -48,6 +48,7 @@ export const analysisExecutions = pgTable(
     registryRevision: integer("registry_revision"),
     snapshot: jsonb("snapshot").$type<AnalysisSnapshot>(),
     delivery: jsonb("delivery").$type<AnalysisDelivery>(),
+    qingzhouWriteback: jsonb("qingzhou_writeback").$type<NonNullable<AnalysisExecution["qingzhouWriteback"]>>(),
     publication:
       jsonb("publication").$type<
         NonNullable<AnalysisExecution["publication"]>

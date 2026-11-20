@@ -1,3 +1,5 @@
+import { isSeatOnline } from "../services/seat-presentation.js";
+import { seatQingzhouRoutes } from "./dsp7-seat-qingzhou.js";
 import { seatConcurrencySchema, seatConcurrencyLimit, seatCanAcceptWork, SEAT_CONCURRENCY_CAPABILITY } from "@paperclipai/shared";
 import { seatOccupancy } from "../services/seat-concurrency.js";
 import { seatUpgradeRoutes, seatUpgradeState } from "./dsp7-seat-upgrades.js";
@@ -36,7 +38,7 @@ const presenceSchema = machine.extend({ repositories: z.array(harnessRepositoryS
 const commandSchema = z.object({ requestId: uuid, kind: z.enum(["check", "refresh", "start"]), taskId: uuid.optional(), revision: z.number().int().positive(), confirmNoOtherExecutor: z.boolean().optional() }).strict();
 export const seatPolicySchema = z.object({ mode: z.enum(["manual", "notify", "auto"]), jiraKeys: z.array(z.string().regex(/^[A-Z][A-Z0-9_]*-\d+$/)).max(50), reminderMinutes: z.number().int().min(1).max(1440), escalationMinutes: z.number().int().min(2).max(10080), dingtalk: seatDingtalkTargetSchema.nullable().optional() }).strict().refine(v => v.escalationMinutes > v.reminderMinutes);
 export const defaultSeatPolicy = { mode: "manual", jiraKeys: [], reminderMinutes: 10, escalationMinutes: 30 };
-export function isSeatOnline(p: Record<string, unknown> | undefined, now = Date.now()) { const seen = Date.parse(String(p?.lastSeenAt)); return Number.isFinite(seen) && seen <= now + 5000 && now - seen < 90000; }
+export { isSeatOnline } from "../services/seat-presentation.js";
 export function commandState(request: Record<string, unknown>, events: Array<{ details: Record<string, unknown> | null }>, now = Date.now()) {
   const last = events.filter(e => e.details?.commandId === request.commandId).sort((a,b) => Number(b.details?.sequence ?? 0)-Number(a.details?.sequence ?? 0))[0]?.details;
   const status = String(last?.status ?? "queued");
@@ -50,6 +52,7 @@ const path = z.string().regex(/^\//).max(2048).refine(v => !/[\r\n\0]/.test(v));
 const invitationSchema = z.object({ agentId: uuid, environmentId: uuid, name: z.string().trim().min(1).max(100), harnessRoot: path, bridgeRoot: path, claudeCommand: path, settingsFile: path.nullable(), intakeUserIds: z.array(z.string().min(1).max(200)).min(1).max(50) }).strict();
 export function dsp7SeatControlRoutes(db: Db) {
   const router = Router();
+  router.use(seatQingzhouRoutes(db));
   router.use(harnessCapabilityRoutes(db));
   router.use(analysisExecutionRoutes(db));
   router.use(deliveryIntakeRoutes(db));

@@ -8,7 +8,7 @@ import { deliveryTemplateSettings } from "./delivery-templates.js";
 /** Load current facts once per request, never cache authorization or admission decisions. */
 export async function annotateMonthlyDelivery(db: Db, companyId: string, projectId: string, result: DeliveryMonthlyEntries) {
   if (!result.items.length) return;
-  const snapshots = await latestDeliverySnapshots(db, companyId, projectId);
+  const snapshots = await latestDeliverySnapshots(db, companyId, projectId, result.items.map(item => item.demandNo));
   // Preserve the existing first-match behavior for a demand with multiple origins.
   const byDemand = new Map<string, (typeof snapshots)[number]>();
   for (const snapshot of snapshots) if (!byDemand.has(snapshot.demandNo)) byDemand.set(snapshot.demandNo, snapshot);
@@ -19,13 +19,13 @@ export async function annotateMonthlyDelivery(db: Db, companyId: string, project
   if (!selected.length) return;
   const demandNos = selected.map(snapshot => snapshot.demandNo);
   const [analyses, records, flows] = await Promise.all([
-    db.selectDistinctOn([analysisExecutions.demandNo]).from(analysisExecutions).where(and(
+    db.selectDistinctOn([analysisExecutions.demandNo], { demandNo: analysisExecutions.demandNo, id: analysisExecutions.id, revision: analysisExecutions.revision, state: analysisExecutions.state }).from(analysisExecutions).where(and(
       eq(analysisExecutions.companyId, companyId), eq(analysisExecutions.projectId, projectId), inArray(analysisExecutions.demandNo, demandNos),
     )).orderBy(analysisExecutions.demandNo, desc(analysisExecutions.createdAt), desc(analysisExecutions.revision), desc(analysisExecutions.id)),
-    db.selectDistinctOn([activityLog.entityId]).from(activityLog).where(and(
+    db.selectDistinctOn([activityLog.entityId], { entityId: activityLog.entityId, details: activityLog.details, actorId: activityLog.actorId, createdAt: activityLog.createdAt }).from(activityLog).where(and(
       eq(activityLog.companyId, companyId), eq(activityLog.action, "delivery.admission.checked"), inArray(activityLog.entityId, selected.map(snapshot => snapshot.id)),
     )).orderBy(activityLog.entityId, desc(activityLog.createdAt), desc(activityLog.id)),
-    db.select().from(deliveryWorkflows).where(and(
+    db.select({ demandNo: deliveryWorkflows.demandNo, config: deliveryWorkflows.config }).from(deliveryWorkflows).where(and(
       eq(deliveryWorkflows.companyId, companyId), eq(deliveryWorkflows.projectId, projectId), inArray(deliveryWorkflows.demandNo, demandNos),
     )),
   ]);

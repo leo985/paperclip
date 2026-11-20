@@ -1,5 +1,5 @@
-/** Read-only production contract verified against qingzhou-ops token_manager.py
- * and methods/query.py. Credentials are resolved by the caller's secret store;
+/** Source contract verified against qingzhou-ops and qingzhou-ai.
+ * Credentials are resolved by the caller's secret store;
  * access tokens are memory-only and are never returned in source snapshots. */
 export const QINGZHOU_ORIGIN = "https://proj.fingard.com:1888";
 // Full-month schedule trees include all demand/work-item fields; single-item reads stay small.
@@ -13,6 +13,8 @@ const OPERATIONS = {
   monthlyPlans: "UC_PROJ2_SCHEDULE_ALLOT_SEARCH",
   schedule: "UC_PROJ2_SCHEDULE_ISSUE_SEARCH",
   organizations: "UC_PROJ2_ALLOT_ORG_SEARCH",
+  saveAnalysis: "UC_PROJ2_DEMAND_SPLIT_ANALYZE",
+  applyReview: "UC_PROJ2_DEMAND_APPLY_REVIEW",
 } as const;
 
 export class QingzhouReadError extends Error {
@@ -99,11 +101,13 @@ export function qingzhouClient(options: {
     if (!pendingLogin) pendingLogin = login().finally(() => { pendingLogin = null; });
     return pendingLogin;
   }
-  async function read(operation: keyof typeof OPERATIONS, query: Record<string, string>, form: Record<string, string>, maxBytes = DEFAULT_RESPONSE_BYTES) {
+  async function read(operation: keyof typeof OPERATIONS, query: Record<string, string>, form: Record<string, string>, maxBytes = DEFAULT_RESPONSE_BYTES, multipart = false) {
     let auth = await token();
     for (let attempt = 0; attempt < 2; attempt++) {
       const url = new URL("/api", QINGZHOU_ORIGIN); url.search = new URLSearchParams({ uc: OPERATIONS[operation], ...query }).toString();
-      const response = await request(url.href, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Cookie: `token=${auth}; SESSION=${auth}` }, body: new URLSearchParams(form) }, maxBytes);
+      const fields = new FormData();
+      if (multipart) for (const [key, value] of Object.entries(form)) fields.set(key, value);
+      const response = await request(url.href, { method: "POST", headers: { ...(!multipart ? { "Content-Type": "application/x-www-form-urlencoded" } : {}), Cookie: `token=${auth}; SESSION=${auth}` }, body: multipart ? fields : new URLSearchParams(form) }, maxBytes);
       if (response.status === 401 || response.status === 403) {
         await response.body?.cancel();
         // A concurrent reader may already have renewed the rejected token.
@@ -119,6 +123,32 @@ export function qingzhouClient(options: {
     throw new QingzhouReadError("authentication_required");
   }
   return {
+    verifyAuthentication: async () => { await token(); },
+    async deliveryMonthDemands(month: string, subProductAttribution: string) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !/^[A-Za-z0-9_.-]{1,100}$/.test(subProductAttribution)) throw new QingzhouReadError("invalid_response");
+      const [year, monthNumber] = month.split("-").map(Number);
+      const lastDay = new Date(Date.UTC(year!, monthNumber!, 0)).getUTCDate();
+      const rows: Record<string, any>[] = [], identities = new Set<string>();
+      let total: number | null = null;
+      for (let page = 1; ; page++) {
+        const response = await read("demand", {}, { estimatedDeliveryDate: `${month}-01,${month}-${lastDay}`, subProductAttribution, pageNum: String(page), pageSize: "100", sortName: "urid", sortType: "asc" });
+        const data = response.data;
+        const pageTotal = Number(data.total);
+        if (!Array.isArray(data.rows) || !Number.isSafeInteger(pageTotal) || pageTotal < 0 || pageTotal > 1000 || total !== null && total !== pageTotal || data.rows.length > 100) throw new QingzhouReadError("incomplete_response");
+        total = pageTotal;
+        for (const row of data.rows) {
+          if (!row || typeof row !== "object" || typeof row.demandNo !== "string") throw new QingzhouReadError("invalid_response");
+          const id = requireId(row.urid);
+          requireDemandNo(row.demandNo);
+          if (identities.has(id) || rows.some(previous => previous.demandNo === row.demandNo)) throw new QingzhouReadError("incomplete_response");
+          // Do not silently accept an upstream service ignoring either filter.
+          if (row.subProductAttribution !== subProductAttribution || typeof row.estimatedDeliveryDate !== "string" || row.estimatedDeliveryDate.slice(0, 7) !== month) throw new QingzhouReadError("invalid_response");
+          identities.add(id); rows.push(row);
+        }
+        if (rows.length === total) return rows;
+        if (rows.length > total || !data.rows.length) throw new QingzhouReadError("incomplete_response");
+      }
+    },
     async demand(demandNo: string) {
       requireDemandNo(demandNo);
       const response = await read("demand", {}, { demandNo, pageNum: "1", pageSize: "100" });
@@ -131,6 +161,8 @@ export function qingzhouClient(options: {
     },
     detail: (demandId: string) => read("detail", {}, { demandId: requireId(demandId) }),
     analysis: (demandId: string) => read("analysis", {}, { urid: requireId(demandId) }),
+    saveAnalysis: (demandId: string, fields: Record<string, string>) => read("saveAnalysis", {}, { ...fields, urid: requireId(demandId) }, DEFAULT_RESPONSE_BYTES, true),
+    applyReview: (demandId: string, reviewerId: string) => read("applyReview", {}, { urid: requireId(demandId), reviewer: requireId(reviewerId) }),
     monthlyPlans: (organizationId: string, months: string[]) => {
       if (!months.length || months.length > 12 || months.some(m => !/^\d{4}-(0[1-9]|1[0-2])$/.test(m))) throw new QingzhouReadError("invalid_response");
       return read("monthlyPlans", { organizationId: requireId(organizationId), targetDate: months.join(",") }, { pageNum: "1", pageSize: "100" });

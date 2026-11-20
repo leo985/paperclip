@@ -1,16 +1,18 @@
 import { SeatConcurrencySettings } from "@/components/SeatConcurrencySettings";
+import { SeatQingzhouAccount } from "@/components/SeatQingzhouAccount";
 import { SeatNotificationGroupManager } from "@/components/SeatNotificationGroupManager";
 import { DeleteSeatButton } from "@/components/DeleteSeatButton";
 import { managementConclusion, managementExecution, seatReadiness } from "@/lib/issue-management";
 import { SeatDevicePanel } from "@/components/SeatDevicePanel";
 import { SeatObservability } from "@/components/SeatObservability";
 import { SeatOwnerSelect } from "@/components/SeatOwnerSelect";
+import { seatOwnerEmail } from "@/lib/seat-owner-display";
 import { useManagementAccess } from "@/hooks/useManagementAccess";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SeatBotManager } from "@/components/SeatBotManager";
 import { JiraSeatDispatch } from "@/components/JiraSeatDispatch";
 import { QuickSeatConnect } from "@/components/QuickSeatConnect";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -20,7 +22,7 @@ import { environmentsApi } from "@/api/environments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Link, useSearchParams } from "@/lib/router";
+import { Link, Navigate, useSearchParams } from "@/lib/router";
 import { StatusBadge } from "@/components/StatusBadge";
 const states:Record<string,string>={idle:"空闲",busy:"正在执行",waiting_decision:"等待人工决策",awaiting_local:"等待本机确认",config_error:"配置异常",error:"接入异常"};
 const commands:Record<string,string>={queued:"等待本机接收",awaiting_local:"等待本机终端确认",accepted:"已领取，正在检查",running:"已连接真实运行",succeeded:"请求处理完成",failed:"处理失败",denied:"本机已拒绝",cancelled:"网页已取消",expired:"请求已过期"};
@@ -40,7 +42,19 @@ function BrowserNotice(){
  async function enable(){setBusy(true);try{const result=await Notification.requestPermission();setPermission(result);setMessage(result==="granted"?"浏览器提醒已启用；钉钉提醒请在通知设置中配置。":result==="denied"?"提醒被拒绝，请在浏览器的网站权限中修改。":"尚未授权，可再次启用。");}catch{setMessage("浏览器未能授权提醒，请检查网站权限。");}finally{setBusy(false);}}
  return <div className="space-y-1 text-xs text-muted-foreground"><Button variant="ghost" disabled={!supported||busy||permission==="granted"||permission==="denied"} onClick={()=>void enable()}>{!supported?"浏览器提醒不可用":permission==="granted"?"浏览器提醒已启用":permission==="denied"?"浏览器提醒已被拒绝":busy?"正在申请权限…":"启用浏览器提醒"}</Button>{!supported?<p>此浏览器或 HTTP 地址不支持系统提醒，可使用钉钉通知。</p>:message?<p role="status">{message}</p>:permission==="denied"?<p>请在浏览器的网站权限中允许通知。</p>:null}</div>;
 }
-export function Seats(){const {selectedCompanyId}=useCompany();const {setBreadcrumbs}=useBreadcrumbs();useEffect(()=>setBreadcrumbs([{label:"席位管理"}]),[setBreadcrumbs]);return <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6"><header><h1 className="text-2xl font-semibold">席位管理</h1><p className="mt-2 text-sm text-muted-foreground">掌握电脑在线状态、工单执行进度与待处理决策。</p></header>{selectedCompanyId&&<SeatList key={selectedCompanyId} companyId={selectedCompanyId}/>}</div>;}
+// Keep visited forms mounted so switching tabs preserves unsaved input.
+function DeferredSeatPanel({ active, children }: { active: boolean; children: ReactNode }) {
+ const [visited,setVisited]=useState(active);
+ useEffect(()=>{if(active)setVisited(true);},[active]);
+ return active||visited?children:null;
+}
+export function Seats(){const {selectedCompanyId}=useCompany();const {setBreadcrumbs}=useBreadcrumbs();const [params]=useSearchParams();useEffect(()=>setBreadcrumbs([{label:"席位管理"}]),[setBreadcrumbs]);
+ if(params.get("view")==="monthly"){
+  const month=params.get("month");
+  return <Navigate replace to={month?"/delivery-dashboard?"+new URLSearchParams({month}):"/delivery-dashboard"}/>;
+ }
+ return <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6"><header><h1 className="text-2xl font-semibold">席位管理</h1><p className="mt-2 text-sm text-muted-foreground">掌握电脑在线状态、工单执行进度与待处理决策。</p></header>{selectedCompanyId&&<SeatList key={selectedCompanyId} companyId={selectedCompanyId}/>}</div>;
+}
 function SeatList({companyId}:{companyId:string}){
  const {canManage}=useManagementAccess();
  const seats=useQuery({queryKey:["dsp7-registered-seats",companyId],queryFn:()=>dsp7SeatsApi.list(companyId),refetchInterval:5000});
@@ -51,7 +65,7 @@ function SeatList({companyId}:{companyId:string}){
  const scope=["all","mine"].includes(params.get("scope")??"")?params.get("scope")!:(canManage?"all":"mine");const setScope=(value:string)=>updateParam("scope",value);
  const [deletedMessage,setDeletedMessage]=useState("");
  const [onboarding,setOnboarding]=useState(false);const [advanced,setAdvanced]=useState(false);const search=params.get("q")??"";const filter=params.get("state")??"all";const setSearch=(value:string)=>updateParam("q",value);const setFilter=(value:string)=>updateParam("state",value);
- const scoped=(seats.data??[]).filter(s=>(scope!=="mine"||s.isMine)&&`${s.name} ${s.agentName} ${s.environmentName} ${s.owner?.name??""} ${s.owner?.email??""}`.toLowerCase().includes(search.toLowerCase()));
+ const scoped=(seats.data??[]).filter(s=>(scope!=="mine"||s.isMine)&&`${s.name} ${s.agentName} ${s.environmentName} ${s.owner?.name??""} ${seatOwnerEmail(s.owner?.email)}`.toLowerCase().includes(search.toLowerCase()));
  const matches=(s:RegisteredSeat,f:string)=>f==="all"||f==="ready"&&seatReadiness(s).ready||f==="attention"&&attention(s)||f==="online"&&s.online||f==="offline"&&!s.online||f==="busy"&&s.online&&s.presence?.state==="busy"||f==="waiting"&&s.online&&["waiting_decision","awaiting_local"].includes(s.presence?.state??"")||f==="idle"&&s.online&&s.presence?.state==="idle";
  const visible=scoped.filter(s=>matches(s,filter)).sort((a,b)=>Number(attention(b))-Number(attention(a))||Number(b.isMine)-Number(a.isMine)||Number(b.online)-Number(a.online)||a.name.localeCompare(b.name));
  const missingRequestedSeat=!!selected&&seats.isSuccess&&!seats.data.some(s=>s.agentId===selected);
@@ -60,7 +74,7 @@ function SeatList({companyId}:{companyId:string}){
  function openSeat(id:string){setFilter("all");setSearch("");setParams(previous=>{const next=new URLSearchParams(previous);next.set("scope","all");next.set("seat",id);next.set("view","work");return next;},{replace:true});}
  return <Tabs value={view} onValueChange={setView} className="space-y-4">
   <div className="flex flex-wrap items-center justify-between gap-3"><TabsList aria-label="席位工作区"><TabsTrigger value="work">运行工作台</TabsTrigger><TabsTrigger value="reports">统计分析</TabsTrigger>{canManage&&<TabsTrigger value="admin">接入与管理</TabsTrigger>}</TabsList><Link to="/help?section=seat-control" className="text-sm underline">使用帮助</Link></div>
-  <TabsContent value="work" forceMount hidden={view!=="work"} className="space-y-4">
+  <TabsContent value="work" forceMount hidden={view!=="work"} className="space-y-4"><DeferredSeatPanel active={view==="work"}>
    {deletedMessage&&<p role="status" className="text-sm">{deletedMessage}</p>}
    {missingRequestedSeat&&<p role="alert" className="text-sm text-destructive">指定席位不存在或当前账号无访问权限。请从列表明确选择其他席位。</p>}
    <div className="flex flex-wrap items-center gap-3"><Input className="w-full md:w-64" aria-label="搜索席位或负责人" value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索席位、电脑或负责人"/><select aria-label="席位范围" className={control+" md:w-auto"} value={scope} onChange={e=>setScope(e.target.value)}><option value="mine">我的席位</option><option value="all">全部可见席位</option></select><Button variant="outline" disabled={seats.isFetching} onClick={()=>void seats.refetch()}>{seats.isFetching?"正在同步…":"刷新状态"}</Button><span className="text-xs text-muted-foreground">每 5 秒同步 · {seats.dataUpdatedAt?`最近更新 ${new Date(seats.dataUpdatedAt).toLocaleTimeString("zh-CN")}`:"等待同步"}</span></div>
@@ -76,17 +90,20 @@ function SeatList({companyId}:{companyId:string}){
      {attention(s)&&<p className="text-sm text-foreground">{attentionLabel(s)}</p>}
      <div className="flex flex-wrap items-center justify-between gap-2 text-xs"><span className="text-muted-foreground">心跳 {relative(s.presence?.lastSeenAt)}</span>{s.online&&s.presence?.activeTaskId&&<Link className="relative z-10 font-medium underline focus-visible:outline-primary" to={`/issues/${s.presence.activeTaskId}`}>{s.presence.state==="waiting_decision"?"处理工单决策":"查看工单进度"}</Link>}</div>
     </div>;
-   })}</div><div className="min-w-0 lg:col-span-2">{seat&&<SeatDetail key={seat.agentId} companyId={companyId} seat={seat} onDeleted={()=>{setDeletedMessage(`已删除席位“${seat.name}”。`);setParams(previous=>{const next=new URLSearchParams(previous);next.delete("seat");return next;},{replace:true});}}/>}</div></div>
-  </TabsContent>
-  <TabsContent value="reports" forceMount hidden={view!=="reports"} className="space-y-4"><SeatObservability companyId={companyId} onSelectSeat={openSeat}/></TabsContent>
-  {canManage&&<TabsContent value="admin" forceMount hidden={view!=="admin"} className="space-y-4"><section className="space-y-3"><h2 className="text-lg font-semibold">电脑接入</h2><p className="text-sm text-muted-foreground">为新电脑登记席位；已有席位的接单、通知和设备设置在运行工作台的席位详情中修改。</p><Button variant="outline" onClick={()=>setOnboarding(!onboarding)} aria-expanded={onboarding}>{onboarding?"收起接入向导":"接入新电脑"}</Button>{(onboarding||seats.isSuccess&&!seats.data.length)&&<><QuickSeatConnect companyId={companyId}/><Button variant="ghost" onClick={()=>setAdvanced(!advanced)} aria-expanded={advanced}>高级 SSH 接入</Button>{advanced&&<EnrollmentWizard companyId={companyId}/>}</>}</section><SeatBotManager companyId={companyId}/><SeatNotificationGroupManager companyId={companyId}/></TabsContent>}
+   })}</div><div className="min-w-0 lg:col-span-2">{seat&&<SeatDetail key={seat.agentId} companyId={companyId} seat={seat} active={view==="work"} onDeleted={()=>{setDeletedMessage(`已删除席位“${seat.name}”。`);setParams(previous=>{const next=new URLSearchParams(previous);next.delete("seat");return next;},{replace:true});}}/>}</div></div>
+  </DeferredSeatPanel></TabsContent>
+  <TabsContent value="reports" forceMount hidden={view!=="reports"} className="space-y-4"><DeferredSeatPanel active={view==="reports"}><SeatObservability companyId={companyId} active={view==="reports"} onSelectSeat={openSeat}/></DeferredSeatPanel></TabsContent>
+  {canManage&&<TabsContent value="admin" forceMount hidden={view!=="admin"} className="space-y-4"><DeferredSeatPanel active={view==="admin"}><section className="space-y-3"><h2 className="text-lg font-semibold">电脑接入</h2><p className="text-sm text-muted-foreground">为新电脑登记席位；已有席位的接单、通知和设备设置在运行工作台的席位详情中修改。</p><Button variant="outline" onClick={()=>setOnboarding(!onboarding)} aria-expanded={onboarding}>{onboarding?"收起接入向导":"接入新电脑"}</Button>{(onboarding||seats.isSuccess&&!seats.data.length)&&<><QuickSeatConnect companyId={companyId}/><Button variant="ghost" onClick={()=>setAdvanced(!advanced)} aria-expanded={advanced}>高级 SSH 接入</Button>{advanced&&<EnrollmentWizard companyId={companyId}/>}</>}</section><SeatBotManager companyId={companyId}/><SeatNotificationGroupManager companyId={companyId}/></DeferredSeatPanel></TabsContent>}
   <details className="text-sm text-muted-foreground"><summary className="cursor-pointer">消息提醒设置</summary><BrowserNotice/></details>
  </Tabs>;
 }
-function SeatDetail({companyId,seat,onDeleted}:{companyId:string;seat:RegisteredSeat;onDeleted:()=>void}){
+function SeatDetail({companyId,seat,onDeleted,active:panelActive=true}:{companyId:string;seat:RegisteredSeat;onDeleted:()=>void;active?:boolean}){
  const {canOperate}=useManagementAccess();
- const cache=useQueryClient();const [busy,setBusy]=useState(false);const [error,setError]=useState<string|null>(null);const [message,setMessage]=useState("");const [confirm,setConfirm]=useState(false);const [tab,setTab]=useState("overview");const [showEnded,setShowEnded]=useState(false);
- const requests=useQuery({queryKey:["dsp7-seat-commands",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.commands(companyId,seat.agentId),refetchInterval:3000});
+ const [params,setParams]=useSearchParams();
+ const tab=["overview","intake","notifications","device"].includes(params.get("tab")??"")?params.get("tab")!:"overview";
+ function setTab(value:string){setParams(previous=>{const next=new URLSearchParams(previous);next.set("tab",value);return next;},{replace:true});}
+ const cache=useQueryClient();const [busy,setBusy]=useState(false);const [error,setError]=useState<string|null>(null);const [message,setMessage]=useState("");const [confirm,setConfirm]=useState(false);const [showEnded,setShowEnded]=useState(false);
+ const requests=useQuery({queryKey:["dsp7-seat-commands",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.commands(companyId,seat.agentId),enabled:panelActive,refetchInterval:panelActive?3000:false});
  async function action(work:()=>Promise<unknown>,feedback="请求已发送，请查看操作记录与本机反馈。"){if(busy)return;setBusy(true);setError(null);setMessage("");try{await work();await Promise.all([requests.refetch(),cache.invalidateQueries({queryKey:["dsp7-registered-seats",companyId]}),cache.invalidateQueries({queryKey:["jira-seat-dispatch",companyId,seat.agentId]})]);setMessage(feedback);}catch(e){setError(e instanceof Error?e.message:"操作失败");}finally{setBusy(false);}}
  const request=(kind:"check"|"refresh"|"start",taskId?:string)=>action(()=>dsp7SeatsApi.request(companyId,seat,kind,taskId,confirm||!!seat.presence?.tasks.find(t=>t.taskId===taskId)?.automatic));
  const active=seat.presence?.tasks.find(t=>t.taskId===seat.presence?.activeTaskId);const tasks=seat.presence?.tasks??[];const endedTasks=tasks.filter(t=>["done","cancelled"].includes(t.status));const queue=(showEnded?tasks:tasks.filter(t=>!["done","cancelled"].includes(t.status))).slice().sort((a,b)=>Number(b.taskId===seat.presence?.activeTaskId)-Number(a.taskId===seat.presence?.activeTaskId));
@@ -107,15 +124,15 @@ function SeatDetail({companyId,seat,onDeleted}:{companyId:string;seat:Registered
  <section className="space-y-3">{seat.presence?.activeRuns?.map(run=><p key={run.runId} className="text-sm"><Link className="underline" to={`/issues/${run.taskId}`}>{tasks.find(task=>task.taskId===run.taskId)?.jiraKey??"查看执行任务"}</Link> · {run.state==="waiting_decision"?"等待人工处理":"执行中"}</p>)}<div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-medium">工单队列</h3>{endedTasks.length>0&&<Button variant="ghost" onClick={()=>setShowEnded(!showEnded)}>{showEnded?"隐藏已结束":"显示已结束"}（{endedTasks.length}）</Button>}</div>{queue.some(t=>!t.automatic&&!["done","cancelled"].includes(t.status)&&!t.stoppedRunId&&t.taskId!==seat.presence?.activeTaskId)&&<label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={confirm} onChange={e=>setConfirm(e.target.checked)}/><span>已核对手工工单没有其他执行者。平台派单由系统核验。</span></label>}{!queue.length&&<p className="text-sm text-muted-foreground">{seat.dispatch?.enabled?"暂无已准备的工单；请到项目页点击“派单并执行”；Jira 指派不会自动入队。":"暂无已登记工单。请在接单设置中配置 平台派单执行。"}</p>}{queue.map(t=>{const current=t.taskId===seat.presence?.activeTaskId||!!seat.presence?.activeRuns?.some(run=>run.taskId===t.taskId);const reason=current?"":disabledReason(t);const execution=managementExecution({id:t.taskId,status:t.status},seat,false);const conclusion=managementConclusion({id:t.taskId,status:t.status},execution,seat.presence?.alerts.some(a=>a.taskId===t.taskId));return <div key={t.taskId} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border p-3 text-sm"><div><Link to={`/issues/${t.taskId}`} className="font-medium underline">{t.jiraKey}</Link><p className="text-muted-foreground">{t.mode==="replay"?"模拟验收":"正式开发"} · {t.automatic?"自动接单":"手工接入"} · 业务：{({backlog:"待准备",todo:"待执行",in_progress:"处理中",blocked:"已阻塞",done:"已完成",cancelled:"已取消"} as Record<string,string>)[t.status]??t.status}</p><p className="text-sm font-medium">{conclusion.label}</p></div><div className="space-y-1 text-right">{current?<Link className="underline" to={`/issues/${t.taskId}`}>{seat.online&&seat.presence?.state==="waiting_decision"?"处理工单决策":"查看执行过程"}</Link>:["done","cancelled"].includes(t.status)||t.stoppedRunId?<Link className="underline" to={`/issues/${t.taskId}`}>{t.stoppedRunId&&!endedTasks.includes(t)?"到工单恢复执行":"查看工单记录"}</Link>:<Button variant="outline" disabled={busy||!!reason} onClick={()=>void request("start",t.taskId)}>{t.automatic?"立即执行":"请求本机启动"}</Button>}{reason&&<p className="text-xs text-muted-foreground">{reason}</p>}</div></div>;})}</section>
  <details className="rounded-md border border-border p-3"><summary className="cursor-pointer text-sm font-medium">操作记录 · {requests.data?.length??0}</summary><div className="mt-3 space-y-3">{requests.isLoading&&<p className="text-sm">正在加载…</p>}{requests.error&&<p role="alert" className="text-sm text-destructive">{requests.error.message}</p>}{requests.data?.length===0&&<p className="text-sm text-muted-foreground">暂无操作记录。</p>}{requests.data?.slice(0,15).map(c=><div key={c.commandId} className="border-l-2 border-border pl-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-2"><p>{c.kind==="start"?"启动工单":c.kind==="check"?"检查配置":"更新设备登记"} · {commands[c.status]??c.status}</p>{["queued","awaiting_local"].includes(c.status)&&<Button variant="ghost" disabled={busy} onClick={()=>void action(()=>dsp7SeatsApi.cancel(companyId,seat.agentId,c.commandId),"请求已取消。")}>取消请求</Button>}</div><p className="text-muted-foreground">{c.message}</p><p className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</p>{c.taskId&&<Link className="underline" to={`/issues/${c.taskId}`}>查看工单</Link>}<details className="mt-1 text-xs text-muted-foreground"><summary className="cursor-pointer">请求标识</summary>{c.commandId}</details></div>)}</div></details>
  </TabsContent>
- <TabsContent value="intake" forceMount hidden={tab!=="intake"} className="space-y-4 pt-3"><SeatConcurrencySettings companyId={companyId} seat={seat}/><JiraSeatDispatch companyId={companyId} agentId={seat.agentId}/><details className="rounded-md border border-border p-3"><summary className="cursor-pointer text-sm font-medium">高级：手工登记工单的推进方式</summary><SeatPolicyEditor companyId={companyId} seat={seat} section="manual"/></details></TabsContent>
- <TabsContent value="notifications" forceMount hidden={tab!=="notifications"} className="pt-3"><SeatPolicyEditor companyId={companyId} seat={seat} section="notifications"/></TabsContent>
- <TabsContent value="device" forceMount hidden={tab!=="device"} className="pt-3"><SeatDevicePanel companyId={companyId} seat={seat} busy={busy} active={tab==="device"} onCheck={()=>void request("check")} onRefresh={()=>void request("refresh")} /></TabsContent>
+ <TabsContent value="intake" forceMount hidden={tab!=="intake"} className="space-y-4 pt-3"><DeferredSeatPanel active={panelActive&&tab==="intake"}><SeatConcurrencySettings companyId={companyId} seat={seat}/><SeatQingzhouAccount key={seat.agentId} companyId={companyId} seatId={seat.agentId}/><JiraSeatDispatch companyId={companyId} agentId={seat.agentId}/><details className="rounded-md border border-border p-3"><summary className="cursor-pointer text-sm font-medium">高级：手工登记工单的推进方式</summary><SeatPolicyEditor companyId={companyId} seat={seat} section="manual"/></details></DeferredSeatPanel></TabsContent>
+ <TabsContent value="notifications" forceMount hidden={tab!=="notifications"} className="pt-3"><DeferredSeatPanel active={panelActive&&tab==="notifications"}><SeatPolicyEditor companyId={companyId} seat={seat} section="notifications" active={panelActive&&tab==="notifications"}/></DeferredSeatPanel></TabsContent>
+ <TabsContent value="device" forceMount hidden={tab!=="device"} className="pt-3"><DeferredSeatPanel active={panelActive&&tab==="device"}><SeatDevicePanel companyId={companyId} seat={seat} busy={busy} active={panelActive&&tab==="device"} onCheck={()=>void request("check")} onRefresh={()=>void request("refresh")} /></DeferredSeatPanel></TabsContent>
  </Tabs></section>;
 }
 function SeatOwnershipEditor({companyId,seat}:{companyId:string;seat:RegisteredSeat}){
  const {canManage}=useManagementAccess();const cache=useQueryClient();const [editing,setEditing]=useState(false);const [owner,setOwner]=useState(seat.owner?.id??"");const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [message,setMessage]=useState("");
  async function save(){if(busy||!owner)return;setBusy(true);setError("");setMessage("");try{const result=await dsp7SeatsApi.assignOwner(companyId,seat.agentId,owner);await cache.invalidateQueries({queryKey:["dsp7-registered-seats",companyId]});await cache.invalidateQueries({queryKey:["jira-seat-dispatch",companyId,seat.agentId]});setEditing(false);setMessage(result.dispatchReset?"负责人已更新，请新负责人重新配置 Jira 接单和通知。":"负责人已确认。");}catch(e){setError(e instanceof Error?e.message:"负责人保存失败");}finally{setBusy(false);}}
- return <section className="space-y-3 rounded-md border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-medium">席位负责人：{seat.owner?.name??"待管理员指定"}</h3><p className="text-xs text-muted-foreground">{seat.owner?.email??"由管理员选择本组织的研发成员"} · 负责人可配置本席位的接单、通知和名称。</p></div>{canManage&&!editing&&<Button variant="outline" onClick={()=>{setOwner(seat.owner?.id??"");setError("");setMessage("");setEditing(true);}}>{seat.owner?"更换负责人":"指定负责人"}</Button>}</div>
+ return <section className="space-y-3 rounded-md border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-medium">席位负责人：{seat.owner?.name??"待管理员指定"}</h3><p className="text-xs text-muted-foreground">{seatOwnerEmail(seat.owner?.email)||(seat.owner?"未提供联系邮箱":"由管理员选择本组织的研发成员")} · 负责人可配置本席位的接单、通知和名称。</p></div>{canManage&&!editing&&<Button variant="outline" onClick={()=>{setOwner(seat.owner?.id??"");setError("");setMessage("");setEditing(true);}}>{seat.owner?"更换负责人":"指定负责人"}</Button>}</div>
  {canManage&&editing&&<div className="space-y-3"><SeatOwnerSelect companyId={companyId} value={owner} onChange={setOwner} disabled={busy}/><p className="text-sm text-muted-foreground">更换后，原负责人将失去配置权限；旧 平台派单执行、PAT 引用及通知设置将重置，由新负责人重新配置。有执行中或待决策任务时不能更换。</p><div className="flex items-center justify-between gap-3"><Button variant="outline" disabled={busy} onClick={()=>{setEditing(false);setError("");}}>取消</Button><Button disabled={busy||!owner} onClick={()=>void save()}>{busy?"正在保存…":"确认负责人"}</Button></div></div>}
  {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}{message&&<p role="status" className="text-sm">{message}</p>}</section>;
 }
@@ -140,12 +157,12 @@ function SeatNameEditor({companyId,seat}:{companyId:string;seat:RegisteredSeat})
  </form>:<Button variant="ghost" onClick={()=>{setName(seat.name);setError("");setMessage("");setEditing(true);}}>重命名</Button>}
  {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}{message&&<p role="status" className="text-sm text-muted-foreground">{message}</p>}</div>;
 }
-export function SeatPolicyEditor({companyId,seat,section}:{companyId:string;seat:RegisteredSeat;section:"manual"|"notifications"}){
+export function SeatPolicyEditor({companyId,seat,section,active=true}:{companyId:string;seat:RegisteredSeat;section:"manual"|"notifications";active?:boolean}){
  const cache=useQueryClient();const [policy,setPolicy]=useState<SeatPolicy>(seat.policy);const [keys,setKeys]=useState(seat.policy.jiraKeys.join(","));const [dirty,setDirty]=useState(false);const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");const [error,setError]=useState("");
- const bots=useQuery({queryKey:["dsp7-notification-bots",companyId],queryFn:()=>dsp7SeatsApi.bots(companyId),enabled:section==="notifications"});
- const groups=useQuery({queryKey:["dsp7-notification-groups",companyId],queryFn:()=>dsp7SeatsApi.groups(companyId),enabled:section==="notifications"});
- const deliveries=useQuery({queryKey:["dsp7-notification-deliveries",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.deliveries(companyId,seat.agentId),enabled:section==="notifications",refetchInterval:10000});
- const contacts=useQuery({queryKey:["dsp7-seat-contacts",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.contacts(companyId,seat.agentId),enabled:section==="notifications"});
+ const bots=useQuery({queryKey:["dsp7-notification-bots",companyId],queryFn:()=>dsp7SeatsApi.bots(companyId),enabled:active&&section==="notifications"});
+ const groups=useQuery({queryKey:["dsp7-notification-groups",companyId],queryFn:()=>dsp7SeatsApi.groups(companyId),enabled:active&&section==="notifications"});
+ const deliveries=useQuery({queryKey:["dsp7-notification-deliveries",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.deliveries(companyId,seat.agentId),enabled:active&&section==="notifications",refetchInterval:active?10000:false});
+ const contacts=useQuery({queryKey:["dsp7-seat-contacts",companyId,seat.agentId],queryFn:()=>dsp7SeatsApi.contacts(companyId,seat.agentId),enabled:active&&section==="notifications"});
  useEffect(()=>{if(!dirty){setPolicy(seat.policy);setKeys(seat.policy.jiraKeys.join(","));}},[seat.policy,dirty]);
  function edit(value:Partial<SeatPolicy>){setDirty(true);setPolicy({...policy,...value});}
  const chosenBot=bots.data?.find(b=>b.id===policy.dingtalk?.botId);

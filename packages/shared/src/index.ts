@@ -2776,12 +2776,12 @@ export { REMOTE_MCP_CONNECTOR_METHODS, isRemoteMcpConnectorId, isRemoteMcpConnec
 export { isRetiredComposioConnection, RETIRED_COMPOSIO_MESSAGE } from "./retired-composio.js";
 export * from "./managed-sessions.js";
 export * from "./jira-requirements.js";
-export type { DeliverySnapshotInput, DeliveryWorkItem, DeliveryPlan, DeliverySnapshot, DeliverySnapshotComparison, DeliveryEntryList, DeliveryEntryDetail } from "./delivery-intake.js";
+export type { DeliverySnapshotInput, DeliveryWorkItem, DeliveryJiraReviewResults, DeliveryPlan, DeliverySnapshot, DeliverySnapshotComparison, DeliveryEntryList, DeliveryEntryDetail, SeatMonthlyReport, SeatMonthlyRisk } from "./delivery-intake.js";
 export type { DeliveryPhaseTiming, DeliveryDomain, DeliveryUsage, DeliveryTaskInsight, DeliverySeatInsight, DeliveryInsights, DeliveryAcceptance } from "./delivery-insights.js";
 export { HARNESS_ROLES, harnessCapabilityInputSchema, harnessRepositorySchema } from "./harness-capabilities.js";
 export type { HarnessCapabilityInput, HarnessCapability, HarnessCapabilityRegistry, HarnessRepository } from "./harness-capabilities.js";
 export type { SeatExecutionPermit } from "./seat-execution-permits.js";
-export type { DeliveryConnection, DeliveryAdmission, DeliveryChainAdmission, DeliveryMonthlyEntries, DeliverySourceOrganization, DeliverySourceOrganizations } from "./delivery-connections.js";
+export type { DeliveryConnection, DeliveryAdmission, DeliveryChainAdmission, DeliveryMonthlyEntries, DeliverySourceOrganization, DeliverySourceOrganizations, DeliveryDemandLookup, DeliveryMonthlySyncRun, DeliveryMonthlySyncSchedule, DeliveryMonthlySyncState } from "./delivery-connections.js";
 export type { HarnessExecutionRoute } from "./harness-execution-route.js";
 export type { SeatRunControl } from "./seat-run-control.js";
 export * from "./analysis-executions.js";
@@ -2798,5 +2798,6 @@ export * from "./delivery-templates.js";
 export * from "./seat-upgrades.js";
 
 export * from "./seat-concurrency.js";
+export * from "./seat-qingzhou.js";
 
 export { DELIVERY_CHAIN_ADMISSION_LABELS } from "./delivery-connections.js";

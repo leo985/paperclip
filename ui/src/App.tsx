@@ -29,7 +29,6 @@ import { AuthPage } from "./pages/Auth";
 import { NotFoundPage } from "./pages/NotFound";
 import { useCompany } from "./context/CompanyContext";
 import { useDialogActions, useDialogState } from "./context/DialogContext";
-import { loadLastInboxTab } from "./lib/inbox";
 import {
   shouldRedirectCompanylessRouteToOnboarding,
 } from "./lib/onboarding-route";
@@ -76,16 +75,17 @@ const ChatEndpointSetup = routeWithSuspense(lazy(() => import("./pages/apps/chat
 const ChatEndpointDetail = routeWithSuspense(lazy(() => import("./pages/apps/chat/ChatEndpointDetail").then(m => ({ default: m.ChatEndpointDetail }))));
 
 const ManagementCenter = routeWithSuspense(lazy(() => import("./pages/ManagementCenter").then(m => ({ default: m.ManagementCenter }))));
-const AnalysisExecutions = routeWithSuspense(lazy(() => import("./pages/AnalysisExecutions").then(m => ({ default: m.AnalysisExecutions }))));
+const AnalysisExecutions = routeWithSuspense(lazy(() => import("./pages/AnalysisExecutions").then(m => ({ default: m.AnalysisExecutionsRedirect }))));
 const DeliveryIntake = routeWithSuspense(lazy(() => import("./pages/DeliveryEntries").then(m => ({ default: m.DeliveryEntries }))));
 const DeliveryWorkbench = routeWithSuspense(lazy(() => import("./pages/DeliveryWorkbench").then(m => ({ default: m.DeliveryWorkbench }))));
+const DeliveryDashboard = routeWithSuspense(lazy(() => import("./pages/DeliveryDashboard").then(m => ({ default: m.DeliveryDashboard }))));
 const JiraIntake = routeWithSuspense(lazy(() => import("./pages/JiraIntake").then(m => ({ default: m.JiraIntake }))));
 const ExecutionRecords = routeWithSuspense(lazy(() => import("./pages/ExecutionRecords").then(m => ({ default: m.ExecutionRecords }))));
 const Cases = routeWithSuspense(lazy(() => import("./pages/Cases").then(m => ({ default: m.Cases }))));
 const CaseDetail = routeWithSuspense(lazy(() => import("./pages/CaseDetail").then(m => ({ default: m.CaseDetail }))));
 const Seats = routeWithSuspense(lazy(() => import("./pages/Seats").then(m => ({ default: m.Seats }))));
 const Help = routeWithSuspense(lazy(() => import("./pages/Help").then(m => ({ default: m.Help }))));
-const Dashboard = routeWithSuspense(lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard }))));
+const Dashboard = routeWithSuspense(lazy(() => import("./pages/Workbench").then(m => ({ default: m.Workbench }))));
 const DashboardLive = routeWithSuspense(lazy(() => import("./pages/DashboardLive").then(m => ({ default: m.DashboardLive }))));
 const Timeline = routeWithSuspense(lazy(() => import("./pages/Timeline").then(m => ({ default: m.Timeline }))));
 const Companies = routeWithSuspense(lazy(() => import("./pages/Companies").then(m => ({ default: m.Companies }))));
@@ -185,6 +185,7 @@ function boardRoutes(streamlinedUiEnabled: boolean) {
       <Route path="delivery-chain" element={<DeliveryTemplates />} />
       <Route path="analysis-executions" element={<AnalysisExecutions />} />
       <Route path="delivery-workbench" element={<DeliveryWorkbench />} />
+      <Route path="delivery-dashboard" element={<DeliveryDashboard />} />
       <Route path="jira-intake" element={<JiraIntake />} />
       <Route path="runs" element={<ExecutionRecords />} />
       <Route path="help" element={<Help />} />
@@ -493,7 +494,7 @@ function AppsConnectEntryRoute({
 }
 
 function InboxRootRedirect() {
-  return <Navigate to={`/inbox/${loadLastInboxTab()}`} replace />;
+  return <FocusedInbox />;
 }
 
 function LegacySkillStudioRedirect() {
@@ -735,6 +736,7 @@ export function App() {
           <Route path="help" element={<UnprefixedBoardRedirect />} />
           <Route path="management" element={<UnprefixedBoardRedirect />} />
           <Route path="delivery" element={<UnprefixedBoardRedirect />} />
+          <Route path="delivery-dashboard" element={<UnprefixedBoardRedirect />} />
           <Route path="jira-intake" element={<UnprefixedBoardRedirect />} />
           <Route path="runs" element={<UnprefixedBoardRedirect />} />
           <Route path="seats" element={<UnprefixedBoardRedirect />} />

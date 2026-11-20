@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { createHash } from "node:crypto";
 import {
   analysisExecutions,
   analysisDecisions,
@@ -42,6 +43,10 @@ export function validateAnalysisDelivery(
     v.artifacts.find((a) => a.path === "handoff.md")?.sha256 !== v.handoffDigest
   )
     throw conflict("分析交付门禁或产物清单不完整");
+  if (v.analysisMarkdown !== undefined && (
+    Buffer.byteLength(v.analysisMarkdown, "utf8") > 120000 ||
+    createHash("sha256").update(v.analysisMarkdown).digest("hex") !== v.artifacts.find(a => a.path === "analysis.md")?.sha256
+  )) throw conflict("分析正文与已核验文件指纹不匹配，或正文超过 120 KB");
 }
 export async function assertAnalysisRun(
   db: Db,

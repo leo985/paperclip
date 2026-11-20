@@ -1,0 +1,97 @@
+{
+  "release": "20261108-entry-hierarchy-intake",
+  "status": "deployed",
+  "timestamp": "2026-11-08T01:37:31.421334+00:00",
+  "target": "http://10.60.43.53:3100",
+  "entry": "index-9391e24e.js",
+  "uiModule": "DeliveryEntries-949f3876.js",
+  "filesVerified": 329,
+  "backup": "/home/fg/paperclip/private/entry-hierarchy-intake-20261108/backup-20261108T013707Z",
+  "serverRestarted": false,
+  "service": "MainPID=65004\nActiveState=active",
+  "databaseChanged": false,
+  "clientChanged": false,
+  "envUnchanged": true,
+  "bridgeUnchanged": true,
+  "activeRunCountBefore": 0,
+  "activeRunCountAfter": 0,
+  "unauthenticatedCompaniesStatus": 403,
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "sourceHashes": {
+    "ui/src/components/DeliveryEntryMainIssues.tsx": "061d75afec028b10580888076d9f64f64542e027e0d132c7abb343087942cc58",
+    "ui/src/components/DeliveryEntryStages.tsx": "ba48b6a11210eae439c7200c855b1cb05e41771dea961f5922a08242591d7dc0",
+    "ui/src/components/Dsp7JiraIntake.tsx": "0eb4770b32929a4caa67ff579c9cd2b2c6b52c52b3499b81a03e1cc4fc944549",
+    "ui/src/pages/JiraIntake.tsx": "699ea0aaf58e2e133740b8aaeaa771a1187adbf89dbcec4a42b38ffade439cd2"
+  },
+  "verification": {
+    "linkedModules": 676,
+    "parentHierarchy": "passed",
+    "rowIntake": "passed",
+    "parentAnchor": "passed",
+    "uniqueOwnerDefault": "passed",
+    "multipleOwnerChoice": "passed",
+    "missingOwnerBlocked": "passed"
+  },
+  "browser-verification": {
+    "entry": "http://10.60.43.53:3100/assets/index-9391e24e.js",
+    "mains": "关联主工单\n\n条目 LYYL-00021 → Jira 主工单 → 各阶段子工单。主工单状态与负责人按当前来源快照展示。\n\nATSES-505103 · 产品功能需求\n\n杭州银行HZCB02接口需要支持薪资代发功能\n\n来源状态：研发中\n\n负责人：zhanh1955 詹浩\n\n关联子工单：9 张",
+    "links": [
+      {
+        "label": "接入工单 ATSES-513671",
+        "href": "/DSP/jira-intake?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=0f3b6dbd-a8cf-4963-8264-c8969780ae45&jiraKey=ATSES-513671"
+      }
+    ],
+    "parentLinks": [
+      {
+        "href": "#delivery-main-0f3b6dbd-a8cf-4963-8264-c8969780ae45-ATSES-505103",
+        "exists": true
+      },
+      {
+        "href": "#delivery-main-0f3b6dbd-a8cf-4963-8264-c8969780ae45-ATSES-505103",
+        "exists": true
+      }
+    ],
+    "intake": {
+      "url": "http://10.60.43.53:3100/DSP/jira-intake?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=0f3b6dbd-a8cf-4963-8264-c8969780ae45&jiraKey=ATSES-513671",
+      "key": "ATSES-513671",
+      "matching": [
+        "工单负责人未配置本项目可接单的授权席位，请在席位管理核对负责人、Jira 账号映射和接单设置。"
+      ],
+      "seatSelect": null,
+      "submitDisabled": true
+    }
+  },
+  "external-verification": {
+    "verified": 329,
+    "failures": [],
+    "retriedTransientFetchErrors": [
+      "sw.js",
+      "assets/useInboxBadge-56b04471.js",
+      "assets/useInboxBadge-d9a96041.js",
+      "assets/useProfilesData-bb9fa4ac.js",
+      "assets/useProfilesData-f0c40c96.js",
+      "assets/useSummaryDraftStream-71d98886.js",
+      "assets/useSummaryDraftStream-8ecbf794.js"
+    ]
+  },
+  "regressionTests": {
+    "passed": 62,
+    "files": 6
+  },
+  "uiTypecheck": "passed",
+  "tokenGates": "passed",
+  "businessTaskStarted": false
+}

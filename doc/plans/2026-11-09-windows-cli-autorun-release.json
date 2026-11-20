@@ -1,0 +1,71 @@
+{
+  "release": "20261109-windows-cli-autorun",
+  "files": {
+    "dsp7-install.py": "fbd327aba798a77553213ba69255df5ee4bf07e17d6d5fd240603030c6d48b3b",
+    "dsp7-bridge.zip": "c00dec1e36a15b7f499a4db2e158f44f86c681fe68c47023bd72ae789184e759",
+    "dsp7-bridge-manifest.json": "e9280308069ea59a622f84a8bd915c83ca7bd33a6f304cc718c87dfcf5e62121"
+  },
+  "expected": {
+    "dsp7-install.py": "e1ed0b4c810ead26ede0e8f5f59d1af2e3eaec11f2a3a70285fa75928d9af7f4",
+    "dsp7-bridge.zip": "41d09f937de15963e13c7f26f829901f3655244c30d9e635fe6a2343e9246ff5",
+    "dsp7-bridge-manifest.json": "b7a48ba5b6f3a0aa46cf204bf60af441609799a4d86eda4187aa3b99f81c5427"
+  },
+  "changedSources": [
+    "quick_install.py"
+  ],
+  "sha256": "c00dec1e36a15b7f499a4db2e158f44f86c681fe68c47023bd72ae789184e759",
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/windows-cli-autorun-20261109/backup-20261109T102233Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "service": "MainPID=65004\nActiveState=active",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "uiEntryUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "timestamp": "2026-11-09T10:22:34.776439+00:00",
+  "externalHttpVerified": [
+    "dsp7-install.py",
+    "dsp7-bridge.zip",
+    "dsp7-bridge-manifest.json"
+  ],
+  "tests": {
+    "total": 297,
+    "passed": 294,
+    "skipped": 3
+  },
+  "windowsAutoRunRegression": {
+    "reproducedOriginalFailure": true,
+    "originalProbeOutput": [
+      "Active code page: 65001",
+      "PAPERCLIP_SEAT_LAUNCHER_OK"
+    ],
+    "fixedNativeTestPassed": true,
+    "unicodeSpacePercentAmpersandPathVerified": true,
+    "nonzeroExitRejected": true,
+    "missingSuccessMarkerRejected": true,
+    "userPathAndAutoRunRestored": true
+  },
+  "fullFirstEnrollmentVerified": false,
+  "windowsPublishedPackageRegression": {
+    "passed": true,
+    "downloadedFrom": "http://10.60.43.53:3100/dsp7-bridge.zip",
+    "sha256": "c00dec1e36a15b7f499a4db2e158f44f86c681fe68c47023bd72ae789184e759",
+    "test": "test_windows_cli_native.py",
+    "durationSeconds": 4.752
+  }
+}

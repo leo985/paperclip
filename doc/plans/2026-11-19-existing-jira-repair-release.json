@@ -1,0 +1,61 @@
+{
+  "release": "delivery-reuse-repair-20261119",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-19T05:43:39.516289+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-reuse-repair-20261119/backup",
+  "uiOnly": false,
+  "serverRestarted": true,
+  "databaseBackup": {
+    "activeRuns": 0,
+    "backupFile": "/home/fg/paperclip/private/delivery-reuse-repair-20261119/backup/pre-delivery-reuse-repair-20261119-054227.sql.gz",
+    "sizeBytes": 18511865,
+    "prunedCount": 0
+  },
+  "backendPidBefore": 1881476,
+  "backendPidAfter": 1965337,
+  "health": "ok",
+  "httpFilesVerified": 347,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "b9126423d1c67b07a139f731e60abb7db6a5b2379fde70dd95401870d32b8edd",
+  "swSha256": "95f3355c58f7183e2d5722dcb94050a32a41b3d618a70b3d7fc48e6fa577d047",
+  "bridgeSha256": "978b86d4c737b3d934ff925963367dc7677ef914e55dbed2572e12f53206dd6c",
+  "autoUpgradeEnabled": false,
+  "installedFilesVerified": 355,
+  "verification": {
+    "retiredJiraCreationBlocked": true,
+    "retiredPathStatus": 409,
+    "networkCalls": 0,
+    "reusePolicyWithoutCreationTypesAccepted": true,
+    "anonymousApiStatus": 403,
+    "mockSimulationSelectedTestsPassed": 10,
+    "relatedRegressionTestsPassed": 66,
+    "additionalRouteTestsPassed": 4,
+    "packagedClientTestsPassed": 30,
+    "browser": {
+      "loginPage": "passed",
+      "publishedModulesImported": "passed",
+      "authenticatedPages": "not run: browser session expired"
+    },
+    "seatsBeforeRelease": 18,
+    "reuseRepairReadySeatsBeforeRelease": 0,
+    "seatUpgradeRequested": false,
+    "realWorkflowStarted": false,
+    "databaseMigration": false
+  },
+  "sourceSha256": {
+    "server/src/services/delivery-workflows.ts": "3ac642fb08263eee2faf14c502e79689ff839eeb36a7ef5d04590d6a127bdd88",
+    "server/src/services/delivery-automatic-repair.ts": "482684cff2a1afba2c4d03dbe28a2888c28dbe6c74cee0fea039fe03b3496f57",
+    "server/src/services/delivery-rework.ts": "125dd97e694b295f975e12256a1e32b5c76ee916d241f426f84e59d3514e8240",
+    "server/src/services/delivery-repair-jira.ts": "9dc43f1d47977cb62b03c878b5115e671c321c48bb470849155c5c3db336f4e2",
+    "server/src/services/delivery-automatic-plan.ts": "1bddcd1401c8db3bbb2c1da6666a92d3ff29f56e464cb4f7b28dabd541b84095",
+    "server/src/services/delivery-workflow-actions.ts": "15fc5dbec95d5207bfd2eb9d0ba602e90ad08015a355c790ae09cc2a4914c43c",
+    "packages/shared/src/delivery-templates.ts": "b7ec365e09dab2a334bda3b81869b93b17324044bf19e6d2b885087e5d5b700d",
+    "packages/shared/src/delivery-workflows.ts": "6c6eb377f900608e83376c81a22e49371c3536819e4b5901b754dc316596257f",
+    "ui/src/components/DeliveryRepairControls.tsx": "6c80020c3f12063db59b5350c94a187fd9aad62881f6da4ba56f4c0c3da36ab5",
+    "ui/src/pages/DeliveryTemplates.tsx": "e54e1a5d9af9744fcc54671f88416856f9bfb5593893ac9fa27f5e2bb2aba41d",
+    "integrations/dsp7-bridge/delivery_execution.py": "bf12cac44ea8cbadcbc136040bef20462cca1366b81ca619de05198cd0407041",
+    "integrations/dsp7-bridge/seat_control.py": "9b0ee5d099cc7708f367aafff9cd99b309c378d7c92cc288f2eaa5a8c5a8752f"
+  }
+}

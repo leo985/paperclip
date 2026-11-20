@@ -1,0 +1,140 @@
+{
+  "release": "20261112-task-stage",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-12T02:07:29.500407+00:00",
+  "backup": "/home/fg/paperclip/private/task-stage-20261112/backup-20261112T020627Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/task-stage-20261112/backup-20261112T020627Z/pre-task-stage-20261112-020627.sql.gz",
+    "sizeBytes": 9591382,
+    "sha256": "b89c5f90e7a5f04dce70ab90007898fa6f6ac829be2824bb9b0b965131ef13e6"
+  },
+  "migrations": [],
+  "filesVerified": 356,
+  "httpFilesVerified": 354,
+  "entry": "index-27a46636.js",
+  "uiModules": {
+    "taskStages": "UnifiedTaskDetail-6a1dfc01.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "forcedDeviceUpgrade": false,
+  "bridgeUnchanged": true,
+  "envUnchanged": true,
+  "authenticatedSeatAccountReads": [],
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/issues?view=compact",
+      "status": 401
+    }
+  ],
+  "activeBefore": [],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-12T02:06:57.992Z",
+    "completedAt": "2026-11-12T02:07:18.567Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 564667,
+    "newServerPid": 1141251,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "server/src/services/issue-delivery-stages.ts": "93b4ee5bcf4415657a7df132c3a8d55ec4eaf82ef6d7638163f648730c8465b6",
+    "ui/src/lib/issueDetailBreadcrumb.ts": "11341ccf3e5f4184209e955dd50b79d48aecf3bc7dfc4c95e5393ebaa72ab4f7",
+    "ui/src/api/analysis-executions.ts": "9862c3ae086dcff27a2528f50957953486616c0e0ce2df000f2cc3d0401dd73e",
+    "ui/src/api/managed-sessions.ts": "30a47185637573e95189c6da188448f6c1a433bc2fb3e5e48a80586d7a13f29a",
+    "ui/src/components/task-detail/TaskSessionSelection.tsx": "6031230a18749b44e71757b53c3fa815e63a3e5fc42dabffd64a2efed4f3a110",
+    "ui/src/components/HarnessExecutionOverview.tsx": "24ae325af2949cf49e9d3e5420ff339b022db2571f94f1e28f624f0b9cae90d8",
+    "ui/src/components/ManagedSessionPanel.tsx": "d7d79af703daaa984433064ec2adb4ea039a94f9fdfa9a5e89fab5114e2d927d",
+    "ui/src/components/task-detail/TaskIdentitySummary.tsx": "9d6fe0264a72333e4eb6a924fa94485d7bef44dae8e430234ede0108e26e2d71",
+    "ui/src/components/task-detail/TaskDetailLayout.tsx": "a4aee069a57250d0a18eaf3cf2aa286c2784baa09b98aa56517b7f6b559392e7",
+    "ui/src/components/AnalysisQingzhouWriteback.tsx": "7ef56d6c63398552ca949f21a790566b08e57baab532699cccec3187e8d7ff3d",
+    "ui/src/components/task-detail/AnalysisTaskDetail.tsx": "aa1279c9c85f53bae0c81be919d260fd0f7a84d015731b503913c86441c7e2c9",
+    "ui/src/components/task-detail/TaskExecutionDetail.tsx": "f6c27932d639be7b33bad634e92eacb21ba4acb9598707329a0fd87a69345b38",
+    "ui/src/lib/recent-tasks.ts": "15048cac8e6975590e0e782a0dc8b91b523bf9b6e4b074dd761c5bd384cd475f",
+    "ui/src/pages/UnifiedTaskDetailPage.tsx": "b91f1aaf6ff5f7c422273ef3e5d7931223f9566c90cc21dbfdc1649d059fddf0",
+    "ui/src/pages/AnalysisExecutions.tsx": "995babc85869bacc1f51d3a6d28b0056aca6bd96ac40d7dbd23002565a04b14f",
+    "ui/src/lib/task-delivery-stage.ts": "cd84267a7e2cd82a1b9b122904fcaa452e638a582adbdbc5322bb7779b31465c",
+    "ui/src/components/TaskCollections.tsx": "d1c940ec242b75a79dbc3c0c8f00af64f5d68b45eb15148e6636109b0f68e3c9",
+    "ui/src/lib/issue-management.ts": "40aa997c103be8c6def7a305d797a617d8772282d892d1c2986d4321544d433a",
+    "ui/src/hooks/useManagementIssues.ts": "f80b59139813b16e8063d92bd95a192ead896287ffa7e749e052059239879155",
+    "ui/src/components/IssueManagement.tsx": "6040dcdf93b8f0c94491739d155453dd85ecb5747a605c5e445763e7dbc2140b",
+    "packages/shared/src/delivery-workflows.ts": "eaba356f046081983d98180c14196ab4a3f650c9599853979d67abaf3c19e640"
+  },
+  "durationSeconds": 31.4,
+  "limitations": [
+    "Browser functional QA unavailable in this environment; read-only route and resource checks performed."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "readOnlyRouteSmoke": {
+    "mode": "live",
+    "injectedTestActor": true,
+    "databaseConnectionsReadOnly": true,
+    "mutationsPerformed": false,
+    "checks": [
+      {
+        "companyId": "f59bd1ed-2eff-4933-b3a7-1126473e706e",
+        "rows": 13,
+        "stages": {
+          "analysis": 1
+        },
+        "etagRevalidated": true,
+        "crossCompanyAssociationDenied": true,
+        "companyAccessDenied": true
+      },
+      {
+        "companyId": "bf49caa4-5d09-4f5c-b6ae-a5d80b90a5e8",
+        "rows": 1,
+        "stages": {},
+        "etagRevalidated": true,
+        "crossCompanyAssociationDenied": true,
+        "companyAccessDenied": true
+      }
+    ]
+  },
+  "frontendLinkVerification": {
+    "linkedModules": 683,
+    "scope": "task delivery stage filters and task navigation"
+  },
+  "browserVerification": {
+    "completed": false,
+    "reason": "ego lite failed to start (macOS Launch Services notification failure)"
+  },
+  "localVerification": {
+    "targetedTestsPassed": 52,
+    "postgresIntegrationTestsSkipped": 15,
+    "skipReason": "uv_os_get_passwd returned ENOENT",
+    "sharedBuild": true,
+    "uiTypecheck": true,
+    "serverDirectTypecheck": true,
+    "tokenGates": true,
+    "uiViteBuild": true
+  }
+}

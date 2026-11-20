@@ -1,0 +1,54 @@
+{
+  "release": "20261109-windows-cli-entry",
+  "files": {
+    "dsp7-install.py": "6e8779b35375c4fc9d33a77bd2ad59ab19b4a02f165151367141d9465b3bfacb",
+    "dsp7-bridge.zip": "7d90c84b96087fe0a1e59fb486f654672a2ff8f4c71cd94316165c2286b546b0",
+    "dsp7-bridge-manifest.json": "ad867269f8aabbad22d895f8f8c5a8006ace52dc4bf1bca3377e445a8ac2b0f7"
+  },
+  "expected": {
+    "dsp7-install.py": "06eb6f8bd9f364409c5d693d77e493bf9bf8857e29f7f7291afa8d0840dbc66f",
+    "dsp7-bridge.zip": "d14a862bda8af178b67f111166f72ea0ce5be96ba8b1db426af8035711bc4685",
+    "dsp7-bridge-manifest.json": "b2963cb889d5dd5a7cc5e6ad44568642d0545ac2d1f0b6072ad3d412d75784bc"
+  },
+  "changedSources": [
+    "harness_entry.py",
+    "quick_install.py",
+    "seat_upgrade.py"
+  ],
+  "sha256": "7d90c84b96087fe0a1e59fb486f654672a2ff8f4c71cd94316165c2286b546b0",
+  "status": "deployed",
+  "backup": "/home/fg/paperclip/private/windows-cli-20261109/backup-20261109T083845Z",
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "service": "MainPID=65004\nActiveState=active",
+  "serverRestarted": false,
+  "databaseChanged": false,
+  "autoUpgradeEnabled": false,
+  "existingClientsChanged": false,
+  "uiEntryUnchanged": true,
+  "unauthenticatedCompaniesStatus": 403,
+  "timestamp": "2026-11-09T08:38:45.567294+00:00",
+  "externalHttpVerified": [
+    "dsp7-install.py",
+    "dsp7-bridge.zip",
+    "dsp7-bridge-manifest.json"
+  ],
+  "tests": {
+    "total": 294,
+    "passed": 292,
+    "skipped": 2
+  },
+  "windowsFreshInstallVerified": false
+}

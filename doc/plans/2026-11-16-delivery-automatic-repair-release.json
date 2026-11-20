@@ -1,0 +1,48 @@
+{
+  "release": "delivery-auto-repair-20261116",
+  "status": "deployed",
+  "deployedAt": "2026-11-16T11:33:20.668581+00:00",
+  "target": "http://10.60.43.53:3100",
+  "filesVerified": 357,
+  "httpFilesVerified": 348,
+  "backendModules": 9,
+  "backendPidBefore": 860364,
+  "backendPidAfter": 864449,
+  "health": "ok",
+  "backup": "/home/fg/paperclip/private/delivery-auto-repair-20261116/backup",
+  "databaseBackup": {
+    "activeRuns": [],
+    "backupFile": "/home/fg/paperclip/private/delivery-auto-repair-20261116/backup/pre-delivery-auto-20261116-113158.sql.gz",
+    "sizeBytes": 15680164
+  },
+  "databaseMigration": false,
+  "protectedConfigurationUnchanged": true,
+  "anonymousApiDenied": true,
+  "bridgeSha256": "be4670d6015b9ea871e33fc81029b12c08ad68fe0e03be51588f1f659ecb3dac",
+  "autoUpgradeEnabled": false,
+  "productionJiraWrites": false,
+  "seatUpgradeRequested": false,
+  "backendLoadedAfterInstall": true,
+  "backendProcessStartedEpoch": 1794828768.17,
+  "latestBackendModuleInstalledEpoch": 1794828750.1039383,
+  "finalServiceActive": "active",
+  "externalHttpHealth": "ok",
+  "externalBridgeSha256Verified": true,
+  "features": [
+    "instance_prior_completions_without_template_change",
+    "opt_in_test_failure_automatic_repair_review_observed_build_retest"
+  ],
+  "verification": {
+    "targetedTests": "47 passed across 8 files",
+    "persistenceFlow": "passed",
+    "bridgePythonTests": "27 passed",
+    "serverAndUiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "knownExistingRouteTestFailures": 3,
+    "productionSeatJiraEndToEnd": "not run",
+    "fullRepositoryChecks": "not run: local cargo unavailable"
+  },
+  "activation": "Configure project automaticRepair policy, update relevant seat clients, and authorize new instance. Existing policies and seats were not changed.",
+  "skill": "/Users/leo/.codex/skills/remote-server-admin/SKILL.md"
+}

@@ -84,6 +84,8 @@ export type AttentionSortMode = "activity" | "decide";
 
 export interface AttentionFeedQuery {
   includeDismissed?: boolean;
+  /** Include archived feed entries whose underlying business source is still active. */
+  includeArchived?: boolean;
   archived?: boolean;
   /** Return the complete filtered snapshot in one response. */
   all?: boolean;

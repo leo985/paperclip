@@ -39,3 +39,11 @@ describe('delivery Jira assignee seat binding',()=>{
   const result=await readDeliveryJiraAssignments(db,'company','project',['DEV-1']);expect(deliverySeatMatchesAssignee(seat(),'project',result.get('DEV-1')!)).toBe(false);
  });
 });
+
+it('keeps an offline assignee seat selectable using its registered capabilities',()=>{
+ const offline=seat();
+ offline.adapterConfig.dsp7SeatPresence={lastSeenAt:new Date(0).toISOString(),state:'offline',acceptingWork:false};
+ const candidates=deliverySeatCandidates([offline],'project',assignment,'development','coding');
+ expect(candidates.map(s=>s.id)).toEqual([offline.id]);
+ expect(chooseDeliverySeat(candidates,undefined,'DEV-1')).toBe(offline.id);
+});

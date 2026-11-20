@@ -1,0 +1,33 @@
+{
+  "release": "seat-parent-groups-20261119",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-19T11:52:49.211631+00:00",
+  "backup": "/home/fg/paperclip/private/seat-parent-groups-20261119/backup",
+  "uiOnly": true,
+  "serverRestarted": false,
+  "databaseBackup": null,
+  "backendPidBefore": 2354896,
+  "backendPidAfter": 2354896,
+  "health": "ok",
+  "httpFilesVerified": 172,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "7bf156f32b3b2e5bc0431c9cb2f2f985ed940100d1e98acdfb8e6687a47dcd0b",
+  "swSha256": "03aada38ab05f87390e5998cb0e57c2e4ed29c2d22fe83f3a4e282fbcc41769e",
+  "bridgeSha256": "978b86d4c737b3d934ff925963367dc7677ef914e55dbed2572e12f53206dd6c",
+  "autoUpgradeEnabled": false,
+  "verification": {
+    "targetedTestsPassed": 6,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "externalIndexAndServiceWorkerHashes": "passed",
+    "externalGroupedComponent": "passed",
+    "authenticatedBrowser": "not run"
+  },
+  "sourceSha256": {
+    "ui/src/components/SeatMonthlyReport.tsx": "d28a78e0beb3922ecd33e879fa913b3b90cf44aa77643ba3ee373db923933a14",
+    "ui/src/lib/delivery-dashboard.ts": "e55b3c1785e59e82267a532665f2a2402044d2c609728621109d5a48d5cf183a"
+  }
+}

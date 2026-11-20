@@ -1,6 +1,12 @@
+import { validateReviewMaterials, requireReviewMaterials } from "../services/analysis-review-materials.js";
+import { acknowledgeStoppedAnalysisExecution } from "../services/analysis-execution-resume.js";
+import { analysisDispatchProblem, settleAnalysisDispatch } from "../services/analysis-dispatch-state.js";
+import { personalTaskScope, taskScopeCondition } from "../services/task-access-scope.js";
+import { isSeatOnline, seatDisplayName } from "../services/seat-presentation.js";
 import { seatCanAcceptWork } from "@paperclipai/shared";
 import { recordSeatStopIntent } from "../services/seat-execution-stop.js";
 import { randomUUID, createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { Router, type Request } from "express";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
@@ -20,6 +26,7 @@ import {
   analysisSnapshotSchema,
   analysisDeliverySchema,
   analysisQuestionSchema,
+  analysisQingzhouOptionsSchema,
   type AnalysisDelivery,
 } from "@paperclipai/shared";
 import { z } from "zod";
@@ -38,6 +45,9 @@ import {
   validateAnalysisDelivery,
 } from "../services/analysis-executions.js";
 import { containsCredential } from "../services/managed-sessions.js";
+import { writeAnalysisToQingzhou } from "../services/analysis-qingzhou-writeback.js";
+import { analysisQingzhouCredentials } from "../services/analysis-qingzhou-credentials.js";
+import { seatQingzhouLock } from "../services/seat-qingzhou.js";
 const uuid = z.string().uuid(),
   hash = (s: string) => createHash("sha256").update(s).digest("hex");
 export function analysisExecutionRoutes(db: Db) {
@@ -65,7 +75,7 @@ export function analysisExecutionRoutes(db: Db) {
       throw forbidden("发起和授权分析任务需要组织管理员权限");
     return c;
   }
-  async function record(req: Request, manage = false) {
+  async function findRecord(req: Request, manage = false) {
     const c = board(req, manage);
     const [t] = await db
       .select()
@@ -76,8 +86,18 @@ export function analysisExecutionRoutes(db: Db) {
           eq(analysisExecutions.id, String(req.params.executionId)),
         ),
       );
-    if (!t || (!isSeatManager(req, c) && t.ownerUserId !== req.actor.userId))
-      throw notFound("分析任务不存在或无权查看");
+    if (t) {
+      const scope = await personalTaskScope(db, req.actor, c);
+      if (scope) {
+        const [visible] = await db.select({ id: issues.id }).from(issues).where(and(eq(issues.companyId, c), eq(issues.id, t.id), taskScopeCondition(scope))).limit(1);
+        if (!visible) throw notFound("分析任务不存在或无权查看");
+      }
+    }
+    return t;
+  }
+  async function record(req: Request, manage = false) {
+    const t = await findRecord(req, manage);
+    if (!t) throw notFound("分析任务不存在或无权查看");
     return t;
   }
   async function audit(
@@ -130,18 +150,55 @@ export function analysisExecutionRoutes(db: Db) {
           return {
             id: a.id,
             // Match the seats list: prefer the registered seat name over the agent name.
-            name:
-              typeof seat?.name === "string" && seat.name ? seat.name : a.name,
+            name: seatDisplayName(a.name, seat),
             ownerUserId: seatOwnerId(seat),
             capabilityId: route?.capabilityId ?? null,
             profile: route?.capability.profile ?? null,
             clientReady:
               p?.capabilities?.includes("analysis-execution-v1") ?? false,
-            online:
-              !!p?.lastSeenAt && Date.now() - Date.parse(p.lastSeenAt) < 90000,
+            online: isSeatOnline(p),
           };
         }),
     );
+  });
+  router.get(base + "/pending-actions", async (req, res) => {
+    const c = board(req);
+    const scope = await personalTaskScope(db, req.actor, c);
+    const rows = await db.select({
+      id: analysisDecisions.id,
+      taskId: analysisExecutions.id,
+      projectId: analysisExecutions.projectId,
+      ownerUserId: analysisExecutions.ownerUserId,
+      seatId: analysisExecutions.seatId,
+      runId: analysisDecisions.runId,
+      key: analysisDecisions.key,
+      kind: analysisDecisions.kind,
+      title: analysisExecutions.title,
+      prompt: analysisDecisions.text,
+      createdAt: analysisDecisions.createdAt,
+    }).from(analysisDecisions)
+      .innerJoin(analysisExecutions, and(eq(analysisExecutions.id, analysisDecisions.executionId), eq(analysisExecutions.companyId, c)))
+      .innerJoin(issues, and(eq(issues.id, analysisExecutions.id), eq(issues.companyId, c)))
+      .innerJoin(heartbeatRuns, and(eq(heartbeatRuns.id, analysisExecutions.activeRunId), eq(heartbeatRuns.companyId, c)))
+      .where(and(
+        eq(analysisDecisions.companyId, c),
+        eq(analysisDecisions.status, "open"),
+        inArray(analysisDecisions.kind, ["question", "review"]),
+        eq(analysisDecisions.runId, analysisExecutions.activeRunId),
+        eq(heartbeatRuns.status, "running"),
+        sql`${analysisExecutions.delivery} is null`,
+        sql`${issues.status} not in ('done', 'cancelled')`,
+        taskScopeCondition(scope),
+      )).orderBy(desc(analysisDecisions.createdAt), desc(analysisDecisions.id));
+    // A replaced question with the same key must never become a second todo.
+    const seen = new Set<string>();
+    res.setHeader("Cache-Control", "no-store");
+    res.json(rows.filter(row => {
+      const key = `${row.taskId}:${row.runId}:${row.key}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }));
   });
   router.get(base, async (req, res) => {
     const c = board(req);
@@ -161,9 +218,7 @@ export function analysisExecutionRoutes(db: Db) {
           q.data.projectId
             ? eq(analysisExecutions.projectId, q.data.projectId)
             : undefined,
-          isSeatManager(req, c)
-            ? undefined
-            : eq(analysisExecutions.ownerUserId, req.actor.userId ?? ""),
+          sql`${analysisExecutions.id} in (select ${issues.id} from ${issues} where ${issues.companyId} = ${c} and ${taskScopeCondition(await personalTaskScope(db, req.actor, c))})`,
         ),
       )
       .orderBy(desc(analysisExecutions.createdAt))
@@ -185,14 +240,14 @@ export function analysisExecutionRoutes(db: Db) {
           )
       : [];
     res.json({
-      items: list
-        .slice(0, 25)
-        .map((t) => view(t, runs.find((r) => r.id === t.activeRunId)?.status)),
+      items: await Promise.all(list.slice(0, 25).map(async t => {
+        const projected = view(t, runs.find(r => r.id === t.activeRunId)?.status);
+        return await analysisDispatchProblem(db, t) ? { ...projected, state: "interrupted" } : projected;
+      })),
       hasMore: list.length > 25,
     });
   });
-  router.get(base + "/:executionId", async (req, res) => {
-    const t = await record(req);
+  async function detail(t: typeof analysisExecutions.$inferSelect) {
     const decisions = await db
       .select()
       .from(analysisDecisions)
@@ -214,8 +269,20 @@ export function analysisExecutionRoutes(db: Db) {
           .from(heartbeatRuns)
           .where(eq(heartbeatRuns.id, t.activeRunId))
       : [];
+    const dispatchProblem = await analysisDispatchProblem(db, t);
+    return { execution: { ...view(t, run?.status), ...(dispatchProblem ? { state: "interrupted" } : {}) }, decisions, run: run ?? null, dispatchProblem };
+  }
+  // Absence is explicit. Access failures and read failures must never select
+  // generic task controls as a fallback for an analysis task.
+  router.get(base + "/by-task/:executionId", async (req, res) => {
+    const t = await findRecord(req);
     res.setHeader("Cache-Control", "no-store");
-    res.json({ execution: view(t, run?.status), decisions, run: run ?? null });
+    res.json({ analysis: t ? await detail(t) : null });
+  });
+  router.get(base + "/:executionId", async (req, res) => {
+    const t = await record(req);
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await detail(t));
   });
   router.post(base, async (req, res) => {
     const c = board(req, true),
@@ -244,6 +311,8 @@ export function analysisExecutionRoutes(db: Db) {
           existing.projectId !== v.projectId ||
           existing.seatId !== v.seatId ||
           existing.createdBy !== (req.actor.userId ?? "local-board") ||
+          existing.demandNo !== (v.demandNo || null) ||
+          !isDeepStrictEqual(existing.qingzhouWriteback?.options ?? {}, v.qingzhouOptions ?? {}) ||
           existing.supersedesId !== (v.supersedesId ?? null)
         )
           throw conflict("请求编号已用于其他分析任务");
@@ -317,6 +386,7 @@ export function analysisExecutionRoutes(db: Db) {
           title: v.title,
           brief: v.brief,
           demandNo: v.demandNo || null,
+          qingzhouWriteback: v.demandNo ? { status: "pending", options: v.qingzhouOptions } : null,
         })
         .returning();
       await audit(
@@ -337,7 +407,15 @@ export function analysisExecutionRoutes(db: Db) {
     if (!parsed.success) throw badRequest("派发请求无效");
     const run = await dispatchAnalysisExecution(db,t,parsed.data.requestId,req.actor.userId ?? "local-board");
     const d=t;
-    res.json({ executionId: d.id, runId: run?.id ?? null, state: "queued" });
+    res.json({ executionId: d.id, runId: run?.id ?? null, state: run ? (["queued", "running", "scheduled_retry"].includes(run.status) ? run.status : "interrupted") : "queued" });
+  });
+  router.post(base + "/:executionId/qingzhou-writeback", async (req, res) => {
+    const task = await record(req, true);
+    const parsed = z.object({ options: analysisQingzhouOptionsSchema.optional() }).strict().safeParse(req.body);
+    if (!parsed.success) throw badRequest("请填写有效的轻舟回写参数");
+    if (!task.demandNo) throw badRequest("该分析任务未绑定轻舟条目");
+    const result = await writeAnalysisToQingzhou(db, task.companyId, task.id, { type: "user", id: req.actor.userId ?? "local-board" }, parsed.data.options);
+    res.json(result);
   });
   router.post(
     base + "/:executionId/decisions/:decisionId/answer",
@@ -383,6 +461,9 @@ export function analysisExecutionRoutes(db: Db) {
           d.runId !== fresh.activeRunId
         )
           throw conflict("问题版本或运行已变化，请刷新");
+        if (d.kind === "review" && p.data.answer === "approve") {
+          requireReviewMaterials(fresh.snapshot, d);
+        }
         await tx
           .update(analysisDecisions)
           .set({
@@ -574,6 +655,18 @@ export function analysisExecutionRoutes(db: Db) {
     return scope;
   }
   const callback = "/agents/:id/analysis-runs/:runId";
+  router.post(callback + "/qingzhou-credentials", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Pragma", "no-cache");
+    const result = await db.transaction(async tx => {
+      const initial = await device(req, tx as unknown as Db);
+      await tx.execute(seatQingzhouLock(initial.task.companyId, initial.task.seatId));
+      const scope = await live(tx as unknown as Db, req, initial.task.id);
+      if (req.body.demandNo !== scope.task.demandNo) throw forbidden("只能采集当前分析任务绑定的轻舟条目");
+      return analysisQingzhouCredentials(tx as unknown as Db, scope);
+    });
+    res.json(result);
+  });
   router.post(callback + "/context", async (req, res) => {
     const s = await device(req);
     res.setHeader("Cache-Control", "no-store");
@@ -585,6 +678,7 @@ export function analysisExecutionRoutes(db: Db) {
     if (!p.success || containsCredential(JSON.stringify(p.data)))
       throw badRequest("分析状态回执无效或包含凭据");
     validateAnalysisSnapshot(p.data, s.task);
+    validateReviewMaterials(p.data, s.run.id);
     if (s.task.delivery) throw conflict("本地交付已冻结，不接受运行状态覆盖");
     const route = s.permit.executionRoute;
     if (
@@ -593,11 +687,15 @@ export function analysisExecutionRoutes(db: Db) {
     )
       throw conflict("分析状态不属于固定能力");
     await db.transaction(async (tx) => {
-      await live(tx as unknown as Db, req, s.task.id);
+      const current = await live(tx as unknown as Db, req, s.task.id);
       await tx
         .update(analysisExecutions)
         .set({
-          snapshot: p.data,
+          snapshot: {
+            ...p.data,
+            ...(p.data.phase === "P3" && !p.data.reviewMaterials && current.task.snapshot?.reviewMaterials
+              ? { reviewMaterials: current.task.snapshot.reviewMaterials } : {}),
+          },
           state: req.body.waiting === true ? "waiting" : "running",
           updatedAt: new Date(),
         })
@@ -726,6 +824,7 @@ export function analysisExecutionRoutes(db: Db) {
     const s = await device(req),
       p = analysisDeliverySchema.safeParse(req.body.delivery);
     if (!p.success) throw badRequest("交付清单无效");
+    if (p.data.analysisMarkdown !== undefined && (!s.task.demandNo || containsCredential(p.data.analysisMarkdown))) throw badRequest("分析正文未绑定轻舟条目或疑似包含凭据，请先核对并脱敏");
     validateAnalysisDelivery(p.data, s.task);
     await db.transaction(async (tx) => {
       const scope = await live(tx as unknown as Db, req, s.task.id, true),
@@ -757,8 +856,12 @@ export function analysisExecutionRoutes(db: Db) {
         );
       if (pending) throw conflict("仍有未送达的分析决定");
       if (f.delivery) {
-        if (JSON.stringify(f.delivery) !== JSON.stringify(p.data))
+        const { analysisMarkdown: previousContent, ...previous } = f.delivery;
+        const { analysisMarkdown: nextContent, ...next } = p.data;
+        if (!isDeepStrictEqual(previous, next) || (previousContent !== undefined && nextContent !== undefined && previousContent !== nextContent))
           throw conflict("交付已冻结，请建立新修订");
+        // An upgraded client may supply the exact already-hashed analysis.md.
+        if (previousContent === undefined && nextContent !== undefined) await tx.update(analysisExecutions).set({ delivery: p.data }).where(eq(analysisExecutions.id, f.id));
         return;
       }
       await tx
@@ -768,7 +871,7 @@ export function analysisExecutionRoutes(db: Db) {
             Object.fromEntries(
               Object.entries(p.data).filter(
                 ([k]) =>
-                  !["inputDigest", "handoffDigest", "artifacts"].includes(k),
+                  !["inputDigest", "handoffDigest", "artifacts", "analysisMarkdown"].includes(k),
               ),
             ),
           ),
@@ -806,7 +909,8 @@ export function analysisExecutionRoutes(db: Db) {
         },
       );
     });
-    res.json({ received: true, formalPublication: false });
+    const qingzhouWriteback = s.task.demandNo ? await writeAnalysisToQingzhou(db, s.task.companyId, s.task.id, { type: "agent", id: s.agent.id }) : null;
+    res.json({ received: true, formalPublication: false, qingzhouWriteback });
   });
   return router;
 }
@@ -864,9 +968,8 @@ export async function dispatchAnalysisExecution(db:Db,t:typeof analysisExecution
           "派发结果尚未确认，请刷新并重试原派发请求，不能建立第二个执行器",
         );
       if (fresh.dispatchId === requestId) {
-        if (!oldRun || ["queued", "running"].includes(oldRun.status))
-          return fresh;
-        throw conflict("该派发请求已结束，恢复需新的请求编号");
+        if (oldRun && ["queued", "running", "scheduled_retry"].includes(oldRun.status)) return fresh;
+        if (oldRun) throw conflict("该派发请求已结束，恢复需新的请求编号");
       }
       if (
         oldRun &&
@@ -880,6 +983,7 @@ export async function dispatchAnalysisExecution(db:Db,t:typeof analysisExecution
         !seatCanAcceptWork(presence)
       )
         throw conflict("席位离线、配置异常或已暂停接单，请上线后重试");
+      await acknowledgeStoppedAnalysisExecution(tx as unknown as Db, { agent: seat, issue, actorId: actor });
       const route = resolveHarnessRoute(seat, {
         runId: randomUUID(),
         taskId: t.id,
@@ -926,7 +1030,13 @@ export async function dispatchAnalysisExecution(db:Db,t:typeof analysisExecution
       await tx.insert(activityLog).values({companyId:t.companyId,actorType:"user",actorId:actor,action:"analysis.dispatched",entityType:"analysis_execution",entityId:t.id,details:{dispatchId:requestId,revision:t.revision}});
       return updated;
     });
-    const run = await heartbeatService(db).wakeup(d.seatId, {
+    if (d.activeRunId) {
+      const [existing] = await db.select().from(heartbeatRuns).where(and(eq(heartbeatRuns.id, d.activeRunId), eq(heartbeatRuns.companyId, d.companyId), eq(heartbeatRuns.agentId, d.seatId)));
+      if (existing) return existing;
+    }
+    let run: typeof heartbeatRuns.$inferSelect | null = null;
+    let wakeFailure: unknown;
+    try { run = await heartbeatService(db).wakeup(d.seatId, {
       source: "automation",
       triggerDetail: "callback",
       reason: "智研需求分析授权启动；" + d.dispatchId,
@@ -948,16 +1058,6 @@ export async function dispatchAnalysisExecution(db:Db,t:typeof analysisExecution
         assigneeAgentId: d.seatId,
       },
     });
-    if (run)
-      await db
-        .update(analysisExecutions)
-        .set({ activeRunId: run.id, updatedAt: new Date() })
-        .where(
-          and(
-            eq(analysisExecutions.id, d.id),
-            eq(analysisExecutions.dispatchId, d.dispatchId!),
-          ),
-        );
-
- return run;
+    } catch (error) { wakeFailure = error; }
+    return settleAnalysisDispatch(db, { companyId: d.companyId, seatId: d.seatId, taskId: d.id, dispatchId: d.dispatchId!, actorId: actor }, run, wakeFailure);
 }

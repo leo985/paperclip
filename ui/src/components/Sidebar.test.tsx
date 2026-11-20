@@ -22,14 +22,16 @@ beforeEach(() => { state.canManage = false; state.collapsed = false; state.peeki
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); });
 async function render() { await act(async () => root.render(<TooltipProvider><Sidebar /></TooltipProvider>)); }
 it.each([
-  ["/dashboard", "我的工作台"], ["/inbox", "待处理中心"], ["/delivery", "需求条目"], ["/delivery-chain", "交付链"], ["/issues", "工单管理"],
-  ["/analysis-executions", "需求分析"], ["/delivery-workbench", "交付报表"], ["/projects", "项目"], ["/seats", "席位管理"],
+  ["/dashboard", "工作台"], ["/delivery", "需求条目"], ["/delivery-chain", "AI交付链"], ["/issues", "AI任务"],
+  ["/delivery-dashboard", "席位看板"], ["/delivery-workbench", "交付报表"], ["/projects", "项目"], ["/seats", "席位管理"],
   ["/runs", "执行记录"], ["/search", "搜索"], ["/help", "帮助中心"],
 ])("keeps %s reachable with its visible label", async (path, label) => { await render(); expect(container.querySelector(`nav a[href="${path}"]`)?.textContent).toContain(label); });
 it("shows management only to managers", async () => { await render(); expect(container.querySelector('a[href="/management"]')).toBeNull(); state.canManage = true; await render(); expect(container.querySelector('a[href="/management"]')?.textContent).toContain("管理中心"); });
 it("keeps brand, chooser and section navigation in the live shell", async () => { await render(); expect(container.querySelector('nav[aria-label="交付协同导航"]')).not.toBeNull(); expect(container.textContent).toContain("Company chooser"); expect(container.querySelector('aside')?.classList.contains("border-r")).toBe(true); });
-it("shows inbox count", async () => { await render(); expect(container.querySelector('a[href="/inbox"]')?.textContent).toContain("3"); });
+it("has one workbench entry and does not reuse the legacy inbox badge", async () => { await render(); expect(container.querySelector('a[href="/inbox"]')).toBeNull(); expect(container.querySelector('a[href="/dashboard"]')?.textContent).not.toContain("3"); });
 it("hides section headings in the rail and restores them while peeking", async () => { state.collapsed = true; await render(); expect(container.querySelectorAll("nav > p")).toHaveLength(0); state.peeking = true; await render(); expect(container.querySelectorAll("nav > p")).toHaveLength(3); });
-it("preserves accessible link names in the collapsed rail", async () => { state.collapsed = true; await render(); const inbox = container.querySelector('a[href="/inbox"]'); expect(inbox?.getAttribute("aria-label")).toContain("待处理中心"); });
+it("preserves accessible link names in the collapsed rail", async () => { state.collapsed = true; await render(); const workbench = container.querySelector('a[href="/dashboard"]'); expect(workbench?.getAttribute("aria-label")).toContain("工作台"); });
 it("closes the mobile drawer on navigation", async () => { state.isMobile = true; await render(); await act(async () => (container.querySelector('nav a[href="/issues"]') as HTMLAnchorElement).click()); expect(state.setSidebarOpen).toHaveBeenCalledWith(false); });
 it("leaves desktop navigation open", async () => { await render(); await act(async () => (container.querySelector('nav a[href="/issues"]') as HTMLAnchorElement).click()); expect(state.setSidebarOpen).not.toHaveBeenCalled(); });
+
+it("keeps analysis under tasks instead of a separate sidebar entry", async () => { await render(); expect(container.querySelector('a[href="/analysis-executions"]')).toBeNull(); });

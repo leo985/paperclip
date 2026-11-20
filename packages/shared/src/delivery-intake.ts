@@ -22,6 +22,9 @@ export interface DeliveryWorkItem {
   assignee: string;
   scheduled: boolean;
 }
+export interface DeliveryJiraReviewResults {
+  results: { jiraKey: string; description: string; url: string }[];
+}
 export interface DeliveryPlan {
   demandId: string;
   demandNo: string;
@@ -36,11 +39,55 @@ export interface DeliveryPlan {
   roles: { label: string; name: string }[];
   mains: { key: string; sourceId: string; title: string }[];
   items: DeliveryWorkItem[];
+  /** Months in which the demand appears in the project's Qingzhou monthly list. */
+  reportMonths?: string[];
+  /** Extracted from the same raw source as the snapshot, including when resynced. */
+  monthlyChildIssues?: {
+    jiraOrigin?: string;
+    issues: Record<string, {
+      dueDate: string | null;
+      deadlineSource: SeatMonthlyDeadlineSource;
+      account: string;
+      /** Undefined on snapshots collected before this Jira field was read. */
+      ownerAccount?: string | null;
+      done: boolean;
+      cancelled: boolean;
+    }>;
+  };
   scheduleCount: number;
   differences: { code: string; key: string; message: string }[];
   fingerprint: string;
   sourceMode: "manual_snapshot" | "online_readonly";
   executionAllowed: false;
+}
+export type SeatMonthlyDeadlineSource = "child" | "main" | "demand" | null;
+export type SeatMonthlyRisk = "done" | "on_track" | "due_soon" | "overdue" | "unscheduled";
+export interface SeatMonthlyReport {
+  month: string;
+  asOf: string;
+  seats: { id: string; name: string; ownerName: string | null; ownerUserId?: string | null }[];
+  issues: {
+    id: string;
+    key: string;
+    parentKey: string;
+    issueType: string;
+    jiraAssignee?: string;
+    title: string;
+    status: string;
+    projectId: string;
+    projectName: string;
+    demandNo: string;
+    snapshotId: string;
+    collectedAt: string;
+    dueDate: string | null;
+    deadlineSource: SeatMonthlyDeadlineSource;
+    seatIds: string[];
+    risk: SeatMonthlyRisk;
+    inMonth: boolean;
+    /** Independent of the deadline, including completed issues with no schedule. */
+    completed: boolean;
+    interrupted?: boolean;
+  }[];
 }
 export interface DeliverySnapshot {
   id: string;

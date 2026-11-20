@@ -1,0 +1,62 @@
+{
+  "release": "delivery-auto-start-20261117",
+  "status": "deployed",
+  "deployedAt": "2026-11-16T17:16:34.965924+00:00",
+  "target": "http://10.60.43.53:3100",
+  "filesVerified": 351,
+  "httpFilesVerified": 344,
+  "backendModules": 7,
+  "backendPidBefore": 1045579,
+  "backendPidAfter": 1206433,
+  "health": "ok",
+  "backup": "/home/fg/paperclip/private/delivery-auto-start-20261117/backup",
+  "databaseBackup": {
+    "activeRuns": [],
+    "backupFile": "/home/fg/paperclip/private/delivery-auto-start-20261117/backup/pre-delivery-auto-20261116-171523.sql.gz",
+    "sizeBytes": 15862070
+  },
+  "databaseMigration": false,
+  "protectedConfigurationUnchanged": true,
+  "anonymousApiDenied": true,
+  "bridgeSha256": "3342e5b1d6e1ca274fe850b88d9509df48cf3d618ed26b8f24435f8bb1d11bf1",
+  "autoUpgradeEnabled": false,
+  "productionJiraWrites": false,
+  "seatUpgradeRequested": false,
+  "indexSha256": "498f8c9ef0b5744e5b88fc6b7bc59d75a0d1e5a8bc17de37ce9f5d87a95ffd0f",
+  "swSha256": "e1b4b0e6c2145e16f53a3c7f329d909c30b9aed82ffcbaeaa40b051a28310454",
+  "verification": {
+    "targetedTests": 75,
+    "serverTypecheck": "passed",
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "apiContract": "147 routes verified locally",
+    "scopedUiGlobals": "passed",
+    "sourceWorktreeUnrelatedChangesExcluded": true,
+    "fullRepositoryTypecheckAndBuild": "blocked by absent cargo",
+    "productionExecutionAuthorized": false,
+    "externalHttp": "index/sw hashes and health passed",
+    "productionPreview": "authenticated 200; missing review coverage correctly blocks authorization",
+    "generatedApiContract": "local contracts verified; production legacy OpenAPI unchanged"
+  },
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/delivery?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=734bc43a-37c4-4c38-9a51-5e0bb253f08b&tab=work&reviewKey=ATSES-516505#delivery-workflow",
+    "automaticPlanVisible": true,
+    "text": "自动读取最新 Jira 子单，按项目模板生成依赖并匹配经办人席位。已有交付核验后复用；执行、人工启动与评审仍遵循项目策略。模板：设计评审与并行编码评审交付 · 版本 1 · 主工单：ATSES-516494查看未纳入的 1 张工单ATSES-516507：来源已取消或作废以下条件需要补齐：test-cases 的每张工作单须恰好关联一张评审单每张工作单必须且只能绑定一张本阶段评审单；共享评审请明确选择全部被审工单测试环境与待测构建引用ATSES-516504 的被审工单ATSES-516506 · 东阳国资-邮储代发PSBC01渠道上传文件增加收方联行号-编码ATSES-516505 的被审工单ATSES-516503 · 东阳国资-邮储代发PSBC01渠道上传文件增加收方联行号-系统设计重新生成计划授权并启动交付链",
+    "startDisabled": true,
+    "manualFormHidden": true,
+    "previewRequests": [
+      "http://10.60.43.53:3100/api/companies/f59bd1ed-2eff-4933-b3a7-1126473e706e/delivery-workflows/plan"
+    ],
+    "startedExecution": false
+  },
+  "apiVerification": {
+    "status": 200,
+    "ready": false,
+    "blockerCodes": [
+      "review_coverage",
+      "structure"
+    ],
+    "startedExecution": false
+  }
+}

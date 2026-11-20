@@ -48,7 +48,7 @@ export type ManagementConclusion = {
 export function managementConclusion(issue: WorkIdentity, execution: Execution, hasAlert = false): ManagementConclusion {
   if (execution.kind === "error") return { group: "attention", label: execution.label, nextAction: "核对本次运行与停止证据，在工单中决定是否恢复。", actionLabel: "查看原因与恢复条件", rank: 0 };
   if (execution.kind === "ended") return { group: "settled", label: "工单已结束，交付另行核验", nextAction: "查看交付材料和正式核验结论。", actionLabel: "查看交付证据", rank: 8 };
-  if (execution.kind === "waiting" || execution.kind === "local") return { group: "attention", label: execution.label, nextAction: execution.kind === "local" ? "由席位负责人在本机确认终端连接。" : "打开工单查看待决定的问题；正式需求决定沿用 Jira/Harness 流程。", actionLabel: "查看问题与处理方式", rank: 1 };
+  if (execution.kind === "waiting" || execution.kind === "local") return { group: "attention", label: execution.label, nextAction: execution.kind === "local" ? "由席位负责人在本机确认终端连接。" : "打开统一任务详情查看问题与评审材料，按页面提供的方式答复；本机工具权限仍在本机确认。", actionLabel: "查看问题与处理方式", rank: 1 };
   if (issue.status === "blocked" || hasAlert) return { group: "attention", label: issue.status === "blocked" ? "工单阻塞，待处理" : "执行有提醒，待核对", nextAction: "核对阻塞原因与执行证据，由负责人处理后确认结果。", actionLabel: "查看阻塞与下一步", rank: 2 };
   if (execution.kind === "offline") return { group: "attention", label: "席位离线，执行待核实", nextAction: "联系席位负责人检查电脑与连接；离线不证明进程已停止。", actionLabel: "查看工单与设备", rank: 3 };
   if (execution.kind === "running") return { group: "running", label: execution.label, nextAction: "查看执行过程与最新交付材料。", actionLabel: "查看执行", rank: 6 };

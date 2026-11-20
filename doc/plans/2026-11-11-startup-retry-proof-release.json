@@ -1,0 +1,104 @@
+{
+  "release": "20261111-startup-retry-proof",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "timestamp": "2026-11-11T07:17:34.188450+00:00",
+  "backup": "/home/fg/paperclip/private/startup-retry-proof-20261111/backup-20261111T071633Z",
+  "databaseBackup": {
+    "file": "/home/fg/paperclip/private/startup-retry-proof-20261111/backup-20261111T071633Z/pre-startup-retry-20261111-071633.sql.gz",
+    "sizeBytes": 8446995,
+    "sha256": "b4962e6481e51580999a4406e19552cb25149ab6f7da13e46b044e4c1132fa69"
+  },
+  "migrations": [],
+  "filesVerified": 3,
+  "httpFilesVerified": 2,
+  "entry": "index-2b674df1.js",
+  "uiModules": {
+    "executionStatus": "Dsp7ExecutionStatus-42442498.js"
+  },
+  "serverRestarted": true,
+  "databaseChanged": false,
+  "clientChanged": false,
+  "forcedDeviceUpgrade": false,
+  "bridgeUnchanged": true,
+  "envUnchanged": true,
+  "anonymousRequests": [
+    {
+      "path": "/api/companies",
+      "status": 403
+    },
+    {
+      "path": "/api/companies/00000000-0000-4000-8000-000000000000/dsp7-seats/00000000-0000-4000-8000-000000000001/qingzhou-account",
+      "status": 403
+    }
+  ],
+  "activeBefore": [],
+  "activeAfter": [],
+  "health": {
+    "status": "ok",
+    "deploymentMode": "authenticated",
+    "deploymentExposure": "private",
+    "localAiLoginSupported": true,
+    "commit": "8f8a0ab7effbd6a0584107d8038736c134ee5047",
+    "bootstrapStatus": "ready",
+    "bootstrapInviteActive": false,
+    "databaseBackup": {
+      "enabled": true,
+      "status": "ok",
+      "warnings": []
+    }
+  },
+  "hotRestartReport": {
+    "version": 1,
+    "requestedAt": "2026-11-11T07:17:01.967Z",
+    "completedAt": "2026-11-11T07:17:32.473Z",
+    "drainRequired": false,
+    "drainReason": null,
+    "previousServerPid": 198928,
+    "newServerPid": 214258,
+    "previousServerVersion": null,
+    "newServerVersion": "2026.1001.0",
+    "adoptedRunIds": [],
+    "finalizedWhileDownRunIds": [],
+    "lostRunIds": [],
+    "skippedRunIds": [],
+    "runs": []
+  },
+  "sourceHashes": {
+    "server/src/services/seat-startup-retry.ts": "456c6276dbb1ace1fc95efdb66ec6fa16ee2e29d70026301351fda64afc377e5"
+  },
+  "durationSeconds": 32.2,
+  "limitations": [
+    "No task was restarted as part of deployment; local startup success requires a real seat retry.",
+    "Route smoke used an injected test actor; no authenticated browser flow or live task retry was triggered."
+  ],
+  "rollbackPolicy": "Restore application files from backup/files; retain additive database migrations and their runtime journal; preserve all hashed UI assets.",
+  "readOnlyRouteSmoke": {
+    "mode": "live",
+    "injectedTestActor": true,
+    "mutationsPerformed": false,
+    "tasks": [
+      {
+        "identifier": "DSP-11",
+        "status": "in_progress",
+        "phase": "startup_failed",
+        "canRetryStartup": true,
+        "retryStartupBlockedReason": null
+      }
+    ]
+  },
+  "externalVerification": {
+    "health": "ok",
+    "installedHelperHash": "matched"
+  },
+  "localValidation": {
+    "regressionTestsPassed": 22,
+    "serverDirectTypecheck": "passed"
+  },
+  "diagnosis": {
+    "task": "DSP-11",
+    "jiraKey": "ATSES-491887",
+    "localProcessCheck": "registered Claude and wrapper PIDs absent; no task socket; seat heartbeat idle",
+    "cause": "Later no-model comment wake failures were incorrectly compared with the stopped proof for the latest real interactive session."
+  }
+}

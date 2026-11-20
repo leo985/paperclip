@@ -1,0 +1,41 @@
+{
+  "release": "delivery-coding-list-20261117",
+  "status": "deployed",
+  "target": "http://10.60.43.53:3100",
+  "deployedAt": "2026-11-17T00:57:32.979395+00:00",
+  "backup": "/home/fg/paperclip/private/delivery-coding-list-20261117/backup",
+  "uiOnly": true,
+  "serverRestarted": false,
+  "backendPidBefore": 1206433,
+  "backendPidAfter": 1206433,
+  "health": "ok",
+  "httpFilesVerified": 344,
+  "protectedConfigurationUnchanged": true,
+  "databaseMigration": false,
+  "indexSha256": "b9a53cd8c4cff8028b513fd0bcd24a06b490308143729c6c22712b2d3d4412fc",
+  "swSha256": "01238a2c4b96fab82b42889655185555ed5562a310cb75f2bf6a8400caad8cf7",
+  "browserVerification": {
+    "url": "http://10.60.43.53:3100/DSP/delivery?projectId=b4752dda-8cd7-45a7-9c3a-3bd7d11230d8&snapshotId=734bc43a-37c4-4c38-9a51-5e0bb253f08b&tab=work&reviewKey=ATSES-516505#delivery-workflow",
+    "codingRows": [
+      "ATSES-516506 · 东阳国资-邮储代发PSBC01渠道上传文件增加收方联行号-编码已完成 · 复用已有交付，启动时核验成果交付处理方式复用已有交付（不重复执行）重新执行成果核验说明启动时自动读取 Jira 最新完成状态、附件及评论，核验成果并记录版本依据；前置交付仍须满足，不重复派发该节点。"
+    ],
+    "codingIssueSelectors": 0,
+    "addButtons": 0,
+    "removeButtons": 0,
+    "mainGroups": [
+      "主工单 ATSES-516494"
+    ],
+    "stableAfterModeSwitch": true,
+    "startedExecution": false
+  },
+  "verification": {
+    "uiTests": 19,
+    "uiTypecheck": "passed",
+    "uiBuild": "passed",
+    "tokenGates": "passed",
+    "externalEntryHashes": "passed",
+    "nativeUiGlobals": "passed",
+    "fullRepositoryChecks": "not run; UI-only correction"
+  },
+  "behavior": "Coding children are shown once per source identity grouped by main issue. No manual add/remove/reselect controls. The selected main includes every active coding child. Cancelled children are read-only. Historical deliveries and seat matching preserved."
+}

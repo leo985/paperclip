@@ -11,6 +11,7 @@ from unittest.mock import patch, Mock
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import seat_profiles as profiles
 import quick_install
+import platform_support
 
 class ProfilesTests(unittest.TestCase):
     def setUp(self):
@@ -77,12 +78,64 @@ class ProfilesTests(unittest.TestCase):
         os.environ['LOCALAPPDATA']=str(self.home/'AppData')
         binroot=self.home/'AppData/ZhiyanSeat/bin';binroot.mkdir(parents=True)
         default=binroot/'harness.cmd';default.write_bytes(b'original Windows command')
-        with patch.object(sys,'platform','win32'),patch('platform_support.powershell'):
+        with patch.object(sys,'platform','win32'),patch('platform_support.powershell') as shell:
             quick_install.install_cli(self.home,self.home/'bridge')
         launcher=binroot/(profiles.cli_name()+'.cmd')
         self.assertEqual(default.read_bytes(),b'original Windows command')
-        self.assertIn('set "DSP7_BRIDGE_CONFIG='+str(second)+'"',launcher.read_text())
-        self.assertIn(str(self.home/'bridge/harness_entry.py'),launcher.read_text())
+        import base64
+        env=shell.call_args_list[0].kwargs['env'];content=base64.b64decode(env['PAPERCLIP_SEAT_LAUNCHER']).decode()
+        self.assertEqual(env['PAPERCLIP_SEAT_ENTRY'],str(launcher))
+        self.assertIn('set "DSP7_BRIDGE_CONFIG='+str(second)+'"',content)
+        self.assertIn(str(self.home/'bridge/harness_entry.py'),content)
+        self.assertIn('[IO.File]::WriteAllBytes',shell.call_args_list[0].args[0])
+        self.assertIn('Get-Command',shell.call_args_list[0].args[0])
+
+    def test_launcher_probe_runs_without_seat_configuration(self):
+        import subprocess
+        result=subprocess.run([sys.executable,str(Path(quick_install.__file__).with_name('harness_entry.py')),'--verify-seat-launcher'],capture_output=True,text=True,env={**os.environ,'DSP7_BRIDGE_CONFIG':str(self.home/'missing.json')})
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(result.stdout.strip(),'PAPERCLIP_SEAT_LAUNCHER_OK')
+
+    def test_windows_launcher_failure_never_reports_installation_complete(self):
+        import subprocess
+        import contextlib
+        import io
+        output=io.StringIO()
+        failure=subprocess.CalledProcessError(1,['powershell.exe'])
+        with patch.object(sys,'platform','win32'),patch('platform_support.powershell',side_effect=failure),contextlib.redirect_stdout(output):
+            with self.assertRaisesRegex(RuntimeError,'不能视为安装完成'):
+                quick_install.install_cli(self.home,self.home/'bridge')
+        self.assertNotIn('已通过原生 PowerShell',output.getvalue())
+
+    def test_windows_launcher_failure_reports_only_known_stage(self):
+        import subprocess
+        for code in ('FILES','OWNERSHIP','WRITE','PATH','DISCOVERY','EXECUTION'):
+            with self.subTest(code=code):
+                failure=subprocess.CalledProcessError(1,['powershell.exe'],stderr='secret-token\nPAPERCLIP_SEAT_CLI_ERROR:'+code)
+                with patch.object(sys,'platform','win32'),patch('platform_support.powershell',side_effect=failure):
+                    with self.assertRaisesRegex(RuntimeError,code) as raised:
+                        quick_install.install_cli(self.home,self.home/'bridge')
+                self.assertNotIn('secret-token',str(raised.exception))
+
+    def test_windows_desktop_notification_timeout_does_not_fail_installation(self):
+        import contextlib
+        import io
+        import subprocess
+        output=io.StringIO()
+        with patch.object(sys,'platform','win32'),patch('platform_support.powershell',side_effect=[Mock(stdout=''),subprocess.TimeoutExpired(['powershell.exe'],3)]) as shell,contextlib.redirect_stdout(output):
+            quick_install.install_cli(self.home,self.home/'bridge')
+        self.assertEqual(shell.call_args.kwargs['timeout'],3)
+        self.assertIn('不影响安装',output.getvalue())
+        self.assertIn('已通过原生 PowerShell',output.getvalue())
+
+    def test_windows_launcher_prints_immediate_absolute_command(self):
+        import contextlib
+        import io
+        output=io.StringIO()
+        with patch.object(sys,'platform','win32'),patch('platform_support.powershell'),contextlib.redirect_stdout(output):
+            quick_install.install_cli(self.home,self.home/'bridge')
+        self.assertIn('完全退出终端后重新打开',output.getvalue())
+        self.assertIn('harness.cmd" doctor',output.getvalue())
 
     def test_windows_task_names_and_arguments_isolate_profile(self):
         import install_service

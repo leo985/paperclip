@@ -15,6 +15,18 @@ async function mount(props:Partial<Parameters<typeof DeliveryMonthlyBulkSync>[0]
  return {node,readMonth,syncEntry,onBusyChange,click:async(text:string)=>{const b=[...node.querySelectorAll("button")].find(b=>b.textContent?.startsWith(text));expect(b).toBeDefined();await act(async()=>b!.click());}};
 }
 describe("sync the full current month",()=>{
+ it("counts new source versions and unchanged entries across retries and resets for a new run",async()=>{
+  let fail=true;
+  const syncEntry=vi.fn(async(key:string)=>{if(key==="ATS3-3"&&fail)throw new Error("来源暂不可达");return {existing:key==="ATS3-2"};});
+  const {node,click}=await mount({readMonth:async()=>["ATS3-1","ATS3-2","ATS3-3"],syncEntry});
+  await click("一键同步本月全部");
+  expect(node.textContent).toContain("新增来源版本 1 · 来源未变化 1");
+  fail=false;await click("重试失败及未完成");
+  expect(node.textContent).toContain("新增来源版本 2 · 来源未变化 1");
+  syncEntry.mockImplementation(async()=>({existing:true}));
+  await click("一键同步本月全部");
+  expect(node.textContent).toContain("新增来源版本 0 · 来源未变化 3");
+ });
  it("rereads and syncs the entire distinct month including more than 20 entries",async()=>{
   const keys=Array.from({length:25},(_,i)=>`ATS3-${i+1}`);const syncEntry=vi.fn(async(_key:string)=>({existing:true}));
   const readMonth=vi.fn(async()=>[...keys,keys[0]!]);const {node,click}=await mount({readMonth,syncEntry});

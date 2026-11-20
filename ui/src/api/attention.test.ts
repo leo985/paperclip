@@ -42,4 +42,9 @@ describe("attentionApi.list", () => {
 
     expect(mockApi.get).toHaveBeenCalledWith("/companies/company-1/attention");
   });
+
+  it("includes still-active business actions even when their notification was archived or dismissed", async () => {
+    await attentionApi.list("company-1", { all: true, includeDismissed: true, includeArchived: true });
+    expect(mockApi.get).toHaveBeenCalledWith("/companies/company-1/attention?includeDismissed=true&includeArchived=true&all=true");
+  });
 });

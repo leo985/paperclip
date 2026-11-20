@@ -1,7 +1,7 @@
 import { uiText } from "@/i18n/interface";
 import type { Issue } from "@paperclipai/shared";
 
-type IssueDetailSource = "issues" | "inbox";
+type IssueDetailSource = "issues" | "inbox" | "analysis";
 
 type IssueDetailBreadcrumb = {
   label: string;
@@ -50,7 +50,7 @@ function isIssueDetailBreadcrumb(value: unknown): value is IssueDetailBreadcrumb
 }
 
 function isIssueDetailSource(value: unknown): value is IssueDetailSource {
-  return value === "issues" || value === "inbox";
+  return value === "issues" || value === "inbox" || value === "analysis";
 }
 
 function isIssueDetailHeaderSeed(value: unknown): value is IssueDetailHeaderSeed {
@@ -137,12 +137,15 @@ function inferIssueDetailSource(
   if (isIssueDetailSource(state?.issueDetailSource)) return state.issueDetailSource;
   if (!breadcrumb) return null;
   if (breadcrumb.label === "Inbox" || breadcrumb.href.includes("/inbox")) return "inbox";
+  if (breadcrumb.href.includes("taskType=analysis")) return "analysis";
   if (breadcrumb.label === "Tasks" || breadcrumb.href.includes("/issues")) return "issues";
+  if (breadcrumb.href.includes("/analysis-executions")) return "analysis";
   return null;
 }
 
 function breadcrumbForSource(source: IssueDetailSource): IssueDetailBreadcrumb {
   if (source === "inbox") return { label: uiText("Inbox"), href: "/inbox" };
+  if (source === "analysis") return { label: "需求分析", href: "/issues?taskType=analysis" };
   return { label: uiText("Tasks"), href: "/issues" };
 }
 

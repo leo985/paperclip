@@ -1,0 +1,38 @@
+{
+  "name": "delivery-plan-entry",
+  "ui": [
+    {
+      "markers": [
+        "function DeliveryWorkflowPanel({",
+        "一键交付条目",
+        "生成交付计划"
+      ],
+      "replacements": [
+        {
+          "from": "  const sharedAnalysisDone = !flow?.stages.some((stage) => stage.stage === \"analysis\" && stage.state !== \"done\");",
+          "to": "  const savedPlan = useQuery({\n    queryKey: [\"delivery-plan-preview\", companyId, snapshot.id],\n    queryFn: () => api.get(\"/companies/\" + companyId + \"/delivery-workflows/plan?snapshotId=\" + encodeURIComponent(snapshot.id)),\n    enabled: canOpenPlan && workflows.isSuccess && !flow\n  });\n  const canShowPlan = (canOpenPlan && workflows.isSuccess) || !!flow?.stages.length;\n  const checkingPlan = !flow && (savedPlan.isPending || (savedPlan.isFetching && !savedPlan.data));\n  const planLookupFailed = !flow && savedPlan.isError && !savedPlan.data;\n  const planLabel = flow || savedPlan.data ? \"查看计划\"\n    : checkingPlan ? \"正在读取交付计划…\"\n      : planLookupFailed ? \"重试读取交付计划\" : \"生成交付计划\";\n  const sharedAnalysisDone = !flow?.stages.some((stage) => stage.stage === \"analysis\" && stage.state !== \"done\");"
+        },
+        {
+          "from": ": \"一键交付条目\" }),",
+          "to": ": \"交付计划\" }),"
+        },
+        {
+          "from": "canOpenPlan && /* @__PURE__ */ jsx(Button, { onClick: () => setExpanded(!expanded), variant: \"outline\", children: expanded ? \"收起计划\" : flow ? \"查看并补齐主工单计划\" : \"生成交付计划\" })",
+          "to": "canShowPlan && /* @__PURE__ */ jsx(Button, {\n            variant: \"outline\",\n            disabled: !expanded && checkingPlan,\n            onClick: () => {\n              if (!expanded && planLookupFailed) void savedPlan.refetch();\n              else setExpanded(!expanded);\n            },\n            children: expanded ? \"收起计划\" : planLabel\n          })"
+        },
+        {
+          "from": "children: \"尚未启动。生成并查看自动交付计划后，授权启动。\"",
+          "to": "children: \"尚未启动。\" + (savedPlan.data ? \"查看交付计划后，授权启动。\" : \"\")"
+        },
+        {
+          "from": "expanded && canOpenPlan && /* @__PURE__ */ jsx(AutomaticDeliveryStart, { companyId, snapshot, environmentReference: flow?.config.environmentReference, workflow: flow }",
+          "to": "expanded && canShowPlan && /* @__PURE__ */ jsx(AutomaticDeliveryStart, { companyId, snapshot, environmentReference: flow?.config.environmentReference, workflow: flow, readOnly: !canOpenPlan }"
+        },
+        {
+          "from": "    onSuccess: (next) => {\n      setResult(next);",
+          "to": "    onSuccess: (next) => {\n      qc.setQueryData([\"delivery-plan-preview\", companyId, snapshot.id], next);\n      setResult(next);"
+        }
+      ]
+    }
+  ]
+}

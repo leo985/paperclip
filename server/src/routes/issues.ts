@@ -1,3 +1,6 @@
+import { assertDeliveryTaskMutation, assertDeliveryTaskCheckout, assertNoDeliveryTaskLifecycle } from "../services/delivery-workflow-actions.js";
+import { personalTaskScope, type PersonalTaskScope } from "../services/task-access-scope.js";
+import { listIssueDeliveryStages } from "../services/issue-delivery-stages.js";
 import { dsp7SeatRoutes } from "./dsp7-seats.js";
 import { queuedInteractionId, readQueuedInteractionResponse, hasQueuedInteractionResponse } from "../services/queued-interaction-response.js";
 import { deliverConversationComments, isConversation } from "../services/agent-conversations.js";
@@ -466,10 +469,12 @@ type CompanySearchService = {
   extract(
     companyId: string,
     query: CompanySearchExtractQuery,
+    taskScope?: PersonalTaskScope,
   ): Promise<CompanySearchExtractResponse>;
   search(
     companyId: string,
     query: CompanySearchQuery,
+    taskScope?: PersonalTaskScope,
   ): Promise<CompanySearchResponse>;
 };
 type ActivityIssueRelationSummary = {
@@ -2980,6 +2985,7 @@ function toCompactIssue(issue: any): CompactIssue {
   return {
     id: issue.id,
     companyId: issue.companyId,
+    deliveryStages: issue.deliveryStages,
     projectId: issue.projectId,
     projectWorkspaceId: issue.projectWorkspaceId,
     goalId: issue.goalId,
@@ -7841,6 +7847,7 @@ export function issueRoutes(
     const result = await getSearchService().extract(
       companyId,
       parsedQuery.data,
+      await personalTaskScope(db, req.actor, companyId),
     );
     res.json(result);
   });
@@ -7889,7 +7896,7 @@ export function issueRoutes(
       });
       return;
     }
-    const result = await getSearchService().search(companyId, query);
+    const result = await getSearchService().search(companyId, query, await personalTaskScope(db, req.actor, companyId));
     res.json(result);
   });
 
@@ -8080,6 +8087,7 @@ export function issueRoutes(
     const offset = parsedOffset ?? 0;
 
     const listFilters: IssueFilters = {
+      taskScope: await personalTaskScope(db, req.actor, companyId),
       attention: attention === "blocked" ? "blocked" : undefined,
       status: req.query.status as string | string[] | undefined,
       assigneeAgentId,
@@ -8146,9 +8154,10 @@ export function issueRoutes(
           : await filterIssuesForActor(req, rawResult);
         const issueIds = result.map((issue) => issue.id);
         if (compactView) {
-          const [handoffStates, recoveryActionByIssue] = await Promise.all([
+          const [handoffStates, recoveryActionByIssue, deliveryStages] = await Promise.all([
             listSuccessfulRunHandoffStates(db, companyId, issueIds),
             recoveryActionsSvc.listActiveForIssues(companyId, issueIds),
+            listIssueDeliveryStages(db, companyId, issueIds),
           ]);
           const actor = getActorInfo(req);
           await Promise.all(
@@ -8169,6 +8178,7 @@ export function issueRoutes(
           const compactResult = result.map((issue) =>
             toCompactIssue({
               ...issue,
+              deliveryStages: deliveryStages.get(issue.id) ?? [],
               activeRecoveryAction: recoveryActionByIssue.get(issue.id) ?? null,
               successfulRunHandoff: handoffStates.get(issue.id) ?? null,
             }),
@@ -8308,6 +8318,7 @@ export function issueRoutes(
     }
 
     const blockedCountFilters = {
+      taskScope: await personalTaskScope(db, req.actor, companyId),
       attention: "blocked",
       status: req.query.status as string | string[] | undefined,
       assigneeAgentId: req.query.assigneeAgentId as string | undefined,
@@ -12758,6 +12769,7 @@ export function issueRoutes(
         "Issue not found",
       );
       if (!existing) return;
+      await assertDeliveryTaskMutation(db, existing, req.body);
       assertNoAgentHostWorkspaceCommandMutation(
         req,
         collectIssueWorkspaceCommandPaths(req.body),
@@ -14964,6 +14976,7 @@ export function issueRoutes(
       "Issue not found",
     );
     if (!existing) return;
+    await assertNoDeliveryTaskLifecycle(db, existing.companyId, existing.id);
     if (!(await assertAgentIssueMutationAllowed(req, res, existing))) return;
     const attachments = await svc.listAttachments(id);
 
@@ -15013,6 +15026,7 @@ export function issueRoutes(
         "Issue not found",
       );
       if (!issue) return;
+      await assertDeliveryTaskCheckout(db, issue.companyId, issue.id, req.body.agentId);
 
       if (issue.projectId) {
         const project = await projectsSvc.getById(issue.projectId);
@@ -15164,6 +15178,7 @@ export function issueRoutes(
       "Issue not found",
     );
     if (!existing) return;
+    await assertNoDeliveryTaskLifecycle(db, existing.companyId, existing.id);
     if (!(await assertAgentIssueMutationAllowed(req, res, existing))) return;
     const actorRunId = requireAgentRunId(req, res);
     if (req.actor.type === "agent" && !actorRunId) return;
@@ -15211,6 +15226,7 @@ export function issueRoutes(
       "Issue not found",
     );
     if (!existing) return;
+    await assertNoDeliveryTaskLifecycle(db, existing.companyId, existing.id);
 
     const clearAssignee = req.query.clearAssignee === "true";
     const result = await svc.adminForceRelease(id, { clearAssignee });

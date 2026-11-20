@@ -1,7 +1,8 @@
-import type { DeliveryEntryDetail, DeliveryPlan, DeliveryWorkItem } from "@paperclipai/shared";
+import { DELIVERY_STAGES, matchesDeliveryWorkType, type DeliveryEntryDetail, type DeliveryPlan, type DeliveryWorkItem } from "@paperclipai/shared";
+import { deliveryReviewEntryStage } from "./delivery-review-entry";
 export type DeliveryLinkedTask = DeliveryEntryDetail["tasks"][number];
 export type DispatchView = "pending" | "linked" | "ended" | "all";
-export const supportsDeliveryDispatch = (item: DeliveryWorkItem) => ["编码", "前端编码", "系统设计", "系统设计补充"].includes(item.type);
+export const supportsDeliveryDispatch = (item: DeliveryWorkItem) => DELIVERY_STAGES.some(stage=>matchesDeliveryWorkType(stage,false,item.type)||matchesDeliveryWorkType(stage,true,item.type));
 // Only explicit source terminal states are hidden by default. Parent completion
 // and missing source status never imply that the child has finished.
 export const sourceWorkEnded = (status: string) => /^(已完成|已关闭|已发布|已发版|完成|关闭|已解决|已取消|取消|已作废|作废|done|closed|resolved|released|cancelled|canceled|void)$/i.test(status.trim());
@@ -10,7 +11,8 @@ export function deliveryDispatchRows(plan: DeliveryPlan, tasks: DeliveryLinkedTa
     const linked = tasks.filter(task => task.jiraKey === item.key);
     const ended = sourceWorkEnded(item.status);
     const supported = supportsDeliveryDispatch(item);
-    return { item, linked, ended, supported, pending: supported && !ended && !linked.length };
+    const reviewStage = deliveryReviewEntryStage(item);
+    return { item, linked, ended, supported, reviewStage, pending: supported && !ended && !linked.length };
   });
 }
 export function matchesDispatchView(row: ReturnType<typeof deliveryDispatchRows>[number], view: DispatchView) {

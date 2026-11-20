@@ -29,7 +29,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   canBoardManageRuntime,
   canBoardResolveRecoveryAction,
-  IssueDetail,
+  TaskDetailSurface as IssueDetail,
   TaskDetailSurface,
   readRecoveryReconcileWorkspaceId,
   shouldScrollIssueDetailToTopOnNavigation,
@@ -1286,7 +1286,9 @@ async function waitForAssertion(assertion: () => void, attempts = 20) {
   throw lastError;
 }
 
-describe("IssueDetail", () => {
+// The legacy controller remains available in the collaboration view.
+// UnifiedTaskDetailPage.test.tsx covers the default entry and view switching.
+describe("IssueDetail collaboration surface", () => {
   let container: HTMLDivElement;
   let root: Root;
   let queryClient: QueryClient;

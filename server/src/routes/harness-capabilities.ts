@@ -8,7 +8,7 @@ import { canConfigureSeat } from "./dsp7-seat-owners.js";
 import { assertBoard, assertCompanyAccess } from "./authz.js";
 import { badRequest, conflict, forbidden, notFound } from "../errors.js";
 const identity=z.object({seat_id:z.string().uuid(),machine_id:z.string().uuid(),machine_fingerprint:z.string().regex(/^[a-f0-9]{64}$/)});
-const registration=identity.extend({expectedRevision:z.number().int().min(0),capability:harnessCapabilityInputSchema}).strict();
+const registration=identity.extend({expectedRevision:z.number().int().min(0),capability:harnessCapabilityInputSchema,automatic:z.boolean().optional()}).strict();
 const empty:HarnessCapabilityRegistry={version:1,revision:0,items:[]};
 export function harnessCapabilityRoutes(db:Db){
  const router=Router();
@@ -61,6 +61,11 @@ export function harnessCapabilityRoutes(db:Db){
    const capability={...data.capability,roles:[...data.capability.roles].sort()};
    const id=createHash("sha256").update(JSON.stringify([capability.kind,capability.repository,capability.profile])).digest("hex");
    const prior=registry.items.find(c=>c.id===id);
+   const runtime=agent.adapterConfig.dsp7SeatRuntime as {harnessRoot?:string;environmentId?:string}|undefined;
+   const initialDevelopment=!prior && capability.kind==="development" && capability.profile==="default" &&
+     capability.root===runtime?.harnessRoot && runtime?.environmentId===agent.defaultEnvironmentId && !!agent.defaultEnvironmentId &&
+     !registry.items.some(c=>c.kind==="development");
+   if(data.automatic&&!initialDevelopment&&(!prior||["kind","repository","root","profile","protocolVersion","roles"].some(k=>JSON.stringify(prior[k as keyof typeof prior])!==JSON.stringify(capability[k as keyof typeof capability]))))throw conflict("自动登记仅支持已登记设备的默认研发目录首次登记，或原能力范围内的文件与版本更新");
    const changed=!prior||Object.keys(capability).some(k=>JSON.stringify(prior[k as keyof typeof prior])!==JSON.stringify(capability[k as keyof typeof capability]));
    if(changed){
     const [active]=await tx.select({id:heartbeatRuns.id}).from(heartbeatRuns).where(and(eq(heartbeatRuns.companyId,companyId),eq(heartbeatRuns.agentId,agent.id),inArray(heartbeatRuns.status,["queued","running","scheduled_retry"])));
@@ -70,7 +75,7 @@ export function harnessCapabilityRoutes(db:Db){
    }
    const updated:HarnessCapabilityRegistry={version:1,revision:registry.revision+(changed?1:0),routing:registry.routing,items:[...registry.items.filter(c=>c.id!==id),{...capability,id,checkedAt:new Date().toISOString(),validation:"local-files" as const,executionReady:false as const}].sort((a,b)=>a.id.localeCompare(b.id))};
    await tx.update(agents).set({adapterConfig:{...agent.adapterConfig,dsp7HarnessCapabilities:updated},updatedAt:new Date()}).where(eq(agents.id,agent.id));
-   if(changed)await tx.insert(activityLog).values({companyId,agentId:agent.id,actorType:"agent",actorId:agent.id,action:"harness.capability.registered",entityType:"agent",entityId:agent.id,details:{capabilityId:id,kind:capability.kind,repository:capability.repository,profile:capability.profile,revision:updated.revision,executionGranted:false}});
+   if(changed)await tx.insert(activityLog).values({companyId,agentId:agent.id,actorType:"agent",actorId:agent.id,action:"harness.capability.registered",entityType:"agent",entityId:agent.id,details:{capabilityId:id,kind:capability.kind,repository:capability.repository,profile:capability.profile,revision:updated.revision,automatic:data.automatic===true,initialDevelopment:data.automatic===true&&initialDevelopment,previousCommit:prior?.commit,commit:capability.commit,previousManifestDigest:prior?.manifestDigest,manifestDigest:capability.manifestDigest,executionGranted:false}});
    return updated;
   });res.setHeader("Cache-Control","no-store");res.json(result);
  });

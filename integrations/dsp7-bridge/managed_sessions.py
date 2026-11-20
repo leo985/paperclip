@@ -121,14 +121,14 @@ class Collector:
         if self.meta(key):return
         self.event('collector','coverage',{'reason':reason,'source':source},offset=offset)
         self.setmeta(key,True)
-    def content(self,stream,content_id,kind,text,*,message_id='',tool_id=None,name=None,parent=None,mime=None,unavailable=None,truncated=False,offset=0,generation='runtime',at=None):
+    def content(self,stream,content_id,kind,text,*,message_id='',tool_id=None,name=None,parent=None,mime=None,unavailable=None,truncated=False,offset=0,generation='runtime',at=None,input_source=None):
         if self.redactor.excluded(text):text='';unavailable='命中凭据文件或路径排除规则'
         text,redacted=self.redactor.text(text)
         if '-----BEGIN ' in text and 'PRIVATE KEY-----' in text:
             text='';unavailable='私钥内容无法安全处理，已排除'
         raw=text.encode('utf-8')
         if len(raw)>100*1024*1024:text='';raw=b'';unavailable='单条内容超过 100 MiB，保留范围缺口'
-        redacted=redacted or '[REDACTED' in text;revision=sha(raw+(unavailable or '').encode())
+        redacted=redacted or '[REDACTED' in text;revision=sha(raw+(unavailable or '').encode()+((':'+input_source).encode() if input_source else b''))
         prior=self.db.execute('SELECT revision FROM revisions WHERE run_id=? AND stream_id=? AND content_id=?',(self.run_id,stream,content_id)).fetchone()
         if prior and prior['revision']==revision:return
         if self.row()['collection_paused']:return
@@ -141,6 +141,7 @@ class Collector:
         if current:pieces.append(bytes(current).decode())
         for i,part in enumerate(pieces):self.event(stream,'content.part',{'contentId':content_id,'revision':revision,'partIndex':i,'data':part,'encoding':'utf8'},generation,offset,at)
         manifest={'contentId':content_id,'revision':revision,'kind':kind,'parentStreamId':parent,'messageId':str(message_id)[:200],'toolCallId':str(tool_id)[:200] if tool_id else None,'name':str(name)[:200] if name else None,'mime':mime,'parts':len(pieces),'bytes':len(raw),'sha256':sha(raw),'redacted':redacted,'sourceTruncated':truncated,'unavailableReason':unavailable}
+        if input_source:manifest['inputSource']=input_source
         self.event(stream,'content.manifest',manifest,generation,offset,at)
         self.db.execute('INSERT OR REPLACE INTO revisions VALUES(?,?,?,?)',(self.run_id,stream,content_id,revision))
     def attachment(self,stream,content_id,path,parent=None,at=None):
@@ -163,6 +164,18 @@ class Collector:
             except UnicodeError:reason='二进制附件尚无可用脱敏适配器，仅上报元数据'
             except OSError:reason='附件读取失败'
         self.content(stream,content_id,'attachment',text,name=file.name,parent=parent,mime=mime,unavailable=reason,at=at)
+    def input_source(self,record,text):
+        # CLI marks even argv bootstrap prompts as human/typed; exact launch evidence wins.
+        initial_hash=self.meta('injected_prompt_sha256')
+        if sha(text)==initial_hash or record.get('isMeta') is True:
+            return 'harness'
+        if record.get('sourceToolUseID'):
+            return 'harness'
+        origin=record.get('origin') or {}
+        if initial_hash and isinstance(origin,dict) and origin.get('kind')=='human' and record.get('promptSource')=='typed':
+            return 'manual'
+        return 'unknown'
+
     def parse_record(self,record,stream,generation,offset):
         typ=record.get('type');message=record.get('message') or {};parent='main' if stream.startswith('sub:') else None
         at=record.get('timestamp') or now()
@@ -177,13 +190,17 @@ class Collector:
                 if not isinstance(block,dict):self.coverage('消息块格式未知',stream,offset);continue
                 btype=block.get('type');cid=sha(mid+':'+str(i))
                 if btype in ('thinking','redacted_thinking'):continue
-                if btype=='text':self.content(stream,cid,'compaction' if record.get('isCompactSummary') else typ,block.get('text',''),message_id=mid,parent=parent,generation=generation,offset=offset,at=at)
+                if btype=='text':
+                    text=block.get('text','')
+                    self.content(stream,cid,'compaction' if record.get('isCompactSummary') else typ,text,message_id=mid,parent=parent,generation=generation,offset=offset,at=at,input_source=self.input_source(record,text) if typ=='user' and not record.get('isCompactSummary') else None)
                 elif btype in ('tool_use','tool_result'):
                     name=block.get('name');is_call=btype=='tool_use';tool_id=block.get('id') if is_call else block.get('tool_use_id')
                     if is_call:
                         self.setmeta('tool:'+str(tool_id),name)
                     else:name=self.meta('tool:'+str(tool_id))
                     value=block.get('input',{}) if is_call else block.get('content','')
+                    answers=(record.get('toolUseResult') or {}).get('answers') if isinstance(record.get('toolUseResult'),dict) else None
+                    input_source='manual' if not is_call and name=='AskUserQuestion' and isinstance(answers,dict) and answers else None
                     excluded=name in self.redactor.rules.get('excluded_tools',[]) or (self.redactor.excluded(dump(value)) if is_call else self.meta('tool-excluded:'+str(tool_id),False))
                     if is_call:self.setmeta('tool-excluded:'+str(tool_id),excluded)
                     if not is_call and isinstance(value,list):
@@ -193,7 +210,8 @@ class Collector:
                             elif isinstance(nested,dict) and nested.get('type') not in ('thinking','redacted_thinking'):
                                 self.content(stream,cid+':attachment','attachment','',message_id=mid,parent=parent,unavailable='工具内嵌附件暂不支持脱敏',at=at)
                         value='\n'.join(visible)
-                    self.content(stream,cid,'tool_call' if is_call else 'tool_result','' if excluded else dump(self.redactor.value(value)),message_id=mid,tool_id=tool_id,name=name,parent=parent,generation=generation,offset=offset,at=at,unavailable='工具被排除' if excluded else None,truncated=bool(block.get('truncated')))
+                    if input_source:value={'result':value,'answers':answers}
+                    self.content(stream,cid,'tool_call' if is_call else 'tool_result','' if excluded else dump(self.redactor.value(value)),message_id=mid,tool_id=tool_id,name=name,parent=parent,generation=generation,offset=offset,at=at,unavailable='工具被排除' if excluded else None,truncated=bool(block.get('truncated')),input_source=input_source)
                 elif btype in ('image','document'):
                     source=block.get('source') or {}
                     if source.get('path') or source.get('file_path'):self.attachment(stream,cid,source.get('path') or source['file_path'],parent,at)

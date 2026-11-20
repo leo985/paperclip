@@ -1,3 +1,4 @@
+import { startupRetryBlockedReason } from "../services/seat-startup-retry.js";
 import { seatCanAcceptWork } from "@paperclipai/shared";
 import { assertDeliveryCodingAdmission } from "../services/delivery-admission.js";
 import { jiraRequirementRoutes } from "./jira-requirements.js";
@@ -15,11 +16,11 @@ import { jiraIntakeSyncRoutes, syncJiraIntake } from "./jira-intake-sync.js";
 const word=z.string().trim().min(1).max(100).refine(v=>!/[\r\n\0]/.test(v));
 export const jiraDispatchSchema=z.object({enabled:z.boolean(),intakePaused:z.boolean().optional().default(false),jiraAssignee:word,jiraProjectKey:z.string().regex(/^[A-Z][A-Z0-9_]*$/),projectId:z.string().uuid(),workspaceId:z.string().uuid().optional(),readyStatuses:z.array(word).min(1).max(1000),jiraBaseUrl:z.string().url().max(2048).refine(v=>{try{const u=new URL(v);return ["http:","https:"].includes(u.protocol)&&!u.username&&!u.password&&!u.search&&!u.hash;}catch{return false;}}),issueTypes:z.array(z.enum(["编码","前端编码","功能","内部缺陷","线上问题","系统设计","系统设计补充","接口联调"])).min(1).max(8)}).strict();
 type Agent=typeof agents.$inferSelect;
-type Rule=z.infer<typeof jiraDispatchSchema>&{revision:number;ownerUserId:string;jiraSecretId?:string};
+type Rule=z.infer<typeof jiraDispatchSchema>&{revision:number;ownerUserId:string;jiraSecretId?:string;jiraAccountOwnerUserId?:string};
 export function dispatchRule(agent:Agent):Rule|null {return agent.adapterConfig.dsp7JiraDispatch as Rule??null;}
 export function publicRule(agent:Agent) {
  const rule=dispatchRule(agent);if(!rule)return null;
- const {jiraSecretId,...fields}=rule;return {...fields,jiraPatConfigured:!!jiraSecretId};
+ const {jiraSecretId,jiraAccountOwnerUserId: _accountOwner,...fields}=rule;return {...fields,jiraPatConfigured:!!jiraSecretId};
 }
 /** Manual intake reuses saved scope, but never grants automatic execution. */
 export function manualIntakeRule(agent:Agent,intake:{jira_key:string;project_id:string;workspace_id?:string;version?:number},options:{allowPaused?:boolean}={}) {
@@ -101,7 +102,13 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
    const [fresh]=await tx.select().from(agents).where(and(eq(agents.id,agent.id),eq(agents.companyId,agent.companyId))).for("update");
    if(!canConfigureSeat(req,fresh.companyId,fresh.adapterConfig.dsp7Seat as Record<string,unknown>))throw forbidden("席位负责人已变化");
    const [task]=await tx.select().from(issues).where(and(eq(issues.id,parsed.data.taskId),eq(issues.companyId,agent.companyId))).for("update");
-   if(!task||["done","cancelled"].includes(task.status)||(task.status==="in_progress"&&parsed.data.action!=="resume"))throw conflict("请选择尚未开始的有效接入任务；活动执行请在任务页处理");
+   if(!task||["done","cancelled"].includes(task.status))throw conflict("请选择尚未开始的有效接入任务；活动执行请在任务页处理");
+   const recoveringStartup=task.status==="in_progress"&&parsed.data.action==="authorize";
+   if(task.status==="in_progress"&&parsed.data.action!=="resume"){
+    if(!recoveringStartup)throw conflict("活动执行请在任务页处理");
+    const reason=await startupRetryBlockedReason(tx as unknown as Db,fresh,task);
+    if(reason)throw conflict(reason);
+   }
    const presence=fresh.adapterConfig.dsp7SeatPresence as {activeTaskId?:string;runId?:string;lastSeenAt?:string;capabilities?:string[];tasks?:Array<{taskId:string;stoppedRunId?:string}>}|undefined;
    if(presence?.activeTaskId===task.id&&presence.runId)throw conflict("任务已启动，请在任务页处理活动运行");
    const raw=task.description?.match(/<!-- DSP7-JIRA-INTAKE (.*?) -->/)?.[1];let intake;try{intake=JSON.parse(raw??"");}catch{throw badRequest("接入申请无效");}
@@ -129,11 +136,11 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
     if(task.status!=="blocked"||!String((task.unblockDescriptor as {action?:string}|null)?.action??"").startsWith("执行已中断"))throw conflict("仅支持恢复已确认中断的执行；其他阻塞请先处理原因");
     await acknowledgeStoppedSeatConversation(tx as unknown as Db,{agent:fresh,task,runId:lastRun.id,actorId:req.actor.userId??"local-board"});
    }
-   const commandRequests=await tx.select().from(activityLog).where(and(eq(activityLog.companyId,agent.companyId),eq(activityLog.agentId,agent.id),eq(activityLog.action,"dsp7.seat.command.requested"),sql`${activityLog.details}->>'taskId' = ${task.id}`));
+   const commandRequests=await tx.select().from(activityLog).where(and(eq(activityLog.companyId,agent.companyId),eq(activityLog.agentId,agent.id),eq(activityLog.action,"dsp7.seat.command.requested"),sql`${activityLog.details}->>'taskId' = ${task.id}`)).orderBy(desc(activityLog.createdAt));
    for(const request of commandRequests){
     const [last]=await tx.select().from(activityLog).where(and(eq(activityLog.companyId,agent.companyId),eq(activityLog.agentId,agent.id),eq(activityLog.action,"dsp7.seat.command.result"),eq(activityLog.entityId,request.entityId))).orderBy(desc(activityLog.createdAt)).limit(1);
     const state=String(last?.details?.status??"queued");
-    if(action==="authorize"&&["failed","denied","expired","cancelled"].includes(state))retryingStartup=true;
+    if(action==="authorize"&&request===commandRequests[0]&&["failed","denied","expired","cancelled"].includes(state))retryingStartup=true;
     if(action==="resume"&&["queued","awaiting_local","accepted","running"].includes(state))await tx.insert(activityLog).values({companyId:agent.companyId,agentId:agent.id,actorType:"user",actorId:req.actor.userId!,action:"dsp7.seat.command.result",entityType:"dsp7_seat_command",entityId:request.entityId,details:{commandId:request.entityId,status:["accepted","running"].includes(state)?"failed":"cancelled",sequence:Number(last?.details?.sequence??0)+1,message:"已核验旧进程停止，关闭旧请求并由网页恢复执行"}});
     if(action!=="resume"&&["accepted","running"].includes(state))throw conflict("本机已领取启动请求，请到任务页处理活动执行");
     if(action==="cancel"&&["queued","awaiting_local"].includes(state))await tx.insert(activityLog).values({companyId:agent.companyId,agentId:agent.id,actorType:"user",actorId:req.actor.userId!,action:"dsp7.seat.command.result",entityType:"dsp7_seat_command",entityId:request.entityId,details:{commandId:request.entityId,status:"cancelled",sequence:Number(last?.details?.sequence??0)+1,message:"网页已取消平台自动执行"}});
@@ -152,10 +159,22 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
     if(!managerDispatch&&!comments.some(c=>!c.authorAgentId&&!c.deletedAt&&c.body.includes(`<!-- DSP7-JIRA-INTAKE-AUTH ${raw} -->`)))throw forbidden("缺少原申请人的接入授权评论");
    }
    const previous=await platformDispatchRecord(tx as unknown as Db,fresh,task.id);
+   if(action==="authorize"&&retryingStartup&&!recoveringStartup&&previous?.details?.state==="authorized"){
+    const reason=await startupRetryBlockedReason(tx as unknown as Db,fresh,task);
+    if(reason)throw conflict(reason);
+   }
    const state=action==="cancel"?"cancelled":"authorized";
-   if(action==="resume")await tx.update(issues).set({status:"backlog",unblockDescriptor:null,updatedAt:new Date()}).where(eq(issues.id,task.id));
+   if(recoveringStartup){
+    const stoppedId=presence?.tasks?.find(item=>item.taskId===task.id)?.stoppedRunId;
+    if(!stoppedId)throw conflict("尚未确认本机旧执行已经停止，请稍后刷新");
+    await acknowledgeStoppedSeatConversation(tx as unknown as Db,{agent:fresh,task,runId:stoppedId,actorId:req.actor.userId??"local-board"});
+   }
+   if(action==="resume"||recoveringStartup){
+    await tx.update(issues).set({status:"backlog",unblockDescriptor:null,updatedAt:new Date()}).where(eq(issues.id,task.id));
+    task.status="backlog";task.unblockDescriptor=null;
+   }
    if(!retryingIntake&&!retryingStartup&&action!=="resume"&&previous?.details?.state===state&&previous.details.request===raw&&previous.details.ownerUserId===rule.ownerUserId&&(!managerDispatch||previous.details.managerAuthorizedBy===req.actor.userId))return {taskId:task.id,state,authorizationId:previous.id};
-   const [record]=await tx.insert(activityLog).values({companyId:agent.companyId,agentId:agent.id,actorType:"user",actorId:req.actor.userId!,action:"dsp7.platform.dispatch.changed",entityType:"issue",entityId:task.id,responsibleUserId:rule.ownerUserId,details:{state,request:raw,ownerUserId:rule.ownerUserId,...(managerDispatch?{managerAuthorizedBy:req.actor.userId}:{}),...(action==="resume"?{recovery:true}: {})}}).returning();
+   const [record]=await tx.insert(activityLog).values({companyId:agent.companyId,agentId:agent.id,actorType:"user",actorId:req.actor.userId!,action:"dsp7.platform.dispatch.changed",entityType:"issue",entityId:task.id,responsibleUserId:rule.ownerUserId,details:{state,request:raw,ownerUserId:rule.ownerUserId,...(managerDispatch?{managerAuthorizedBy:req.actor.userId}:{}),...(action==="resume"?{recovery:true}: {}),...(recoveringStartup?{startupRecovery:true}: {})}}).returning();
    const command=state==="authorized"?await enqueue?.(tx as unknown as Db,fresh,action==="resume"?{...task,status:"backlog",unblockDescriptor:null}:task,req.actor.userId!,record.id):null;
    return {taskId:task.id,state,authorizationId:record.id,command};
   });res.json(result);
@@ -208,7 +227,8 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
    !seatCanAcceptWork(presence)?"席位配置异常或暂停接单，请检查设备":
    !presence?.tasks?.find(t=>t.taskId===task.id)?.stoppedRunId?"正在核验本机旧进程是否停止，请稍后再恢复":
    !authorized?"当前任务缺少有效的平台派单授权，请核对原派单和席位负责人":null;
-  res.json({taskId:task.id,phase,message,authorized,canResume:!resumeBlockedReason,resumeBlockedReason,authorizationId:record?.id??null,startup});
+  const retryStartupBlockedReason=phase==="startup_failed"?await startupRetryBlockedReason(db,agent,task):null;
+  res.json({taskId:task.id,phase,message,authorized,canRetryStartup:phase==="startup_failed"&&!retryStartupBlockedReason,retryStartupBlockedReason,canResume:!resumeBlockedReason,resumeBlockedReason,authorizationId:record?.id??null,startup});
  });
  router.post("/agents/:id/dsp7-platform-dispatches",async(req,res)=>{
   const agent=await own(req);
@@ -296,11 +316,11 @@ export function dsp7JiraDispatchRoutes(db:Db,own:(req:Request)=>Promise<Agent>,b
     }
    }
    if(data.enabled&&!jiraSecretId)throw badRequest("首次启用 Jira 自动接单，请填写 PAT；后续留空表示保留已有 PAT");
-   const rule={...data,intakePaused:dispatchRule(current)?.intakePaused??false,jiraSecretId,revision:(dispatchRule(current)?.revision??0)+1,ownerUserId:owner};
+   const rule={...data,intakePaused:dispatchRule(current)?.intakePaused??false,jiraSecretId,revision:(dispatchRule(current)?.revision??0)+1,ownerUserId:owner,jiraAccountOwnerUserId:owner};
    await tx.update(agents).set({adapterConfig:{...current.adapterConfig,dsp7JiraDispatch:rule}}).where(eq(agents.id,agent.id));
    await tx.insert(activityLog).values({companyId:agent.companyId,agentId:agent.id,actorType:"user",actorId:req.actor.userId!,action:"dsp7.jira.dispatch.configured",entityType:"agent",entityId:agent.id,details:rule});
    return rule;
-  });const {jiraSecretId,...fields}=rule;res.json({...fields,jiraPatConfigured:!!jiraSecretId});
+  });const {jiraSecretId,jiraAccountOwnerUserId: _accountOwner,...fields}=rule;res.json({...fields,jiraPatConfigured:!!jiraSecretId});
  });
  router.post("/agents/:id/dsp7-jira-dispatch",async(req,res)=>{
   const agent=await own(req);res.json({rule:publicRule(agent)});

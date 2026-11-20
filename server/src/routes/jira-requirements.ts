@@ -6,7 +6,7 @@ import { seatOwnerId, canCreateSeatIntake, isSeatManager } from "./dsp7-seat-own
 import { badRequest, conflict, forbidden } from "../errors.js";
 import { secretService } from "../services/secrets.js";
 import { issueService } from "../services/issues.js";
-import { normalizeRequirement, requirementMarker } from "../services/jira-requirement-plan.js";
+import { jiraRequirementOwnerField, normalizeRequirement, requirementMarker } from "../services/jira-requirement-plan.js";
 
 type Agent = typeof agents.$inferSelect;
 const input = z.object({ jiraKey: z.string().regex(/^[A-Z][A-Z0-9_]*-\d+$/), projectId: z.string().uuid() }).strict();
@@ -28,7 +28,7 @@ export function jiraRequirementRoutes(db: Db, board: (req: Request) => Promise<A
       if (text.length > 4 * 1024 * 1024) throw badRequest("Jira 响应过大，请缩小需求范围");
       try { return JSON.parse(text); } catch { throw badRequest("Jira 响应格式无效"); }
     }
-    const ownerField = process.env.PAPERCLIP_JIRA_REQUIREMENT_OWNER_FIELD ?? "customfield_14702";
+    const ownerField = jiraRequirementOwnerField();
     if (!/^customfield_\d+$/.test(ownerField)) throw badRequest("研发负责人字段配置无效");
     const parent = await get("/issue/" + encodeURIComponent(key) + "?fields=" + ["summary", "status", "issuetype", "subtasks", ownerField].join(","));
     if (parent.key !== key) throw badRequest("Jira 主需求编号核验失败");
