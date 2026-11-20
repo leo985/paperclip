@@ -569,8 +569,9 @@ def attach(run_id):
     print('已连接 Paperclip 运行 '+run_id+'。审批等待期间保持窗口，同意后自动继续；/exit 主动结束；Ctrl+] 暂离后可 harness attach 重连。',flush=True)
     prev=signal.signal(signal.SIGWINCH,changed)
     try:
-        # Enter raw mode before Claude can emit terminal capability queries.
-        tty.setraw(sys.stdin.fileno())
+        # Discard input without waiting for the PTY's output queue to drain.
+        termios.tcflush(sys.stdin.fileno(),termios.TCIFLUSH)
+        tty.setraw(sys.stdin.fileno(),termios.TCSANOW)
         while True:
             if resized:
                 resized=False;z=os.get_terminal_size();send(size_frame(z.lines,z.columns))
@@ -591,11 +592,12 @@ def attach(run_id):
         try:
             with contextlib.suppress(OSError):
                 sys.stdout.buffer.write(CLEANUP);sys.stdout.buffer.flush()
-                termios.tcdrain(sys.stdout.fileno())
         finally:
             try:
+                termios.tcsetattr(sys.stdin.fileno(),termios.TCSANOW,old)
                 # Drop mouse/capability replies queued while raw mode was active.
-                termios.tcsetattr(sys.stdin.fileno(),termios.TCSAFLUSH,old)
+                with contextlib.suppress(OSError):
+                    termios.tcflush(sys.stdin.fileno(),termios.TCIFLUSH)
             finally:
                 signal.signal(signal.SIGWINCH,prev);s.close()
         if viewer:
