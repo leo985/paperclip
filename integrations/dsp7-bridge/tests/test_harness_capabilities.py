@@ -46,6 +46,43 @@ class CapabilityInspectionTest(unittest.TestCase):
                 after=inspect(root,'development');self.assertIn('design-review',after['roles']);self.assertNotEqual(before['manifestDigest'],after['manifestDigest'])
                 contract.write_text(json.dumps({'design-review':{'workflow':'feature','guardRole':'coding','version':1}}));self.assertNotIn('design-review',inspect(root,'development')['roles'])
 
+    def test_product_roles_come_from_verified_bundle_instead_of_workspace_skill_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            (root/'CLAUDE.md').write_text('guide')
+            project = root/'harness'
+            project.mkdir()
+            pin = 'a' * 64
+            (project/'v2-claude-release.json').write_text(json.dumps({
+                'project':'base', 'bundleDigest':pin, 'sharedSkillSource':'verified-bundle',
+            }))
+            resources = root/'installed/resources'
+            resources.mkdir(parents=True)
+            (resources/'method-index.json').write_text(json.dumps({
+                'schema':'harness.method-index/1', 'methods':[{'nativeId':'jira-feature-dev'}],
+            }))
+            installation = {'enabled':True, 'bundleRoot':str(resources.parent),
+                            'bundleDigest':pin, 'project':'base'}
+            bridge = Mock(cfg={'harness_v2_execution':{'enabled':True, 'versions':{pin:installation}}})
+
+            def fake_git(_root, *args):
+                if '--show-toplevel' in args:
+                    return str(root)
+                if args == ('rev-parse', 'HEAD'):
+                    return 'b' * 40
+                return 'https://git.example.com/team/product.git'
+
+            with patch('harness_capabilities.git', side_effect=fake_git), patch(
+                    'harness_bundle.validate', return_value={'resourceRoot':str(resources)}) as verify:
+                self.assertEqual(inspect(root, 'development', bridge=bridge)['roles'], ['coding'])
+                verify.assert_called_once_with(installation, (root,))
+                self.assertFalse((root/'.claude/skills/jira-feature-dev/SKILL.md').exists())
+                with self.assertRaisesRegex(BridgeError, '先安装'):
+                    inspect(root, 'development')
+                verify.side_effect = ValueError('bad digest')
+                with self.assertRaisesRegex(BridgeError, '校验失败'):
+                    inspect(root, 'development', bridge=bridge)
+
     def test_analysis_requires_native_cli_and_profile(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);(root/'CLAUDE.md').write_text('guide')

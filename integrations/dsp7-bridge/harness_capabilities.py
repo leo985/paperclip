@@ -45,7 +45,42 @@ def repository_identity(remote):
         raise BridgeError('Harness 共享仓库身份无效')
     return result
 
-def inspect(root, kind, profile='default'):
+def project_bundle_pin(root):
+    path = Path(root) / 'harness/v2-claude-release.json'
+    if not path.exists():
+        return None
+    if path.resolve() != path:
+        raise BridgeError('产品组合配置路径不能使用链接')
+    try:
+        release = json.loads(path.read_bytes())
+        if release.get('sharedSkillSource') != 'verified-bundle':
+            return None
+        project, digest = release['project'], release['bundleDigest']
+        if not re.fullmatch(r'[a-z][a-z0-9-]*', project) or not re.fullmatch(r'[a-f0-9]{64}', digest):
+            raise ValueError()
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        raise BridgeError('产品组合配置无效') from None
+    return path, project, digest
+
+
+def installed_bundle_skills(bridge, root, project, digest):
+    from harness_bundle import validate
+
+    installed = bridge.cfg.get('harness_v2_execution', {}) if bridge is not None else {}
+    config = installed.get('versions', {}).get(digest) if installed.get('enabled') is True else None
+    if not config or config.get('project') != project or config.get('bundleDigest') != digest:
+        raise BridgeError('请先安装产品锁定的正式组合，再登记研发能力')
+    try:
+        checked = validate(config, (root,))
+        index = json.loads((Path(checked['resourceRoot']) / 'method-index.json').read_bytes())
+        if index['schema'] != 'harness.method-index/1':
+            raise ValueError()
+        return {item['nativeId'] for item in index['methods']}
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+        raise BridgeError('已安装产品组合或技能索引校验失败') from None
+
+
+def inspect(root, kind, profile='default', *, bridge=None):
     root = Path(root).expanduser().resolve(strict=True)
     if not root.is_dir() or Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
         raise BridgeError('请选择 Harness 的 Git 根目录')
@@ -58,10 +93,17 @@ def inspect(root, kind, profile='default'):
         if not isinstance(profile, str) or not re.fullmatch(r'[a-z0-9-]{1,64}', profile):
             raise BridgeError('分析 Harness 默认 profile 无效')
     files = [root / 'CLAUDE.md']
+    pin = project_bundle_pin(root) if kind == 'development' else None
+    bundle_skills = None
+    if pin:
+        release_path, project, digest = pin
+        files.append(release_path)
+        bundle_skills = installed_bundle_skills(bridge, root, project, digest)
     roles = []
     for role, skill in ROLE_SKILLS[kind].items():
         path = root / '.claude/skills' / skill / 'SKILL.md'
-        if path.is_file():
+        available = skill in bundle_skills if bundle_skills is not None else path.is_file()
+        if available:
             if role in ('design-review','test-case-review'):
                 contract=root/'harness/delivery-review-protocols.json'
                 if not contract.is_file():continue
@@ -72,7 +114,9 @@ def inspect(root, kind, profile='default'):
                 if layout.is_file():files.append(layout)
                 files += [root/'harness/scripts'/name for name in ('issue_guard.py','execution_time.py','zhiyan_bridge.py','zhiyan_auto.py')]
                 if role=='test-case-review':files.append(root/'.claude/skills/harness-report/scripts/harness_report.py')
-            roles.append(role); files.append(path)
+            roles.append(role)
+            if bundle_skills is None:
+                files.append(path)
     if not roles: raise BridgeError('未发现匹配的原生 Harness 技能，不能声明此能力')
     if kind == 'analysis':
         files += [root / 'harness/scripts/analysis.py', root / 'harness/WORKFLOW.md']
@@ -190,10 +234,13 @@ def main(argv):
         root = choose_directory() if args.choose else args.path
         if not root:
             print('已取消目录选择，未修改任何能力登记。'); return
-        capability = inspect(root, args.kind, args.profile)
+        options = {'bridge': b} if args.kind == 'development' else {}
+        capability = inspect(root, args.kind, args.profile, **options)
         result = register(b, capability)
     else:
         result = seat_api(b).request('GET', '/agents/' + b.cfg['agent_id'] + '/dsp7-harness-capabilities')
         if args.action == 'check':
-            for item in result['items']: result = register(b, inspect(item['root'], item['kind'], item['profile']))
+            for item in result['items']:
+                options = {'bridge': b} if item['kind'] == 'development' else {}
+                result = register(b, inspect(item['root'], item['kind'], item['profile'], **options))
     print(json.dumps({'registry': result, 'message': '已保存本机 Harness 能力登记；刷新网页查看。登记不会启动任务；条目自动交付可按对应领域能力授权执行，需新版客户端。'}, ensure_ascii=False, indent=2))
