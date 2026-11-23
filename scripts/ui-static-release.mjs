@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-// Static UI releases exclude only exact root-level client-distribution artifacts.
+// Static UI releases exclude dedicated client-distribution artifacts.
 // A basename prefix must never filter hashed modules under assets/.
 import { readdir, readFile } from "node:fs/promises";
 import { resolve, relative, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
-const clientArtifacts = new Set([
-  "dsp7-install.py", "dsp7-install.ps1", "dsp7-bridge.zip", "dsp7-bridge-manifest.json",
-]);
+const clientFiles = ["dsp7-install.py", "dsp7-install.ps1", "dsp7-bridge.zip", "dsp7-bridge-manifest.json"];
+const clientArtifacts = new Set([...clientFiles, ...clientFiles.map(name => "bridge-v2/" + name)]);
 export const isUiStaticReleaseFile = path => !clientArtifacts.has(path.replaceAll("\\", "/"));
 export async function uiStaticManifest(directory) {
   const root = resolve(directory), files = {};

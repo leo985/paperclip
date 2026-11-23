@@ -5,6 +5,7 @@ param(
     [string]$Code,
     [switch]$Upgrade,
     [string]$AgentId,
+    [ValidateSet('v1','v2')][string]$BridgeChannel='v1',
     [switch]$NoService
 )
 $ErrorActionPreference='Stop'
@@ -36,9 +37,14 @@ try {
     }
     Write-Host 'Using native Windows Claude and Harness. Existing local model settings are preserved.'
     $installer=Join-Path ([IO.Path]::GetTempPath()) ('paperclip-seat-'+[Guid]::NewGuid().ToString('N')+'.py')
-    Invoke-WebRequest -UseBasicParsing -Uri ($Server.TrimEnd('/')+'/dsp7-install.py') -OutFile $installer
-    $installArgs=@($installer,'--server',$Server)
-    if($Upgrade){$installArgs+='--upgrade'}else{$installArgs+=@('--code',$Code)}
+    $releaseBase=$Server.TrimEnd('/')
+    if($BridgeChannel -eq 'v2'){$releaseBase+='/bridge-v2'}
+    Invoke-WebRequest -UseBasicParsing -Uri ($releaseBase+'/dsp7-install.py') -OutFile $installer
+    $installArgs=@($installer,'--server',$Server,'--bridge-channel',$BridgeChannel)
+    if($Upgrade){
+        $installArgs+='--upgrade'
+        if($BridgeChannel -eq 'v2'){$installArgs+='--this-seat'}
+    }else{$installArgs+=@('--code',$Code)}
     if($AgentId){$installArgs+=@('--agent-id',$AgentId)}
     if($NoService){$installArgs+='--no-service'}
     & $python @pythonArgs @installArgs

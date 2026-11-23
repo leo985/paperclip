@@ -5,9 +5,12 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isUiStaticReleaseFile, uiStaticManifest, verifyUiStaticManifest } from "./ui-static-release.mjs";
-test("includes all prefixed frontend chunks and browser support; excludes only root client artifacts", () => {
+test("includes all prefixed frontend chunks and browser support; excludes client artifacts on both release paths", () => {
   for (const name of ["assets/dsp7-seats-016mYpz1.js", "assets/dsp7-execution-BET5YgQq.js", "dsp7-browser-uuid.js", "assets/dsp7-install.py"]) assert.equal(isUiStaticReleaseFile(name), true, name);
-  for (const name of ["dsp7-install.py", "dsp7-install.ps1", "dsp7-bridge.zip", "dsp7-bridge-manifest.json"]) assert.equal(isUiStaticReleaseFile(name), false, name);
+  for (const name of ["dsp7-install.py", "dsp7-install.ps1", "dsp7-bridge.zip", "dsp7-bridge-manifest.json"]) {
+    assert.equal(isUiStaticReleaseFile(name), false, name);
+    assert.equal(isUiStaticReleaseFile("bridge-v2/" + name), false, name);
+  }
 });
 test("manifest traverses assets instead of filtering basenames", async () => {
   const root=await mkdtemp(join(tmpdir(),"ui-release-test-"));

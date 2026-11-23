@@ -590,3 +590,20 @@ preparation, checks for drift before producing further projections, and supplies
 the same context to the pinned native reader. This records the organization
 Bridge configuration directory without reading configuration contents. Legacy
 core configuration precedence and state locations remain authoritative.
+
+## V1 与 V2 客户端制品并行分发
+
+- 现有 V1 下载入口在网站根目录，沿用原客户端下载及组织升级流程。
+- V2 客户端放到同一网站的 `/bridge-v2/`，只发布该子目录。V2 构建生成 ZIP、摘要清单和 macOS／Linux／Windows 启动安装脚本。使用 `python3 scripts/build-dsp7-bridge.py --channel v2 --output-dir <发布暂存根>` 生成文件。
+- 本机版本按摘要安装。V1 缓存为 `~/.local/share/paperclip/bridge/`，V2 缓存为 `~/.local/share/paperclip/bridge-v2/`。网站 API 地址仍使用原站点根地址。
+- V2 首次更新由目标席位显式选择，后续 `harness upgrade` 继续从 V2 下载路径按单席位更新。当前网页批量升级使用 V1 默认清单，V2 保留本机显式更新入口。
+- 同一操作系统用户下同时管理两类席位时，对 V1 也用 `harness upgrade --this-seat`。旧 V1 客户端的全席位升级会应用到该用户的同站点注册。需保留 V1 批量升级时，将 V1、V2 分在不同操作系统用户或电脑上。
+
+macOS／Linux 在目标席位空闲时下载 `/bridge-v2/dsp7-install.py`，然后运行：
+
+```sh
+python3 /path/to/dsp7-install.py --server '<智研站点根地址>' --bridge-channel v2 \
+  --upgrade --this-seat --agent-id '<目标席位 ID>'
+```
+
+Windows 下载 `/bridge-v2/dsp7-install.ps1`，使用 `-Server <智研站点根地址> -Upgrade -AgentId <目标席位 ID>`。V2 首次注册使用相同的 V2 安装脚本及席位接入码。

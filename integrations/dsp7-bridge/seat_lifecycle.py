@@ -102,14 +102,17 @@ def command(argv):
         if any(item['status']=='fail' for item in checks):raise BridgeError('诊断发现异常，请根据上方提示处理；此检查未执行 Claude 任务。')
     else:
         if args.config.resolve()!=SERVICE_CONFIG.resolve() and not args.no_service:raise BridgeError('自定义配置升级请追加 --no-service')
-        from quick_install import download
-        payload=download(b.cfg['paperclip_url'].rstrip('/')+'/dsp7-install.py',1024*1024)
+        from quick_install import bridge_release_url, download, installed_bridge_channel
+        channel=installed_bridge_channel(b.cfg)
+        payload=download(bridge_release_url(b.cfg['paperclip_url'], channel)+'/dsp7-install.py',1024*1024)
         # Fetch the current installer rather than upgrade with a stale bundled installer.
         with tempfile.TemporaryDirectory(prefix='zhiyan-upgrade-') as directory:
             entry=Path(directory)/'install.py';entry.write_bytes(payload)
             cli=[sys.executable,str(entry),'--server',b.cfg['paperclip_url'],'--upgrade']
             from device_upgrade import seat_scoped_environment
-            if args.this_seat or seat_scoped_environment():
+            if channel == 'v2':
+                cli+=['--bridge-channel','v2']
+            if channel == 'v2' or args.this_seat or seat_scoped_environment():
                 cli+=['--agent-id',b.cfg['agent_id'],'--config',str(args.config),'--this-seat']
             else:
                 cli+=['--all-seats']

@@ -23,6 +23,9 @@ import zipfile
 FILES={'windows_validation_supervisor.py','harness_composition.py','harness_bundle_install.py','harness_bundle.py','harness_bundle_registry.py','harness_observation.py','harness_observation_runtime.py','harness_observer_binding.py', 'harness_validation.py','harness_validation_process.py','device_upgrade.py','seat_remote_upgrade.py','seat_watchdog.py','install_watchdog.py','seat_launch_options.py','seat_profiles.py','harness_repositories.py','delivery_execution.py','harness_routing.py','process_tree.py','harness_launch.py','service_status.py','mac_notifications.py','command_receiver.py','terminal_display.py','seat_lifecycle.py','seat_upgrade.py','jira_workload.py','phase_gate.py','quality_collection.py','managed_sessions.py','session_hook.py','jira_dispatch.py','pilot.py','seats.py','seat_control.py','onboard.py','interactive.py','interactive_wait.py','jira_intake.py','claude-interactive-wrapper','install_launchagent.py','config.example.json','README.md','outbound.py','quick_install.py','install_service.py','platform_support.py','windows_terminal.py','watch_windows.py','harness_entry.py','harness_capabilities.py','analysis_runtime.py','analysis_execution.py','execution_permit.py','install_windows.ps1'}
 
 
+DEFAULT_BRIDGE_CHANNEL = 'v1'
+
+
 @contextmanager
 def setup_step(label):
     print(label+'…',flush=True)
@@ -98,6 +101,24 @@ $directory.SetAccessControl($acl)"""
                        check=True,timeout=30,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     except subprocess.CalledProcessError:
         raise RuntimeError('Windows 接入桥安装目录权限核验失败；请核对目录所有者，未允许其他用户访问：'+str(path)) from None
+
+def bridge_release_url(server, channel):
+    if channel not in ('v1', 'v2'):
+        raise ValueError('未知的 Bridge 分发渠道')
+    return server.rstrip('/') + ('/bridge-v2' if channel == 'v2' else '')
+
+
+def bridge_install_root(channel):
+    return Path.home()/'.local/share/paperclip'/('bridge-v2' if channel == 'v2' else 'bridge')
+
+
+def installed_bridge_channel(config):
+    bridge = (config.get('quick_setup') or {}).get('bridge') or __file__
+    folder = Path(bridge).expanduser().resolve()
+    if folder.is_file():
+        folder = folder.parent
+    return 'v2' if folder.parent == bridge_install_root('v2').resolve() else 'v1'
+
 
 def install_bundle(server,install_root):
     manifest=json.loads(download(server+'/dsp7-bridge-manifest.json',4096))
@@ -270,7 +291,7 @@ def finish_setup(b,bridge,no_service):
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--server',required=True);parser.add_argument('--code');parser.add_argument('--config',type=Path);parser.add_argument('--harness',type=Path);parser.add_argument('--jira-credential-file');parser.add_argument('--no-service',action='store_true');parser.add_argument('--upgrade',action='store_true');parser.add_argument('--all-seats',action='store_true');parser.add_argument('--this-seat',action='store_true');parser.add_argument('--agent-id');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--server',required=True);parser.add_argument('--code');parser.add_argument('--config',type=Path);parser.add_argument('--harness',type=Path);parser.add_argument('--jira-credential-file');parser.add_argument('--no-service',action='store_true');parser.add_argument('--upgrade',action='store_true');parser.add_argument('--all-seats',action='store_true');parser.add_argument('--this-seat',action='store_true');parser.add_argument('--agent-id');parser.add_argument('--bridge-channel',choices=('v1','v2'),default=DEFAULT_BRIDGE_CHANNEL);args=parser.parse_args()
     if sys.version_info<(3,9):raise RuntimeError('需要 Python 3.9 或更新版本')
     server=args.server.rstrip('/');parsed=urllib.parse.urlsplit(server)
     if parsed.scheme not in ('http','https') or not parsed.hostname or parsed.username or parsed.password or parsed.path not in ('','/') or parsed.query or parsed.fragment:raise RuntimeError('网站地址无效')
@@ -281,7 +302,9 @@ def main():
         except ImportError:raise RuntimeError('请从网页选择 Windows 并使用 PowerShell 安装命令，以安装 pywinpty 终端依赖') from None
     # Inspect the invitation before reusing any local identity. A different
     # company gets its own private directory and login service.
-    bootstrap=install_bundle(server,Path.home()/'.local/share/paperclip/bridge')
+    if args.bridge_channel == 'v2' and args.upgrade and not args.this_seat:
+        raise RuntimeError('V2 更新须明确选择单个席位，请加 --this-seat')
+    bootstrap=install_bundle(bridge_release_url(server,args.bridge_channel),bridge_install_root(args.bridge_channel))
     sys.path.insert(0,str(bootstrap))
     from seat_profiles import select_config,activate,configurations,default_config
     target=None
@@ -363,7 +386,7 @@ def main():
     settings=root/'.claude/settings.local.json';settings=settings if settings.is_file() else None
     name=input('电脑席位名称（回车使用 '+Path.home().name+' 的电脑）：').strip() or Path.home().name+' 的电脑'
     if input('确认使用以上本机路径和现有模型配置，连接 '+server+'？输入 yes：').strip().lower()!='yes':print('已取消接入。');return
-    bridge=install_bundle(server,Path.home()/'.local/share/paperclip/bridge');sys.path.insert(0,str(bridge))
+    bridge=bootstrap;sys.path.insert(0,str(bridge))
     if sys.platform=='win32':
         from platform_support import private_directory
         private_directory(bridge.parent);private_directory(bridge);private_directory(config.parent)

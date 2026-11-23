@@ -324,7 +324,11 @@ def collect(b,checks,folder):
         representative=next((run for run in active_runs if run['state']=='waiting_decision'),active_runs[0])
         active=representative['taskId'];run_id=representative['runId']
         if state not in ('config_error','error'):state=representative['state']
-    return {'activeRuns':active_runs,'acceptingWork':not offline_requested(b),'bridgeVersion':bridge_version(),'capabilities':['seat-concurrency-v1','seat-admin-upgrade-v1','seat-launch-options-v1','managed-session-v1','harness-repository-management-v1','full-visible-text','phase-gate-v1','jira-workload-v1','seat-rule-intake-v1','platform-dispatch-v1','execution-recovery-v1','native-wait-v1','seat-auto-retry-v1','command-longpoll-v1','analysis-execution-v1','delivery-flow-v1','delivery-work-review-v1','delivery-executor-v1','delivery-rework-v1']+(['harness-root-launch-v1'] if b.cfg.get('claude_launch_mode','harness-root-v1')=='harness-root-v1' else ['harness-source-launch-compat-v1']),'checkedAt':now(),'revision':(b.cfg.get('seat_runtime') or {}).get('revision'),'state':state,'activeTaskId':active,'runId':run_id,'checks':checks,'alerts':alerts[:20],'tasks':tasks,'autoPermit':auto},registered
+    from quick_install import installed_bridge_channel
+    capabilities=['seat-concurrency-v1','seat-launch-options-v1','managed-session-v1','harness-repository-management-v1','full-visible-text','phase-gate-v1','jira-workload-v1','seat-rule-intake-v1','platform-dispatch-v1','execution-recovery-v1','native-wait-v1','seat-auto-retry-v1','command-longpoll-v1','analysis-execution-v1','delivery-flow-v1','delivery-work-review-v1','delivery-executor-v1','delivery-rework-v1']+(['harness-root-launch-v1'] if b.cfg.get('claude_launch_mode','harness-root-v1')=='harness-root-v1' else ['harness-source-launch-compat-v1'])
+    if installed_bridge_channel(b.cfg) == 'v1':
+        capabilities.append('seat-admin-upgrade-v1')
+    return {'activeRuns':active_runs,'acceptingWork':not offline_requested(b),'bridgeVersion':bridge_version(),'capabilities':capabilities,'checkedAt':now(),'revision':(b.cfg.get('seat_runtime') or {}).get('revision'),'state':state,'activeTaskId':active,'runId':run_id,'checks':checks,'alerts':alerts[:20],'tasks':tasks,'autoPermit':auto},registered
 
 def refresh_registration(b,checks,state,stamp=None):
     """Recover runtime drift, with bounded retries and a fresh post-save check."""
